@@ -2,14 +2,12 @@
     "name": "supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
     "homepage": "https://github.com/selsamman/supertype",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "devDependencies": {
         "q": "1.x"
     },
     "directories": {
-        "lib": "./lib"
     },
-    "main": "./lib/index",
     "engines": {
         "node": ">=0.8.0"
     },
