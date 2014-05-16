@@ -57,8 +57,6 @@ ObjectTemplate.setTemplateProperties = function(template, name, properties, pare
     }
     if (parentTemplate)
         collection = parentTemplate.__collection__;
-    if (parentTemplate && this.__templatesToInject__[parentTemplate.__name__])
-        delete this.__templatesToInject__[parentTemplate.__name__];
     this.__templatesToInject__[name] = template;
     this.__dictionary__[name] = template;
     template.__name__ = name;
