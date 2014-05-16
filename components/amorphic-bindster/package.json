@@ -1,0 +1,24 @@
+{
+    "name": "amorphic-bindster",
+    "description": "bindster support for amorphic",
+    "homepage": "https://github.com/selsamman/amorphic-bindster",
+    "version": "0.1.0",
+    "dependencies": {
+    },
+    "devDependencies": {
+    },
+    "directories": {
+    },
+    "main": "./index.js",
+    "engines": {
+        "node": ">=0.8.0"
+    },
+    "repository": {
+        "type": "git",
+            "url": "git://github.com/selsamman/amorphic-bindster.git"
+    },
+    "bugs": {
+        "url": "http://github.com/selsamman/amorphic-bindster/issues"
+    },
+    "optionalDependencies": {}
+}
