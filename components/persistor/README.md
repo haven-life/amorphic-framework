@@ -1,25 +1,23 @@
-# persistor
-
 ## Purpose
 
 peristor is a subclass of superType that serializes to and reconstitutes from mongoDB
 
 ## Installation
 
-It is automatically installed as a dependency for Amorphic
+It is automatically installed with Amorphic
 
 ## Example
 
 First create some object templates (many-to-many example) 
 
     var ObjectTemplate = require('supertype');
-    var PersistObjectTemplate = require('persitor')(ObjectTemplate, null, ObjectTemplate);
+    var PersistObjectTemplate = require('persistor')(ObjectTemplate, null, ObjectTemplate);
 
     var Customer = PersistObjectTemplate.create("customer:Customer", {
-        email:		{type: String, value: "", length: 50, rule: ["text", "email", "required"]},
-        firstName:  {type: String, value: "", length: 40, rule: ["name", "required"]},
-        middleName: {type: String, value: "", length: 40, rule: "name"},
-        lastName:	{type: String, value: "", length: 40, rule: ["name", "required"]},
+        email:		{type: String},
+        firstName:  {type: String},
+        middleName: {type: String},
+        lastName:	{type: String}
     });
     
     var Account = PersistObjectTemplate.create("account:Account", {
@@ -35,7 +33,7 @@ First create some object templates (many-to-many example)
             customer.roles.push(role);
         },
         number:     {type: Number},
-        title:      {type: Array, of: String, max: 4},
+        title:      {type: Array, of: String, max: 4}
     });
 
     var Role = PersistObjectTemplate.create("role:Role", {
