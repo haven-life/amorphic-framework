@@ -269,14 +269,21 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
         // Create the new object with correct constructor using embedded ID if ObjectTemplate
         var obj = establishedObj ||
-            this._createEmptyObject(template, 'perist-' + pojo._template + "-"+ pojo._id.toString(), defineProperty);
+            this._createEmptyObject(template, 'perist-' + pojo._template.replace(/.*:/,'') +
+                "-"+ pojo._id.toString(), defineProperty);
         var collection = obj.__template__.__collection__;
-        var schema = this._schema[obj.__template__.__collection__];
+        var schema = this._schema[obj.__template__.__collection__]
 
         var id = null;
         if (pojo._id) { // If object is persistent make sure id is a string and in map
             id = pojo._id;
             obj._id = id.toString();
+
+            // If we have a real value and an array of value store functions, call them
+            if (idMap[id.toString()] && idMap[id.toString()] instanceof Array)
+                for (var fx = 0; fx < idMap[id.toString()].length; ++fx)
+                    idMap[id.toString()][fx].call(null, obj);
+
             idMap[id.toString()] = obj;
         }
 
@@ -309,7 +316,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 (!isCrossDocRef && (typeof(value) == "undefined" || value == null)))
                 continue;
             if (!type)
-                throw obj.__template__.__name__ + "." + prop + " has no type decleration";
+                throw new Error(obj.__template__.__name__ + "." + prop + " has no type decleration");
 
             if (type == Array)
             {
@@ -321,11 +328,39 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 {
                     obj[prop] = [];
                     for (var ix = 0; ix < pojo[prop].length; ++ix)
-                        obj[prop][ix] = pojo[prop][ix] ?
-                            (typeof(pojo[prop][ix]) == "string" ?
-                                idMap[pojo[prop][ix]] :
-                                this.fromDBPOJO(pojo[prop][ix], defineProperty.of, promises, defineProperty, idMap))
-                            : null;
+                    {
+                        // Did we get a value ?
+                        if (pojo[prop][ix]) {
+
+                            // is it a cached id reference
+                            if (typeof(pojo[prop][ix]) == "string")
+                            {
+                                // If nothing in the map create an array
+                                if (!idMap[pojo[prop][ix]])
+                                    idMap[pojo[prop][ix]] = [];
+
+                                // If an array of value store functions add ours to the list
+                                if (idMap[pojo[prop][ix]] instanceof Array)
+                                    idMap[pojo[prop][ix]].push(function (value) {
+                                        pojo[prop][ix] = value;
+                                    });
+                                else
+                                    obj[prop][ix] = idMap[pojo[prop][ix]];
+                            } else
+
+                                obj[prop][ix] =
+                                    this.fromDBPOJO(pojo[prop][ix], defineProperty.of, promises, defineProperty, idMap);
+
+                        } else
+                            obj[prop][ix] = null;
+                    }
+                    /*
+                     obj[prop][ix] = pojo[prop][ix] ?
+                     (typeof(pojo[prop][ix]) == "string" ?
+                     idMap[pojo[prop][ix]] :
+                     this.fromDBPOJO(pojo[prop][ix], defineProperty.of, promises, defineProperty, idMap))
+                     : null;
+                     */
                 }
                 // Otherwise this is a database reference and we have to find the collection of kids
                 else {
@@ -343,7 +378,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                         var options = {};
                         if (id) {
                             if(!schema || !schema.children || !schema.children[prop])
-                                throw  obj.__template__.__name__ + "." + prop + " is missing a children schema entry";
+                                throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
                             var foreignKey = schema.children[prop].id;
                             query[foreignKey] = new ObjectID(id.toString());
                         }
@@ -384,15 +419,42 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 // Same collection suck in from idMap if previously referenced or process pojo
                 if (type.__collection__ == collection)
                 {
-                    var newObject = pojo[prop] ? (typeof(pojo[prop]) == "string" ? idMap[pojo[prop]] :
-                        this.fromDBPOJO(pojo[prop], type, promises, defineProperty, idMap))	: null;
-                    obj[prop] = newObject;
+                    // Did we get a value ?
+                    if (pojo[prop]) {
+
+                        // is it a cached id reference
+                        if (typeof(pojo[prop]) == "string")
+                        {
+                            // If nothing in the map create an array
+                            if (!idMap[pojo[prop]])
+                                idMap[pojo[prop]] = [];
+
+                            // If an array of value store functions add ours to the list
+                            if (idMap[pojo[prop]] instanceof Array)
+                                idMap[pojo[prop]].push(function (value) {
+                                    pojo[prop] = value;
+                                });
+                            else
+                                obj[prop] = idMap[pojo[prop]];
+                        } else
+
+                            obj[prop] = this.fromDBPOJO(pojo[prop], type, promises, defineProperty, idMap);
+
+                    } else
+
+                        obj[prop] = null;
+
+                    /*
+                     var newObject = pojo[prop] ? (typeof(pojo[prop]) == "string" ? idMap[pojo[prop]] :
+                     this.fromDBPOJO(pojo[prop], type, promises, defineProperty, idMap))	: null;
+                     obj[prop] = newObject;
+                     */
 
                 } else // Otherwise read from idMap or query for it
                 {
                     // Determine the id needed
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  obj.__template__.__name__ + "." + prop + " is missing a parents schema entry";
+                        throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
 
                     var foreignKey = schema.parents[prop].id;
 
@@ -523,7 +585,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.persistSave = function(obj, promises, masterId, idMap)
     {
         if (!this._schema)
-            throw "Please call setSchema before doing calling persistSave";
+            throw  new Error("Please call setSchema before doing calling persistSave");
         var schema = this._schema[obj.__template__.__collection__];
         var collection = obj.__template__.__collection__;
         var resolvePromises = false;    // whether we resolve all promises
@@ -567,7 +629,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             if (defineProperty.type == Array)
             {
                 if (!defineProperty.of)
-                    throw obj.__template__.__name__ + "." + prop + " is an Array with no 'of' declaration";
+                    throw  new Error(obj.__template__.__name__ + "." + prop + " is an Array with no 'of' declaration");
 
                 // If type of pojo
                 if (!defineProperty.of.__collection__)
@@ -591,7 +653,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                         for (var ix = 0; ix < value.length; ++ix)
                         {
                             if (!schema || !schema.children || !schema.children[prop] || !schema.children[prop].id)
-                                throw  obj.__template__.__name__ + "." + prop + " is missing a children schema entry";
+                                throw   new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
                             var foreignKey = schema.children[prop].id;
                             if (!value[ix][foreignKey] || value[ix][foreignKey].toString() != id.toString()) {
                                 value[ix][foreignKey] = id;
@@ -617,7 +679,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 else
                 {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  obj.__template__.__name__ + "." + prop + " is missing a parents schema entry";
+                        throw   new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
 
                     var foreignKey = schema.parents[prop].id;
                     // Make sure referenced entity has an id
@@ -661,7 +723,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.getDB = function()
     {
         if (!this._db)
-            throw "You must do PersistObjectTempate.setDB()";
+            throw  new Error("You must do PersistObjectTempate.setDB()");
         return this._db;
     }
 
