@@ -194,8 +194,8 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
             template.__injections__[ix].call(this, this);
 
         // Global injections
-        for (var ix = 0; ix < ObjectTemplate.__injections__.length; ++ix)
-            ObjectTemplate.__injections__[ix].call(this, this);
+        for (var ix = 0; ix < objectTemplate.__injections__.length; ++ix)
+            objectTemplate.__injections__[ix].call(this, this);
 
         // If we don't have an init function or are a remote creation call parent constructor otherwise call init
         // function who will be responsible for calling parent constructor to allow for parameter passing.
