@@ -1,4 +1,5 @@
-/* Copyright 2011-2013 Sam Elsamman
+/*
+ Copyright 2011-2013 Sam Elsamman
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
  "Software"), to deal in the Software without restriction, including
@@ -89,7 +90,8 @@ Bindster.prototype.setModel = function(model)
         this.data.__stats.last_render_time = 0;
     }
 }
-Bindster.prototype.setController = function(controller) {
+Bindster.prototype.setController = function(controller)
+{
     this.controller = controller;
     controller.model = this.data;
     controller.m = this.data;
@@ -151,7 +153,42 @@ Bindster.prototype.setController = function(controller) {
     controller.set = function(tags, value) {
         this.value = value;
         this.bindster.eval(this.bindster.getBindAction(tags, "bindster.controller.value"), null, "controller.set");
-    }}
+    }
+    controller.bindSet = function(bind, value)
+    {
+        this.value = value;
+        var tags = this.getTags(bind);
+        this.bindster.eval(this.bindster.getBindAction(tags, "bindster.controller.value"), null, "controller.set");
+    }
+    controller.bindGet = function(bind)
+    {
+        var tags = this.getTags(bind);
+        var bind_data = this.bindster.eval(this.bindster.getPropOrGetter(tags.bind), null, "bind");
+        if (typeof(bind_data) == 'undefined')
+            this.bindster.throwError(null, 'bind', tags.bind + ' returned undefined');
+        if (tags.format)
+            bind_data = this.bindster.evalWithValue(tags.format, bind_data, 'format');
+        return bind_data;
+    }
+    controller.getTags = function(bindRef)
+    {
+        var pattrs = this.bindster.getPropAttrs(null, bindRef);
+        var attrs = {bind: bindRef};
+
+        for (var attr in pattrs)
+        {
+            if (attr.match(/validate|format|parse/))
+                attrs[attr] = this.bindster.convertValue(pattrs[attr]);
+
+            if (attr.match(/rule/)) {
+                var name = pattrs["rule"];
+                this.bindster.processRules(null, name, attrs);
+            }
+        }
+
+        return attrs;
+    }
+}
 Bindster.prototype.alert = function(msg)
 {
     alert(msg)
@@ -272,6 +309,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
 
             var tags = this.getTags(node, mapAttrs, finger_print); // Fetch again in case hosed by Webkit oddity code above
             this.evalTags(tags, node);
+
             // Process Mapper
             if (tags.map && !node.getAttribute("bindster_map")) {
                 //node.appendChild(this.mappers[tags.map.name].cloneNode(true));
@@ -304,19 +342,22 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
             if (tags.includeurl) {
                 // Nothing loaded or the wrong url is loaded
                 var insertNode = tags.includeinsert ? node.getElementsByTagName(tags.includeinsert.toUpperCase())[0] : node;
+
+                var url = tags.includeurl.match(/^\{(.*)\}$/) ? this.eval(RegExp.$1, null, "include", node) : tags.includeurl;
+
                 if (!this.getFirstChild(insertNode) ||
                     (this.getFirstChild(insertNode).tagName && this.getFirstChild(insertNode).tagName.match(/insert/i)) ||
-                    (node.getAttribute("bindster_includeurl") && node.getAttribute("bindster_includeurl") != tags.includeurl))
+                    (node.getAttribute("bindster_includeurl") && node.getAttribute("bindster_includeurl") != url))
                 {
                     var self = this;
-                    this.includeNode(tags.includeurl, insertNode, tags.includeasync ? true : false,
+                    this.includeNode(url, insertNode, tags.includeasync ? true : false,
                         function () {
                             if (tags.includewhenloaded)
                                 self.eval(tags.includewhenloaded, null, "then", node);
                             if (tags.includeifloaded)
                                 self.eval(tags.includeifloaded, null, "then", node);
                         });
-                    node.setAttribute("bindster_includeurl", tags.includeurl);
+                    node.setAttribute("bindster_includeurl", url);
                 } else {
                     if (tags.includeifloaded)
                         this.eval(tags.includeifloaded, null, "then", node);

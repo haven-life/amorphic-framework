@@ -1,24 +1,25 @@
 {
-    "name": "amorphic-bindster",
-    "description": "bindster support for amorphic",
-    "homepage": "https://github.com/selsamman/amorphic-bindster",
-    "version": "0.1.0",
-    "dependencies": {
-    },
-    "devDependencies": {
-    },
-    "directories": {
-    },
-    "main": "./index.js",
-    "engines": {
-        "node": ">=0.8.0"
-    },
-    "repository": {
-        "type": "git",
-            "url": "git://github.com/selsamman/amorphic-bindster.git"
-    },
-    "bugs": {
-        "url": "http://github.com/selsamman/amorphic-bindster/issues"
-    },
-    "optionalDependencies": {}
+  "name": "amorphic-bindster",
+  "description": "bindster support for amorphic",
+  "homepage": "https://github.com/selsamman/amorphic-bindster",
+  "version": "0.1.01",
+  "dependencies": {},
+  "devDependencies": {},
+  "directories": {},
+  "main": "./index.js",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/selsamman/amorphic-bindster.git"
+  },
+  "bugs": {
+    "url": "http://github.com/selsamman/amorphic-bindster/issues"
+  },
+  "optionalDependencies": {},
+  "readme": "# amorphic-bindster\r\n\r\n## Purpose\r\n\r\nBinds bindster to an amorphic controller and makes bindster itself available to the client.\r\n\r\n## Installation\r\n\r\nInstalled automatically with amorphic\r\n\r\n## License\r\n\r\nsuperType is licensed under the MIT license\r\n\r\n\r\n\r\n",
+  "readmeFilename": "README.md",
+  "_id": "amorphic-bindster@0.1.0",
+  "_from": "amorphic-bindster@0.1.x"
 }

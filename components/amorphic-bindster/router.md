@@ -1,0 +1,100 @@
+# Amorphic Router
+
+## Purpose
+
+To automated URL mapping for an application using Bindster or other single page application framework.
+
+## Features
+The router has these main features
+
+* Maps URLs to the state of your application
+* Map search parameters to and from URL parameters
+* Calls an entry and exit function for each URL
+* Hierarchically organized such that mappings are inherited down the tree
+* Automatically uses pushstate in browsers that support it and hashmarks in browsers that don't
+
+## Concepts
+You start with a route map that is a an object with properties for each route.  By default the property is the path.
+Each path can have these properties
+
+* routes - which defines a sub-tree of paths
+* parameters - set of properties that map search parameters to the url
+* enter - a function executed when the route is invoked
+* exit - a runction execute when a new route is invoked
+* path - let's you override the default url path portion which defaults to /property
+
+You can also define any other properties.  Since the route object is a tree your own properties are 
+inherited as you move down the tree.  This lets you define properties that apply to a whole section of
+a tree.  The enter and exit properties also are inherited but are cumulative so that if you specify
+an enter/exit function it will get executed prior to any lower level enter/exit functions.  The
+enter/exit functions are called with the node of the hierarchy as a parameter 
+
+search properties are also objects which have these properties
+* bind - a property in your bindster context that will map to a url search parameter
+* toURL - true if url is to be updated when the bind element changes
+* fromURL - true if the property is to be bound 
+
+Here is a sample:
+
+    router.setRoute(controller, {
+        enter: function (route) {
+            this.page = route.file;
+            this.className = route.className;
+        },
+        routes: {
+            user: {                         // my default this would be a spec for /user
+                file: 'home.html'
+                path: '/',                  // but we override it to be /
+                className: "userStyle",     // an extra property we can just reference it is pushed to child nodes
+                parameters: {                   // how to parse and optionally compose  the search part of the url
+                    utm_campaign: {bind: "analytics.utm_campaign", fromURL: true, toURL: false},
+                    utm_keywords: {bind: "analytics.utm_keywords", fromURL: true, toURL: false},
+                    utm_media:    {bind: "analytics.utm_media", fromURL: true, toURL: false}
+                },
+                enter: function () {__gaq.track(document.location.url)}, // when this route is navigated to
+                routes: {  // sub-routes by default each property is a url fragment eg /tickets
+                    tickets: {file: 'tickets.html'},
+                    ticket: {
+                        file 'ticket.html',
+                        search: {ticket: {bind: "ticketId"}}
+                    },
+                    profile: {
+                        routes: {
+                            main: {path: '/', file: 'profile.html'},    // /profile/
+                            password: {file: 'password.html'},          // /profile/password
+                            email: {file: 'email.html'}                 // /profile/email
+                        }
+                    },
+                    dialog: {
+                        onenter: function (){this.popup=true"},  // handy to set a flag that will be used in onshow for a popup
+                        onexit:  function (){popup=false"},
+                        routes: {
+                            login: {file: 'login'},
+                            change_password: {file: 'login'}
+                        }
+                    }
+                }
+            },
+            admin: {
+                path: "/admin.shtml",
+                className: "adminStyle",
+                routes: {
+                    users: {file: "users.html"},
+                    user: {file: "user.html"},
+                    ftp: ftpRoutes // reference to a whole other set of routes
+                }
+            }
+        }
+    });
+    
+That first enter property is inherited by all routes and will set the page property to the file name property
+and the className to the className of the route.  The className in this example is inherited from the user and
+admin levels of the tree.  
+
+This means that with Bindster you can use this to dynamically include the page file you need.
+
+     <div b:class="{className}">
+        <b:include urlbind="{page}">
+     </div>
+
+This will also setup a a class that 
