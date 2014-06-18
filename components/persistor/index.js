@@ -287,6 +287,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             idMap[id.toString()] = obj;
         }
 
+        function copyProps(obj) {
+            var newObj = {};
+            for (var prop in obj)
+                newObj[prop] = obj[prop];
+            return newObj;
+        }
+
         // Go through all the properties and transfer them to newly created object
         var props = specificProperties || obj.__template__.getProperties();
         for (var prop in props)
@@ -307,7 +314,6 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
             var persistorPropertyName = prop + "Persistor";
             obj[persistorPropertyName] = obj[persistorPropertyName] || {count: 0};
-            var persistor = obj[persistorPropertyName];
 
             // Make sure this is property is persistent and that it has a value.  We have to skip
             // undefined values in case a new property is added so it can retain it's default value
@@ -366,10 +372,11 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 else {
                     var self = this;
                     (function () {
-                        var closurePersistor = persistor;
+                        var closurePersistorProp = persistorPropertyName;
                         var closureOf = defineProperty.of;
                         promises.push(self.countFromQuery(closureOf, query).then( function(count) {
-                            closurePersistor.count = count;
+                            obj[closurePersistorProp].count = count;
+                            obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                         }));
                     })();
                     if (doFetch)
@@ -389,7 +396,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                         var self = this;
                         (function () {
                             var closureProp = prop;
-                            var closurePersistor = persistor;
+                            var closurePersistorProp = persistorPropertyName
                             var closureCascade = cascadeFetch;
                             var closureDefineProperty = defineProperty;
                             obj[closureProp] = [];
@@ -404,14 +411,16 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                         obj[closureProp][ix] = self.fromDBPOJO(pojos[ix], closureDefineProperty.of,
                                             promises, closureDefineProperty, idMap, closureCascade)
                                 }
-                                closurePersistor.isFetched = true;
-                                closurePersistor.start = options ? options.start || 0 : 0;
-                                closurePersistor.next = closurePersistor.start + pojos.length;
+                                obj[closurePersistorProp].isFetched = true;
+                                obj[closurePersistorProp].start = options ? options.start || 0 : 0;
+                                obj[closurePersistorProp].next = obj[closurePersistorProp].start + pojos.length;
+                                obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                                 return Q.fcall(function(){return true}); // Say we done
                             }));
                         })();
                     } else
-                        persistor.isFetched = false;
+                        obj[persistorPropertyName].isFetched = false;
+                    obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
                 }
 
             } else if (type.isObjectTemplate)
@@ -459,12 +468,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                     var foreignKey = schema.parents[prop].id;
 
                     // ID is in pojo or else it was left in the persistor
-                    var foreignId = (pojo[foreignKey] || persistor.id || "").toString();
+                    var foreignId = (pojo[foreignKey] || obj[persistorPropertyName].id || "").toString();
 
                     // Return copy if already there
                     if (idMap[foreignId]) {
                         obj[prop] = idMap[foreignId];
-                        persistor.isFetched = true;
+                        obj[persistorPropertyName].isFetched = true;
+                        obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
                     } else {
                         if (doFetch) {  // Only fetch ahead if requested
                             obj[prop] = null;
@@ -478,21 +488,27 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                 (function () {
                                     var closureProp = prop;
                                     var closureType = type;
-                                    var closurePersistor = persistor;
+                                    var closurePersistorProp = persistorPropertyName;
+
                                     var closureCascade = cascadeFetch;
                                     var closureDefineProperty = defineProperty;
                                     promises.push(self.getPOJOFromQuery(closureType, query).then(function(pojos) {
                                         if (pojos.length > 0)
                                             obj[closureProp] = self.fromDBPOJO(pojos[0], closureType, promises,
                                                 closureDefineProperty, idMap, closureCascade);
-                                        closurePersistor.isFetched = true;
+                                        obj[closurePersistorProp].isFetched = true;
+                                        obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                                         return Q.fcall(function(){return true});
                                     }));
                                 })();
+                            } else {
+                                obj[persistorPropertyName].isFetched = true;
+                                obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
                             }
                         } else {
-                            persistor.isFetched = false;
-                            persistor.id = foreignId;
+                            obj[persistorPropertyName].isFetched = false;
+                            obj[persistorPropertyName].id = foreignId;
+                            obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
                         }
                     }
                 }
