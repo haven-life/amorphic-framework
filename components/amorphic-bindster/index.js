@@ -187,7 +187,11 @@ Bindster.prototype.setController = function(controller)
         }
 
         return attrs;
-    }
+    },
+        controller.arrive = function() {
+            this.bindster.DOMTestResolve("arrival");
+        }
+
 }
 Bindster.prototype.alert = function(msg)
 {
@@ -467,11 +471,11 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             // Create new context for setting up index values in events and binds
                             var new_context = (tags.iterateindex || tags.iteratewith) ?
                                 context + (
-                                    (tags.iteratewith ? this.instance + ".set('" + tags.iteratewith + "', \""
-                                        /*+ this.instance + ".data."*/ + tags.iterateon + "[" + ix + "]\");" :  "")
-                                        + (tags.iterateindex ? this.instance + ".set('" + tags.iterateindex + "', " + ix + ");" : "")
-                                        + (tags.iteratecounter ? this.instance + ".set('" + tags.iteratecounter + "', " + counter + ");" : "")
-                                    ) : context;
+                                (tags.iteratewith ? this.instance + ".set('" + tags.iteratewith + "', \""
+                                    /*+ this.instance + ".data."*/ + tags.iterateon + "[" + ix + "]\");" :  "")
+                                + (tags.iterateindex ? this.instance + ".set('" + tags.iterateindex + "', " + ix + ");" : "")
+                                + (tags.iteratecounter ? this.instance + ".set('" + tags.iteratecounter + "', " + counter + ");" : "")
+                                ) : context;
                             this.eval(new_context, null, 'with, index or counter attributes of iterate', node);
 
                             // Check filter expression
@@ -843,8 +847,8 @@ Bindster.prototype.resolveSelectValue = function (target)
 }
 Bindster.prototype.getPropOrGetter = function (bind_ref) {
     /* It would be nice to be able to substitute a getter but this would require some heavy duty processing
-    *  this feature should probably come out or be done as a true getter */
-    if (bind_ref.match(/[A-Za-z0-9_]$/) && !bind_ref.match(/[^A-Za-z0-9_\(\)\.\[\]]/))
+     *  this feature should probably come out or be done as a true getter */
+    if (typeof(bind_ref) == 'string' && bind_ref.match(/[A-Za-z0-9_]$/) && !bind_ref.match(/[^A-Za-z0-9_\(\)\.\[\]]/))
         return "(typeof(" + bind_ref + "Get) == 'function' ? (" + bind_ref + "Get()) : (" + bind_ref + "))";
     else
         return bind_ref
@@ -991,14 +995,14 @@ Bindster.prototype.getBindAction = function(tags, value)
         (tags.validate ? (tags.validate + "; ") : "") +
         this_previous_value + " = " + tags.bind  + ";" +
         "if (" + bind_error +") {delete " + bind_error + "} " +
-        ((typeof(Q) != 'undefined' && tags.bind.match(/[a-zA-z]$/ && !tags.bind.match(/[^A-Za-z0-9_\(\)\.\[\]]/))) ?
+        ((typeof(Q) != 'undefined' && tags.bind.match(/[a-zA-z]$/) && !tags.bind.match(/[^A-Za-z0-9_\(\)\.\[\]]/)) ?
             "if (typeof(" + tags.bind + "Set) == 'function'){" +
-                bind_error + " = '__pending__';var self=this;" + tags.bind + "Set(" + this_value + ").then(" + "" +
-                "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
-                (tags.trigger ? tags.trigger : "") + "}).call(self)}," +
-                "function(e){(function(){c.bindster.hasErrors = true;" + bind_error + " = e}).call(self)})" +
-                "}else{" +
-                tags.bind + " = " + this_value + "};"
+            bind_error + " = '__pending__';var self=this;" + tags.bind + "Set(" + this_value + ").then(" + "" +
+            "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
+            (tags.trigger ? tags.trigger : "") + "}).call(self)}," +
+            "function(e){(function(){c.bindster.hasErrors = true;" + bind_error + " = e}).call(self)})" +
+            "}else{" +
+            tags.bind + " = " + this_value + "};"
             : (tags.bind + " = " + this_value + ";") + (tags.trigger ? (tags.trigger + "; ") : "")) +
         ((this.controller && typeof(this.controller.onchange) == "function") ? "this.controller.onchange();" : "") +
         " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.hasErrors = true;" +
@@ -1350,7 +1354,7 @@ Bindster.prototype.getTags = function (node, mapAttrs, finger_print)
                     var pattrs = this.getPropAttrs(node, attrValue);
 
                 for (attr in pattrs)
-                    if (attr.match(/validate|format|parse|rule|type/))
+                    if (attr.match(/validate|format|parse|rule|type|values/))
                         attrs[attr.match(/type/) ? 'proptype' : attr] =
                             (attr == 'rule' || attr == 'type') ? pattrs[attr] : this.convertValue(pattrs[attr]);
 
@@ -1625,7 +1629,7 @@ Bindster.prototype.getOnPaint = function(element, expression)
         js = "(" + js + ")";
         depends.push({name: escape(js).replace(/[\%\*\@\-\+\.]/g, function(c)
         {return c == '%' ? '_pct_' : c == '+' ? '_plus_' : c == '*' ? '_star_' :
-            c == '@' ? '_at_'  : c == '-' ? '_minus' : c == '.' ? '_dot_'  : c}),
+                c == '@' ? '_at_'  : c == '-' ? '_minus' : c == '.' ? '_dot_'  : c}),
             value: js})
         return '" + ' + js + ' + "';
     });
@@ -2015,7 +2019,7 @@ Bindster.prototype.DOMSet = function (request)
         return value;
     } else {
         this.DOMTestRequestData = null;
-        throw "Cannot process DOMTestReqeust" + JSON.stringify(request);
+        throw "Cannot process DOMTestRequest" + JSON.stringify(request);
     }
 },
     Bindster.prototype.DOMFind = function (request)
@@ -2035,7 +2039,8 @@ Bindster.prototype.DOMSet = function (request)
     {
         this.DOMTestRequestAction = request;
         this.DOMTestRequestAction.status = "Pending";
-        this.render();
+        var wasDeferred = this.DOMTestRequestAction.defer;
+        this.render();  // May cause defer to be reset to null
         if (this.DOMTestRequestAction.status && this.DOMTestRequestAction.status == "OK") {
             if (this.DOMTestRequestAction.defer) {
                 this.DOMTestRequestAction.status = "Deferred";
@@ -2044,39 +2049,40 @@ Bindster.prototype.DOMSet = function (request)
             }
             this.render();  // Re-render
             this.DOMTestRequestAction = null;
+            return wasDeferred ? Q(true) : null;
         } else {
             this.DOMTestRequestAction = null;
-            throw "Cannot process DOMTestReqeust" + JSON.stringify(request);
+            throw "Cannot process DOMTestRequest" + JSON.stringify(request);
         }
-    }
+    },
 
-/*
- Handlers for test interface which catch data binding and event handling as well as render and
- ajax calls for resolving promises.
- */
+    /*
+     Handlers for test interface which catch data binding and event handling as well as render and
+     ajax calls for resolving promises.
+     */
 
 // Called on bind operations.  Has the opportunity to change the bind value (DOMSet) and
 // retrieve data (DOMGet).  Uses getBindAction to ensure validation and filtering occur.
 // For radio and checkboxes data is taken directly to/from model
-Bindster.prototype.DOMTestBind = function(finger_print, node, tags, bind_data)
-{
-    if (this.DOMTestRequestData && this.DOMTestRequestData.bind && this.DOMTestRequestData.status == "Pending" &&
-        (!this.DOMTestRequestData.selector || finger_print.match(this.DOMTestRequestData.selector)) &&
-        this.DOMTestRequestData.bind == tags.bind)
+    Bindster.prototype.DOMTestBind = function(finger_print, node, tags, bind_data)
     {
-        if (this.DOMTestRequestData.value) {
-            if ((node.tagName && node.tagName.match(/INPUT|SELECT|TEXTAREA/)) || node.bindster.controller) {
-                this.eval(this.getBindAction(tags, "bindster.DOMTestRequestData.value"), null, "DOMTestBind");
+        if (this.DOMTestRequestData && this.DOMTestRequestData.bind && this.DOMTestRequestData.status == "Pending" &&
+            (!this.DOMTestRequestData.selector || finger_print.match(this.DOMTestRequestData.selector)) &&
+            this.DOMTestRequestData.bind == tags.bind)
+        {
+            if (this.DOMTestRequestData.value) {
+                if ((node.tagName && node.tagName.match(/INPUT|SELECT|TEXTAREA/)) || node.bindster.controller) {
+                    this.eval(this.getBindAction(tags, "bindster.DOMTestRequestData.value"), null, "DOMTestBind");
+                    this.DOMTestRequestData.status = "OK";
+                    bind_data = this.DOMTestRequestData.value;
+                }
+            } else {
+                this.DOMTestRequestData.value = bind_data;
                 this.DOMTestRequestData.status = "OK";
-                bind_data = this.DOMTestRequestData.value;
             }
-        } else {
-            this.DOMTestRequestData.value = bind_data;
-            this.DOMTestRequestData.status = "OK";
         }
+        return bind_data;
     }
-    return bind_data;
-}
 
 // Called on attachment of events to find both onclick events and anchors that need to be fired
 Bindster.prototype.DOMTestClick = function(finger_print, node, events) {
@@ -2086,7 +2092,8 @@ Bindster.prototype.DOMTestClick = function(finger_print, node, events) {
             if ((!this.DOMTestRequestAction.selector || finger_print.match(this.DOMTestRequestAction.selector)) &&
                 ((this.DOMTestRequestAction.action &&  event.script == this.DOMTestRequestAction.action) ||
                     (this.DOMTestRequestAction.id && node.id && node.id == this.DOMTestRequestAction.id) ||
-                    (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text)))
+                    (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text &&
+                        (!this.DOMTestRequestAction.type || this.DOMTestRequestAction.type.toLowerCase() == node.tagName.toLowerCase()))))
             {
                 this.eval(event.action, node, "DOMTestClick");
                 this.DOMTestRequestAction.status = "OK"
@@ -2123,6 +2130,9 @@ Bindster.prototype.DOMTestResolve = function (type) {
             this.DOMTestRequestAction.status = "OK";
             this.DOMTestRequestAction.deferred.resolve(true);
         }
+    } else if (this.DOMTestRequestAction && this.DOMTestRequestAction.status == "Pending") {
+        if (this.DOMTestRequestAction.defer == "page" && type == "arrival")
+            this.DOMTestRequestAction.defer = null;
     }
 }
 // -------------------------- Bindster Controller ------------------------------

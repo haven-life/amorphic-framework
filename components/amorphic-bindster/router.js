@@ -3,6 +3,7 @@ AmorphicRouter =
     location: (typeof(document) != 'undefined') ? document.location : {pathname: '', search: '', hash: ''},
     history: (typeof(window) != 'undefined' && window.history ? window.history : null),
     paths: {},
+    routes:{},
     currentRoute: null,
     hasPushState: !!(typeof(window) != 'undefined' && window.history && history.pushState),
     lastParsedPath: null,
@@ -19,17 +20,17 @@ AmorphicRouter =
         this.controller = controller;
         options = options || {};
         var self = this;
-        this.route = function () {
-            self._goTo(self.route);
+        this.routes = function () {
+            self._goTo(self.routes);
         }
 
-        this._parseRoute(this.route, routeIn, {}, '', '');
+        this._parseRoute(this.routes, routeIn, {}, '', '');
 
         // Check regularly to see if path appears in location.href
         var self = this;
         setInterval(function () {self._checkURL()}, options.interval || 500);
 
-        return this.route;
+        return this.routes;
     },
 
     /**
@@ -45,10 +46,10 @@ AmorphicRouter =
     },
 
     /*
-    * Called internally from goTo or when a route appears in location.href
-    * but may be called to enter a route without it appearing in the address
-    * bar or creating history
-    */
+     * Called internally from goTo or when a route appears in location.href
+     * but may be called to enter a route without it appearing in the address
+     * bar or creating history
+     */
     arrive: function (route, parsed)
     {
         this.leave();
@@ -58,6 +59,7 @@ AmorphicRouter =
                 this.controller.bindSet(route.__parameters[key].bind, parsed.parameters[key]);
         for (var ix = 0; ix < this.currentRoute.__enter.length; ++ix)
             this.currentRoute.__enter[ix].call(this.controller, this.currentRoute);
+        this.controller.arrive();
         this.controller.refresh();
 
     },
@@ -235,5 +237,5 @@ AmorphicRouter =
     }
 }
 
-if (typeof(module) != 'undefined')
+if (typeof(window) == 'undefined')
     module.exports = AmorphicRouter;
