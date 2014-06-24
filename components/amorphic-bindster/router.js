@@ -20,6 +20,7 @@ AmorphicRouter =
     {
         this.controller = controller;
         options = options || {};
+        this.options = options;
         var self = this;
         this.routes = function () {
             var callArgs = [self.routes];
@@ -62,7 +63,7 @@ AmorphicRouter =
             this.leave();
         this.currentRoute = route;
         for (var key in route.__parameters)
-            if (parsed.parameters[key])
+            if (parsed && parsed.parameters[key])
                 this.controller.bindSet(route.__parameters[key].bind, parsed.parameters[key]);
         var callArgs = [route];
         if (this.pendingParameters)
@@ -106,17 +107,24 @@ AmorphicRouter =
      */
     _goTo: function (route)
     {
+        // Prepare pending parameters
         this.pendingParameters = {route: route, arguments: []};
         for (var ix = 1; ix < arguments.length; ix++)
             this.pendingParameters.arguments.push(arguments[ix]);
-        if (route.load)
-            this.location.href = this._encodeURL(route);
-        else if (this.hasPushState) {
-            this.location.hash = '';
-            this.history.pushState(route.__path, route.__title ? route.__title : null, this._encodeURL(route));
-        } else
-            this.location.hash = '#' + encodeURIComponent(this._encodeURL(route));
-        this._checkURL();
+
+        if (route.__nested)
+            this.arrive(route);
+        else
+        {
+            if (route.__load)
+                this.location.href = this._encodeURL(route);
+            else if (this.options.usePushState && this.hasPushState) {
+                this.location.hash = '';
+                this.history.pushState(route.__path, route.__title ? route.__title : null, this._encodeURL(route));
+            } else
+                this.location.hash = '#' + encodeURIComponent(this._encodeURL(route));
+            this._checkURL();
+        }
     },
 
     /* Internal functions */
