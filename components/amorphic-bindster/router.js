@@ -7,6 +7,7 @@ AmorphicRouter =
     currentRoute: null,
     hasPushState: !!(typeof(window) != 'undefined' && window.history && history.pushState),
     lastParsedPath: null,
+    pushedRoutes: [],
 
     /**
      * Set up routing
@@ -21,7 +22,10 @@ AmorphicRouter =
         options = options || {};
         var self = this;
         this.routes = function () {
-            self._goTo(self.routes);
+            var callArgs = [self.routes];
+            for (var ix = 0; ix < arguments.length; ix++)
+                callArgs.push(arguments[ix]);
+            self._goTo.apply(self, callArgs);
         }
 
         this._parseRoute(this.routes, routeIn, {}, '', '');
@@ -52,16 +56,33 @@ AmorphicRouter =
      */
     arrive: function (route, parsed)
     {
-        this.leave();
+        if (route.__nested)
+            this.pushedRoutes.push(this.currentRoute);
+        else
+            this.leave();
         this.currentRoute = route;
         for (var key in route.__parameters)
             if (parsed.parameters[key])
                 this.controller.bindSet(route.__parameters[key].bind, parsed.parameters[key]);
+        var callArgs = [route];
+        if (this.pendingParameters)
+            for (var ix = 0; ix < this.pendingParameters.arguments.length; ++ix)
+                callArgs.push(this.pendingParameters.arguments[ix]);
         for (var ix = 0; ix < this.currentRoute.__enter.length; ++ix)
-            this.currentRoute.__enter[ix].call(this.controller, this.currentRoute);
+            if (this.pendingParameters && this.pendingParameters.route == route && ix == (this.currentRoute.__enter.length - 1))
+                this.currentRoute.__enter[ix].apply(this.controller, callArgs);
+            else
+                this.currentRoute.__enter[ix].call(this.controller, this.currentRoute);
+        this.pendingParameters = null;
         this.controller.arrive();
         this.controller.refresh();
-
+    },
+    popRoute: function() {
+        this.leave();
+        this.currentRoute = this.pushedRoutes.pop();
+    },
+    getRoute: function () {
+        return this.currentRoute;
     },
     /**
      * Go to a location based on a path (same invoking a route as a function admin.tickets());
@@ -69,8 +90,12 @@ AmorphicRouter =
      */
     goTo: function (path) {
         var route = this.paths[path.substr(0, 1) == '/' ? path : '/' + path];
-        if (route)
-            this._goTo(route);
+        if (route) {
+            var callArgs=[route];
+            for (var ix = 1; ix < arguments.length; ix++)
+                callArgs.push(arguments[ix]);
+            this._goTo.apply(this, callArgs);
+        }
     },
     /**
      * Set a new route as active.  The route is a leaf in the routing definition tree
@@ -81,6 +106,9 @@ AmorphicRouter =
      */
     _goTo: function (route)
     {
+        this.pendingParameters = {route: route, arguments: []};
+        for (var ix = 1; ix < arguments.length; ix++)
+            this.pendingParameters.arguments.push(arguments[ix]);
         if (route.load)
             this.location.href = this._encodeURL(route);
         else if (this.hasPushState) {
@@ -191,6 +219,7 @@ AmorphicRouter =
         route.__exit = [];
         route.__parameters = {};
         route.__route = prop;
+        route.__nested = routeIn.nested;
 
         // Pull in all of the array parameters from interited (which is a route type structure)
         for (var prop in {__enter: 1, __exit: 1, __parameters: 1})
@@ -204,9 +233,14 @@ AmorphicRouter =
         // Then for the arrays layer on the one in the current leaf
         var self = this;
         if (routeIn.enter)
-            route.__enter.push(function (route){routeIn.enter.call(self.controller, route)});
+            route.__enter.push(function (route) {
+                var callArgs = [route];
+                for (var ix = 1; ix < arguments.length; ix++)
+                    callArgs.push(arguments[ix]);
+                routeIn.enter.apply(self.controller, callArgs)
+            });
         if (routeIn.exit)
-            route.__enter.push(function (route){routeIn.exit.call(self.controller, route)});
+            route.__exit.push(function (route){routeIn.exit.call(self.controller, route)});
         if (routeIn.parameters)
             for (var param in routeIn.parameters)
                 route.__parameters[param] = routeIn.parameters[param];
@@ -214,12 +248,11 @@ AmorphicRouter =
         // Now merge in the user defined properties
         function processProp (source) {
             for (var prop in source)
-                if (!prop.match(/^enter$|^exit$|^parameters$|^routes$|^path$/))
-                    route['__' + prop] = source[prop]
+                if (!prop.match(/^enter$|^exit$|^parameters$|^routes$|^path$|^nested$/) && !prop.match(/^__/))
+                    route[prop] = source[prop];
         }
         processProp(inherited);
         processProp(routeIn);
-
 
         // Add sub-routes
 
@@ -229,7 +262,10 @@ AmorphicRouter =
                 (function () {
                     var closureProp = prop;
                     route[prop] = function () {
-                        self._goTo(route[closureProp])
+                        var callArgs=[route[closureProp]];
+                        for (var ix = 0; ix < arguments.length; ix++)
+                            callArgs.push(arguments[ix]);
+                        self._goTo.apply(self, callArgs);
                     }
                 })();
                 this._parseRoute(route[prop], routeIn.routes[prop], route, currPath, prop)

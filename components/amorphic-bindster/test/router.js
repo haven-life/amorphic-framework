@@ -13,10 +13,13 @@ var controller = {
     refresh: function () {}
 }
 
-var main = router.route(controller, {
+var main = router.route(controller,
+{
     enter: function (route) {
-        this.page = route.__file;
-        this.className = route.__className;
+        if (route.file) {
+            this.page = route.file;
+            this.className = route.className;
+        }
     },
     parameters: {                   // how to parse and optionally compose  the search part of the url
         utm_campaign: {bind: "utm_campaign", encode: false},
@@ -29,7 +32,7 @@ var main = router.route(controller, {
             file: 'home.html',
             path: '',                  // but we override it to be /
             className: "userStyle",     // an extra property we can just reference it is pushed to child nodes
-            enter: function () {controller.enteredUser = true;}, // when this route is navigated to
+            enter: function () {this.enteredUser = true;}, // when this route is navigated to
             routes: {  // sub-routes by default each property is a url fragment eg /tickets
                 tickets: {file: 'tickets.html'},
                 ticket: {
@@ -44,10 +47,19 @@ var main = router.route(controller, {
                     }
                 },
                 dialog: {
-                    enter: function(){this.popup=true},  // handy to set a flag that will be used in onshow for a popup
-                    exit:  function(){this.popup=false},
+                     exit:  function() {
+                         this.popup=null
+                     },
                     routes: {
-                        login: {file: 'login.html'},
+                        login: {
+                            nested: true,
+                            file: null,
+                            enter: function (route, p) {
+                                this.popup = 'login.html'
+                                expect(p).to.equal(600);
+                                expect(route).to.equal(main.user.dialog.login);
+                            }
+                        },
                         change_password: {file: 'change_password.html'}
                     }
                 }
@@ -97,8 +109,12 @@ describe("Routes", function () {
         expect(controller.page).to.equal('password.html');
         main.user.profile.email();
         expect(controller.page).to.equal('email.html');
-        main.user.dialog.login();
-        expect(controller.page).to.equal('login.html');
+        main.user.dialog.login(600);
+        expect(controller.page).to.equal('email.html');
+        expect(controller.popup).to.equal('login.html');
+        router.popRoute();
+        expect(controller.popup).to.equal(null);
+        expect(controller.page).to.equal('email.html');
         main.user.dialog.change_password();
         expect(controller.page).to.equal('change_password.html');
         done();
