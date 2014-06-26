@@ -45,6 +45,9 @@ ObjectTemplate.init = function () {
     this.__anonymousId__ = 1;
     this.__templatesToInject__ = {};
 }
+ObjectTemplate.getTemplateByName = function (name) {
+    return this.__dictionary__[name];
+}
 ObjectTemplate.setTemplateProperties = function(template, name, properties, parentTemplate)
 {
     if (properties) {
