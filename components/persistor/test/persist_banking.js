@@ -34,6 +34,8 @@ var Address = PersistObjectTemplate.create("customer:Address", {
 	country:    {type: String, value: "US", length: 3}
 });
 Customer.mixin({
+    referredBy: {type: Customer, fetch: true},
+    referrers:  {type: Array, of: Customer, value: [], fetch: true},
 	addAddress: function(lines, city, state, zip) {
 		var address = new Address(this);
 		address.lines = lines;
@@ -43,7 +45,7 @@ Customer.mixin({
 		this.addresses.push(address);
 	},
 	addresses:  {type: Array, of: Address, value: []}
-});
+    });
 Address.mixin({
 	customer:  {type: Customer}
 });
@@ -109,8 +111,12 @@ var collections = {
 	customer: {
 		template: Customer,
 		children: {
-			roles: {template: Role, id:"customer_id"}
-		}
+			roles: {template: Role, id:"customer_id"},
+            referrers: {id: "referred_id"}
+		},
+        parents: {
+            referredBy: {id: "referred_id"}
+        }
 	},
 	account: {
 		template: Account,
@@ -184,8 +190,15 @@ describe("Banking Example", function () {
     var karen = new Customer("Karen", "M", "Burke");
     karen.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
     karen.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
-    var account = new Account(123, ['Sam Elsamman', 'Karen Burke'], sam);
+    var account = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam);
     account.addCustomer(karen, "joint");
+    var ashling = new Customer("Ashling", "", "Burke");
+    ashling.addAddress(["End of the Road", ""], "Lexington", "KY", "34421");
+    account.addCustomer(ashling, "joint");
+
+    sam.referrers = [ashling, karen];
+    ashling.referredBy = sam;
+    karen.referredBy = sam;
 
     var customer_id;
 
@@ -216,6 +229,14 @@ describe("Banking Example", function () {
             expect(customer.addresses[0].lines[0]).to.equal("500 East 83d");
             expect(customer.addresses[1].lines[0]).to.equal("38 Haggerty Hill Rd");
             expect(customer.addresses[1].customer).to.equal(customer);
+
+            var sam = customer;
+            var r1 = customer.referrers[0];
+            var r2 = customer.referrers[1];
+            var karen = r1.firstName == "Karen" ? r1 : r2;
+            var ashling = r1.firstName == "Karen" ? r2 : r1;
+            expect(karen.firstName).to.equal("Karen");
+            expect(ashling.firstName).to.equal("Ashling");
             return 0;
         });
     }

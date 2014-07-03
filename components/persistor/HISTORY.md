@@ -1,3 +1,5 @@
+## 0.1.24
+* Was not handling case where references in same collection were not sub-documents because they had a schema children reference
 ## 0.1.23
 * Persistor object changes were not being synchronized resulting in extra callse to propFetch methods
 ## 0.1.22

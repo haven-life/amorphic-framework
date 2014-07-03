@@ -50,6 +50,7 @@
  * @param baseClassForPersist
  */
 var nextId = 1;
+
 module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPersist)
 {
     var Q = require('q');
@@ -184,8 +185,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var type = defineProperty.type;
             var collection = template.__collection__;
             var of = defineProperty.of;
-            var isCrossDocRef = (of && of.__collection__ && of.__collection__ != collection) ||
-                (type && type.__collection__ && type.__collection__ != collection);
+            var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty)
             if (isCrossDocRef) {
                 (function () {
                     var closureProp = prop;
@@ -305,10 +305,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var defineProperty = props[prop];
             var type = defineProperty.type;
             var of = defineProperty.of;
-            // See if this a reference to another doc
-            var isCrossDocRef = (of && of.__collection__ && of.__collection__ != collection) ||
-                (type && type.__collection__ && type.__collection__ != collection);
-
+            var isCrossDocRef = this.isCrossDocRef(obj.__template__, prop, defineProperty);
             var cascadeFetch = (cascade && cascade[prop]) ? cascade[prop] : null;
             var doFetch = defineProperty['fetch'] || cascadeFetch;
 
@@ -330,7 +327,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 if (!defineProperty.of.__collection__)
                     obj[prop] = value;
                 // If this is in the same entity just copy over
-                else if (defineProperty.of.__collection__ == collection)
+                else if (!isCrossDocRef)
                 {
                     obj[prop] = [];
                     for (var ix = 0; ix < pojo[prop].length; ++ix)
@@ -636,6 +633,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         for (var prop in props)
         {
             var defineProperty = props[prop];
+            var isCrossDocRef = this.isCrossDocRef(obj.__template__, prop, defineProperty);
             var value = obj[prop];
             if (!this._persistProperty(defineProperty) || !defineProperty.enumerable ||
                 typeof(value) == "undefined" || value == null)
@@ -652,7 +650,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                     pojo[prop] = value;
 
                 // If this is in the same entity just copy
-                else if (defineProperty.of.__collection__ == collection)
+                else if (!isCrossDocRef)
                 {
                     pojo[prop] = [];
                     if (value)
@@ -683,7 +681,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             else if (defineProperty.type && defineProperty.type.isObjectTemplate)
             {
                 // If this is in the same entity just copy over
-                if (defineProperty.type.__collection__ == collection)
+                if (!isCrossDocRef)
                 {
                     if (value._id && idMap[value._id.toString()])
                         pojo[prop] = value._id.toString();
@@ -790,5 +788,16 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     }
 
+    PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
+    {
+        var type = defineProperty.type;
+        var of = defineProperty.of;
+        var collection = template.__collection__;
+        var schema = this._schema ? this._schema[collection] : null;
+        var childrenRef = schema && schema.children && schema.children[prop];
+        var parentsRef = schema && schema.parents && schema.parents[prop];
+        return (of && of.__collection__ && ((of.__collection__ != collection) || childrenRef)) || (type && type.__collection__ && ((type.__collection__ != collection) || parentsRef));
+
+    }
     return  PersistObjectTemplate;
 }
