@@ -597,6 +597,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
      */
     PersistObjectTemplate.persistSave = function(obj, promises, masterId, idMap)
     {
+        if (!obj.__template__)
+            throw new Error("Attempt to save an non-templated Object");
         if (!this._schema)
             throw  new Error("Please call setSchema before doing calling persistSave");
         var schema = this._schema[obj.__template__.__collection__];
