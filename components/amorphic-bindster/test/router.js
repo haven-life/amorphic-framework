@@ -17,7 +17,7 @@ var main = router.route(controller,
 {
     enter: function (route) {
         if (route.file) {
-            this.page = route.file;
+            this.page = route.__page;
             this.className = route.className;
         }
     },
@@ -96,27 +96,27 @@ describe("Routes", function () {
     });
     it ("Has correct functions", function (done) {
         main();
-        expect(controller.page).to.equal('home.html');
+        expect(controller.page).to.equal('user');
         main.user();
-        expect(controller.page).to.equal('home.html');
+        expect(controller.page).to.equal('user');
         main.user.ticket();
-        expect(controller.page).to.equal('ticket.html');
+        expect(controller.page).to.equal('user.ticket');
         main.user.tickets();
-        expect(controller.page).to.equal('tickets.html');
+        expect(controller.page).to.equal('user.tickets');
         main.user.profile.main();
-        expect(controller.page).to.equal('profile.html');
+        expect(controller.page).to.equal('user.profile.main');
         main.user.profile.password();
-        expect(controller.page).to.equal('password.html');
+        expect(controller.page).to.equal('user.profile.password');
         main.user.profile.email();
-        expect(controller.page).to.equal('email.html');
+        expect(controller.page).to.equal('user.profile.email');
         main.user.dialog.login(600);
-        expect(controller.page).to.equal('email.html');
+        expect(controller.page).to.equal('user.profile.email');
         expect(controller.popup).to.equal('login.html');
         router.popRoute();
         expect(controller.popup).to.equal(null);
-        expect(controller.page).to.equal('email.html');
+        expect(controller.page).to.equal('user.profile.email');
         main.user.dialog.change_password();
-        expect(controller.page).to.equal('change_password.html');
+        expect(controller.page).to.equal('user.dialog.change_password');
         done();
     });
     it("Decodes parameters from search correctly", function (done) {

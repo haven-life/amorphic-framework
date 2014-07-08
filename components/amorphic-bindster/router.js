@@ -212,9 +212,10 @@ AmorphicRouter =
      * @param inherited - augmented by inherited properties
      * @param currPath - and previous parts of a path
      * @param prop
+     * @param parentRoute
      * @private
      */
-    _parseRoute: function (route, routeIn, inherited, currPath, prop)
+    _parseRoute: function (route, routeIn, inherited, currPath, prop, parentRoute)
     {
         // Merge based on the path specified in leaf or the property as a path segment
         var pathSegment = typeof(routeIn.path) != 'undefined' ? routeIn.path : prop;
@@ -228,6 +229,10 @@ AmorphicRouter =
         route.__parameters = {};
         route.__route = prop;
         route.__nested = routeIn.nested;
+
+        if(parentRoute){
+            route.__page = parentRoute.__page ? parentRoute.__page + "." + prop : prop;
+        }
 
         // Pull in all of the array parameters from interited (which is a route type structure)
         for (var prop in {__enter: 1, __exit: 1, __parameters: 1})
@@ -276,7 +281,7 @@ AmorphicRouter =
                         self._goTo.apply(self, callArgs);
                     }
                 })();
-                this._parseRoute(route[prop], routeIn.routes[prop], route, currPath, prop)
+                this._parseRoute(route[prop], routeIn.routes[prop], route, currPath, prop, route);
             }
     }
 }
