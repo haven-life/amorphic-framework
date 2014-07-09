@@ -696,7 +696,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         }
                         else if (node.tagName == 'INPUT' && node.type.toLowerCase() == 'radio')
                         {
-                            this.addEvent(tags, 'onclick', 'if (target.checked) { ' + tags.bind +  ' = ' + tags.truevalue + '}');
+                            this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags,   tags.truevalue) + '}');
                             this.validateValue(tags, node.checked);
                             if (!bind_error && last_value != bind_data)
                             {
@@ -1002,7 +1002,7 @@ Bindster.prototype.getBindAction = function(tags, value)
             (tags.trigger ? tags.trigger : "") + "}).call(self)}," +
             "function(e){(function(){c.bindster.hasErrors = true;" + bind_error + " = e}).call(self)})" +
             "}else{" +
-            tags.bind + " = " + this_value + "};"
+            tags.bind + " = " + this_value + "};" + (tags.trigger ? (tags.trigger + "; ") : "")
             : (tags.bind + " = " + this_value + ";") + (tags.trigger ? (tags.trigger + "; ") : "")) +
         ((this.controller && typeof(this.controller.onchange) == "function") ? "this.controller.onchange();" : "") +
         " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.hasErrors = true;" +
