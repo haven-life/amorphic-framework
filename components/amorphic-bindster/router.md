@@ -19,7 +19,10 @@ Each path can have these properties
 
 * routes - which defines a sub-tree of paths
 * parameters - set of properties that map search parameters to the url
-* enter - a function executed when the route is invoked
+* enter - a function executed when the route is invoked.  It is passed the route itself which contains these properties of interest:
+    * getId - function that returns the id of the route independent of the path
+    * getPath - function that returns the path of the route
+    * Any user property included in the route definition 
 * exit - a runction execute when a new route is invoked
 * path - let's you override the default url path portion which defaults to /property
 * nested - indicates that the route is nested and the previous route is restored by router.popRoute()
@@ -35,70 +38,80 @@ search properties are also objects which have these properties
 * toURL - true if url is to be updated when the bind element changes
 * fromURL - true if the property is to be bound 
 
+The router has these functions:
+* route(routedefinition) - establish routes, returns the top level route in the heirarchy
+* goTo(path) - navigate to a route given the path
+* goToById(id) - navigate to a route given the id
+
 Here is a sample:
 
-router.route(controller,
-{
-    enter: function (route) {
-        if (route.file) {
-            this.page = route.file;
-            this.className = route.className;
-        }
-    },
-    parameters: {                   // how to parse and optionally compose  the search part of the url
-        utm_campaign: {bind: "utm_campaign", encode: false},
-        utm_keywords: {bind: "utm_keywords", encode: false},
-        utm_media:    {bind: "utm_media", encode: false}
-    },
-    file: 'home.html',
-    routes: {
-        user: {                         // my default this would be a spec for /user
-            file: 'home.html',
-            path: '',                  // but we override it to be /
-            className: "userStyle",     // an extra property we can just reference it is pushed to child nodes
-            enter: function () {this.enteredUser = true;}, // when this route is navigated to
-            routes: {  // sub-routes by default each property is a url fragment eg /tickets
-                tickets: {file: 'tickets.html'},
-                ticket: {
-                    file: 'ticket.html',
-                    parameters: {ticket: {bind: "ticketId"}}
-                },
-                profile: {
-                    routes: {
-                        main: {path: '', file: 'profile.html'},    // /profile/
-                        password: {file: 'password.html'},          // /profile/password
-                        email: {file: 'email.html'}                 // /profile/email
-                    }
-                },
-                dialog: {
-                     exit:  function() {
-                         this.popup=null
-                     },
-                    routes: {
-                        login: {
-                            nested: true,
-                            file: null,
-                            enter: function (route, p) {
-                                this.popup = 'login.html'
-                                expect(p).to.equal(600);
-                                expect(route).to.equal(main.user.dialog.login);
-                            }
-                        },
-                        change_password: {file: 'change_password.html'}
+    var main = router.route(controller,
+    {
+        enter: function (route) {
+            if (route.file) {
+                this.page = route.getId();
+                this.className = route.className;
+            }
+        },
+        parameters: {                   // how to parse and optionally compose  the search part of the url
+            utm_campaign: {bind: "utm_campaign", encode: false},
+            utm_keywords: {bind: "utm_keywords", encode: false},
+            utm_media:    {bind: "utm_media", encode: false}
+        },
+        file: 'home.html',
+        routes: {
+            user: {                         // my default this would be a spec for /user
+                file: 'home.html',
+                path: '',                  // but we override it to be /
+                className: "userStyle",     // an extra property we can just reference it is pushed to child nodes
+                enter: function () {this.enteredUser = true;}, // when this route is navigated to
+                routes: {  // sub-routes by default each property is a url fragment eg /tickets
+                    tickets: {file: 'tickets.html'},
+                    ticket: {
+                        file: 'ticket.html',
+                        parameters: {ticket: {bind: "ticketId"}}
+                    },
+                    profile: {
+                        routes: {
+                            main: {path: '', file: 'profile.html'},    // /profile/
+                            password: {file: 'password.html'},          // /profile/password
+                            email: {file: 'email.html'}                 // /profile/email
+                        }
+                    },
+                    dialog: {
+                         exit:  function() {
+                             this.popup=null
+                         },
+                        routes: {
+                            login: {
+                                nested: true,
+                                file: null,
+                                enter: function (route, p) {
+                                    this.popup = 'login.html'
+                                    expect(p).to.equal(600);
+                                    expect(route).to.equal(main.user.dialog.login);
+                                }
+                            },
+                            change_password: {file: 'change_password.html'}
+                        }
                     }
                 }
             }
         }
-    }
-});
+    });
 
-That first enter property is inherited by all routes and will set the page property to the file name property
+The route itself is a function and the routes returned from router.route are in the same heirarchy so you can navigigate
+there like this
+
+    main.user.profile.email();
+
+That first enter property is inherited by all routes and will set the file property to the file name property
 and the className to the className of the route.  The className in this example is inherited from the user and
 admin levels of the tree.  
 
 This means that with Bindster you can use this to dynamically include the page file you need.
 
      <div b:class="{className}">
-        <b:include urlbind="{page}">
+        <b:include urlbind="{file}">
      </div>
  

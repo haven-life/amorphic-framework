@@ -2,8 +2,9 @@ AmorphicRouter =
 {
     location: (typeof(document) != 'undefined') ? document.location : {pathname: '', search: '', hash: ''},
     history: (typeof(window) != 'undefined' && window.history ? window.history : null),
-    paths: {},
-    routes:{},
+    paths: {},          // List of routes by paths
+    routesById: {},      // List of routes by Id
+    routes:{},          // Root of the routes
     currentRoute: null,
     hasPushState: !!(typeof(window) != 'undefined' && window.history && history.pushState),
     lastParsedPath: null,
@@ -85,12 +86,26 @@ AmorphicRouter =
     getRoute: function () {
         return this.currentRoute;
     },
+
     /**
      * Go to a location based on a path (same invoking a route as a function admin.tickets());
      * @param path
      */
     goTo: function (path) {
         var route = this.paths[path.substr(0, 1) == '/' ? path : '/' + path];
+        if (route) {
+            var callArgs=[route];
+            for (var ix = 1; ix < arguments.length; ix++)
+                callArgs.push(arguments[ix]);
+            this._goTo.apply(this, callArgs);
+        }
+    },
+    /**
+     * Go to a location based on id returned from route.getId();
+     * @param path
+     */
+    goToById: function (id) {
+        var route = this.routesById[id];
         if (route) {
             var callArgs=[route];
             for (var ix = 1; ix < arguments.length; ix++)
@@ -230,9 +245,10 @@ AmorphicRouter =
         route.__route = prop;
         route.__nested = routeIn.nested;
 
-        if(parentRoute){
-            route.__page = parentRoute.__page ? parentRoute.__page + "." + prop : prop;
-        }
+        // Manage the id which is a concatenation of properties in the heirarchy
+        route.__id = parentRoute ? (parentRoute.__id ? parentRoute.__id + "." + prop : prop) : "";
+        route.getId = function () {return this.__id};
+        this.routesById[route.__id] = route;
 
         // Pull in all of the array parameters from interited (which is a route type structure)
         for (var prop in {__enter: 1, __exit: 1, __parameters: 1})

@@ -17,7 +17,7 @@ var main = router.route(controller,
 {
     enter: function (route) {
         if (route.file) {
-            this.page = route.__page;
+            this.page = route.getId();
             this.className = route.className;
         }
     },
@@ -117,6 +117,24 @@ describe("Routes", function () {
         expect(controller.page).to.equal('user.profile.email');
         main.user.dialog.change_password();
         expect(controller.page).to.equal('user.dialog.change_password');
+        done();
+    });
+    it ("Can navigate by path", function (done) {
+        router.goTo('/');
+        expect(controller.page).to.equal('user');
+        router.goTo('/ticket');
+        expect(controller.page).to.equal('user.ticket');
+        router.goTo('/profile/password');
+        expect(controller.page).to.equal('user.profile.password');
+        done();
+    });
+    it ("Can navigate by id", function (done) {
+        router.goToById('');
+        expect(controller.page).to.equal('user');
+        router.goToById('user.ticket');
+        expect(controller.page).to.equal('user.ticket');
+        router.goToById('user.profile.password');
+        expect(controller.page).to.equal('user.profile.password');
         done();
     });
     it("Decodes parameters from search correctly", function (done) {

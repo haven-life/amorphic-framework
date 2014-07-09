@@ -1,3 +1,5 @@
+## 0.1.16
+* Included support for routing by id
 ## 0.1.14
 * The user defined properties surfacing in the route passed to enter/exit no longer have a prefix of __
 * nested: true is now available as a route property that specifies that the route is nested and does
