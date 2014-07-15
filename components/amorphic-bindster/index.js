@@ -683,7 +683,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         }
                         else if (node.tagName == 'INPUT' && node.type.toLowerCase() == 'checkbox')
                         {
-                            this.addEvent(tags, 'onclick', tags.bind + '= (target.checked ? ' + tags.truevalue + ' : ' + tags.falsevalue + ')');
+                            this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags, tags.truevalue) + '}' + 'else { ' + this.getBindAction(tags, tags.falsevalue) + '}');
                             this.validateValue(tags, node.checked);
                             if (!bind_error && last_value !== bind_data)
                             {
