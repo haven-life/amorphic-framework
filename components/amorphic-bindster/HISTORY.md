@@ -1,3 +1,7 @@
+## 0.1.18
+* Triggers were not being called for checkboxes
+## 0.1.18
+* Triggers were not being consistently called
 ## 0.1.16
 * Included support for routing by id
 ## 0.1.14
