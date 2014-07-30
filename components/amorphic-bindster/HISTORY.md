@@ -1,3 +1,5 @@
+## 0.1.21
+* You can specify a node reference or id in controller.validate()
 ## 0.1.18
 * Triggers were not being called for checkboxes
 ## 0.1.18

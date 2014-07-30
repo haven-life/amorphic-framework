@@ -113,9 +113,7 @@ Bindster.prototype.setController = function(controller)
         // A re-render can end up calling validate again
         if (!this.bindster.validate) {
             this.bindster.validate = true;
-            this.validateMode
-
-            this.bindster.render();
+            this.bindster.render(typeof(data) == 'string' ? document.getElementById(data) : data);
         }
         return !this.hasErrors();
     }
