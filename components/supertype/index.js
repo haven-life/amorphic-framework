@@ -25,7 +25,6 @@
 function ObjectTemplate() {
 }
 
-
 ObjectTemplate.performInjections = function ()
 {
     if (this.__templatesToInject__) {
@@ -48,39 +47,32 @@ ObjectTemplate.init = function () {
 ObjectTemplate.getTemplateByName = function (name) {
     return this.__dictionary__[name];
 }
-ObjectTemplate.setTemplateProperties = function(template, name, properties, parentTemplate)
+ObjectTemplate.setTemplateProperties = function(template, name)
 {
-    if (properties) {
-        var parts = name.split(":");
-        var collection = parts[0];
-        var name = parts.length > 1 ? parts[1] : "anonymous" + this.__anonymousId__++;
-    } else {
-        var name = "anonymous" + this.__anonymousId__++;
-        var collection = null;
-    }
-    if (parentTemplate)
-        collection = parentTemplate.__collection__;
     this.__templatesToInject__[name] = template;
     this.__dictionary__[name] = template;
     template.__name__ = name;
-    template.__collection__ = collection;
     template.__injections__ = [];
     template.__objectTemplate__ = this;
+    template.__children__ = [];
 };
 
 /**
  * Create and object template that is instantiated with the new operator.
  * properties is
- *
+ * @param name the name of the template
  * @param properties an object whose properties represent data and function
  * properties of the object.  The data properties may use the defineProperty
  * format for properties or may be properties assigned a Number, String or Date.
  * @return {*} the object template
  */
 ObjectTemplate.create = function (name, properties) {
+    if (typeof(name) != 'string' || name.match(/[^A-Za-z0-9_]/))
+        throw new Error("incorrect template name");
+    if (typeof(properties) != 'object')
+        throw new Error("missing template property definitions");
     var template = this._createTemplate(null, Object, properties ? properties : name);
-    this.setTemplateProperties(template, name, properties, null);
-    template.__children__ = [];
+    this.setTemplateProperties(template, name);
     return template;
 };
 
@@ -88,19 +80,24 @@ ObjectTemplate.create = function (name, properties) {
  * Extend and existing (parent template)
  *
  * @param parentTemplate
+ * @param the name of the template
  * @param properties are the same as for create
  * @return {*} the object template
  */
 ObjectTemplate.extend = function (parentTemplate, name, properties)
 {
+    if (!parentTemplate.__objectTemplate__)
+        throw new Error("incorrect parent template");
+    if (typeof(name) != 'string' || name.match(/[^A-Za-z0-9_]/))
+        throw new Error("incorrect template name");
+    if (typeof(properties) != 'object')
+        throw new Error("missing template property definitions");
     var template = this._createTemplate(null, parentTemplate, properties ? properties : name);
-    this.setTemplateProperties(template, name, properties, parentTemplate);
+    this.setTemplateProperties(template, name);
 
     // Maintain graph of parent and child templates
-    template.__children__ = [];
     template.__parent__ = parentTemplate;
     parentTemplate.__children__.push(template);
-    ObjectTemplate.__dictionary__[template.__name__] = template;
     return template;
 };
 
@@ -284,7 +281,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     for (var propertyName in properties) {
         var propertyValue = properties[propertyName];
         createProperty(propertyName, propertyValue);
-     };
+    };
 
     template.defineProperties = defineProperties;
     template.objectProperties = objectProperties;
@@ -594,9 +591,9 @@ ObjectTemplate._getDefineProperty = function(prop, template)
 {
     return	template && (template != Object) && template.defineProperties && template.defineProperties[prop] ?
         template.defineProperties[prop] :
-        template && template.parentTemplate ?
-            this._getDefineProperty(prop, template.parentTemplate) :
-            null;
+            template && template.parentTemplate ?
+        this._getDefineProperty(prop, template.parentTemplate) :
+        null;
 };
 /**
  * returns a hash of all properties including those inherited
