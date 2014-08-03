@@ -9,7 +9,7 @@ var Q = require("q");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 
-var Customer = PersistObjectTemplate.create("customer:Customer", {
+var Customer = PersistObjectTemplate.create("Customer", {
 	init: function (first, middle, last) {
 		this.firstName = first;
 		this.lastName = last;
@@ -23,7 +23,7 @@ var Customer = PersistObjectTemplate.create("customer:Customer", {
 	local1:      {type: String, persist: false, value: "local1"},
 	local2:      {type: String, isLocal: true, value: "local2"}
 });
-var Address = PersistObjectTemplate.create("customer:Address", {
+var Address = PersistObjectTemplate.create("Address", {
 	init:       function (customer) {
 		this.customer   = customer;
 	},
@@ -49,7 +49,7 @@ Customer.mixin({
 Address.mixin({
 	customer:  {type: Customer}
 });
-var Role = PersistObjectTemplate.create("role:Role", {
+var Role = PersistObjectTemplate.create("Role", {
 	init:       function (customer, account, relationship) {
 		this.customer = customer;
 		this.account = account;
@@ -60,7 +60,7 @@ var Role = PersistObjectTemplate.create("role:Role", {
 	customer:     {type: Customer}
 });
 
-var Account = PersistObjectTemplate.create("account:Account", {
+var Account = PersistObjectTemplate.create("Account", {
 	init:       function (number, title, customer) {
 		this.number = number;
 		this.title = title;
@@ -77,7 +77,7 @@ var Account = PersistObjectTemplate.create("account:Account", {
 	roles:      {type: Array, of: Role, value: [], fetch: true}
 });
 
-var Transaction = PersistObjectTemplate.create("transaction:Transaction", {
+var Transaction = PersistObjectTemplate.create("Transaction", {
 	init:       function (account, type, fromAccount) {
 		this.account = account;
 		this.fromAccount = fromAccount;
@@ -105,41 +105,45 @@ Account.mixin({
 	transactions: {type: Array, of: Transaction}
 });
 
-PersistObjectTemplate.performInjections(); // Normally done by getTemplates
 
-var collections = {
-	customer: {
-		template: Customer,
-		children: {
-			roles: {template: Role, id:"customer_id"},
+var schema = {
+    Customer: {
+        documentOf: "customer",
+        children: {
+            roles: {template: Role, id: "customer_id"},
             referrers: {id: "referred_id"}
-		},
+        },
         parents: {
             referredBy: {id: "referred_id"}
         }
-	},
-	account: {
-		template: Account,
-		children: {
-			roles: {template: Role, id:"account_id"},
-			transactions: {template: Transaction, id: "account_id"}
-		}
-	},
-	role: {
-		template: Role,
-		parents: {
-			customer: {template: Customer, id: 'customer_id'},
-			account: {template: Account, id: 'account_id'}
-		}
-	},
-	transaction: {
-		template: Transaction,
-		parents: {
-			account: {template: Account},
-			fromAccount: {template: Account}
-		}
-	}
-};
+    },
+    Address: {
+        subDocumentOf: "customer"
+    },
+    Account: {
+        documentOf: "account",
+        children: {
+            roles: {template: Role, id: "account_id"},
+            transactions: {template: Transaction, id: "account_id"}
+        }
+    },
+    Role: {
+        documentOf: "role",
+        parents: {
+            customer: {template: Customer, id: 'customer_id'},
+            account: {template: Account, id: 'account_id'}
+        }
+    },
+    Transaction: {
+        documentOf: "transaction",
+        parents: {
+            account: {template: Account},
+            fromAccount: {template: Account}
+        }
+    }
+}
+
+
 
 
 var MongoClient = require('mongodb').MongoClient;
@@ -159,16 +163,17 @@ describe("Banking Example", function () {
 
     it ("opens the database", function (done) {
         console.log("starting banking");
-        Q.ninvoke(MongoClient, "connect", "mongodb://localhost:27017/testpersist").then(function (dbopen) {
+        return Q.ninvoke(MongoClient, "connect", "mongodb://localhost:27017/testpersist").then(function (dbopen) {
             db = dbopen;
             PersistObjectTemplate.setDB(db);
-            PersistObjectTemplate.setSchema(collections);
+            PersistObjectTemplate.setSchema(schema);
+            PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             done();
-        });
+        }).fail(function(e){done(e)});;
     });
 
     it ("clears the bank", function (done) {
-        clearCollection("role")
+        return clearCollection("role")
             .then(function (count) {
                 expect(count).to.equal(0);
                 return clearCollection('account')
@@ -178,7 +183,7 @@ describe("Banking Example", function () {
             }).then(function (count) {
                 expect(count).to.equal(0);
                 done();
-            });
+            }).fail(function(e){done(e)});
     });
 
 

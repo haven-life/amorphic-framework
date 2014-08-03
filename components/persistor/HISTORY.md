@@ -1,3 +1,5 @@
+## 0.1.33
+* !! Changed the format of schemas (see persist_banking.js)
 ## 0.1.26
 * Added error for saving an untemplated object
 

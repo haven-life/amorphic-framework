@@ -130,6 +130,33 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     /* Inject some functions into the template */
     PersistObjectTemplate._injectIntoTemplate = function (template)
     {
+        // Extract schema and collection
+
+        template.__schema__ = PersistObjectTemplate._schema[template.__name__];
+        template.__collection__ = template.__schema__ ? template.__schema__.documentOf || template.__schema__.subDocumentOf : null;
+        var parentTemplate = template.__parent__;
+        while  (parentTemplate) {
+            var schema = parentTemplate.__schema__;
+            if (schema && schema.children) {
+                if (!template.__schema__)
+                    template.__schema__ = {};
+                if (!template.__schema__.children)
+                    template.__schema__.children = [];
+                for (var key in schema.children)
+                    template.__schema__.children[key] = schema.children[key];
+            }
+            if (schema && schema.parents) {
+                if (!template.__schema__)
+                    template.__schema__ = {};
+                if (!template.__schema__.parents)
+                    template.__schema__.parents = [];
+                for (var key in schema.parents)
+                    template.__schema__.parents[key] = schema.parents[key];
+            }
+            parentTemplate = parentTemplate.__parent__;
+        }
+
+
         baseClassForPersist._injectIntoTemplate(template);
 
         /**
@@ -190,7 +217,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 (function () {
                     var closureProp = prop;
                     if (!props[closureProp + 'Persistor'])
-                        template.createProperty(closureProp + 'Persistor', {type: Object, persist: false, value:{isFetched: false, isFetching: false}});
+                        template.createProperty(closureProp + 'Persistor', {type: Object, toServer: false, persist: false, value:{isFetched: false, isFetching: false}});
                     if (!template.prototype[closureProp + 'Fetch'])
                         template.createProperty(closureProp + 'Fetch', {on: "server", body: function (start, limit) {
                             return this.fetchProperty(closureProp, null, start, limit);
@@ -271,8 +298,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         var obj = establishedObj ||
             this._createEmptyObject(template, 'perist-' + pojo._template.replace(/.*:/,'') +
                 "-"+ pojo._id.toString(), defineProperty);
+
         var collection = obj.__template__.__collection__;
-        var schema = this._schema[obj.__template__.__collection__]
+        var schema = obj.__template__.__schema__;
 
         var id = null;
         if (pojo._id) { // If object is persistent make sure id is a string and in map
@@ -599,9 +627,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     {
         if (!obj.__template__)
             throw new Error("Attempt to save an non-templated Object");
-        if (!this._schema)
-            throw  new Error("Please call setSchema before doing calling persistSave");
-        var schema = this._schema[obj.__template__.__collection__];
+        if (!obj.__template__.__schema__)
+            throw  new Error("Schema entry missing for " + obj.__template__.__name__);
+        var schema = obj.__template__.__schema__;
         var collection = obj.__template__.__collection__;
         var resolvePromises = false;    // whether we resolve all promises
         var savePOJO = false;           // whether we save this entity or just return pojo
@@ -792,13 +820,18 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {
+        var schema = template.__schema__;
+        if (!schema)
+            return false;
+
         var type = defineProperty.type;
         var of = defineProperty.of;
         var collection = template.__collection__;
-        var schema = this._schema ? this._schema[collection] : null;
         var childrenRef = schema && schema.children && schema.children[prop];
         var parentsRef = schema && schema.parents && schema.parents[prop];
-        return (of && of.__collection__ && ((of.__collection__ != collection) || childrenRef)) || (type && type.__collection__ && ((type.__collection__ != collection) || parentsRef));
+
+        return (of && of.__collection__ && ((of.__collection__ != collection) || childrenRef)) ||
+            (type && type.__collection__ && ((type.__collection__ != collection) || parentsRef));
 
     }
     return  PersistObjectTemplate;
