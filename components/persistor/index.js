@@ -1071,7 +1071,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                             var foreignKey = schema.children[prop].id;
                             if (!value[ix][foreignKey] || value[ix][foreignKey].toString() != id.toString()) {
                                 value[ix][foreignKey] = id;
-                                value[ix].__dirty__ = true;;
+                                value[ix].__dirty__ = true;
+                                if (value[ix]._id)
+                                    idMap[value[ix]._id.toString()] = null // force save even if again
                             }
                             if (value[ix].__dirty__)
                                 promises.push(this.persistSave(value[ix], promises, null, idMap));
