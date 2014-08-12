@@ -1,4 +1,4 @@
-## 0.1.41
+## 0.1.42
 * Treat sub-documents more transparently by allowing cross-collection links of sub-documents and direct query of them
 ## 0.1.33
 * !! Changed the format of schemas (see persist_banking.js)

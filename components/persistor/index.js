@@ -63,6 +63,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.__id__ = nextId++;
     PersistObjectTemplate._superClass = baseClassForPersist;
 
+    PersistObjectTemplate.debug = function (message) {
+        //console.log(message);
+    }
+
     PersistObjectTemplate.setDBURI = function (uri) {
         this._dbURI = uri;
     }
@@ -499,7 +503,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                         var options = defineProperty.queryOptions || {};
                         cascadeFetch = this.processCascade(query, options, cascadeFetch,
                             (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
-                        //console.log("fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
+                        //this.debug("fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
                         var self = this;
                         (function () {
                             var closureProp = prop;
@@ -610,7 +614,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                 var options = {};
                                 cascadeFetch = this.processCascade(query, options, cascadeFetch,
                                     (schema && schema.parents) ? schema.parents[prop].fetch : null, defineProperty.fetch);
-                                //console.log("fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
+                                //this.debug("fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
                                 var self = this;
                                 (function () {
                                     var closureProp = prop;
@@ -828,7 +832,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             paths[ix] = {}
             queryTraverse(newQuery, targetQuery);
             results.query['$or'].push(newQuery);
-            //console.log(JSON.stringify(results.query));
+            //this.debug(JSON.stringify(results.query));
         }
         return results;
     }
@@ -940,13 +944,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         // Trying to save other than top document work your way to the top
         if (!schema.documentOf && !masterId) {
             var originalObj = obj;
-            //console.log("Search for top of " + obj.__template__.__name__);
+            //this.debug("Search for top of " + obj.__template__.__name__);
             var obj = this.getTopObject(obj);
             if (!obj)
                 throw new Error("Attempt to save " + originalObj.__template__.__name__ +
                     " which subDocument without necessary parent links to reach top level document");
             schema = obj.__template__.__schema__;
-            //console.log("Found top as " + obj.__template__.__name__);
+            this.debug("Found top as " + obj.__template__.__name__);
         }
 
         var collection = obj.__template__.__collection__;
@@ -985,11 +989,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
         // Eliminate circular references
         if (idMap[id.toString()]) {
-            //console.log("Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
+            //this.debug("Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
             return idMap[id.toString()];
         }
-        //console.log("Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
-
+        this.debug("Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
 
         var pojo = {_id: id, _template: obj.__template__.__name__};   // subsequent levels return pojo copy of object
         idMap[id.toString()] = pojo;
@@ -1029,6 +1032,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                             // If so it's foreign key gets updated with our id
                             if (isCrossDocRef) {
 
+                                this.debug("Treating " + prop + " as cross-document sub-document");
+
                                 // Get the foreign key to be updated
                                 if (!schema || !schema.children || !schema.children[prop] || !schema.children[prop].id)
                                     throw new Error(templateName + "." + prop + " is missing a children schema entry");
@@ -1038,11 +1043,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                 if (!value[ix][foreignKey] || value[ix][foreignKey].toString() != id.toString()) {
                                     value[ix][foreignKey] = id;
                                     value[ix].__dirty__ = true;
+                                    this.debug("updated it's foreign key");
                                 }
 
                                 // If we were waiting to resolve where this should go let's just put it here
                                 if ((typeof(value[ix]._id) == 'function'))
                                 {   // This will resolve the id and it won't be a function anymore
+                                    this.debug(prop + " waiting for placement, ebmed as subdocument");
                                     values.push(this.persistSave(value[ix], promises, masterId, idMap));
                                 }
                                 // If it was this placed another document or another place in our document
@@ -1054,10 +1061,16 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                         promises.push(this.persistSave(value[ix], promises, null, idMap));
                                     continue;  // Skip saving it as a sub-doc
                                 }
+                                // Save as sub-document
+                                this.debug("Saving subdocument " + prop);
+                                values.push(this.persistSave(value[ix], promises, masterId, idMap));
+                            } else {
+                                if (value[ix]._id && idMap[value[ix]._id.toString()]) // Previously referenced objects just get the id
+                                    values.push(value[ix]._id.toString());
+                                else // Otherwise recursively obtain pojo
+                                    values.push(this.persistSave(value[ix], promises, masterId, idMap));
                             }
 
-                            // Save as sub-document
-                            values.push(this.persistSave(value[ix], promises, masterId, idMap));
                         }
                     }
                     // Otherwise this is a database reference and we must make sure that the
@@ -1072,11 +1085,11 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                             if (!value[ix][foreignKey] || value[ix][foreignKey].toString() != id.toString()) {
                                 value[ix][foreignKey] = id;
                                 value[ix].__dirty__ = true;
-                                if (value[ix]._id)
-                                    idMap[value[ix]._id.toString()] = null // force save even if again
                             }
-                            if (value[ix].__dirty__)
+                            if (value[ix].__dirty__) {
+                                this.debug("Saving " + prop + " as document because we updated it's foreign key");
                                 promises.push(this.persistSave(value[ix], promises, null, idMap));
+                            }
                         }
                 }
             }
@@ -1167,11 +1180,14 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     /* Mongo implementation of save */
     PersistObjectTemplate.savePOJO = function(obj, pojo) {
+        this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
         return Q.ninvoke(this.getDB(), "collection", obj.__template__.__collection__).then (function (collection) {
-            return Q.ninvoke(collection, "save", pojo);
-        });
+            return Q.ninvoke(collection, "save", pojo).then (function (ret) {
+                this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
+                return Q(ret);
+            }.bind(this));
+        }.bind(this));
     }
-
     PersistObjectTemplate.deleteFromQuery = function(template, query) {
         return Q.ninvoke(this.getDB(), "collection", template.__collection__, {w:1, fsync:true}).then (function (collection) {
             return Q.ninvoke(collection, "remove", query);
