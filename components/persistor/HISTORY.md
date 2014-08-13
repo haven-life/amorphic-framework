@@ -1,3 +1,5 @@
+## 0.1.43
+* Fixed problem with closure introduce in 0.1.42 for sub-doc refs
 ## 0.1.42
 * Treat sub-documents more transparently by allowing cross-collection links of sub-documents and direct query of them
 ## 0.1.33

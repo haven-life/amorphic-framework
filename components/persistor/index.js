@@ -453,9 +453,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
                                 // If an array of value store functions add ours to the list
                                 if (idMap[pojo[prop][ix]] instanceof Array)
-                                    idMap[pojo[prop][ix]].push(function (value) {
-                                        pojo[prop][ix] = value;
-                                    });
+                                    (function () {
+                                        var closureIx = ix;
+                                        var closureProp = prop;
+                                        idMap[pojo[prop][ix]].push(function (value) {
+                                            pojo[closureProp][closureIx] = value;
+                                        });
+                                    })()
                                 else
                                     obj[prop][ix] = idMap[pojo[prop][ix]];
                             } else
