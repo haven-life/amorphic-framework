@@ -1,3 +1,5 @@
+## 0.1.44
+* Fixed a problem where sub-documents would not be found if multiple paths to them
 ## 0.1.43
 * Fixed problem with closure introduce in 0.1.42 for sub-doc refs
 ## 0.1.42

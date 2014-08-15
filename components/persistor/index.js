@@ -21,7 +21,7 @@
 
 /**
  *
- * persistObjectTemplate is a mixin for remoteObjectTemplate which allows objects to be
+ * persistObjectTemplate is a sublclass for remoteObjectTemplate which allows objects to be
  * persisted in some data store.  The key functions which can only be executed on the server are:
  *
  * - Save an object to a document / table which will either
@@ -64,7 +64,6 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate._superClass = baseClassForPersist;
 
     PersistObjectTemplate.debug = function (message) {
-        //console.log(message);
     }
 
     PersistObjectTemplate.setDBURI = function (uri) {
@@ -366,6 +365,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
      */
     PersistObjectTemplate.fromDBPOJO = function (pojo, template, promises, defineProperty, idMap, cascade, establishedObj, specificProperties)
     {
+        this.debug("Processing a " + template.__name__);
         // For recording back refs
         if (!idMap)
             idMap = {};
@@ -464,7 +464,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                     obj[prop][ix] = idMap[pojo[prop][ix]];
                             } else
 
-                                obj[prop][ix] =
+                                obj[prop][ix] = idMap[pojo[prop][ix]._id.toString()] ||
                                     this.fromDBPOJO(pojo[prop][ix], defineProperty.of, promises, defineProperty, idMap);
 
                         } else
@@ -532,18 +532,17 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                     for (var ix = 0; ix < pojos.length; ++ix) {
                                         var subPojos = self.getPOJOSFromPaths(defineProperty.of, closurePaths, pojos[ix], closureOrigQuery)
                                         for (var jx = 0; jx < subPojos.length; ++jx) {
-                                            obj[closureProp].push(self.fromDBPOJO(subPojos[jx], closureDefineProperty.of,
-                                                promises, closureDefineProperty, idMap, closureCascade));
+                                            obj[closureProp].push(/*idMap[subPojos[ix]._id.toString()] ||*/
+                                                self.fromDBPOJO(subPojos[jx], closureDefineProperty.of,
+                                                    promises, closureDefineProperty, idMap, closureCascade));
                                         }
                                     }
                                 } else
                                     for(var ix = 0; ix < pojos.length; ++ix)
                                     {
                                         // Return cached one over freshly read
-                                        if (idMap[pojos[ix]._id.toString()])
-                                            obj[closureProp][ix] = idMap[pojos[ix]._id.toString()];
-                                        else
-                                            obj[closureProp][ix] = self.fromDBPOJO(pojos[ix], closureDefineProperty.of,
+                                        obj[closureProp][ix] = idMap[pojos[ix]._id.toString()] ||
+                                            self.fromDBPOJO(pojos[ix], closureDefineProperty.of,
                                                 promises, closureDefineProperty, idMap, closureCascade)
                                     }
                                 obj[closurePersistorProp].isFetched = true;
@@ -582,7 +581,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                 obj[prop] = idMap[pojo[prop]];
                         } else
 
-                            obj[prop] = this.fromDBPOJO(pojo[prop], type, promises, defineProperty, idMap);
+                            obj[prop] = idMap[pojo[prop]._id.toString()] || this.fromDBPOJO(pojo[prop], type, promises, defineProperty, idMap);
 
                     } else
 
@@ -630,8 +629,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                     var closureIsSubDoc = !!closureDefineProperty.type.__schema__.subDocumentOf;
                                     promises.push(self.getPOJOFromQuery(closureType, query).then(function(pojos) {
                                         if (pojos.length > 0) {
-                                            obj[closureProp] = self.fromDBPOJO(pojos[0], closureType, promises,
-                                                closureDefineProperty, idMap, closureCascade);
+                                            obj[closureProp] = idMap[pojos[0]._id.toString()] ||
+                                                self.fromDBPOJO(pojos[0], closureType, promises,
+                                                    closureDefineProperty, idMap, closureCascade);
                                             if (closureIsSubDoc)
                                                 obj[closureProp] = idMap[foreignId];
                                         }
@@ -754,22 +754,23 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
             return allFound
         }
+        var pathparts;
         function traverse(ref, level) {
-            if (level == paths.length) {
+            if (level == pathparts.length) {
                 if (matches(ref, query))
                     pojos.push(ref)
                 return;
             }
-            ref = ref[paths[level]];
+            ref = ref[pathparts[level]];
             if (ref instanceof Array)
                 for (var jx = 0; jx < ref.length; ++jx)
                     traverse(ref[jx], level + 1)
-            else
+            else if (ref)
                 traverse(ref, level + 1);
         }
         var pojos = [];
         for (var ix = 0; ix < paths.length; ++ix) {
-            var parts = paths[ix].split(".");
+            pathparts = paths[ix].split(".");
             var ref = pojo;
             traverse(pojo, 0);
         }
@@ -790,15 +791,15 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         var templates = {};
         function traverse(template, queryString)
         {
-            templates[template.__name__] = true;
             var props = template.getProperties();
             for (var prop in props) {
                 var defineProperty = props[prop];
                 var propTemplate = defineProperty.of || defineProperty.type;
                 if (propTemplate && propTemplate.__name__ &&
-                    !templates[propTemplate.__name__] && propTemplate.__schema__.subDocumentOf) {
+                    !templates[template.__name__ + "." + prop] && propTemplate.__schema__.subDocumentOf) {
                     if (propTemplate == targetTemplate)
                         paths.push(queryString + prop);
+                    templates[template.__name__ + "." + prop] = true;
                     traverse(propTemplate, queryString + prop + ".")
                 }
             }
@@ -836,7 +837,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             paths[ix] = {}
             queryTraverse(newQuery, targetQuery);
             results.query['$or'].push(newQuery);
-            //this.debug(JSON.stringify(results.query));
+            this.debug(JSON.stringify(results.query));
         }
         return results;
     }
@@ -948,7 +949,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         // Trying to save other than top document work your way to the top
         if (!schema.documentOf && !masterId) {
             var originalObj = obj;
-            //this.debug("Search for top of " + obj.__template__.__name__);
+            this.debug("Search for top of " + obj.__template__.__name__);
             var obj = this.getTopObject(obj);
             if (!obj)
                 throw new Error("Attempt to save " + originalObj.__template__.__name__ +
@@ -993,7 +994,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
         // Eliminate circular references
         if (idMap[id.toString()]) {
-            //this.debug("Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
+            this.debug("Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
             return idMap[id.toString()];
         }
         this.debug("Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
