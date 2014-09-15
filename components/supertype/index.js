@@ -570,7 +570,7 @@ ObjectTemplate._createEmptyObject = function(template, objId, defineProperty)
 
     var oldStashObject = this._stashObject;
     if (objId)
-        this._stashObject = function(){};
+        this._stashObject = function(){return true};
     var newValue = new template();
     this._stashObject = oldStashObject;
     if (objId)
