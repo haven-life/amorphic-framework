@@ -8,12 +8,14 @@ var expect = require('chai').expect;
 var Q = require("q");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
+var writing = true;
 
 var Customer = PersistObjectTemplate.create("Customer", {
 	init: function (first, middle, last) {
 		this.firstName = first;
 		this.lastName = last;
 		this.middleName = middle;
+        expect(writing).equal(true);
 	},
 	email:		{type: String, value: "", length: 50, rule: ["text", "email", "required"]},
 	firstName:  {type: String, value: "", length: 40, rule: ["name", "required"]},
@@ -278,6 +280,7 @@ describe("Banking Example", function () {
         sam.persistSave().then(function(id) {
             expect(id.length).to.equal(24);
             expect(sam._id).to.equal(id);
+            writing = false;
             done();
         }).fail(function(e){done(e)});
     });
