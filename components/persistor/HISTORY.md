@@ -1,4 +1,4 @@
-## 0.1.45
+## 0.1.46
 * Added tests to ensure that init is not called on fetch
 ## 0.1.44
 * Fixed a problem where sub-documents would not be found if multiple paths to them
