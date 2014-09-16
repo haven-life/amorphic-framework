@@ -284,6 +284,15 @@ describe("Banking Example", function () {
             done();
         }).fail(function(e){done(e)});
     });
+    it("Accounts have addresses", function (done) {
+        Account.getFromPersistWithQuery(null,{address: true}).then (function (accounts) {
+            expect(accounts.length).to.equal(2);
+            expect(accounts[0].address.__template__.__name__).to.equal('Address');
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
     it("Can find debits and credits >= 200 with a $in", function (done) {
         Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}, amount:{'$gte': 200}}).then (function (transactions) {
             expect(transactions.length).to.equal(1);
@@ -338,15 +347,19 @@ describe("Banking Example", function () {
         })
     });
     it("Can fetch transfers", function (done) {
-        Transaction.getFromPersistWithQuery({type: 'xfer'}).then (function (transactions) {
+        Transaction.getFromPersistWithQuery({type: 'xfer'},{account: true, fromAccount: true}).then (function (transactions) {
             expect(transactions.length).to.equal(2);
             expect(transactions[0].type).to.equal('xfer');
             expect(transactions[1].type).to.equal('xfer');
+            expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
+            expect(transactions[0].account.__template__.__name__).to.equal('Account');
             done();
         }).fail(function(e) {
             done(e)
         })
     });
+
+
     it("sam looks good", function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
             expect(customer.firstName).to.equal("Sam");

@@ -626,20 +626,38 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
                                     var closureCascade = cascadeFetch;
                                     var closureDefineProperty = defineProperty;
+                                    var closureForeignId = foreignId;
                                     var closureIsSubDoc = !!closureDefineProperty.type.__schema__.subDocumentOf;
-                                    promises.push(self.getPOJOFromQuery(closureType, query).then(function(pojos) {
-                                        if (pojos.length > 0) {
-                                            obj[closureProp] = idMap[pojos[0]._id.toString()] ||
-                                                self.fromDBPOJO(pojos[0], closureType, promises,
-                                                    closureDefineProperty, idMap, closureCascade);
-                                            if (closureIsSubDoc)
-                                                obj[closureProp] = idMap[foreignId];
-                                        }
+
+                                    // Maybe we already fetched it
+                                    if (idMap[foreignId]) {
+                                        obj[closureProp] = idMap[closureForeignId];
                                         obj[closurePersistorProp].isFetched = true;
                                         obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
-                                        return Q.fcall(function(){return true});
-                                    }));
-                                })();
+                                    } else
+
+                                        // Otherwise fetch top level document (which will contain sub-doc if sub-doc)
+                                        promises.push(self.getPOJOFromQuery(closureType, query).then(function(pojos) {
+
+                                            // Assuming the reference is still there
+                                            if (pojos.length > 0) {
+
+                                                if (closureIsSubDoc)
+                                                    // Fish out sub-document
+                                                    pojos[0] = self.getPOJOSFromPaths(
+                                                        closureType, this.createSubDocQuery(null, closureType).paths, pojos[0],
+                                                        {_id: closureForeignId}
+                                                    )[0];
+                                                idMap[closureForeignId] = pojos[0] ? self.fromDBPOJO(pojos[0], closureType, promises,
+                                                    closureDefineProperty, idMap, closureCascade) : null;
+
+                                            }
+                                            obj[closureProp] = idMap[closureForeignId];
+                                            obj[closurePersistorProp].isFetched = true;
+                                            obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
+                                            return Q(true);
+                                        }.bind(self)));
+                                    })();
                             } else {
                                 obj[persistorPropertyName].isFetched = true;
                                 obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
@@ -835,9 +853,11 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 }
             }
             paths[ix] = {}
-            queryTraverse(newQuery, targetQuery);
-            results.query['$or'].push(newQuery);
-            this.debug(JSON.stringify(results.query));
+            if (targetQuery) {
+                queryTraverse(newQuery, targetQuery);
+                results.query['$or'].push(newQuery);
+                this.debug(JSON.stringify(results.query));
+            }
         }
         return results;
     }
@@ -923,6 +943,12 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             return false;
         }
         return traverse(obj);
+    }
+    PersistObjectTemplate.getTemplateByCollection = function (collection) {
+        for (var prop in this._schema)
+            if (this._schema[prop].documentOf == collection)
+                return this.getTemplateByName(prop);
+        throw new Error("Cannot find template for " + collection);
     }
     /**
      * Save the object to persistent storage
@@ -1103,13 +1129,15 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             {
                 if (!isCrossDocRef || !defineProperty.type.__schema__.documentOf)  // Subdocument processing:
                 {
+                    var foreignKey = schema.parents[prop].id;
+
                     // If already stored in this document or stored in some other document make reference an id
                     if (value._id && (idMap[value._id.toString()] || value._id.replace(/:.*/, '') != masterId))
-                        pojo[prop] = value._id.toString();
+                        pojo[foreignKey] = value._id.toString();
 
                     // otherwise as long as in same collection just continue saving the sub-document
                     else if (defineProperty.type.__collection__ == collection)
-                        pojo[prop] = this.persistSave(value, promises, masterId, idMap);
+                        pojo[foreignKey] = this.persistSave(value, promises, masterId, idMap);
 
                     // If an a different collection we have to get the id generated
                     else {
@@ -1120,14 +1148,15 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                             var closureId = value._id;
                             var closurePojo = pojo;
                             var closureProp = prop;
+                            var closureForeignKey = foreignKey;
                             if (!closureId || typeof(closureId == 'function'))
                                 value._id = function (value) {
-                                    closurePojo[closureProp] = value;
+                                    closurePojo[closureForeignKey] = value;
                                     if (typeof(closureId) == 'function')
                                         closureId.call(null, value);
                                 }
                             else
-                                pojo[prop] = value._id.toString();
+                                pojo[foreignKey] = value._id.toString();
                         })();
                     }
 
