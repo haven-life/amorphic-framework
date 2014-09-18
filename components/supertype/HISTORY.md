@@ -1,3 +1,5 @@
+## 0.1.24
+* Add id prefix for fromJSON
 ## 0.1.23
 * Don't call init when an object is created that already has an id since init was at some point called
 ## 0.1.22

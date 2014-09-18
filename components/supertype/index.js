@@ -301,8 +301,8 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     template.fromPOJO = function(pojo) {
         return objectTemplate.fromPOJO(pojo, template);
     };
-    template.fromJSON = function(str) {
-        return objectTemplate.fromJSON(str, template);
+    template.fromJSON = function(str,id) {
+        return objectTemplate.fromJSON(str, template,id);
     };
     template.isObjectTemplate = true;
     template.createProperty = createProperty;
@@ -427,11 +427,11 @@ ObjectTemplate.clone = function (obj, template)
         return obj;
 };
 
-ObjectTemplate.fromJSON = function (str, template)
+ObjectTemplate.fromJSON = function (str, template, id)
 {
-    return this.fromPOJO(JSON.parse(str), template);
+    return this.fromPOJO(JSON.parse(str), template, null, null, id);
 }
-ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap)
+ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, prefix)
 {
     // For recording back refs
     if (!idMap)
@@ -439,6 +439,9 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap)
 
     if (!pojo.__id__)
         return;
+
+    if (prefix)
+        pojo.__id__ = prefix + pojo.__id__;
 
     // Create the new object with correct constructor using embedded ID if ObjectTemplate
     var obj = this._createEmptyObject(template, pojo.__id__.toString(), defineProperty);
