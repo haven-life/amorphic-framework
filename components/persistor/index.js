@@ -280,11 +280,12 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 if (isCrossDocRef) {
                     (function () {
                         var closureProp = prop;
+                        var closureQuery = defineProperty.fetch ? defineProperty.fetch : {};
                         if (!props[closureProp + 'Persistor'])
                             template.createProperty(closureProp + 'Persistor', {type: Object, toServer: false, persist: false, value: {isFetched: false, isFetching: false}});
                         if (!template.prototype[closureProp + 'Fetch'])
                             template.createProperty(closureProp + 'Fetch', {on: "server", body: function (start, limit) {
-                                return this.fetchProperty(closureProp, null, start, limit);
+                                return this.fetchProperty(closureProp, closureQuery, start, limit);
                             }});
                     })();
                 }
@@ -636,18 +637,21 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                         obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                                     } else
 
-                                        // Otherwise fetch top level document (which will contain sub-doc if sub-doc)
+                                    // Otherwise fetch top level document (which will contain sub-doc if sub-doc)
                                         promises.push(self.getPOJOFromQuery(closureType, query).then(function(pojos) {
 
                                             // Assuming the reference is still there
                                             if (pojos.length > 0) {
 
-                                                if (closureIsSubDoc)
+                                                if (closureIsSubDoc) {
+                                                    var topType = this.getTemplateByCollection(closureType.__collection__);
+                                                    self.fromDBPOJO(pojos[0], topType, promises,  {type: topType}, idMap, {})
                                                     // Fish out sub-document
                                                     pojos[0] = self.getPOJOSFromPaths(
                                                         closureType, this.createSubDocQuery(null, closureType).paths, pojos[0],
                                                         {_id: closureForeignId}
                                                     )[0];
+                                                }
                                                 idMap[closureForeignId] = pojos[0] ? self.fromDBPOJO(pojos[0], closureType, promises,
                                                     closureDefineProperty, idMap, closureCascade) : null;
 
@@ -657,7 +661,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                             obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                                             return Q(true);
                                         }.bind(self)));
-                                    })();
+                                })();
                             } else {
                                 obj[persistorPropertyName].isFetched = true;
                                 obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
@@ -814,7 +818,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 var defineProperty = props[prop];
                 var propTemplate = defineProperty.of || defineProperty.type;
                 if (propTemplate && propTemplate.__name__ &&
-                    !templates[template.__name__ + "." + prop] && propTemplate.__schema__.subDocumentOf) {
+                    !templates[template.__name__ + "." + prop] && propTemplate.__schema__ && propTemplate.__schema__.subDocumentOf) {
                     if (propTemplate == targetTemplate)
                         paths.push(queryString + prop);
                     templates[template.__name__ + "." + prop] = true;
@@ -1127,9 +1131,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             // One-to-One or Many-to-One
             else if (defineProperty.type && defineProperty.type.isObjectTemplate)
             {
+                var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
+
                 if (!isCrossDocRef || !defineProperty.type.__schema__.documentOf)  // Subdocument processing:
                 {
-                    var foreignKey = schema.parents[prop].id;
 
                     // If already stored in this document or stored in some other document make reference an id
                     if (value._id && (idMap[value._id.toString()] || value._id.replace(/:.*/, '') != masterId))

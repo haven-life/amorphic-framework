@@ -1,3 +1,9 @@
+## 0.1.51
+* Fixed propFetch() to honor fetch parameters
+* made cascade fetch pass through one-to-many relationships
+* fixed more subdocument cases
+## 0.1.49
+* Fixed subdocument case that was broken in 0.1.46
 ## 0.1.46
 * Added tests to ensure that init is not called on fetch
 ## 0.1.44
