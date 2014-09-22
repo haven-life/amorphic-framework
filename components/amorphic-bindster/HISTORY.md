@@ -1,4 +1,6 @@
-## 0.1.21
+## 0.1.24
+* Don't crush ver
+## 0.1.23
 * You can specify a node reference or id in controller.validate()
 ## 0.1.18
 * Triggers were not being called for checkboxes

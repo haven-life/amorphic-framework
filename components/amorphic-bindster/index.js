@@ -113,7 +113,9 @@ Bindster.prototype.setController = function(controller)
         // A re-render can end up calling validate again
         if (!this.bindster.validate) {
             this.bindster.validate = true;
-            this.bindster.render(typeof(data) == 'string' ? document.getElementById(data) : data);
+            var node = typeof(data) == 'string' ? document.getElementById(data) : data;
+            node = node ? node.firstChild : node;
+            this.bindster.render(node);
         }
         return !this.hasErrors();
     }
@@ -227,6 +229,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
 {
     var topLevel = typeof(context) == 'undefined' ? true : false;
     if (topLevel) {
+        var topLevelNode = node;
         this.errorCount = 0;
         this.hasErrors = hasErrors ? true : false;
         this.last_focus_priority = 1;
@@ -823,7 +826,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
             this.data.__stats.renders ++;
         }
         if(!hasErrors && this.hasErrors)
-            this.render(null, null, null, null, null, null, null, true);
+            this.render(topLevelNode, null, null, null, null, null, null, true);
         this.validate = false;
         this.DOMTestResolve("render");
     }

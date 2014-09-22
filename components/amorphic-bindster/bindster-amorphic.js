@@ -1,4 +1,4 @@
-var __ver = "?ver=0".replace(/\?ver=/, "");
+var __ver = __ver || 0;
 var controller;
 var bindster = null;
 
