@@ -42,14 +42,14 @@ amorphic.establishClientSession(
     // When a new version is detected pop up "about to be refreshed" and
     // then reload the document after 5 seconds.
     function () {
-        controller.lightBox='reload';
-        setTimeout(function () {document.location.reload(true)}, 5000);
+        controller.amorphicStatus = 'reloading';
+        setTimeout(function () {document.location.reload(true)}, 3000);
     },
 
     // If communication lost pop up dialog
     function () {
-        controller.oldrmode = controller.lightBox;
-        controller.lightBox='offline';
+        controller.amorphicStatus = 'offline';
+
     }
 
 );

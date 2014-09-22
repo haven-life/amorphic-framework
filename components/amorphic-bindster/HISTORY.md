@@ -1,3 +1,5 @@
+## 0.1.25
+* Added amorphic status
 ## 0.1.24
 * Don't crush ver
 ## 0.1.23
