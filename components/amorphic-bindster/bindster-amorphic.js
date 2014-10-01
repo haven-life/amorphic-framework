@@ -43,6 +43,7 @@ amorphic.establishClientSession(
     // then reload the document after 5 seconds.
     function () {
         controller.amorphicStatus = 'reloading';
+        controller.refresh(1);
         setTimeout(function () {document.location.reload(true)}, 3000);
     },
 
