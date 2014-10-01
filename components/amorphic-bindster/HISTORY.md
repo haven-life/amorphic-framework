@@ -1,3 +1,6 @@
+## 0.1.27
+* router.js  -Don't process lower level enter's if you route while processing a higher level enter
+* bindster.js - Don't consider fields that are awaiting defered status to be errors for SetFocus purposes
 ## 0.1.25
 * Added amorphic status
 ## 0.1.24

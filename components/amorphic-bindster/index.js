@@ -891,8 +891,11 @@ Bindster.prototype.setFocus = function(tags, node)
     var tags_focus = tags.focus;
     if (tags_focus)
         this.last_focus_priority = tags_focus;
-    if (tags.bind && this.get(this.getBindErrorReference(tags.bind)))
-        tags_focus = tags_focus ? tags_focus + 0.1  : this.last_focus_priority + 0.1;
+    if (tags.bind) {
+        var bind_error = this.get(this.getBindErrorReference(tags.bind));
+        if (bind_error && bind_error != '__pending__')
+            tags_focus = tags_focus ? tags_focus + 0.1 : this.last_focus_priority + 0.1;
+    }
     if (tags_focus) {
         if (!document.activeElement)
             return;  // maybe weird browsers don't have this?

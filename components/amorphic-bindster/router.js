@@ -70,14 +70,20 @@ AmorphicRouter =
         if (this.pendingParameters)
             for (var ix = 0; ix < this.pendingParameters.arguments.length; ++ix)
                 callArgs.push(this.pendingParameters.arguments[ix]);
-        for (var ix = 0; ix < this.currentRoute.__enter.length; ++ix)
+        this.executedGoTo = false;
+        for (var ix = 0; ix < this.currentRoute.__enter.length; ++ix) {
             if (this.pendingParameters && this.pendingParameters.route == route && ix == (this.currentRoute.__enter.length - 1))
                 this.currentRoute.__enter[ix].apply(this.controller, callArgs);
             else
                 this.currentRoute.__enter[ix].call(this.controller, this.currentRoute);
+            if (this.executedGoTo)
+                break;
+        }
         this.pendingParameters = null;
-        this.controller.arrive();
-        this.controller.refresh();
+        if (!this.executedGoTo) {
+            this.controller.arrive();
+            this.controller.refresh();
+        }
     },
     popRoute: function() {
         this.leave();
@@ -139,6 +145,7 @@ AmorphicRouter =
             } else
                 this.location.hash = '#' + encodeURIComponent(this._encodeURL(route));
             this._checkURL();
+            this.executedGoTo = true;
         }
     },
 
