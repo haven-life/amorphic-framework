@@ -689,23 +689,31 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             if (!bind_error && last_value !== bind_data)
                             {
                                 node.bindster.bind =  bind_data;
-                                if (node.checked && bind_data == eval(tags.falsevalue))
+                                if (node.checked && bind_data == this.eval(tags.falsevalue, null, "invalid truevalue", node))
                                     node.checked = false;
-                                if (!node.checked && bind_data == eval(tags.truevalue))
+                                if (!node.checked && bind_data == this.eval(tags.truevalue, null, "invalid truevalue", node))
                                     node.checked = true;
                             }
                         }
                         else if (node.tagName == 'INPUT' && node.type.toLowerCase() == 'radio')
                         {
-                            this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags,   tags.truevalue) + '}');
-                            this.validateValue(tags, node.checked);
+                            var current_value = this.eval(tags.truevalue, null, "invalid truevalue", node) + "";
+                            var resolve_value = "c.bindster.resolveRadioValue(target, '" + current_value + "')";
+                            this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags, resolve_value) + '}');
+                            this.validateValue(tags, bind_data);
                             if (!bind_error && last_value != bind_data)
                             {
                                 node.bindster.bind =  bind_data;
-                                if (node.checked && bind_data != eval(tags.truevalue))
+                                if (node.checked && (bind_data + "") != current_value)
                                     node.checked = false;
-                                if (!node.checked && bind_data == eval(tags.truevalue))
-                                    node.checked = true;
+                                if (!node.checked && (bind_data + "") == current_value)
+                                    (function () {
+                                        var closureNode = node;
+                                        setTimeout(function () {
+                                            closureNode.checked = true
+                                        },0);
+                                    })()
+
                             }
                         }
                         else if (node.tagName == 'SELECT')
@@ -845,6 +853,20 @@ Bindster.prototype.resolveSelectValue = function (target)
             return target.value.match(/1|true|yes|on/) ? true : false;
     }
     return target.value;
+}
+Bindster.prototype.resolveRadioValue = function (target, value)
+{
+    if (target.bindster && target.bindster && target.bindster.tags.proptype) {
+        if (target.bindster.tags.proptype.__objectTemplate__ &&
+            target.bindster.tags.proptype.__objectTemplate__.getObject)
+
+            return  target.bindster.tags.proptype.__objectTemplate__.getObject(value, target.bindster.tags.proptype);
+
+        else if (target.bindster.tags.proptype && target.bindster.tags.proptype == Boolean)
+
+            return value.match(/1|true|yes|on/) ? true : false;
+    }
+    return value;
 }
 Bindster.prototype.getPropOrGetter = function (bind_ref) {
     /* It would be nice to be able to substitute a getter but this would require some heavy duty processing

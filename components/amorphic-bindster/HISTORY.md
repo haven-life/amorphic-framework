@@ -1,3 +1,5 @@
+## 0.1.29
+* Handling of radio buttons with variables as true value and validation for radio buttons for null values
 ## 0.1.28
 * refresh to show the online loading message if implemented
 ## 0.1.27
