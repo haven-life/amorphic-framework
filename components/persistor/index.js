@@ -268,7 +268,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
         // Add persistors to foreign key references
 
-        var props = template.getProperties();
+        var props = template.defineProperties;
         for (var prop in props) {
             var defineProperty = props[prop];
             var type = defineProperty.type;
@@ -377,7 +377,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         }
 
         // Create the new object with correct constructor using embedded ID if ObjectTemplate
-        var obj = establishedObj ||
+        var obj = establishedObj || idMap[pojo._id.toString()] ||
             this._createEmptyObject(template, 'perist-' + pojo._template.replace(/.*:/,'') +
                 "-"+ pojo._id.toString(), defineProperty);
 
@@ -533,7 +533,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                     for (var ix = 0; ix < pojos.length; ++ix) {
                                         var subPojos = self.getPOJOSFromPaths(defineProperty.of, closurePaths, pojos[ix], closureOrigQuery)
                                         for (var jx = 0; jx < subPojos.length; ++jx) {
-                                            obj[closureProp].push(/*idMap[subPojos[ix]._id.toString()] ||*/
+                                            obj[closureProp].push(idMap[subPojos[jx]._id.toString()] ||
                                                 self.fromDBPOJO(subPojos[jx], closureDefineProperty.of,
                                                     promises, closureDefineProperty, idMap, closureCascade));
                                         }

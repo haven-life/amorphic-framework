@@ -1,3 +1,7 @@
+## 0.1.53
+* Case of cross-document references could lead to two separate objects of the same id
+## 0.1.52
+* Make sure duplicate peristors are not injected
 ## 0.1.51
 * Fixed propFetch() to honor fetch parameters
 * made cascade fetch pass through one-to-many relationships
