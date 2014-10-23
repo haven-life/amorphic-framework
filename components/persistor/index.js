@@ -101,18 +101,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             return this['__dirty__'] ? true : false
         };
 
-        object.fetchProperty = function (prop, cascade, start, limit)
+        object.fetchProperty = function (prop, cascade, queryOptions)
         {
             var properties = {}
             var objectProperties = this.__template__.getProperties();
             properties[prop] = objectProperties[prop];
-            if (typeof(start) != 'undefined' || typeof(limit) != 'undefined')
-                properties[prop].queryOptions = {};
-            if (typeof(start) != 'undefined')
-                properties[prop].queryOptions['skip'] = start;
-            if (typeof(limit) != 'undefined')
-                properties[prop].queryOptions['limit'] = limit;
-
+            if (queryOptions)
+                properties[prop].queryOptions = queryOptions;
             cascadeTop = {};
             cascadeTop[prop] = cascade || true;
 
@@ -280,12 +275,18 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 if (isCrossDocRef) {
                     (function () {
                         var closureProp = prop;
-                        var closureQuery = defineProperty.fetch ? defineProperty.fetch : {};
+                        var closureFetch = defineProperty.fetch ? defineProperty.fetch : {};
+                        var closureQueryOptions = defineProperty.queryOptions ? defineProperty.queryOptions : {};
                         if (!props[closureProp + 'Persistor'])
                             template.createProperty(closureProp + 'Persistor', {type: Object, toServer: false, persist: false, value: {isFetched: false, isFetching: false}});
                         if (!template.prototype[closureProp + 'Fetch'])
-                            template.createProperty(closureProp + 'Fetch', {on: "server", body: function (start, limit) {
-                                return this.fetchProperty(closureProp, closureQuery, start, limit);
+                            template.createProperty(closureProp + 'Fetch', {on: "server", body: function (start, limit)
+                            {
+                                 if (typeof(start) != 'undefined')
+                                    closureQueryOptions['skip'] = start;
+                                if (typeof(limit) != 'undefined')
+                                    closureQueryOptions['limit'] = limit;
+                                return this.fetchProperty(closureProp, closureFetch, closureQueryOptions);
                             }});
                     })();
                 }
@@ -533,7 +534,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                     for (var ix = 0; ix < pojos.length; ++ix) {
                                         var subPojos = self.getPOJOSFromPaths(defineProperty.of, closurePaths, pojos[ix], closureOrigQuery)
                                         for (var jx = 0; jx < subPojos.length; ++jx) {
-                                            obj[closureProp].push(idMap[subPojos[jx]._id.toString()] ||
+                                            obj[closureProp].push(/*idMap[subPojos[jx]._id.toString()] ||*/
                                                 self.fromDBPOJO(subPojos[jx], closureDefineProperty.of,
                                                     promises, closureDefineProperty, idMap, closureCascade));
                                         }
