@@ -1,3 +1,5 @@
+## 0.1.56
+* Problem referencing one-to-many of cross-document sub-documents to documents 
 ## 0.1.55
 * Allow query options and querys in .fetch call 
 ## 0.1.53

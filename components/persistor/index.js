@@ -504,7 +504,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                             if(!schema || !schema.children || !schema.children[prop])
                                 throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
                             var foreignKey = schema.children[prop].id;
-                            query[foreignKey] = new ObjectID(id.toString());
+                            query[foreignKey] = id.toString().match(/:/) ? id.toString : new ObjectID(id.toString());
                         }
                         var options = defineProperty.queryOptions || {};
                         cascadeFetch = this.processCascade(query, options, cascadeFetch,
