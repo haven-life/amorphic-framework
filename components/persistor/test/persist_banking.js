@@ -49,8 +49,20 @@ Customer.mixin({
 	},
 	addresses:  {type: Array, of: Address, value: [], fetch: true}
     });
+var ReturnedMail = PersistObjectTemplate.create("ReturnedMail", {
+    date: {type: Date},
+    address: {type:Address},
+    init: function (date)
+    {
+        this.date = date;
+    }
+});
 Address.mixin({
-	customer:  {type: Customer}
+    customer:  {type: Customer},
+    returnedMail: {type: Array, of: ReturnedMail, value: []},
+    addReturnedMail: function (date) {
+        this.returnedMail.push(new ReturnedMail(date));
+    }
 });
 var Role = PersistObjectTemplate.create("Role", {
 	init:       function (customer, account, relationship) {
@@ -167,6 +179,14 @@ var schema = {
         parents: {
             account: {id: 'account_id'},
             customer: {id: 'customer_id'}
+        },
+        children: {
+            returnedMail: {id: 'address_id'}
+        }
+    },
+    ReturnedMail: {
+        parents: {
+            address: {id: 'address_id'}
         }
     },
     Account: {
@@ -253,8 +273,14 @@ describe("Banking Example", function () {
     sam.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
     sam.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
+    sam.addresses[0].addReturnedMail(new Date());
+    sam.addresses[0].addReturnedMail(new Date());
+    sam.addresses[1].addReturnedMail(new Date());
+
     karen.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
     karen.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
+
+    karen.addresses[0].addReturnedMail(new Date());
 
     ashling.addAddress(["End of the Road", ""], "Lexington", "KY", "34421");
 
@@ -381,6 +407,9 @@ describe("Banking Example", function () {
                 expect(customer.addresses[0].lines[0]).to.equal("500 East 83d");
                 expect(customer.addresses[1].lines[0]).to.equal("38 Haggerty Hill Rd");
                 expect(customer.addresses[1].customer).to.equal(customer);
+
+                expect(customer.addresses[0].returnedMail.length).to.equal(2);
+                expect(customer.addresses[1].returnedMail.length).to.equal(1);
 
                 var sam = customer;
                 var r1 = customer.referrers[0];
