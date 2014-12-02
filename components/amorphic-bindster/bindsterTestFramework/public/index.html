@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:b="http://bindster.com" xmlns:fb="http://ogp.me/ns/fb#" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Bindster Test Framework</title>
+
+    <!-- First include your library files -->
+    <script src="/modules/q/q.js?ver=0"></script>
+    <script src="/common/js/lib/underscore.js?ver=0"></script>
+
+    <!-- Bootstrap -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+    <script src="/common/js/lib/jquery.js"></script>
+    <script src="/common/js/lib/jquery.scrollTo-1.4.3.1-min.js"></script>
+    <script src="/common/js/lib/bootstrap.min.js"></script>
+    <script src="/common/js/lib/carousel-swipe.js"></script>
+    <link href="/common/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/bindsterTestFramework/css/home.css?ver=0">
+
+    <!-- Then include the amorphic files -->
+    <script src="/supertype/index.js?ver=0"></script>
+    <script src="/semotus/index.js?ver=0"></script>
+    <script src="/amorphic/client.js?ver=0"></script>
+    <script src="/bindster/index.js?ver=1"></script>
+    <script src="/bindster/router.js?ver=0"></script>
+
+    <!-- Dynamically generated script that will contain the controller and related objects -->
+    <script src="/amorphic/init/bindsterTestFramework.js?ver=0"></script>
+
+</head>
+
+<body style="background: #edeeee;">
+
+<textarea style="display: none" id="package_content">
+    <html>
+    <head></head>
+    <body>
+        <div class="form-group">
+            <form id="form_id" action="__url__" method="post" enctype="multipart/form-data">
+                <div style="float: left; width: 75%">
+                    <input type="file" name="file" id="file">
+                </div>
+                <div style="float: left; width: 25%">
+                    <input type="submit" name="submit" value="Upload">
+                </div>
+            </form>
+        </div>
+    </body>
+    </html>
+</textarea>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-6 col-sm-6">
+             <iframe id="package" style="height: 30px;margin-left: -10px;margin-top: 10px" frameborder="0"></iframe>
+             <img src="/common/img/pixel.gif" onload="amorphic.prepareFileUpload('package');amorphic.uploadFunction = function(file) {controller.upload(file)}" />
+        </div>
+        <div class="col-xs-6 col-sm-6" style="padding-top: 12px">
+            <button type="button" b:class="btn btn-primary btn-sm {isPlaying() ? 'active' : ''}" b:onclick="play()" b:disabled="{isPlayable() ? '' : 'disabled'}">Play</button>
+            <button  b:showif="!isRecording()" type="button" class="btn btn-danger btn-sm" b:onclick="record()" b:disabled="{isRecordable() ? '' : 'disabled'}">Record</button>
+            <button  b:showif="isRecording() || isPlaying()" type="button" class="btn btn-danger btn-sm" b:onclick="stop()">Stop</button>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 8px;">
+        <div class="col-xs-6 col-sm-6">
+            <span b:showif="hasFile"><a b:href="amorphic/xhr?path=bindsterTestFramework&file=test" target="_blank">Download Script</a></span>
+        </div>
+        <div class="col-xs-3 col-sm-3">
+            Step <span b:bind="currentIx"></span> of <span b:bind="maxIx"></span>
+        </div>
+        <div class="col-xs-3 col-sm-3">
+            <span b:bind="errors"></span> errors
+        </div>
+    </div>
+</div>
+
+<script src="/bindster/bindster-amorphic.js"></script>
+
+</body>
+</html>

@@ -1,3 +1,6 @@
+## 0.1.30
+* Added bindster test framework
+* Added loopiterate on iterate to get the ordinal of the filtered list
 ## 0.1.29
 * Handling of radio buttons with variables as true value and validation for radio buttons for null values
 ## 0.1.28

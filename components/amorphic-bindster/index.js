@@ -188,8 +188,11 @@ Bindster.prototype.setController = function(controller)
 
         return attrs;
     },
-        controller.arrive = function() {
+        controller.arrive = function(route) {
             this.bindster.DOMTestResolve("arrival");
+            if (typeof(bindsterTestFrameworkRoute) == "function")
+                bindsterTestFrameworkRoute(route);
+
         }
 
 }
@@ -229,6 +232,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
 {
     var topLevel = typeof(context) == 'undefined' ? true : false;
     if (topLevel) {
+        this.originalActionSequenceTracker = {};
         var topLevelNode = node;
         this.errorCount = 0;
         this.hasErrors = hasErrors ? true : false;
@@ -238,6 +242,9 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
         }
         if (this.controller && typeof(this.controller.onprerender) == "function")
             this.controller.onprerender.call(this.controller);
+        if (typeof(bindsterTestFrameworkPreRender) == "function")
+            bindsterTestFrameworkPreRender();
+
     }
     node = node ? node : (this.renderNode ? this.renderNode :  document.body.firstChild);
 
@@ -466,15 +473,18 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         node.setAttribute("bindster_iterateid", iterate_id)
 
                         var counter = 0;
+                        var loopIndex = 0; // Loop index is a 1 based index // of filtered rows
                         for (var ix = 0; fill_data && ix < fill_data.length; ++ix)
                         {
                             counter++;
+                            loopIndex++;
                             // Create new context for setting up index values in events and binds
                             var new_context = (tags.iterateindex || tags.iteratewith) ?
                                 context + (
                                 (tags.iteratewith ? this.instance + ".set('" + tags.iteratewith + "', \""
                                     /*+ this.instance + ".data."*/ + tags.iterateon + "[" + ix + "]\");" :  "")
                                 + (tags.iterateindex ? this.instance + ".set('" + tags.iterateindex + "', " + ix + ");" : "")
+                                + (tags.iterateloopindex ? this.instance + ".set('" + tags.iterateloopindex + "', " + loopIndex + ");" : "")
                                 + (tags.iteratecounter ? this.instance + ".set('" + tags.iteratecounter + "', " + counter + ");" : "")
                                 ) : context;
                             this.eval(new_context, null, 'with, index or counter attributes of iterate', node);
@@ -504,6 +514,9 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                         node.bindster.cloned == 'yes' || node.bindster.inwaiting == 'yes', true);
                                 bypass = true;
                             }
+                            else{
+                                loopIndex--;
+                        }
                         }
                     } else
                     if (typeof(fill_data) == "undefined")
@@ -667,6 +680,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             {
                                 node.value = bind_data;
                                 node.bindster.bind =  bind_data;
+                                this.sendToController(node.bindster);
                             }
                         }
                         else if (node.tagName == 'TEXTAREA')
@@ -680,6 +694,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             {
                                 node.value = bind_data;
                                 node.bindster.bind =  bind_data;
+                                this.sendToController(node.bindster);
                             }
                         }
                         else if (node.tagName == 'INPUT' && node.type.toLowerCase() == 'checkbox')
@@ -689,10 +704,14 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             if (!bind_error && last_value !== bind_data)
                             {
                                 node.bindster.bind =  bind_data;
-                                if (node.checked && bind_data == this.eval(tags.falsevalue, null, "invalid truevalue", node))
+                                if (node.checked && bind_data == this.eval(tags.falsevalue, null, "invalid truevalue", node)) {
                                     node.checked = false;
-                                if (!node.checked && bind_data == this.eval(tags.truevalue, null, "invalid truevalue", node))
+                                    this.sendToController(node.bindster);
+                                }
+                                if (!node.checked && bind_data == this.eval(tags.truevalue, null, "invalid truevalue", node)) {
                                     node.checked = true;
+                                    this.sendToController(node.bindster);
+                                }
                             }
                         }
                         else if (node.tagName == 'INPUT' && node.type.toLowerCase() == 'radio')
@@ -704,13 +723,18 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             if (!bind_error && last_value != bind_data)
                             {
                                 node.bindster.bind =  bind_data;
-                                if (node.checked && (bind_data + "") != current_value)
+                                if (node.checked && (bind_data + "") != current_value) {
                                     node.checked = false;
+                                    this.sendToController(node.bindster);
+                                }
+                                var self = this;
                                 if (!node.checked && (bind_data + "") == current_value)
                                     (function () {
                                         var closureNode = node;
                                         setTimeout(function () {
-                                            closureNode.checked = true
+                                            closureNode.checked = true;
+                                            self.sendToController(closureNode.bindster);
+
                                         },0);
                                     })()
 
@@ -725,6 +749,8 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             var selected = false;
                             this.setFocus(tags, node);
                             if (!bind_error && last_value !== bind_data) {
+                                node.bindster.bind = bind_data;
+                                this.sendToController(node.bindster);
                                 child = node.firstChild;
                                 var pleaseSelect = tags.pleaseselect ? tags.pleaseselect : "Select ...";
                                 while (child) {
@@ -761,6 +787,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 else if(typeof(node.innerText) != 'undefined')
                                     node.innerText = bind_data;
                                 node.bindster.bind =  bind_data;
+                                this.sendToController(node.bindster);
                             }
                             do_render = false;
                         }
@@ -828,6 +855,8 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
         this.set_focus = false;
         if (this.controller && typeof(this.controller.onrender) == "function")
             this.controller.onrender.call(this.controller);
+        if (typeof(bindsterTestFrameworkRender) == "function")
+            bindsterTestFrameworkRender();
         if (this.data && this.data.__stats) {
             this.data.__stats.last_render_time = Math.floor((new Date()).getTime() - this.start_render.getTime());
             this.data.__stats.total_render_time += this.data.__stats.last_render_time;
@@ -840,6 +869,13 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
     }
 
 }
+Bindster.prototype.sendToController = function (node_bindster) {
+    if (typeof(this.controller.onrendervalue) == 'function')
+        this.controller.onrendervalue(node_bindster.tags.bind, node_bindster.bind);
+    if (typeof(bindsterTestFrameworkGet) == "function")
+        bindsterTestFrameworkGet(node_bindster.tags.bind, node_bindster.bind);
+}
+
 Bindster.prototype.resolveSelectValue = function (target)
 {
     if (target.bindster && target.bindster && target.bindster.tags.proptype) {
@@ -1009,12 +1045,21 @@ Bindster.prototype.clearBindError = function(bind, node)
 Bindster.prototype.getBindAction = function(tags, value)
 {
     var bind_error = this.getBindErrorReference(tags.bind);
-    var this_value = this.controller ? "this.controller.value" : "this.value";
+    var this_value = this.controller ? "self.controller.value" : "self.value";
     var this_previous_value = this.controller ? "this.controller.previous_value" : "this.previous_value";
+    var controller_trigger = ((self.controller && typeof(self.controller.onchange) == "function") ?
+        "if(!isValidating){self.controller.onchange(node.bindster.tags.bind," + this_value +")};" : "") +
+        ((typeof(bindsterTestFrameworkSet) == "function") ?
+            "if(!isValidating){bindsterTestFrameworkSet(node.bindster.tags.bind," + this_value +")};" : "");
+
+    var model_trigger = (tags.trigger ? (tags.trigger + "; ") : "");
+    var trigger = model_trigger + controller_trigger;
 
     // Bind to a temporary variable, perform validation and handle exceptions
     // where updated value is stored temporarily and error is recorded ready for error bind
     var x =	"try { " +
+        "var self=this;" +
+        "var isValidating=this.validate;" +
         "if(target && target.bindster){target.bindster.bind = undefined}" +
         this_value + " = " + value +  ";" +
         (tags.parse ? (this_value + " = " + tags.parse + "; ") : "") +
@@ -1023,14 +1068,13 @@ Bindster.prototype.getBindAction = function(tags, value)
         "if (" + bind_error +") {delete " + bind_error + "} " +
         ((typeof(Q) != 'undefined' && tags.bind.match(/[a-zA-z]$/) && !tags.bind.match(/[^A-Za-z0-9_\(\)\.\[\]]/)) ?
             "if (typeof(" + tags.bind + "Set) == 'function'){" +
-            bind_error + " = '__pending__';var self=this;" + tags.bind + "Set(" + this_value + ").then(" + "" +
+            bind_error + " = '__pending__';" + controller_trigger + tags.bind + "Set(" + this_value + ").then(" + "" +
             "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
-            (tags.trigger ? tags.trigger : "") + "}).call(self)}," +
+            model_trigger + "}).call(self)}," +
             "function(e){(function(){c.bindster.hasErrors = true;" + bind_error + " = e}).call(self)})" +
             "}else{" +
-            tags.bind + " = " + this_value + "};" + (tags.trigger ? (tags.trigger + "; ") : "")
-            : (tags.bind + " = " + this_value + ";") + (tags.trigger ? (tags.trigger + "; ") : "")) +
-        ((this.controller && typeof(this.controller.onchange) == "function") ? "this.controller.onchange();" : "") +
+            tags.bind + " = " + this_value + ';' + trigger + "};"
+            : (tags.bind + " = " + this_value + ";") + trigger) +
         " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.hasErrors = true;" +
         bind_error + " = e} else {c.bindster.displayError(null, e, 'validation, parse or format', node)}; " +
         "}";
@@ -1074,7 +1118,7 @@ Bindster.prototype.wrapStatus = function(node, wrapped_entity)
         return false;
     return wrapped_entity;
 }
-Bindster.prototype.addEvent = function(tags, event, action, defer, eval)
+Bindster.prototype.addEvent = function(tags, event, action, defer, eval, originalAction)
 {
     if (!tags.events[event])
         tags.events[event] = new Array();
@@ -1085,7 +1129,7 @@ Bindster.prototype.addEvent = function(tags, event, action, defer, eval)
         if (events[ix].action == action)
             return;
 
-    tags.events[event].push({action: action, defer: defer ? (defer > 0 ? defer * 1 : true) : false, eval: eval});
+    tags.events[event].push({action: action, originalAction: originalAction || action, defer: defer ? (defer > 0 ? defer * 1 : true) : false, eval: eval});
 }
 // Setup all events for the node
 Bindster.prototype.processEvents = function(node, tags, context, cloned, finger_print)
@@ -1446,6 +1490,7 @@ Bindster.prototype.getTags = function (node, mapAttrs, finger_print)
             case "iteratewith":
             case "iterateindex":
             case "iteratecounter":
+            case "iterateloopindex":
             case "iteratefilter":
             case "fill":
             case "evalfill":
@@ -1595,10 +1640,13 @@ Bindster.prototype.getTags = function (node, mapAttrs, finger_print)
                 break;
 
             default:
+                var listener1 = ";if (typeof(onevent) == 'function'){onevent('" + attr + "','" + value.replace(/\'/g, "") + "');}";
+                var listener2 = (typeof(bindsterTestFrameworkEvent) == 'function' ?
+                    ";bindsterTestFrameworkEvent('" + attr + "','" + value.replace(/\'/g, "") + "', node);" : "");
                 if (attr.match(/^(on\S*)$/))
-                    this.addEvent(tags, RegExp.$1, "{" + value + "}");
+                    this.addEvent(tags, RegExp.$1, "{" + listener1 + value + listener2 + "}", null, null, value.replace(/\'/g, ""));
                 else if (attr.match(/^(evalon\S*)$/))
-                    this.addEvent(tags, RegExp.$1.substr(4), "{" + value + "}", null, true);
+                    this.addEvent(tags, RegExp.$1.substr(4), "{" + listener1 + value + listener2 +"}", null, true);
                 else if (our_tag.length == 0) {
                     if (!tags.onpaint)
                         tags.onpaint = [];
@@ -2024,6 +2072,8 @@ Bindster.bind = function (model, view, controller) {
 
  DOMClick find an onclick event or anchor and fire it along with event which expects an option containing:
  text - the text (innerHMTL) used to identify
+ action - the action string used to identify
+ sequence - the n'th time the node is found
  context - an optional context that must be true (used for iteration)  NOT IMPLEMENTED AT PRESENT
  selector - an optional selector to qualify the node in question
 
@@ -2052,6 +2102,7 @@ Bindster.prototype.DOMSet = function (request)
     {
         this.DOMTestRequestSearch = request;
         this.DOMTestRequestSearch.status = "Pending";
+        this.DOMTestRequestSearch.sequence = 0;
         this.render();
         if (this.DOMTestRequestSearch.status && this.DOMTestRequestSearch.status == "OK") {
             this.DOMTestRequestSearch = null;
@@ -2061,21 +2112,22 @@ Bindster.prototype.DOMSet = function (request)
             return false;
         }
     },
+    Bindster.prototype.DOMGetSequence = function (request)
+    {
+        this.DOMTestRequestAction = request;
+        this.DOMTestRequestAction.status = "Pending";
+        this.DOMTestRequestAction.sequenceTracker = {};
+        this.render();
+        return this.DOMTestRequestAction.value || 0;
+    },
     Bindster.prototype.DOMClick = function (request)
     {
         this.DOMTestRequestAction = request;
         this.DOMTestRequestAction.status = "Pending";
-        var wasDeferred = this.DOMTestRequestAction.defer;
         this.render();  // May cause defer to be reset to null
-        if (this.DOMTestRequestAction.status && this.DOMTestRequestAction.status == "OK") {
-            if (this.DOMTestRequestAction.defer) {
-                this.DOMTestRequestAction.status = "Deferred";
-                this.DOMTestRequestAction.deferred = Q.defer();
-                return this.DOMTestRequestAction.deferred.promise;
-            }
-            this.render();  // Re-render
-            this.DOMTestRequestAction = null;
-            return wasDeferred ? Q(true) : null;
+        if (this.DOMTestRequestAction.status == "OK") {
+            this.DOMTestRequestAction.value.click();
+            return true;
         } else {
             this.DOMTestRequestAction = null;
             throw "Cannot process DOMTestRequest" + JSON.stringify(request);
@@ -2097,14 +2149,18 @@ Bindster.prototype.DOMSet = function (request)
             this.DOMTestRequestData.bind == tags.bind)
         {
             if (this.DOMTestRequestData.value) {
-                if ((node.tagName && node.tagName.match(/INPUT|SELECT|TEXTAREA/)) || node.bindster.controller) {
+                if ((node.tagName && node.tagName.match(/INPUT|SELECT|TEXTAREA/)) || node.bindster.controller)
+                {
                     this.eval(this.getBindAction(tags, "bindster.DOMTestRequestData.value"), null, "DOMTestBind");
                     this.DOMTestRequestData.status = "OK";
                     bind_data = this.DOMTestRequestData.value;
                 }
-            } else {
-                this.DOMTestRequestData.value = bind_data;
-                this.DOMTestRequestData.status = "OK";
+            } else
+            {
+                if (typeof(this.DOMTestRequestData.sequence) == 'undefined' || this.DOMTestRequestData.sequence-- == 0) {
+                    this.DOMTestRequestData.value = bind_data;
+                    this.DOMTestRequestData.status = "OK";
+                }
             }
         }
         return bind_data;
@@ -2112,19 +2168,36 @@ Bindster.prototype.DOMSet = function (request)
 
 // Called on attachment of events to find both onclick events and anchors that need to be fired
 Bindster.prototype.DOMTestClick = function(finger_print, node, events) {
-    if (events && this.DOMTestRequestAction && this.DOMTestRequestAction.status == "Pending")
-        for (var ix = 0; ix < events.length; ++ ix) {
+
+    // Determine a unique sequence number for each action
+    if (events)
+        for (var ix = 0; ix < events.length; ++ix) {
             var event = events[ix];
-            if ((!this.DOMTestRequestAction.selector || finger_print.match(this.DOMTestRequestAction.selector)) &&
-                ((this.DOMTestRequestAction.action &&  event.script == this.DOMTestRequestAction.action) ||
-                    (this.DOMTestRequestAction.id && node.id && node.id == this.DOMTestRequestAction.id) ||
-                    (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text &&
-                        (!this.DOMTestRequestAction.type || this.DOMTestRequestAction.type.toLowerCase() == node.tagName.toLowerCase()))))
-            {
-                this.eval(event.action, node, "DOMTestClick");
-                this.DOMTestRequestAction.status = "OK"
+            if (event.originalAction) {
+                if (typeof(this.originalActionSequenceTracker[event.originalAction]) == 'undefined')
+                    this.originalActionSequenceTracker[event.originalAction] = 0;
+                else
+                    this.originalActionSequenceTracker[event.originalAction]++;
+                node.bindster.actionSequence = this.originalActionSequenceTracker[event.originalAction]
             }
         }
+
+    if (events && this.DOMTestRequestAction && this.DOMTestRequestAction.status == "Pending")
+    {
+        for (var ix = 0; ix < events.length; ++ix) {
+            var event = events[ix];
+            if ((!this.DOMTestRequestAction.selector || finger_print.match(this.DOMTestRequestAction.selector)) &&
+                ((this.DOMTestRequestAction.action && event.originalAction == this.DOMTestRequestAction.action) ||
+                    (this.DOMTestRequestAction.id && node.id && node.id == this.DOMTestRequestAction.id) ||
+                    (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text &&
+                        (!this.DOMTestRequestAction.type || this.DOMTestRequestAction.type.toLowerCase() == node.tagName.toLowerCase())))) {
+                if (typeof(this.DOMTestRequestAction.sequence) == 'undefined' || this.DOMTestRequestAction.sequence-- == 0) {
+                    this.DOMTestRequestAction.value = node;
+                    this.DOMTestRequestAction.status = "OK"
+                }
+            }
+        }
+    }
     if (!events && node.href && this.DOMTestRequestAction && this.DOMTestRequestAction.status == "Pending") {
         var href=node.href.replace(/.*#/, '#');
         if ((!this.DOMTestRequestAction.selector || finger_print.match(this.DOMTestRequestAction.selector)) &&
