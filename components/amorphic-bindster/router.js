@@ -81,7 +81,7 @@ AmorphicRouter =
         }
         this.pendingParameters = null;
         if (!this.executedGoTo) {
-            this.controller.arrive();
+            this.controller.arrive(route);
             this.controller.refresh();
         }
     },

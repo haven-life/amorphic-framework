@@ -1,4 +1,4 @@
-## 0.1.30
+## 0.1.31
 * Added bindster test framework
 * Added loopiterate on iterate to get the ordinal of the filtered list
 ## 0.1.29
