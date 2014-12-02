@@ -2151,7 +2151,7 @@ Bindster.prototype.DOMSet = function (request)
             if (this.DOMTestRequestData.value) {
                 if ((node.tagName && node.tagName.match(/INPUT|SELECT|TEXTAREA/)) || node.bindster.controller)
                 {
-                    this.eval(this.getBindAction(tags, "bindster.DOMTestRequestData.value"), null, "DOMTestBind");
+                    this.eval(this.getBindAction(tags, "bindster.DOMTestRequestData.value"), null, "DOMTestBind", node);
                     this.DOMTestRequestData.status = "OK";
                     bind_data = this.DOMTestRequestData.value;
                 }
