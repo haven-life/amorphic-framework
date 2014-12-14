@@ -1,3 +1,7 @@
+## 0.1.60
+* Revamped sub-doc handling such that sub-doc fetches in same doc happen only with crossDocument: true on  the
+  children: and parent: schema properties
+* Added transient parameter to queries for the benefit of semotus
 ## 0.1.56
 * Problem referencing one-to-many of cross-document sub-documents to documents 
 ## 0.1.55

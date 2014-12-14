@@ -9,7 +9,14 @@ var Q = require("q");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
-
+/*
+PersistObjectTemplate.debug = function(m, t) {
+    if (t.match(/(query)|(io)/))
+    {
+        console.log(m)
+    }
+}
+*/
 var Customer = PersistObjectTemplate.create("Customer", {
 	init: function (first, middle, last) {
 		this.firstName = first;
@@ -167,18 +174,18 @@ var schema = {
         documentOf: "customer",
         children: {
             roles: {id: "customer_id"},
-            referrers: {id: "referred_id"},
-            addresses: {id: "customer_id"}
+            referrers: {id: "referred_id", crossDocument: true},
+            addresses: {id: "customer_id", crossDocument: true}
         },
         parents: {
-            referredBy: {id: "referred_id"}
+            referredBy: {id: "referred_id", crossDocument: true}
         }
     },
     Address: {
         subDocumentOf: "customer",
         parents: {
             account: {id: 'account_id'},
-            customer: {id: 'customer_id'}
+            customer: {id: 'customer_id', crossDocument: true}
         },
         children: {
             returnedMail: {id: 'address_id'}
@@ -193,8 +200,8 @@ var schema = {
         documentOf: "account",
         children: {
             roles: {id: "account_id"},
-            transactions: {id: "account_id"},
-            fromAccountTransactions: {id: "from_account_id"}
+            transactions: {id: "account_id", crossDocument: true},
+            fromAccountTransactions: {id: "from_account_id", crossDocument: true}
         },
         parents: {
             address: {id: "address_id"}
@@ -210,8 +217,8 @@ var schema = {
     Transaction: {
         subDocumentOf: "account",
         parents: {
-            account: {id: 'account_id'},
-            fromAccount: {id: 'from_account_id'}
+            account: {id: 'account_id', crossDocument: true},
+            fromAccount: {id: 'from_account_id', crossDocument: true}
         }
     }
 }
