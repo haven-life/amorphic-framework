@@ -543,11 +543,14 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
  * @return {Boolean}
  * @private
  */
-RemoteObjectTemplate._createChanges = function (defineProperty)
+RemoteObjectTemplate._createChanges = function (defineProperty, template)
 {
+    template = template || {};
     return !((defineProperty.isLocal == true) ||
         (defineProperty.toServer == false && this.role == "client") ||
-        (defineProperty.toClient == false && this.role == "server"));
+        (defineProperty.toClient == false && this.role == "server") ||
+        (template.__toServer__ == false && this.role == "client") ||
+        (template.__toClient__ == false && this.role == "server"));
 }
 
 /**
@@ -556,11 +559,14 @@ RemoteObjectTemplate._createChanges = function (defineProperty)
  * @return {Boolean}
  * @private
  */
-RemoteObjectTemplate._acceptChanges = function (defineProperty)
+RemoteObjectTemplate._acceptChanges = function (defineProperty, template)
 {
+    template = template || {};
     return !((defineProperty.isLocal == true) ||
         (defineProperty.toServer == false && this.role == "server") ||
-        (defineProperty.toClient == false && this.role == "client"));
+        (defineProperty.toClient == false && this.role == "client") ||
+        (template.__toServer__ == false && this.role == "client") ||
+        (template.__toClient__ == false && this.role == "server"));
 }
 
 /**
@@ -600,7 +606,7 @@ RemoteObjectTemplate._logChanges = function (obj)
         var type = defineProperty.type;
         if (type && this._manageChanges(defineProperty))
         {
-            var createChanges = this._createChanges(defineProperty);
+            var createChanges = this._createChanges(defineProperty, obj.__template__);
 
             if (type == Array  && defineProperty.of.isObjectTemplate)
             {
@@ -652,6 +658,11 @@ RemoteObjectTemplate._logChanges = function (obj)
  */
 RemoteObjectTemplate._changedValue = function (obj, prop, value)
 {
+    if (obj.__transient__ || this.__transient__ ||
+        (this.role == "client" && obj.__template__.__toClient__ == false) ||
+        (this.role == "server" && obj.__template__.__toServer__ == false))
+        return
+
     var subscriptions = this._getSubscriptions()
     for (var subscription in subscriptions) {
         if (subscriptions[subscription] != this.processingSubscription)
@@ -845,17 +856,23 @@ RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
     this.changeCount = 0;
     this.changeString = "";
     for (var objId in changes) {
-        // Only objects that have already been instantiated are processed in each pass
         var obj = session.objects[objId];
-        if (obj)
-            if (!this._applyObjectChanges(changes, rollback, obj, force)) {
-                this.processingSubscription = false;
-                this._rollback(rollback);
-                this._deleteChanges();
-                this.log(0, "Could not apply changes to " + objId);
-                this.changeString = "";
-                return false;
-            }
+        // If no reference derive template for object ID
+        if (!obj) {
+            var template = this.__dictionary__[objId.replace(/[^-]*-/,'').replace(/-.*/,'')];
+            if (template)
+                obj = this._createEmptyObject(template, objId);
+            else
+                console.log(0, "Could not find template for " + objId);
+        }
+        if (!obj || !this._applyObjectChanges(changes, rollback, obj, force)) {
+            this.processingSubscription = false;
+            this._rollback(rollback);
+            this._deleteChanges();
+            this.log(0, "Could not apply changes to " + objId);
+            this.changeString = "";
+            return false;
+        }
     }
     /*  We used to delete changes but this means that changes while a message is processed
      is effectively lost.  Now we just don't record changes while processing.
@@ -951,8 +968,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
 
     // unidirectional properties will get out of sync on refreshes so best not to check
     var defineProperty = this._getDefineProperty(prop, obj.__template__) || {};
-    var singleDirection = this.role == "server" && defineProperty.toServer === false ||
-        this.role == "client" && defineProperty.toClient === false;
+    var singleDirection = defineProperty.toServer === false || defineProperty.toClient === false;
 
     // Make sure old value that is reported matches current value
     if (!singleDirection && !force && oldValue != currentValueConverted) { // conflict will have to roll back
@@ -964,7 +980,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
 
     // Based on type of property we convert the value from it's string representation into
     // either a fundemental type or a templated object, creating it if needed
-    if (!this._acceptChanges(defineProperty)) {
+    if (!this._acceptChanges(defineProperty, obj.__template__)) {
         this.log(0, "Could not accept changes to " + obj.__template__.__name__ + "." + prop +
             " based on property definition");
         return false;
@@ -1075,10 +1091,12 @@ RemoteObjectTemplate._rollbackChanges = function() {
  *
  * @param template - the ObjectTemplate template for the object
  * @param objId - the id to be assigned
+ * @param defineProperty - the property definition from the template
+ * @param isTransient - true if not to be recorded in session
  * @return {*} - an instance of the object
  * @private
  */
-RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProperty) {
+RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProperty, isTransient) {
 
     if (!objId)
         throw  new Error("_createEmptyObject called for " + template.__name__ + " without objId parameter");
@@ -1088,17 +1106,27 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
     template = this._resolveSubClass(template, objId, defineProperty);
 
     var session = this._getSession();
-    if (session.objects[objId]) {
-        if (session.objects[objId].__template__ == template)
-            var newValue = session.objects[objId];
+    var sessionReference = session.objects[objId];
+    if (sessionReference) {
+        if (sessionReference.__template__ == template)
+            var newValue = sessionReference;
         else
             throw  new Error("_createEmptyObject called for " + template.__name__ +
                 " and session object with that id exists but for template " + session.objects[objId].__template__)
     } else {
         this.dispenseId = objId;
         session.dispenseNextId = objId;  // stashObject will use this
+
+        if (isTransient)
+            this.__transient__ = true;
         var newValue = new template();
+        this.__transient__ = false;
+        if (isTransient) {
+            delete session.objects[objId];
+            newValue.__transient__ = true;
+        }
     }
+
     if (this.role == "client" && typeof(newValue.clientPreInit) == "function")
         newValue.clientPreInit.call();
     if (this.role == "server" && typeof(newValue.serverPreInit) == "function")
