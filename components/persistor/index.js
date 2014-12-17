@@ -50,6 +50,7 @@
  * @param baseClassForPersist
  */
 var nextId = 1;
+var promiseNumber = 1;
 
 module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPersist)
 {
@@ -101,8 +102,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             return this['__dirty__'] ? true : false
         };
 
-        object.fetchProperty = function (prop, cascade, queryOptions, isTransient)
+        object.fetchProperty = function (prop, cascade, queryOptions, isTransient, idMap)
         {
+            idMap = idMap || {};
             var properties = {}
             var objectProperties = this.__template__.getProperties();
             properties[prop] = objectProperties[prop];
@@ -111,17 +113,19 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             cascadeTop = {};
             cascadeTop[prop] = cascade || true;
 
-            return self.fromDBPOJO(this, this.__template__, null, null, null, cascadeTop, this, properties, isTransient);
+            return self.fromDBPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient);
         };
 
-        object.fetch = function (cascade, isTransient)
+        object.fetch = function (cascade, isTransient, idMap)
         {
+            idMap = idMap || {};
+
             var properties = {}
             var objectProperties = this.__template__.getProperties();
             for (var prop in cascade)
                 properties[prop] = objectProperties[prop];
 
-            return self.fromDBPOJO(this, this.__template__, null, null, null, cascade, this, properties, isTransient);
+            return self.fromDBPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient);
         };
     };
 
@@ -309,6 +313,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     PersistObjectTemplate.getFromPersistWithQuery = function (template, query, cascade, skip, limit, isTransient, idMap)
     {
+        idMap = idMap || {};
         var options = {};
         if (typeof(skip) != 'undefined')
             options.skip = skip * 1;
@@ -316,7 +321,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             options.limit = limit * 1;
         if (template.__schema__.subDocumentOf) {
             var subQuery = this.createSubDocQuery(query, template)
-            return this.getPOJOFromQuery(template, subQuery.query, options).then(function(pojos) {
+            return this.getPOJOFromQuery(template, subQuery.query, options, idMap).then(function(pojos) {
                 var promises = [];
                 var results = [];
                 for (var ix = 0; ix < pojos.length; ++ix) {
@@ -330,7 +335,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 return this.resolveRecursivePromises(promises, results);
             }.bind(this));
         } else
-            return this.getPOJOFromQuery(template, query, options).then(function(pojos)
+            return this.getPOJOFromQuery(template, query, options, idMap).then(function(pojos)
             {
                 var promises = [];
                 var results = [];
@@ -348,7 +353,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     PersistObjectTemplate.getFromPersistWithId = function (template, id, cascade, isTransient, idMap) {
         var self = this;
-        return this.getPOJOFromQuery(template, {_id: new ObjectID(id)}).then(function(pojos) {
+        idMap = idMap || {};
+        return this.getPOJOFromQuery(template, {_id: new ObjectID(id)}, idMap).then(function(pojos) {
             if (pojos.length > 0)
                 return self.fromDBPOJO(pojos[0], template, null, null, idMap, cascade, null, null, isTransient);
             else
@@ -367,10 +373,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
      */
     PersistObjectTemplate.fromDBPOJO = function (pojo, template, promises, defineProperty, idMap, cascade, establishedObj, specificProperties, isTransient)
     {
-        this.debug("Processing " + template.__name__ + ' ' + pojo._id, 'query');
         // For recording back refs
         if (!idMap)
-            idMap = {};
+            throw "missing idMap on fromDBPOJO";
         var topLevel = false;
         if (!promises) {
             topLevel = true;
@@ -501,7 +506,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                 obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                             }));
                     })();
-                     if (doFetch)
+                    if (doFetch)
                     {
                         var query = {};
                         var options = {};
@@ -530,7 +535,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                 query = results.query;
                                 var closurePaths = results.paths;
                             }
-                            promises.push(self.getPOJOFromQuery(defineProperty.of, query, options).then( function(pojos)
+                            promises.push(self.getPOJOFromQuery(defineProperty.of, query, options, idMap).then( function(pojos)
                             {
                                 // For subdocs we have to fish them out of the documents making sure the query matches
                                 if (closureIsSubDoc) {
@@ -653,8 +658,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                         obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
                                     } else
 
-                                        // Otherwise fetch top level document (which will contain sub-doc if sub-doc)
-                                        promises.push(self.getPOJOFromQuery(closureType, query).then(function(pojos) {
+                                    // Otherwise fetch top level document (which will contain sub-doc if sub-doc)
+                                        promises.push(self.getPOJOFromQuery(closureType, query, idMap).then(function(pojos) {
 
                                             // Assuming the reference is still there
                                             if (pojos.length > 0) {
@@ -675,8 +680,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                                         self.fromDBPOJO(subDocPojo, closureType, promises,
                                                             closureDefineProperty, idMap, closureCascade, null, null, isTransient);
                                                 } else
-                                                    if (!idMap[pojos[0]._id.toString()])
-                                                        self.fromDBPOJO(pojos[0], closureType, promises,
+                                                if (!idMap[pojos[0]._id.toString()])
+                                                    self.fromDBPOJO(pojos[0], closureType, promises,
                                                         closureDefineProperty, idMap, closureCascade, null, null, isTransient);
                                             }
                                             obj[closureProp] = idMap[closureForeignId];

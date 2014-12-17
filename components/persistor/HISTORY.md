@@ -1,3 +1,5 @@
+## 0.1.61
+* Optimization to not do duplicate processing
 ## 0.1.60
 * Revamped sub-doc handling such that sub-doc fetches in same doc happen only with crossDocument: true on  the
   children: and parent: schema properties
