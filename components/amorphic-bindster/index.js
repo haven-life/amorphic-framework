@@ -516,7 +516,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             }
                             else{
                                 loopIndex--;
-                        }
+                            }
                         }
                     } else
                     if (typeof(fill_data) == "undefined")
@@ -969,7 +969,7 @@ Bindster.prototype.isError = function(ref) {
     var data = this.eval(ref, null, "isError");
     return typeof(data) != 'undefined' && data != '__pending__';
 }
-// Execute the whole marshalling/filter/validation sequence to force errors
+// Execute the whole marshalling/filter/validation sequence to force errorsf
 Bindster.prototype.validateValue = function(tags, value, node) {
     if (this.validate && tags.validate) {
         this.validate_value = value;
@@ -1048,10 +1048,7 @@ Bindster.prototype.getBindAction = function(tags, value)
     var this_value = this.controller ? "self.controller.value" : "self.value";
     var this_previous_value = this.controller ? "this.controller.previous_value" : "this.previous_value";
     var controller_trigger = ((self.controller && typeof(self.controller.onchange) == "function") ?
-        "if(!isValidating){self.controller.onchange(node.bindster.tags.bind," + this_value +")};" : "") +
-        ((typeof(bindsterTestFrameworkSet) == "function") ?
-            "if(!isValidating){bindsterTestFrameworkSet(node.bindster.tags.bind," + this_value +")};" : "");
-
+        "if(!isValidating){self.controller.onchange(node.bindster.tags.bind," + this_value +")};" : "")
     var model_trigger = (tags.trigger ? (tags.trigger + "; ") : "");
     var trigger = model_trigger + controller_trigger;
 
@@ -1062,6 +1059,8 @@ Bindster.prototype.getBindAction = function(tags, value)
         "var isValidating=this.validate;" +
         "if(target && target.bindster){target.bindster.bind = undefined}" +
         this_value + " = " + value +  ";" +
+        ((typeof(bindsterTestFrameworkSet) == "function") ?
+            "if(!isValidating){bindsterTestFrameworkSet(node.bindster.tags.bind," + this_value +")};" : "") +
         (tags.parse ? (this_value + " = " + tags.parse + "; ") : "") +
         (tags.validate ? (tags.validate + "; ") : "") +
         this_previous_value + " = " + tags.bind  + ";" +

@@ -69,46 +69,48 @@ module.exports.controller = function (objectTemplate, getTemplate) {
                 var startTime = (new Date()).getTime();
                 if (this.status == 'playing')
                     for (var ix = this.currentIx; ix < this.maxIx;++ix) {
-                         var obj = this.input[ix];
+                        var obj = this.input[ix];
 
                         // First time round output the command
-                         if (this.errorCount == 0) {
-                             this.write(obj.type + ": " + obj.key + " " + (obj.value || ""));
-                             this.errorMessage = "!!! Timed out";
-                         }
+                        if (this.errorCount == 0) {
+                            var msg = obj.type + ": " + obj.key + " " + (obj.value || "") + (obj.sequence || "");
+                            if (obj.type == 'get')
+                                this.errorMessage = "!!! Timed out !!! " + msg;
+                            else {
+                                this.write(msg);
+                                this.errorMessage = "!!! Timed out !!!"
+                            }
+                        }
 
                         // Try and process directive
-                         if (!this.processDirective(this.input[ix]))
-                         {
-                             // Unable to process can we retry?
-                             if (this.errorCount++ < max_count)
-                                 return;    // more retries available repeat
-                             else
-                             {              // output the error and advance
-                                 this.write(this.errorMessage);
-                                 this.currentIx++;
-                                 this.errors++;
-                                 this.errorCount = 0;
-                                 this.refresh();
-                                 return;
-                             }
-                         }
-                         // Advance
-                         this.currentIx++;
-                         this.errorCount = 0;
-                         if (obj.type != 'get') {
-                             this.refresh();
-                             return;
-                         }
-                         if ((new Date()).getTime() > (startTime + max_cpu_hog))
+                        if (!this.processDirective(this.input[ix]))
+                        {
+                            // Unable to process can we retry?
+                            if (this.errorCount++ < max_count)
+                                return;    // more retries available repeat
+                            else
+                            {              // output the error and advance
+                                this.write(this.errorMessage);
+                                this.currentIx++;
+                                this.errors++;
+                                this.errorCount = 0;
+                                this.refresh();
+                                return;
+                            }
+                        }
+                        // Advance
+                        this.currentIx++;
+                        this.errorCount = 0;
+                        if (obj.type != 'get') {
+                            this.refresh();
                             return;
-                     }
-                 clearInterval(this.interval);
-                 this.deferred.resolve(true);
-                this.status = 'idle';
-                this.hasFile = true;
-                this.input = [];
-                return this.setButtonColor('orange');
+                        }
+                        if ((new Date()).getTime() > (startTime + max_cpu_hog))
+                            return;
+                    }
+                clearInterval(this.interval);
+                this.deferred.resolve(true);
+                return this.stop();
             },
             stop: {on: "server", body: function () {
                 if (this.status == 'recording' || this.status == 'playing') {
@@ -151,23 +153,27 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             {
                 if (!this.outputSequence[type + key])
                     this.outputSequence[type + key] = 0;
-                // eliminate duplicate sets
+                sequence = typeof(sequence) != 'undefined' ? sequence : this.outputSequence[type + key]++;
+
+                // eliminate duplicate sets for same sequence
                 if (type == 'set') {
                     var jx = this.output.length - 1;
                     while (jx >= 0) {
                         if (this.output[jx].type != 'set')
                             break
-                        if (this.output[jx].key == key) {
+                        if (this.output[jx].key == key && this.output[jx].sequence == sequence) {
                             this.output.splice(jx, 1);
                             --jx;
                         }
                         --jx;
                     }
                 }
-                // eliminate duplicate
+
+                // eliminate duplicate gets
                 if (type == 'get') {
                     if (this.output.length > 0 &&
-                        this.output[this.output.length - 1].type == 'set' && this.output[this.output.length - 1].key == key)
+                        this.output[this.output.length - 1].type == 'set' && this.output[this.output.length - 1].key == key &&
+                        this.output[this.output.length - 1].sequence == sequence)
                         return;
                     var jx = this.output.length - 1;
                     while (jx >= 0) {
@@ -180,31 +186,30 @@ module.exports.controller = function (objectTemplate, getTemplate) {
                         --jx;
                     }
                 }
-                sequence = typeof(sequence) != 'undefined' ? sequence : this.outputSequence[type + key]++;
                 var obj = {type: type, key: key, value: value, sequence: sequence}
 
                 this.output.push(obj);
-                if (this.status == 'recording')
+                if (this.status == 'recording' && obj.type != 'get')
                     this.write(obj.type + ": " + obj.key + " " + (obj.value || "") + " " + (sequence || ""));
             },
 
             getData: function (bind, data) {
-                if ((this.status == 'recording') && !bind.match(/^'.*'$/))
+                if ((this.status == 'recording' || this.status == 'playing') && !bind.match(/^'.*'$/) && bind != '__ver')
                     this.addOutput('get', bind, data);
             },
 
             setData: function (bind, data) {
-                if (this.status == 'recording')
+                if (this.status == 'recording' || this.status == 'playing')
                     this.addOutput('set', bind, data);
             },
             route: function (route) {
                 /*
-                if (this.status == 'recording' || this.status == 'playing')
-                    this.addOutput('route', route.__id);
-                */
+                 if (this.status == 'recording' || this.status == 'playing')
+                 this.addOutput('route', route.__id);
+                 */
             },
             event: function (event, data, node) {
-                if (this.status == 'recording' && event == 'onclick') {
+                if ((this.status == 'recording' || this.status == 'playing') && event == 'onclick') {
                     this.addOutput('click', data, null, node.bindster.actionSequence);
                 }
             },
@@ -266,8 +271,16 @@ module.exports.controller = function (objectTemplate, getTemplate) {
                 }
             },
             setValue: function (bind, value) {
+                if (bind == 'customer.applicationPolicy.insured.person.hasDriversLicense')
+                    console.log(bind + " = " + value);
+                if (value == 'true' || value == true)
+                    value = true;
+                else if (value == 'false' || value == false)
+                    value = false;
+                else
+                    value = value + "";
                 try {
-                    top.bindster.DOMSet({bind: bind, value: value + ""});
+                    top.bindster.DOMSet({bind: bind, value: value});
                     return true;
                 } catch (e) {
                     return false;
@@ -275,7 +288,13 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             },
             getValue: function (bind, value, sequence) {
                 try {
-                    var foundValue = top.bindster.DOMGet({bind: bind, sequence: sequence});
+                    //var foundValue = top.bindster.DOMGet({bind: bind, sequence: sequence});
+                    for (var ix = this.output.length - 1; ix >= 0; --ix)
+                        if (this.output[ix].key == bind && this.output[ix].sequence == sequence)
+                            if (this.expect(value, this.output[ix].value))
+                                return true;
+                            else
+                                return false;
                     return this.expect(value, foundValue);
                 } catch (e) {
                     return false;
@@ -307,7 +326,7 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             },
             write: function (str) {
                 top.document.getElementById('bindsterTestFramework_output').innerText =
-                    top.document.getElementById('bindsterTestFramework_output').innerText + str + "\n";
+                    top.document.getElementById('bindsterTestFramework_output').innerText + str + "\r\n";
             },
             clear: function (str) {
                 top.document.getElementById('bindsterTestFramework_output').innerText = "";
