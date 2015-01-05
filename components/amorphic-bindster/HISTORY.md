@@ -1,6 +1,8 @@
-## 0.1.33
+## 0.1.34
 * Correction for bindster test framework
 * Upgraded bindster test framework to make faster and more reliable
+## 0.1.33
+* Fixed a bug with Drop downs so that they display "Select..." as a list item
 ## 0.1.32
 * Added bindster test framework
 * Added loopiterate on iterate to get the ordinal of the filtered list

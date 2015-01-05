@@ -749,8 +749,6 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             var selected = false;
                             this.setFocus(tags, node);
                             if (!bind_error && last_value !== bind_data) {
-                                node.bindster.bind = bind_data;
-                                this.sendToController(node.bindster);
                                 child = node.firstChild;
                                 var pleaseSelect = tags.pleaseselect ? tags.pleaseselect : "Select ...";
                                 while (child) {
@@ -758,6 +756,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                         bind_data && bind_data.__id__ && child.value == bind_data.__id__) { // convert booleans & objs
                                         child.selected = true
                                         selected = true;
+                                        node.bindster.bind = bind_data;
                                     }
                                     child = child.nextSibling;
                                 }
@@ -775,6 +774,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                         child = child.nextSibling;
                                     }
                                 }
+                                this.sendToController(node.bindster);
                             }
                             this.validateValue(tags, (node.value == 'null' && bind_data === null) ? null : node.value, node);  // before validate would not see Please select ...
                         }
