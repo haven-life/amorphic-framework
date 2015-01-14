@@ -631,6 +631,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                                 child.text = value;
                                                 child = child.nextSibling;
                                                 lastValue = value;
+                                                node.bindster.forceRefresh = true;
                                             }
                                         }
                                         // Kill extra options
@@ -748,7 +749,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             //this.setFocus(tags, node);
                             var selected = false;
                             this.setFocus(tags, node);
-                            if (!bind_error && last_value !== bind_data) {
+                            if (!bind_error && (node.bindster.forceRefresh ? true : last_value !== bind_data)) {
                                 child = node.firstChild;
                                 var pleaseSelect = tags.pleaseselect ? tags.pleaseselect : "Select ...";
                                 while (child) {
@@ -791,6 +792,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             }
                             do_render = false;
                         }
+                        node.bindster.forceRefresh = false;
                     }
                     // Widget
 

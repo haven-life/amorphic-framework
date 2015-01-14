@@ -1,3 +1,5 @@
+## 0.1.35
+* Allow changes to select text without disturbing what is selected
 ## 0.1.34
 * Correction for bindster test framework
 * Upgraded bindster test framework to make faster and more reliable
