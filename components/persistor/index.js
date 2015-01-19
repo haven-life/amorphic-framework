@@ -967,9 +967,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 var type = props[prop].type;
                 var value = obj[prop];
                 if (type && value && value.__id__ && !idMap[value.__id__]) {
-                    var obj = traverse(value);
-                    if (obj)
-                        return obj;
+                    var traversedObj = traverse(value);
+                    if (traversedObj)
+                        return traversedObj;
                 }
             }
             return false;

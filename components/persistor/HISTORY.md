@@ -1,3 +1,5 @@
+## 0.1.62
+* Saving other than top object would fail if parent pointer was not first property
 ## 0.1.61
 * Optimization to not do duplicate processing
 ## 0.1.60
