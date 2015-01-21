@@ -1,3 +1,5 @@
+## 0.1.36
+* Iterating groups of radio buttons caused them to get unchecked
 ## 0.1.35
 * Allow changes to select text without disturbing what is selected
 ## 0.1.34

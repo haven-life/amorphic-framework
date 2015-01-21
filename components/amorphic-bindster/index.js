@@ -65,6 +65,7 @@ function Bindster(model, view, controller, namespace, defer)
     this.cuts_id = 1;
     this.set_focus = true;
     this.alertCount = 0;
+    this.radioButtonAlert = 0;
     this.attrToProp = {'class': "className", 'maxlength': "maxLength", 'for': "htmlFor"};
     if (controller && typeof(controller.preRenderInitialize) == 'function')
         controller.preRenderInitialize();
@@ -500,6 +501,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                         var new_node = node.parentNode.insertBefore(node.cloneNode(true), node.nextSibling);
                                         this.cleanNode(new_node.firstChild);
                                         this.initNode(new_node, true);
+                                        this.radioButtonAlert = 2;  // Clone radio buttons causes original to be unchecked
                                         new_node.bindster.cloned = "yes";
                                     }
                                     node = node.nextSibling;
@@ -631,7 +633,6 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                                 child.text = value;
                                                 child = child.nextSibling;
                                                 lastValue = value;
-                                                node.bindster.forceRefresh = true;
                                             }
                                         }
                                         // Kill extra options
@@ -721,7 +722,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             var resolve_value = "c.bindster.resolveRadioValue(target, '" + current_value + "')";
                             this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags, resolve_value) + '}');
                             this.validateValue(tags, bind_data);
-                            if (!bind_error && last_value != bind_data)
+                            if (!bind_error && (last_value != bind_data || this.radioButtonAlert))
                             {
                                 node.bindster.bind =  bind_data;
                                 if (node.checked && (bind_data + "") != current_value) {
@@ -749,7 +750,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             //this.setFocus(tags, node);
                             var selected = false;
                             this.setFocus(tags, node);
-                            if (!bind_error && (node.bindster.forceRefresh ? true : last_value !== bind_data)) {
+                            if (!bind_error && last_value !== bind_data) {
                                 child = node.firstChild;
                                 var pleaseSelect = tags.pleaseselect ? tags.pleaseselect : "Select ...";
                                 while (child) {
@@ -792,7 +793,6 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             }
                             do_render = false;
                         }
-                        node.bindster.forceRefresh = false;
                     }
                     // Widget
 
@@ -852,6 +852,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
             break;
     }
     if (topLevel) {
+        this.radioButtonAlert = Math.max(this.radioButtonAlert - 1, 0);
         this.hasErrors = this.errorCount > 0;
         this.clearErrors = false;
         this.set_focus = false;
