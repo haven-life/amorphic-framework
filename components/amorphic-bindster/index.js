@@ -988,7 +988,7 @@ Bindster.prototype.setError = function(objRef, objProp, message)
         return;
     }
     objRef[this.bindster_error_prefix + objProp] =  message;
-    this.hasErrors = true;
+    this.raiseError(objProp, message);
 }
 Bindster.prototype.clearError = function(objRef, objProp)
 {
@@ -1075,14 +1075,19 @@ Bindster.prototype.getBindAction = function(tags, value)
             bind_error + " = '__pending__';" + controller_trigger + tags.bind + "Set(" + this_value + ").then(" + "" +
             "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
             model_trigger + "}).call(self)}," +
-            "function(e){(function(){c.bindster.hasErrors = true;" + bind_error + " = e}).call(self)})" +
+            "function(e){(function(){c.bindster.raiseError(node.bindster.tags.bind, e);" + bind_error + " = e}).call(self)})" +
             "}else{" +
             tags.bind + " = " + this_value + ';' + trigger + "};"
             : (tags.bind + " = " + this_value + ";") + trigger) +
-        " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.hasErrors = true;" +
+        " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.raiseError(node.bindster.tags.bind, e);" +
         bind_error + " = e} else {c.bindster.displayError(null, e, 'validation, parse or format', node)}; " +
         "}";
     return x;
+}
+Bindster.prototype.raiseError = function (bind, error) {
+    this.hasErrors = true;
+    if (typeof(console) != 'undefined' && typeof(console.log) == 'function')
+        console.log("Error on " + bind + ":" + (error && error.message ? error.message : ""));
 }
 Bindster.prototype.getFirstChild = function(node)
 {

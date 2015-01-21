@@ -1,3 +1,5 @@
+## 0.1.37
+* Log errors
 ## 0.1.36
 * Iterating groups of radio buttons caused them to get unchecked
 ## 0.1.35
