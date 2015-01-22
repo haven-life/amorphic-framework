@@ -704,6 +704,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         {
                             this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags, tags.truevalue) + '}' + 'else { ' + this.getBindAction(tags, tags.falsevalue) + '}');
                             this.validateValue(tags, node.checked);
+                            this.setFocus(tags, node);
                             if (!bind_error && last_value !== bind_data)
                             {
                                 node.bindster.bind =  bind_data;
@@ -723,6 +724,8 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             var resolve_value = "c.bindster.resolveRadioValue(target, '" + current_value + "')";
                             this.addEvent(tags, 'onclick', 'if (target.checked) { ' + this.getBindAction(tags, resolve_value) + '}');
                             this.validateValue(tags, bind_data);
+                            this.setFocus(tags, node);
+
                             if (!bind_error && (last_value != bind_data || this.radioButtonAlert))
                             {
                                 node.bindster.bind =  bind_data;
@@ -1062,6 +1065,7 @@ Bindster.prototype.getBindAction = function(tags, value)
     var x =	"try { " +
         "var self=this;" +
         "var isValidating=this.validate;" +
+        "var bindTags = '" + tags.bind + "';" +
         "if(target && target.bindster){target.bindster.bind = undefined}" +
         this_value + " = " + value +  ";" +
         ((typeof(bindsterTestFrameworkSet) == "function") ?
@@ -1075,19 +1079,18 @@ Bindster.prototype.getBindAction = function(tags, value)
             bind_error + " = '__pending__';" + controller_trigger + tags.bind + "Set(" + this_value + ").then(" + "" +
             "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
             model_trigger + "}).call(self)}," +
-            "function(e){(function(){c.bindster.raiseError(node.bindster.tags.bind, e);" + bind_error + " = e}).call(self)})" +
+            "function(e){(function(){c.bindster.raiseError(bindTags, e);" + bind_error + " = e}).call(self)})" +
             "}else{" +
             tags.bind + " = " + this_value + ';' + trigger + "};"
             : (tags.bind + " = " + this_value + ";") + trigger) +
-        " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.raiseError(node.bindster.tags.bind, e);" +
+        " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.raiseError(bindTags, e);" +
         bind_error + " = e} else {c.bindster.displayError(null, e, 'validation, parse or format', node)}; " +
         "}";
     return x;
 }
 Bindster.prototype.raiseError = function (bind, error) {
     this.hasErrors = true;
-    if (typeof(console) != 'undefined' && typeof(console.log) == 'function')
-        console.log("Error on " + bind + ":" + (error && error.message ? error.message : ""));
+    console.log("Error on " + bind + ":" + (error && error.message ? error.message : ""));
 }
 Bindster.prototype.getFirstChild = function(node)
 {

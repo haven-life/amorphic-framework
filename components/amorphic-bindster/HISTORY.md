@@ -1,3 +1,6 @@
+## 0.1.39
+* Added focus setting for radio and checkbox
+* Fixed problem introduced by 0.1.37
 ## 0.1.37
 * Log errors
 ## 0.1.36
