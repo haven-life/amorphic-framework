@@ -2160,7 +2160,7 @@ Bindster.prototype.DOMSet = function (request)
             (!this.DOMTestRequestData.selector || finger_print.match(this.DOMTestRequestData.selector)) &&
             this.DOMTestRequestData.bind == tags.bind)
         {
-            if (this.DOMTestRequestData.value) {
+            if (typeof(this.DOMTestRequestData.value) != 'undefined') {
                 if ((node.tagName && node.tagName.match(/INPUT|SELECT|TEXTAREA/)) || node.bindster.controller)
                 {
                     this.eval(this.getBindAction(tags, "bindster.DOMTestRequestData.value"), null, "DOMTestBind", node);

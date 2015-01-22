@@ -1,3 +1,5 @@
+## 0.1.40
+* DOMSet did not work on radio buttons with false value
 ## 0.1.39
 * Added focus setting for radio and checkbox
 * Fixed problem introduced by 0.1.37
