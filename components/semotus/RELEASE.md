@@ -1,3 +1,5 @@
+## 0.1.18
+* Supports preServerCall and postServerCall in controller
 ## 0.1.17
 * Now synchronize objects whether referenced or not to avoid problems with ignored objects getting updated later.
 * Support for transient objects which don't transmit to client

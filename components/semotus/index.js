@@ -250,32 +250,54 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
             // Apply any pending changes passed along as part of the call and then either
             // Call the method, sending back the result in a response message
             // or return an error response so the caller will roll back
-            if (this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
-                session.processingCall = true;
-                Q.fcall(function ()
+            session.processingCall = true;
+            Q.fcall(function ()
+            {
+                var obj = session.objects[remoteCall.id];
+                return Q(((this.controller && this.controller['preServerCall'] ?
+                    this.controller && this.controller['preServerCall'].call(this.controller, remoteCall.changes.length > 2) : true))).then(function ()
                 {
-                    var obj = session.objects[remoteCall.id];
-                    if (!obj)
-                        throw  new Error("Cannot find object " + remoteCall.id);
+                    console.log("Calling " + remoteCall.name);
                     var arguments = this._fromTransport(JSON.parse(remoteCall.arguments));
-                    if (this.role == 'server' && obj['validateServerCall'])
-                        if (!obj['validateServerCall'].call(obj, remoteCall.name))
-                            return Q.fcall(function(){throw  new Error(remoteCall.name + " refused");});
-                    return obj[remoteCall.name].apply(obj, arguments)
+                    if (this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
+                        var obj = session.objects[remoteCall.id];
+                        if (!obj)
+                            throw  new Error("Cannot find object " + remoteCall.id);
+                        if (this.role == 'server' && obj['validateServerCall'])
+                            if (!obj['validateServerCall'].call(obj, remoteCall.name))
+                                return Q.fcall(function(){throw  new Error(remoteCall.name + " refused");});
+                        return Q(obj[remoteCall.name].apply(obj, arguments)).then(function (returnValue) {
+                            return Q((this.controller && this.controller['postServerCall'] ?
+                                this.controller['postServerCall'].call(this.controller, remoteCall.changes.length > 2) : returnValue))
+                                .then(function () {
+                                    return returnValue
+                                }.bind(this));
+                        }.bind(this));
+                    } else
+                    {
+                        this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]");
+                        this._convertArrayReferencesToChanges();
+                        session.sendMessage({type: 'response', sync: false,
+                            changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
+                        this._deleteChanges();
+                        this._processQueue();
+                        throw "Sync Error";
+                    }
+                }.bind(this));
+            }.bind(this)).then(function(ret)
+            {
+                this._convertArrayReferencesToChanges();
+                session.sendMessage({type: 'response', sync: true, value: JSON.stringify(this._toTransport(ret)),
+                    name: remoteCall.name,
+                    changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
+                this._deleteChanges();
+                this._processQueue();
+                this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "]");
+                return Q(null);
 
-                }.bind(this)).then(function(ret)
-                {
-                    this._convertArrayReferencesToChanges();
-                    session.sendMessage({type: 'response', sync: true, value: JSON.stringify(this._toTransport(ret)),
-                        name: remoteCall.name,
-                        changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
-                    this._deleteChanges();
-                    this._processQueue();
-                    this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "]");
-                    return Q.fcall(function(){return null});
-
-                }.bind(this)).fail(function (err)
-                {
+            }.bind(this)).fail(function (err)
+            {
+                if (err != "Sync Error") {
                     var errToSend = err instanceof Error ? {code: "internal_error", text: "An internal error occurred"}
                         : typeof(err) == "string" ? {message: err} : err;
                     if (err instanceof Error) // A non-thrown exception
@@ -286,16 +308,8 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
                     this._deleteChanges();
                     this._processQueue();
                     this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "] error " + err.toString());
-
-                }.bind(this));
-            } else {
-                this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]");
-                this._convertArrayReferencesToChanges();
-                session.sendMessage({type: 'response', sync: false,
-                    changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
-                this._deleteChanges();
-                this._processQueue();
-            }
+                }
+            }.bind(this));
             break;
 
         case 'response':
