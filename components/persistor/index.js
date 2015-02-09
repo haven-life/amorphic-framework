@@ -234,8 +234,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
          *
          * @param query
          */
-        template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap) {
-            return PersistObjectTemplate.getFromPersistWithQuery(template, query, cascade, start, limit, isTransient, idMap)
+        template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap, options) {
+            return PersistObjectTemplate.getFromPersistWithQuery(template, query, cascade, start, limit, isTransient, idMap, options)
         };
 
         /**
@@ -311,10 +311,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         });
     }
 
-    PersistObjectTemplate.getFromPersistWithQuery = function (template, query, cascade, skip, limit, isTransient, idMap)
+    PersistObjectTemplate.getFromPersistWithQuery = function (template, query, cascade, skip, limit, isTransient, idMap, options)
     {
         idMap = idMap || {};
-        var options = {};
+        options = options || {};
         if (typeof(skip) != 'undefined')
             options.skip = skip * 1;
         if (typeof(limit) != 'undefined')
@@ -405,6 +405,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
             idMap[id.toString()] = obj;
         }
+        if (pojo.__version__)
+            obj.__version__ = pojo.__version__;
 
         function copyProps(obj) {
             var newObj = {};
@@ -552,7 +554,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                         var subPojos = self.getPOJOSFromPaths(defineProperty.of, closurePaths, pojos[ix], closureOrigQuery)
                                         for (var jx = 0; jx < subPojos.length; ++jx)
                                             // Take them from cache or fetch them
-                                            obj[closureProp].push(idMap[subPojos[jx]._id.toString()] ||
+                                            obj[closureProp].push((closureCascade && idMap[subPojos[jx]._id.toString()]) ||
                                                 self.fromDBPOJO(subPojos[jx], closureDefineProperty.of,
                                                     promises, closureDefineProperty, idMap, closureCascade, null, null, isTransient));
                                     }
@@ -998,7 +1000,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
      * @return {*}
      */
     PersistObjectTemplate.persistSave = function(obj, promises, masterId, idMap) {
-        if (!obj.__template__)
+         if (!obj.__template__)
             throw new Error("Attempt to save an non-templated Object");
         if (!obj.__template__.__schema__)
             throw  new Error("Schema entry missing for " + obj.__template__.__name__);
@@ -1031,7 +1033,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var followUp = obj._id;
             obj._id = undefined;
         }
-
+        var isDocumentUpdate = obj._id && typeof(masterId) == 'undefined';
         var id = obj._id ?
             (obj._id.toString().match(/:/) ?  //pseudo-id for sub-documents
                 obj._id :
@@ -1057,7 +1059,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         }
         this.debug("Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId, 'save');
 
-        var pojo = {_id: id, _template: obj.__template__.__name__};   // subsequent levels return pojo copy of object
+        var pojo = !isDocumentUpdate ? {_id: id, _template: obj.__template__.__name__} :
+        {_template: obj.__template__.__name__};   // subsequent levels return pojo copy of object
         idMap[id.toString()] = pojo;
 
         // Enumerate all template properties for the object
@@ -1070,8 +1073,19 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty);
             var value = obj[prop];
             if (!this._persistProperty(defineProperty) || !defineProperty.enumerable ||
-                typeof(value) == "undefined" || value == null)
+                typeof(value) == "undefined" || value == null) {
+
+                // Make sure we don't wipe out foreign keys of non-cascaded object references
+                if (defineProperty.type != Array &&
+                    defineProperty.type && defineProperty.type.isObjectTemplate &&
+                    !(!isCrossDocRef || !defineProperty.type.__schema__.documentOf) &&
+                    obj[prop + 'Persistor'] && !obj[prop + 'Persistor'].isFetched && obj[prop + 'Persistor'].id &&
+                    !(!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id))
+                {
+                    pojo[schema.parents[prop].id] = new ObjectID(obj[prop + 'Persistor'].id.toString())
+                }
                 continue;
+            }
 
             // For arrays we either just copy each element or link and save each element
             if (defineProperty.type == Array)
@@ -1221,9 +1235,12 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         }
 
         if (savePOJO)
-            promises.push(this.savePOJO(obj, pojo));
+            promises.push(this.savePOJO(obj, pojo, isDocumentUpdate ? new ObjectID(obj._id) : null));
         if (resolvePromises)
-            return this.resolveRecursivePromises(promises, pojo);
+            return this.resolveRecursivePromises(promises, pojo).then(function (pojo) {
+                pojo._id = obj._id;
+                return pojo;
+            });
         else
             return pojo;
     }
@@ -1246,12 +1263,23 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     }
 
     /* Mongo implementation of save */
-    PersistObjectTemplate.savePOJO = function(obj, pojo) {
+    PersistObjectTemplate.savePOJO = function(obj, pojo, updateID) {
         this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+        var origVer = obj.__version__;
+        obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
+        pojo.__version__ = obj.__version__;
         return Q.ninvoke(this.getDB(), "collection", obj.__template__.__collection__).then (function (collection) {
-            return Q.ninvoke(collection, "save", pojo).then (function (ret) {
+            return (updateID ?  Q.ninvoke(collection, "update",
+                origVer  ? {__version__: origVer, _id: updateID} :
+                {_id: updateID}, pojo, {w:1}) :
+                Q.ninvoke(collection, "save", pojo, {w:1})
+                ).then (function (error, count) {
+                if (error instanceof Array)
+                    count = error[0]; // Don't know why things are returned this way
+                if (updateID && count == 0)
+                    throw new Error("Update Conflict");
                 this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
-                return Q(ret);
+                return Q(true);
             }.bind(this));
         }.bind(this));
     }

@@ -1,3 +1,7 @@
+## 0.1.64
+* Patch for sorting and also making cascades work properly for sub-doc queries
+## 0.1.63
+* Throw Update Conflict errors
 ## 0.1.62
 * Saving other than top object would fail if parent pointer was not first property
 ## 0.1.61
