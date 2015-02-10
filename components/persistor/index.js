@@ -678,9 +678,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                                         {_id: closureForeignId}
                                                     )[0];
                                                     // Process actual sub-document to get cascade right and specific sub-doc
-                                                    if (!idMap[subDocPojo._id.toString()])
-                                                        self.fromDBPOJO(subDocPojo, closureType, promises,
-                                                            closureDefineProperty, idMap, closureCascade, null, null, isTransient);
+                                                    if (subDocPojo && subDocPojo._id) {
+                                                        if (!idMap[subDocPojo._id.toString()])
+                                                            self.fromDBPOJO(subDocPojo, closureType, promises,
+                                                                closureDefineProperty, idMap, closureCascade, null, null, isTransient);
+                                                    } else
+                                                        console.log("Orphaned subdoc on " + obj.__template__.__name + "[" + closureProp + ":" + obj._id + "] " +
+                                                            "foreign key: " + closureForeignId + " query: " + this.createSubDocQuery(null, closureType).paths, pojos[0]);
                                                 } else
                                                 if (!idMap[pojos[0]._id.toString()])
                                                     self.fromDBPOJO(pojos[0], closureType, promises,

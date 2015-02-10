@@ -1,3 +1,5 @@
+## 0.1.65
+* Added logging for orphaned sub-documents
 ## 0.1.64
 * Patch for sorting and also making cascades work properly for sub-doc queries
 ## 0.1.63
