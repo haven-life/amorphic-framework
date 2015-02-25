@@ -569,94 +569,97 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                     if (tags.bind  && !skip)
                     {
                         var bind_error = this.getBindErrorReference(tags.bind);
-                        var bind_error = bind_error ? (this.get(bind_error) ? true : false) : false;
-                        if (!bind_error) {
-                            // Process various tags
-                            if (tags.fill)
-                            {
-                                var fill_data = this.eval(this.getPropOrGetter(tags.fill), null, "fill", node);
-                                var fill_using = this.eval(tags.using, null, "using", node);
-                                if (!fill_data)
-                                    this.throwError(node, 'fill', 'cannot get data to fill' + tags.fill);
-                                else
+                        var bind_error_value = this.get(bind_error);
+                        var bind_error = bind_error ? (bind_error_value ? true : false) : false;
+                        if (bind_error_value != '__pending__') {
+                            if (!bind_error) {
+                                // Process various tags
+                                if (tags.fill)
                                 {
-                                    // If an associative array (hash) create fill and using
-                                    var do_sort = false;
-                                    if (!(fill_data instanceof Array)) {
-                                        var fill_using = fill_data
-                                        fill_data = [];
-                                        for (key in fill_using)
-                                            fill_data.push(key);
-                                        do_sort = true;
-                                    }
-                                    // Run through filter functions
-                                    var keys = [];
-                                    var values = {};
-
-                                    for (var ix = 0; ix < fill_data.length; ++ix)
+                                    var fill_data = this.eval(this.getPropOrGetter(tags.fill), null, "fill", node);
+                                    var fill_using = this.eval(tags.using, null, "using", node);
+                                    if (!fill_data)
+                                        this.throwError(node, 'fill', 'cannot get data to fill' + tags.fill);
+                                    else
                                     {
-                                        var key = tags.fillkey ?
-                                            this.eval(tags.fillkey, {index: ix, value: fill_data[ix]}, "fillkey", node)
-                                            : fill_data[ix];
-                                        if (key != null) {
-                                            var value = fill_using ? fill_using[key] : fill_data[ix];
-                                            value = tags.fillvalue ?
-                                                this.eval(tags.fillvalue, {key: key, value: value, index: ix}, "fillvalue", node)
-                                                : value;
-                                            if (value != null) {
-                                                keys.push(key);
-                                                values[key] = value;
-                                            }
+                                        // If an associative array (hash) create fill and using
+                                        var do_sort = false;
+                                        if (!(fill_data instanceof Array)) {
+                                            var fill_using = fill_data
+                                            fill_data = [];
+                                            for (key in fill_using)
+                                                fill_data.push(key);
+                                            do_sort = true;
                                         }
-                                    }
-                                    if (do_sort)
-                                        keys.sort(function(a, b) {return values[a] == values[b] ? 0 : values[a] > values[b] ? 1 : -1})
-                                    if (tags.nullselect) {
-                                        keys.splice(0, 0, "null");
-                                        values["null"] = tags.nullselect;
-                                    }
-                                    if (node.tagName == 'SELECT')
-                                    {
-                                        do_render = false;
+                                        // Run through filter functions
+                                        var keys = [];
+                                        var values = {};
 
-                                        // Iterate through the data
-                                        var child = node.firstChild;
-                                        var selected = 0;
-                                        var lastValue = null;
-                                        for (var ix = 0; ix < keys.length; ++ix)
+                                        for (var ix = 0; ix < fill_data.length; ++ix)
                                         {
-                                            var key = keys[ix];
-                                            var value = values[key];
-                                            if (value != lastValue) {
-                                                var child = child ? child : node.appendChild(document.createElement('OPTION'));
-                                                child.value = key;
-                                                child.text = value;
-                                                child = child.nextSibling;
-                                                lastValue = value;
-                                                node.bindster.forceRefresh = true;
+                                            var key = tags.fillkey ?
+                                                this.eval(tags.fillkey, {index: ix, value: fill_data[ix]}, "fillkey", node)
+                                                : fill_data[ix];
+                                            if (key != null) {
+                                                var value = fill_using ? fill_using[key] : fill_data[ix];
+                                                value = tags.fillvalue ?
+                                                    this.eval(tags.fillvalue, {key: key, value: value, index: ix}, "fillvalue", node)
+                                                    : value;
+                                                if (value != null) {
+                                                    keys.push(key);
+                                                    values[key] = value;
+                                                }
                                             }
                                         }
-                                        // Kill extra options
-                                        if (child && child == node.firstChild)
-                                            this.hideElement(node);
-                                        else
-                                            while(child)
+                                        if (do_sort)
+                                            keys.sort(function(a, b) {return values[a] == values[b] ? 0 : values[a] > values[b] ? 1 : -1})
+                                        if (tags.nullselect) {
+                                            keys.splice(0, 0, "null");
+                                            values["null"] = tags.nullselect;
+                                        }
+                                        if (node.tagName == 'SELECT')
+                                        {
+                                            do_render = false;
+
+                                            // Iterate through the data
+                                            var child = node.firstChild;
+                                            var selected = 0;
+                                            var lastValue = null;
+                                            for (var ix = 0; ix < keys.length; ++ix)
                                             {
-                                                var next_node = child.nextSibling;
-                                                node.removeChild(child)
-                                                child = next_node;
+                                                var key = keys[ix];
+                                                var value = values[key];
+                                                if (value != lastValue) {
+                                                    var child = child ? child : node.appendChild(document.createElement('OPTION'));
+                                                    child.value = key;
+                                                    child.text = value;
+                                                    child = child.nextSibling;
+                                                    lastValue = value;
+                                                    node.bindster.forceRefresh = true;
+                                                }
                                             }
+                                            // Kill extra options
+                                            if (child && child == node.firstChild)
+                                                this.hideElement(node);
+                                            else
+                                                while(child)
+                                                {
+                                                    var next_node = child.nextSibling;
+                                                    node.removeChild(child)
+                                                    child = next_node;
+                                                }
+                                        }
                                     }
+                                    processed_tags = true;
                                 }
-                                processed_tags = true;
-                            }
-                            var bind_data = this.eval(this.getPropOrGetter(tags.bind), null, "bind", node);
-                            if (typeof(bind_data) == 'undefined')
-                                this.throwError(node, 'bind', tags.bind + ' returned undefined', node);
-                            if (tags.format)
-                                bind_data = this.evalWithValue(tags.format, bind_data, 'format', node);
-                        } else
-                            this.errorCount++;
+                                var bind_data = this.eval(this.getPropOrGetter(tags.bind), null, "bind", node);
+                                if (typeof(bind_data) == 'undefined')
+                                    this.throwError(node, 'bind', tags.bind + ' returned undefined', node);
+                                if (tags.format)
+                                    bind_data = this.evalWithValue(tags.format, bind_data, 'format', node);
+                            } else
+                                this.errorCount++;
+                        }
                         var last_value = this.clearErrors ? null : node.bindster.bind;
                         bind_data = this.DOMTestBind(finger_print, node, tags, bind_data);
 

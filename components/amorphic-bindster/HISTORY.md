@@ -1,3 +1,5 @@
+## 0.1.41
+* Skip over field in "pending" state
 ## 0.1.40
 * DOMSet did not work on radio buttons with false value
 ## 0.1.39
