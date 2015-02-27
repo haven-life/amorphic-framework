@@ -219,6 +219,7 @@ RemoteObjectTemplate.subscribe = function (role) {
 RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
     if (!remoteCall)
         return;
+    var hadChanges = 0;
     var session = this._getSession();
     var remoteCallId = remoteCall.remoteCallId;
     switch (remoteCall.type) {
@@ -323,7 +324,7 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
                 if (typeof(remoteCall.sync) != 'undefined') {
                     if (remoteCall.sync) {
                         if (session.pendingRemoteCalls[remoteCallId].deferred.resolve) {
-                            this._applyChanges(JSON.parse(remoteCall.changes), true, subscriptionId);
+                            hadChanges = this._applyChanges(JSON.parse(remoteCall.changes), true, subscriptionId);
                             if (remoteCall.type == 'error')
                                 session.pendingRemoteCalls[remoteCallId].deferred.reject(remoteCall.value);
                             else
@@ -337,7 +338,7 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
                 delete session.pendingRemoteCalls[remoteCallId];
             }
             this._processQueue();
-            break;
+            return hadChanges == 2 ? true : false;
     }
 };
 
@@ -714,7 +715,7 @@ RemoteObjectTemplate._changedValue = function (obj, prop, value)
  * @param arrayRef the value returned in the reference (previous value)
  * @private
  */
-RemoteObjectTemplate._referencedArray = function (obj, prop, arrayRef, sessionId)
+RemoteObjectTemplate.   _referencedArray = function (obj, prop, arrayRef, sessionId)
 {
     // Track this for each subscription
     var subscriptions = this._getSubscriptions(sessionId)
@@ -857,7 +858,9 @@ RemoteObjectTemplate.getObject = function(objId, template) {
  * @param changes a property for each object changed with the details of the change
  * @param force if true changes will be accepted without rolling back
  * @param subscriptionId optional subscription id for changes
- * @return {Boolean} whether a rollback had to be done
+ * @return Number   0 - whether a rollback had to be done
+ *                  1 - no objects processed
+ *                  2 - objects processed
  * @private
  */
 RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
@@ -869,8 +872,11 @@ RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
     // if previous values don't match what changer things they are
     this.changeCount = 0;
     this.changeString = "";
+    var hasObjects = false;
     for (var objId in changes) {
         var obj = session.objects[objId];
+        if (obj)
+            hasObjects = true;
         // If no reference derive template for object ID
         if (!obj) {
             var template = this.__dictionary__[objId.replace(/[^-]*-/,'').replace(/-.*/,'')];
@@ -885,7 +891,7 @@ RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
             this._deleteChanges();
             this.log(0, "Could not apply changes to " + objId);
             this.changeString = "";
-            return false;
+            return 0;
         }
     }
     /*  We used to delete changes but this means that changes while a message is processed
@@ -894,7 +900,7 @@ RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
      */
     this.processingSubscription = null;
     this.log(2, "Applied changes to " + this.changeCount + " objects " + this.changeString);
-    return true;
+    return hasObjects ? 2 : 1;
 };
 
 /**

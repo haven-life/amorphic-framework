@@ -1,3 +1,5 @@
+## 0.1.19
+* Return whether message processing actually has changes
 ## 0.1.18
 * Supports preServerCall and postServerCall in controller
 ## 0.1.17
