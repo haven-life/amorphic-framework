@@ -35,9 +35,11 @@ amorphic.establishClientSession(
     },
 
     // Rerender after xhr request received
-    function () {
-        controller.refresh(1);
+    function (hadChanges) {
+        if (hadChanges)
+            controller.refresh(1);
     },
+
 
     // When a new version is detected pop up "about to be refreshed" and
     // then reload the document after 5 seconds.

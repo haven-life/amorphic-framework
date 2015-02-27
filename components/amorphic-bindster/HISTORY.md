@@ -1,3 +1,5 @@
+## 0.1.42
+* Don't refresh if no new changes from server
 ## 0.1.41
 * Skip over field in "pending" state
 ## 0.1.40
