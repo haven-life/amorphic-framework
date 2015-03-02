@@ -47,7 +47,7 @@ ObjectTemplate.init = function () {
 ObjectTemplate.getTemplateByName = function (name) {
     return this.__dictionary__[name];
 }
-ObjectTemplate.setTemplateProperties = function(template, name)
+ObjectTemplate.setTemplateProperties = function(template, name, props)
 {
     this.__templatesToInject__[name] = template;
     this.__dictionary__[name] = template;
@@ -55,24 +55,39 @@ ObjectTemplate.setTemplateProperties = function(template, name)
     template.__injections__ = [];
     template.__objectTemplate__ = this;
     template.__children__ = [];
+    props = props || {};
+    if (props.isLocal) {
+        props.toServer = false;
+        props.toClient = false;
+    }
+    template.__toClient__ = props.toClient == false ?  false : true;
+    template.__toServer__ = props.toServer == false ?  false : true;
 };
 
 /**
  * Create and object template that is instantiated with the new operator.
  * properties is
- * @param name the name of the template
+ * @param name the name of the template or an object with
+ *        name - the name of the class
+ *        toClient - whether the object is to be shipped to the client (with semotus)
+ *        toServer - whether the object is to be shipped to the server (with semotus)
+ *        isLocal - equivalent to setting toClient && toServer to false
  * @param properties an object whose properties represent data and function
  * properties of the object.  The data properties may use the defineProperty
  * format for properties or may be properties assigned a Number, String or Date.
  * @return {*} the object template
  */
 ObjectTemplate.create = function (name, properties) {
+    if (typeof(name) != 'undefined' && name.name) {
+        var props = name;
+        name = props.name;
+    }
     if (typeof(name) != 'string' || name.match(/[^A-Za-z0-9_]/))
         throw new Error("incorrect template name");
     if (typeof(properties) != 'object')
         throw new Error("missing template property definitions");
     var template = this._createTemplate(null, Object, properties ? properties : name);
-    this.setTemplateProperties(template, name);
+    this.setTemplateProperties(template, name, props);
     return template;
 };
 
@@ -164,11 +179,13 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     var template = function() {
 
         this.__template__ = template;
-
-        // Create properties either with EMCA 5 defineProperties or by hand
-        if (Object.defineProperties)
-            Object.defineProperties(this, defineProperties);	// This method will be added pre-EMCA 5
-
+        try {
+            // Create properties either with EMCA 5 defineProperties or by hand
+            if (Object.defineProperties)
+                Object.defineProperties(this, defineProperties);	// This method will be added pre-EMCA 5
+        } catch (e) {
+            console.log(e);
+        }
         this.fromRemote = this.fromRemote || objectTemplate._stashObject(this, template);
 
         this.copyProperties = function (obj) {
@@ -476,6 +493,8 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
     }
     if (pojo._id) // For the benefit of persistObjectTemplate
         obj._id = getId(pojo._id);
+    if (pojo.__version__)
+        obj.__version__ = pojo.__version__;
     return obj;
 };
 
@@ -489,14 +508,18 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
  */
 ObjectTemplate.toJSONString = function (obj) {
     var idMap = [];
-    return JSON.stringify(obj, function (key, value) {
-        if (value && value.__template__ && value.__id__)
-            if (idMap[value.__id__])
-                value = {__id__: value.__id__.toString()}
-            else
-                idMap[value.__id__.toString()] = value;
-        return value;
-    });
+    try {
+        return JSON.stringify(obj, function (key, value) {
+            if (value && value.__template__ && value.__id__)
+                if (idMap[value.__id__])
+                    value = {__id__: value.__id__.toString()}
+                else
+                    idMap[value.__id__.toString()] = value;
+            return value;
+        });
+    } catch (e) {
+        throw e;
+    }
 }
 /**
  * Find the right subclass to instantiate by either looking at the

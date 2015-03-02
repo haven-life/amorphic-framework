@@ -1,3 +1,8 @@
+## 0.1.29
+* When de-serializing include __version__ if present in pojo
+## 0.1.28
+* Added some additional error detail
+* Support for encoding toServer/toClient properties for the benefit of semotus
 ## 0.1.27
 * Added an id qualifier from .fromJSON so as not to have id conflicts when restoring "copies" of objects
 ## 0.1.26
