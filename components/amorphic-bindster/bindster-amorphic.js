@@ -36,9 +36,9 @@ amorphic.establishClientSession(
 
     // Rerender after xhr request received
     function (hadChanges) {
-        if (hadChanges)
-            controller.refresh(1);
+        controller.refresh(1, hadChanges);
     },
+
 
 
     // When a new version is detected pop up "about to be refreshed" and

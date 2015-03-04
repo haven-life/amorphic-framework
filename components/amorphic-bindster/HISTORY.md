@@ -1,4 +1,6 @@
 ## 0.1.42
+* Offer ability to but don't enforce not refreshing if no new changes from server
+## 0.1.42
 * Don't refresh if no new changes from server
 ## 0.1.41
 * Skip over field in "pending" state
