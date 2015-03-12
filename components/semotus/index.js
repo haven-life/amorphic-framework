@@ -717,6 +717,11 @@ RemoteObjectTemplate._changedValue = function (obj, prop, value)
  */
 RemoteObjectTemplate.   _referencedArray = function (obj, prop, arrayRef, sessionId)
 {
+    if (obj.__transient__ || this.__transient__ ||
+        (this.role == "client" && obj.__template__.__toClient__ == false) ||
+        (this.role == "server" && obj.__template__.__toServer__ == false))
+        return
+
     // Track this for each subscription
     var subscriptions = this._getSubscriptions(sessionId)
     for (var subscription in subscriptions) {

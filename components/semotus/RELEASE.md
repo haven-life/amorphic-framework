@@ -1,3 +1,5 @@
+## 0.1.20
+* Don't track referenced arrays when _toClient/_toServer indicates that object not to be transmitted
 ## 0.1.19
 * Return whether message processing actually has changes
 ## 0.1.18
