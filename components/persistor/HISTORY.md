@@ -1,3 +1,7 @@
+## 0.1.70
+* When creating persistor properties preserve toClient/toServer settings from original property
+## 0.1.69
+* Fixed 0.1.64 fix
 ## 0.1.65
 * Added logging for orphaned sub-documents
 ## 0.1.64

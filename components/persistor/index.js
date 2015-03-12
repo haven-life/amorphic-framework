@@ -127,8 +127,15 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
             return self.fromDBPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient);
         };
+
+
     };
 
+    PersistObjectTemplate.createTransientObject = function (cb) {
+        this.__transient__ = true;
+        cb();
+        this.__transient__ = false;
+    }
     /**
      * Run through the schema entries and setup these properites on templates
      *  __schema__: the schema for each template
@@ -281,8 +288,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                         var closureProp = prop;
                         var closureFetch = defineProperty.fetch ? defineProperty.fetch : {};
                         var closureQueryOptions = defineProperty.queryOptions ? defineProperty.queryOptions : {};
+                        var toClient = !(defineProperty.isLocal || (defineProperty.toClient === false))
                         if (!props[closureProp + 'Persistor'])
-                            template.createProperty(closureProp + 'Persistor', {type: Object, toServer: false, persist: false, value: {isFetched: false, isFetching: false}});
+                            template.createProperty(closureProp + 'Persistor', {type: Object, toClient: toClient,
+                                toServer: false, persist: false, value: {isFetched: false, isFetching: false}});
                         if (!template.prototype[closureProp + 'Fetch'])
                             template.createProperty(closureProp + 'Fetch', {on: "server", body: function (start, limit)
                             {
@@ -554,7 +563,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                         var subPojos = self.getPOJOSFromPaths(defineProperty.of, closurePaths, pojos[ix], closureOrigQuery)
                                         for (var jx = 0; jx < subPojos.length; ++jx)
                                             // Take them from cache or fetch them
-                                            obj[closureProp].push((closureCascade && idMap[subPojos[jx]._id.toString()]) ||
+                                            obj[closureProp].push((!closureCascade && idMap[subPojos[jx]._id.toString()]) ||
                                                 self.fromDBPOJO(subPojos[jx], closureDefineProperty.of,
                                                     promises, closureDefineProperty, idMap, closureCascade, null, null, isTransient));
                                     }
@@ -683,8 +692,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                                                             self.fromDBPOJO(subDocPojo, closureType, promises,
                                                                 closureDefineProperty, idMap, closureCascade, null, null, isTransient);
                                                     } else
-                                                        console.log("Orphaned subdoc on " + obj.__template__.__name + "[" + closureProp + ":" + obj._id + "] " +
-                                                            "foreign key: " + closureForeignId + " query: " + this.createSubDocQuery(null, closureType).paths, pojos[0]);
+                                                        console.log("Orphaned subdoc on " + obj.__template__.__name__ + "[" + closureProp + ":" + obj._id + "] " +
+                                                            "foreign key: " + closureForeignId + " query: " + JSON.stringify(this.createSubDocQuery(null, closureType)));
                                                 } else
                                                 if (!idMap[pojos[0]._id.toString()])
                                                     self.fromDBPOJO(pojos[0], closureType, promises,
@@ -1004,7 +1013,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
      * @return {*}
      */
     PersistObjectTemplate.persistSave = function(obj, promises, masterId, idMap) {
-         if (!obj.__template__)
+        if (!obj.__template__)
             throw new Error("Attempt to save an non-templated Object");
         if (!obj.__template__.__schema__)
             throw  new Error("Schema entry missing for " + obj.__template__.__name__);
@@ -1073,6 +1082,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         var props = template.getProperties();
         for (var prop in props)
         {
+            if (prop == 'policies')
+                console.log('policies');
+            if (prop == 'workflow')
+                console.log('workflow');
             var defineProperty = props[prop];
             var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty);
             var value = obj[prop];
