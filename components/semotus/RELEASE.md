@@ -1,3 +1,6 @@
+## 0.1.21
+* Fixed critical bugs in array syncronization
+* Added support for Arrays of strings and other non-templated objects
 ## 0.1.20
 * Don't track referenced arrays when _toClient/_toServer indicates that object not to be transmitted
 ## 0.1.19

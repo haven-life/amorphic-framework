@@ -623,7 +623,7 @@ RemoteObjectTemplate._logChanges = function (obj)
         {
             var createChanges = this._createChanges(defineProperty, obj.__template__);
 
-            if (type == Array  && defineProperty.of.isObjectTemplate)
+            if (type == Array)
             {
                 if (createChanges) {
                     if (obj['__' + prop] && !obj[prop])
@@ -736,8 +736,8 @@ RemoteObjectTemplate.   _referencedArray = function (obj, prop, arrayRef, sessio
                 if (arrayRef)
                     for (var ix = 0; ix < arrayRef.length; ++ix) {
                         var elem = arrayRef[ix];
-                        if (elem)
-                            if (elem.__id__)
+                        if (typeof(elem) != 'undefined' && elem != null)
+                            if (elem != null && elem.__id__)
                                 old[ix] = elem.__id__;
                             else // values start with an = to distinguish from ids
                                 old[ix] = '=' + JSON.stringify(elem);
@@ -793,9 +793,11 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function()
                 for (var ix = 0; ix < len; ++ix)
                 {
                     // See if the value has changed
-                    var currValue = curr[ix] ? curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
+                    var currValue =
+                        (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
+                            curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
                     var origValue = orig[ix];
-                    if (origValue != currValue ||
+                    if (origValue !== currValue ||
                         (changeGroup[obj.__id__] && changeGroup[obj.__id__][prop] && changeGroup[obj.__id__][prop][1][ix] != currValue))
                     {
                         // Create a new change group key if needed
@@ -803,9 +805,10 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function()
                             changeGroup[obj.__id__] = {};
 
                         // If this is a subsequent change just replace the new value
-                        if (changeGroup[obj.__id__][prop])
-                            changeGroup[obj.__id__][prop][1][ix] = currValue;
-                        else {
+                        if (changeGroup[obj.__id__][prop]) {
+                            if (changeGroup[obj.__id__][prop][1] instanceof Array)  // whole array could be getting null
+                                changeGroup[obj.__id__][prop][1][ix] = currValue;
+                        } else {
                             // Create an old and new value array with identical values and then
                             // substitute the one changed value in the appropriate position
                             var values = this._convertValue(orig);
@@ -939,9 +942,15 @@ RemoteObjectTemplate._applyObjectChanges = function(changes, rollback, obj, forc
                     obj.__tainted__ = true;
                 }
                 var length = Math.max(newValue.length, oldValue ? oldValue.length : 0);
-                for (var ix = 0; ix < length; ++ix)
-                    if (!this._applyPropertyChange(changes, rollback, obj, prop, ix, oldValue ? oldValue[ix] : null, newValue[ix], force))
+                for (var ix = 0; ix < length; ++ix) {
+                    function unarray(value) {
+                        try {return (value && (value + "").substr(0,1) == "=") ? JSON.parse((value + "").substr(1)) : value;
+                        } catch (e) {return  "";}
+                    }
+                    if (!this._applyPropertyChange(changes, rollback, obj, prop, ix,
+                        oldValue ? unarray(oldValue[ix]) : null, unarray(newValue[ix]), force))
                         return false;
+                }
                 this._trimArray(obj[prop]);
             } else if (oldValue instanceof Array) {
                 obj[prop] = null;
@@ -988,6 +997,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
 
     // No change case
     var currentValueConverted = this._convertValue(currentValue);
+    var oldValueConverted = this._convertValue(oldValue);
     if (newValue == currentValueConverted && this._useGettersSetters)  // no change
         return true;
 
@@ -996,9 +1006,9 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
     var singleDirection = defineProperty.toServer === false || defineProperty.toClient === false;
 
     // Make sure old value that is reported matches current value
-    if (!singleDirection && !force && oldValue != currentValueConverted) { // conflict will have to roll back
+    if (!singleDirection && !force && oldValueConverted != currentValueConverted) { // conflict will have to roll back
         this.log(0, "Could not apply change to " + obj.__template__.__name__ + "." + prop +
-            " expecting " +  this.cleanPrivateValues(prop, oldValue) +
+            " expecting " +  this.cleanPrivateValues(prop, oldValueConverted) +
             " but presently " + this.cleanPrivateValues(prop, currentValueConverted));
         return false;
     }
