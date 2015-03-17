@@ -67,6 +67,7 @@ function Bindster(model, view, controller, namespace, defer)
     this.alertCount = 0;
     this.radioButtonAlert = 0;
     this.attrToProp = {'class': "className", 'maxlength': "maxLength", 'for': "htmlFor"};
+    this.urlSuffix = null;
     if (controller && typeof(controller.preRenderInitialize) == 'function')
         controller.preRenderInitialize();
     if (!defer)
@@ -101,7 +102,7 @@ Bindster.prototype.setController = function(controller)
     controller.bindster = this;
     controller.clearErrors = function(data) {
         this.bindster.clearErrors = true;
-        this.bindster.render();
+        this.bindster.render(data);
         this.bindster.clearErrors = true;
     }
     controller.isError = function (propRef) {
@@ -189,6 +190,9 @@ Bindster.prototype.setController = function(controller)
 
         return attrs;
     },
+        controller.setIncludeURLSuffix = function (suffix) {
+            this.bindster.urlSuffix = suffix
+        },
         controller.arrive = function(route) {
             this.bindster.DOMTestResolve("arrival");
             if (typeof(bindsterTestFrameworkRoute) == "function")
@@ -1957,6 +1961,8 @@ Bindster.prototype.includeNode = function (file, node, async, then) {
 }
 Bindster.prototype.fetchFile = function (file, node, async, success, failure) {
     var request = this.getXHR();
+    if (!file.match(/\?/) && this.urlSuffix)
+        file = file + this.urlSuffix;
     request.open('GET', file, async ? true : false);
     request.onreadystatechange = this.createDelegate(this, this.processFetchResponse, request,
         this.createDelegate(this, success, node, async), this.createDelegate(this, failure, file, node));

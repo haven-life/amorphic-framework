@@ -1,3 +1,5 @@
+## 0.1.45
+* Added ssetIncludeURLSuffix to allow a suffix for URLs on include files to fix cache problems
 ## 0.1.42
 * Offer ability to but don't enforce not refreshing if no new changes from server
 ## 0.1.42
