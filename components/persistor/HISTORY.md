@@ -1,4 +1,4 @@
-## 0.1.70
+## 0.1.71
 * When creating persistor properties preserve toClient/toServer settings from original property
 ## 0.1.69
 * Fixed 0.1.64 fix

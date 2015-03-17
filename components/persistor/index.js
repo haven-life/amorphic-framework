@@ -1082,10 +1082,6 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         var props = template.getProperties();
         for (var prop in props)
         {
-            if (prop == 'policies')
-                console.log('policies');
-            if (prop == 'workflow')
-                console.log('workflow');
             var defineProperty = props[prop];
             var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty);
             var value = obj[prop];
