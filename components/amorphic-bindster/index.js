@@ -111,6 +111,9 @@ Bindster.prototype.setController = function(controller)
     controller.hasErrors = function(data) {
         return this.bindster.hasErrors;
     }
+    controller.isPending = function (propRef) {
+        return this.bindster.isPending(propRef)
+    }
     controller.validate = function(data) {
         // A re-render can end up calling validate again
         if (!this.bindster.validate) {
