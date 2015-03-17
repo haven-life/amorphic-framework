@@ -179,6 +179,10 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     var template = function() {
 
         this.__template__ = template;
+        if (objectTemplate.__transient__) {
+            this.__transient__ = true;
+        }
+
         try {
             // Create properties either with EMCA 5 defineProperties or by hand
             if (Object.defineProperties)
@@ -459,8 +463,9 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
     if (!pojo.__id__)
         return;
 
+
     // Create the new object with correct constructor using embedded ID if ObjectTemplate
-    var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty);
+    var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
     idMap[obj.__id__.toString()] = obj;
 
     // Go through all the properties and transfer them to newly created object
@@ -493,8 +498,15 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
     }
     if (pojo._id) // For the benefit of persistObjectTemplate
         obj._id = getId(pojo._id);
-    if (pojo.__version__)
-        obj.__version__ = pojo.__version__;
+
+    function propXfer(prop) {
+        if (pojo[prop])
+            obj[prop] = pojo[prop];
+    }
+
+    propXfer('__version__');
+    propXfer('__toServer__');
+    propXfer('__toClient__');
     return obj;
 };
 

@@ -1,3 +1,5 @@
+## 0.1.30
+* Handling of __transient__ for semotus
 ## 0.1.29
 * When de-serializing include __version__ if present in pojo
 ## 0.1.28
