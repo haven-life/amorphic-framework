@@ -1,3 +1,5 @@
+## 0.1.22
+* Fixed issue in synchronization of new objects
 ## 0.1.21
 * Fixed critical bugs in array syncronization
 * Added support for Arrays of strings and other non-templated objects

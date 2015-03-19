@@ -888,9 +888,10 @@ RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
         // If no reference derive template for object ID
         if (!obj) {
             var template = this.__dictionary__[objId.replace(/[^-]*-/,'').replace(/-.*/,'')];
-            if (template)
+            if (template) {
+                force = true;
                 obj = this._createEmptyObject(template, objId);
-            else
+            } else
                 console.log(0, "Could not find template for " + objId);
         }
         if (!obj || !this._applyObjectChanges(changes, rollback, obj, force)) {
