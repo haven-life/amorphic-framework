@@ -1,3 +1,5 @@
+## 0.1.72
+* When creating transient objects don't reset transient flag for fetchProperty
 ## 0.1.71
 * When creating persistor properties preserve toClient/toServer settings from original property
 ## 0.1.69

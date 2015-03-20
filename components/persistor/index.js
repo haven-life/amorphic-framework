@@ -133,8 +133,9 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     PersistObjectTemplate.createTransientObject = function (cb) {
         this.__transient__ = true;
-        cb();
+        var obj = cb();
         this.__transient__ = false;
+        return obj;
     }
     /**
      * Run through the schema entries and setup these properites on templates
@@ -396,7 +397,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             this._createEmptyObject(template, 'perist-' + pojo._template.replace(/.*:/,'') +
                 "-"+ pojo._id.toString(), defineProperty, isTransient);
 
-        if (!obj.__transient__) // Once we find an object that is not transient query as normal for the rest
+        // Once we find an object already fetch that is not transient query as normal for the rest
+        if (!obj.__transient__  && !establishedObj && !isTransient)
             isTransient = false;
 
         var collection = obj.__template__.__collection__;
