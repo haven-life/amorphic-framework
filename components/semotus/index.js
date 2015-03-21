@@ -1033,10 +1033,10 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
         newValue = newValue == null ? null : (newValue == "false" ? false : (newValue ? true : false));
     else if (type == Date)
         newValue =  newValue == null ? null : new Date(newValue);
-    else if (type == Object && newValue) { // deal with possibility an array is returned by ignoring
+    else if (type == Object && newValue) {
         newValue = (typeof(newValue) == 'string') ?
             (JSON.parse((newValue && newValue.substr(0,1) == '=') ? newValue.substr(1) : newValue))
-            : null;
+            : newValue;
     }
     else if (newValue && typeof(type) == "function") {
         objId = newValue;

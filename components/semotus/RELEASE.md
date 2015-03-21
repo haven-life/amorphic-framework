@@ -1,3 +1,5 @@
+## 0.1.23
+* Fixed issue in array of objects
 ## 0.1.22
 * Fixed issue in synchronization of new objects
 ## 0.1.21
