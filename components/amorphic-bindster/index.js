@@ -124,6 +124,11 @@ Bindster.prototype.setController = function(controller)
         }
         return !this.hasErrors();
     }
+    controller.render = function(data){
+        var node = typeof(data) == 'string' ? document.getElementById(data) : data;
+        node = node ? node.firstChild : node;
+        this.bindster.render(node);
+    }
     controller.setError = function (objRef, propRef, error) {
         if (!error) {
             error = propRef;
@@ -131,8 +136,8 @@ Bindster.prototype.setController = function(controller)
             objRef = this.data;
         }
         this.bindster.setError(objRef, propRef, error);
-    },
-        controller.getErrorMessage = function(message) {
+    }
+    controller.getErrorMessage = function(message) {
             return this.bindster.getBindErrorData(null, message);
         }
     controller.clearError = function (objRef, propRef) {
@@ -880,7 +885,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
             this.data.__stats.total_render_time += this.data.__stats.last_render_time;
             this.data.__stats.renders ++;
         }
-        if(!hasErrors && this.hasErrors)
+        if(!hasErrors && this.hasErrors || this.radioButtonAlert)
             this.render(topLevelNode, null, null, null, null, null, null, true);
         this.validate = false;
         this.DOMTestResolve("render");
@@ -893,7 +898,11 @@ Bindster.prototype.sendToController = function (node_bindster) {
     if (typeof(bindsterTestFrameworkGet) == "function")
         bindsterTestFrameworkGet(node_bindster.tags.bind, node_bindster.bind);
 }
-
+Bindster.prototype.isPending = function(ref) {
+    var ref = this.getBindErrorReference(ref);
+    var data = this.eval(ref, null, "isError");
+    return typeof(data) != 'undefined' && data == '__pending__';
+}
 Bindster.prototype.resolveSelectValue = function (target)
 {
     if (target.bindster && target.bindster && target.bindster.tags.proptype) {

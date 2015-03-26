@@ -1,3 +1,6 @@
+## 0.1.48
+* Further fix to radio button cloning
+* added controller.render for partial renders
 ## 0.1.46
 * Added controller.isPending to determine whether a validation operation is pending server action
 ## 0.1.45
