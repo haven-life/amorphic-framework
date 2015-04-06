@@ -64,7 +64,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.__id__ = nextId++;
     PersistObjectTemplate._superClass = baseClassForPersist;
 
-    PersistObjectTemplate.debug = function (message) {
+    PersistObjectTemplate.debug = function (message, type) {
     }
 
     PersistObjectTemplate.setDBURI = function (uri) {
@@ -905,7 +905,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             if (targetQuery) {
                 queryTraverse(newQuery, targetQuery);
                 results.query['$or'].push(newQuery);
-                this.debug("subdocument query for " + targetTemplate + '; ' + JSON.stringify(results.query), 'subdoc');
+                this.debug("subdocument query for " + targetTemplate.__name__ + '; ' + JSON.stringify(results.query), 'subdoc');
             }
         }
         return results;
@@ -1342,12 +1342,12 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {
         var schema = template.__schema__;
-        if (!schema)
-            return true;
-
         var type = defineProperty.type;
         var of = defineProperty.of;
         var refType = of || type;
+        if (!schema)  // No schema no persistor
+            return false;
+
         if (refType && refType.__name__ && !refType.__schema__  && this._persistProperty(defineProperty))
             throw new Error("Missing schema entry for " + refType.__name__);
 
