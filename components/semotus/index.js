@@ -894,6 +894,11 @@ RemoteObjectTemplate._applyChanges = function(changes, force, subscriptionId)
             } else
                 console.log(0, "Could not find template for " + objId);
         }
+        var validator = obj && (obj['validateServerIncomingObject'] || this.controller['validateServerIncomingObject']);
+        var validatorThis = (obj && obj['validateServerIncomingObject']) ? obj : this.controller;
+        if (validator)
+            validator.call(validatorThis, obj)
+
         if (!obj || !this._applyObjectChanges(changes, rollback, obj, force)) {
             this.processingSubscription = false;
             this._rollback(rollback);
@@ -948,8 +953,15 @@ RemoteObjectTemplate._applyObjectChanges = function(changes, rollback, obj, forc
                         try {return (value && (value + "").substr(0,1) == "=") ? JSON.parse((value + "").substr(1)) : value;
                         } catch (e) {return  "";}
                     }
+
+                    var unarray_newValue = unarray(newValue[ix]);
+                    var validator = obj && (obj['validateServerIncomingProperty'] || this.controller['validateServerIncomingProperty']);
+                    var validatorThis = (obj && obj['validateServerIncomingProperty']) ? obj : this.controller;
+                    if (validator)
+                        validator.call(validatorThis, obj, prop, ix, defineProperty, unarray_newValue)
+
                     if (!this._applyPropertyChange(changes, rollback, obj, prop, ix,
-                        oldValue ? unarray(oldValue[ix]) : null, unarray(newValue[ix]), force))
+                        oldValue ? unarray(oldValue[ix]) : null, unarray_newValue, force))
                         return false;
                 }
                 this._trimArray(obj[prop]);

@@ -1,3 +1,5 @@
+## 0.1.24
+* Added security validators
 ## 0.1.23
 * Fixed issue in array of objects
 ## 0.1.22
