@@ -1,3 +1,6 @@
+## 0.1.49
+* Allow bindSet to be called when using controller level validation
+* bindster_amorphic - don't override bindster or controller if already present
 ## 0.1.48
 * Further fix to radio button cloning
 * added controller.render for partial renders

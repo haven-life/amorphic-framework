@@ -1,6 +1,10 @@
 var __ver = __ver || 0;
-var controller;
-var bindster = null;
+
+if (typeof(controller) == 'undefined')
+    var controller = null;
+
+if (typeof(bindster) == 'undefined')
+    var bindster =  null;
 
 // Bind bindster to semotus
 amorphic.establishClientSession(
