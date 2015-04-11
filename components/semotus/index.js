@@ -1160,7 +1160,7 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
             var newValue = sessionReference;
         else
             throw  new Error("_createEmptyObject called for " + template.__name__ +
-                " and session object with that id exists but for template " + session.objects[objId].__template__)
+                " and session object with that id exists but for template " + session.objects[objId].__template__.__name__)
     } else {
         this.dispenseId = objId;
         session.dispenseNextId = objId;  // stashObject will use this

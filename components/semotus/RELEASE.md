@@ -1,3 +1,5 @@
+## 0.1.25
+* Fixed template mixup error
 ## 0.1.24
 * Added security validators
 ## 0.1.23
