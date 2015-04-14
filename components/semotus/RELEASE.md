@@ -1,3 +1,5 @@
+## 0.1.26
+* Make sure receiving new objects does not cause extra changes to turn around to the server
 ## 0.1.25
 * Fixed template mixup error
 ## 0.1.24

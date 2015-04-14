@@ -543,9 +543,11 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                 return this["__"+prop];
             }
         })();
-    }
+    } else
+        objectProperties['__' + propertyName] = objectProperties[propertyName];
 
-    // Setters and Getters cannot have value or be writable
+
+// Setters and Getters cannot have value or be writable
     if (this._useGettersSetters && this._manageChanges(defineProperty)) {
         delete defineProperty.value;
         delete defineProperty.writable;
