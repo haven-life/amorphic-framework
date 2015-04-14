@@ -160,6 +160,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         for (var templateName in schema) {
             var template = this.getTemplateByName(templateName);
             if (template && schema[templateName].documentOf) {
+
                 if (collections[schema[templateName].documentOf] &&
                     collections[schema[templateName].documentOf] != getBaseClass(template))
                     throw new Error(templateName + " and " + collections[schema[templateName].documentOf]._name +
@@ -335,6 +336,13 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 var promises = [];
                 var results = [];
                 for (var ix = 0; ix < pojos.length; ++ix) {
+
+                    // Populate the idMap for any references
+                    if (!idMap[pojos[ix]._id.toString()]) {
+                        var topType = this.getTemplateByCollection(template.__collection__);
+                        this.fromDBPOJO(pojos[ix], topType, promises, {type: topType}, idMap, {},
+                            null, null, isTransient)
+                    }
                     var subPojos = this.getPOJOSFromPaths(template, subQuery.paths, pojos[ix], query)
                     for (var jx = 0; jx < subPojos.length; ++jx) {
                         promises.push(this.fromDBPOJO(subPojos[jx], template, null, null, idMap, cascade, null, null, isTransient).then(function (pojo) {
@@ -1283,7 +1291,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         var origVer = obj.__version__;
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
         pojo.__version__ = obj.__version__;
-        return Q.ninvoke(this.getDB(), "collection", obj.__template__.__collection__).then (function (collection) {
+        return Q.ninvoke(this.getDB(), "collection", dealias(obj.__template__.__collection__)).then (function (collection) {
             return (updateID ?  Q.ninvoke(collection, "update",
                 origVer  ? {__version__: origVer, _id: updateID} :
                 {_id: updateID}, pojo, {w:1}) :
@@ -1298,15 +1306,18 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             }.bind(this));
         }.bind(this));
     }
+
+    function dealias(collection) {return collection.replace(/\:.*/, '')};
+
     PersistObjectTemplate.deleteFromQuery = function(template, query) {
-        return Q.ninvoke(this.getDB(), "collection", template.__collection__, {w:1, fsync:true}).then (function (collection) {
+        return Q.ninvoke(this.getDB(), "collection", dealias(template.__collection__), {w:1, fsync:true}).then (function (collection) {
             return Q.ninvoke(collection, "remove", query);
         });
     }
 
     PersistObjectTemplate.getPOJOFromQuery = function(template, query, options) {
         this.debug("db." + template.__collection__ + ".find({" + JSON.stringify(query) + "})", 'io');
-        return Q.ninvoke(this.getDB(), "collection", template.__collection__).then (function (collection) {
+        return Q.ninvoke(this.getDB(), "collection", dealias(template.__collection__)).then (function (collection) {
             options = options || {};
             if (!options.sort)
                 options.sort = {_id:1};
@@ -1317,7 +1328,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     }
 
     PersistObjectTemplate.countFromQuery = function(template, query) {
-        return Q.ninvoke(this.getDB(), "collection", template.__collection__).then (function (collection) {
+        return Q.ninvoke(this.getDB(), "collection", dealias(template.__collection__)).then (function (collection) {
             return Q.ninvoke(collection, "find", query).then( function (cursor) {
                 return Q.ninvoke(cursor, "count", false);
             });
@@ -1325,7 +1336,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     }
 
     PersistObjectTemplate.distinctFromQuery = function(template, field, query) {
-        return Q.ninvoke(this.getDB(), "collection", template.__collection__).then (function (collection) {
+        return Q.ninvoke(this.getDB(), "collection", dealias(template.__collection__)).then (function (collection) {
             return Q.ninvoke(collection, "distinct", field, query)
         });
     }

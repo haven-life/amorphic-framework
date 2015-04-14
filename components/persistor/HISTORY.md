@@ -1,3 +1,6 @@
+## 0.1.74
+* Alias feature to allow duplicate templates for same collection
+* Fixes to getFromPersistWithQuery for subdocuments
 ## 0.1.73
 * Don't create persistors for schemaless templates
 ## 0.1.72
