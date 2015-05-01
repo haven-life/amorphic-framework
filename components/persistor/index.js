@@ -864,6 +864,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
         // Build up an array of string paths that traverses down to the desired template
         var paths = [];
         var templates = {};
+        function isObjectID(elem) {return elem &&  (elem instanceof ObjectID || elem._bsontype)}
         function traverse(template, queryString)
         {
             var props = template.getProperties();
@@ -895,7 +896,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                     var elem = query[prop];
                     if (prop.match(/\$(gt|lt|gte|lte|ne|in)/i))
                         newQuery[prop] = elem;
-                    else if (typeof (elem) == 'string' || typeof(elem) == 'number' || elem instanceof ObjectID)
+                    else if (typeof (elem) == 'string' || typeof(elem) == 'number' || isObjectID(elem))
                         newQuery[newProp] = elem;
                     else if (elem instanceof Array) { // Should be for $and and $or
                         newQuery[prop] = [];
