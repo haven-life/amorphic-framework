@@ -1,3 +1,5 @@
+## 0.1.33
+* Added createCopy() to intelligently clone a portion of an object graph
 ## 0.1.30
 * Handling of __transient__ for semotus
 ## 0.1.29

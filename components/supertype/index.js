@@ -235,6 +235,19 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
         this.toJSONString = function() {
             return ObjectTemplate.toJSONString(this);
         }
+        /* Clone and object calling a callback for each referenced object.
+           The call back is passed (obj, prop, template)
+           obj - the parent object (except the highest level)
+           prop - the name of the property
+           template - the template of the object to be created
+           the function returns:
+           - falsy - clone object as usual with a new id
+           - object reference - the callback created the object (presumably to be able to pass init parameters)
+           - [object] - a one element array of the object means don't copy the properties or traverse
+        */
+        this.createCopy = function(creator) {
+            return ObjectTemplate.createCopy(this, creator);
+        };
     };
 
     template.prototype = templatePrototype;
@@ -325,6 +338,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     template.fromJSON = function(str, idPrefix) {
         return objectTemplate.fromJSON(str, template, idPrefix);
     };
+
     template.isObjectTemplate = true;
     template.createProperty = createProperty;
 
@@ -412,6 +426,7 @@ ObjectTemplate._setupProperty = function(propertyName, defineProperty, objectPro
 /**
  *
  * Clone an object created from an ObjectTemplate
+ * Used only within supertype (see copyObject for general copy)
  *
  * @param obj is the source object
  * @param template is the template used to create the object
@@ -447,12 +462,14 @@ ObjectTemplate.clone = function (obj, template)
     } else
         return obj;
 };
-
+ObjectTemplate.createCopy = function (obj, creator) {
+    return this.fromPOJO(JSON.parse(obj.toJSONString()), obj.__template__, null, null, 'new', null, null, creator);
+};
 ObjectTemplate.fromJSON = function (str, template, idQualifier)
 {
     return this.fromPOJO(JSON.parse(str), template, null, null, idQualifier);
 }
-ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQualifier)
+ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQualifier, parent, prop, creator)
 {
     function getId(id) { return typeof(idQualifier) != 'undefined' ? id + '-' + idQualifier : id};
 
@@ -463,10 +480,22 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
     if (!pojo.__id__)
         return;
 
-
-    // Create the new object with correct constructor using embedded ID if ObjectTemplate
-    var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
+    if (creator) {
+        var obj = creator(parent, prop, template, idMap[pojo.__id__.toString()], pojo.__transient__);
+        //console.log ("creator returned " + obj + " on " + template.__name__ + "." + prop);
+        if (obj instanceof Array) {
+            obj = obj[0];
+            idMap[obj.__id__.toString()] = obj;
+            return obj;
+        }
+        if (!obj)
+            obj = new template();
+    } else
+        var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
     idMap[obj.__id__.toString()] = obj;
+
+    if (obj.__template__.__name__ == 'Workflow')
+        console.log("fromPojo workflow __transient__ = " + pojo.__transient__);
 
     // Go through all the properties and transfer them to newly created object
     var props = obj.__template__.getProperties();
@@ -482,14 +511,14 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
                     obj[prop][ix] = pojo[prop][ix] ?
                         (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
                             idMap[getId(pojo[prop][ix].__id__.toString())] :
-                            this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier))
+                            this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
                         : null;
             }
             else if (type.isObjectTemplate) // Templated objects
 
                 obj[prop] =	(pojo[prop].__id__ && idMap[getId(pojo[prop].__id__.toString())] ?
                     idMap[getId(pojo[prop].__id__.toString())] :
-                    this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier));
+                    this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier, obj, prop, creator));
 
             else if (type == Date)
                 obj[prop] = pojo[prop] ? new Date(pojo[prop]) : null;
