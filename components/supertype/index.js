@@ -236,15 +236,15 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
             return ObjectTemplate.toJSONString(this);
         }
         /* Clone and object calling a callback for each referenced object.
-           The call back is passed (obj, prop, template)
-           obj - the parent object (except the highest level)
-           prop - the name of the property
-           template - the template of the object to be created
-           the function returns:
-           - falsy - clone object as usual with a new id
-           - object reference - the callback created the object (presumably to be able to pass init parameters)
-           - [object] - a one element array of the object means don't copy the properties or traverse
-        */
+         The call back is passed (obj, prop, template)
+         obj - the parent object (except the highest level)
+         prop - the name of the property
+         template - the template of the object to be created
+         the function returns:
+         - falsy - clone object as usual with a new id
+         - object reference - the callback created the object (presumably to be able to pass init parameters)
+         - [object] - a one element array of the object means don't copy the properties or traverse
+         */
         this.createCopy = function(creator) {
             return ObjectTemplate.createCopy(this, creator);
         };
@@ -463,7 +463,7 @@ ObjectTemplate.clone = function (obj, template)
         return obj;
 };
 ObjectTemplate.createCopy = function (obj, creator) {
-    return this.fromPOJO(JSON.parse(obj.toJSONString()), obj.__template__, null, null, 'new', null, null, creator);
+    return this.fromPOJO(obj, obj.__template__, null, null, undefined, null, null, creator);
 };
 ObjectTemplate.fromJSON = function (str, template, idQualifier)
 {
@@ -471,7 +471,9 @@ ObjectTemplate.fromJSON = function (str, template, idQualifier)
 }
 ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQualifier, parent, prop, creator)
 {
-    function getId(id) { return typeof(idQualifier) != 'undefined' ? id + '-' + idQualifier : id};
+    function getId(id) {
+        return typeof(idQualifier) != 'undefined' ? id + '-' + idQualifier : id
+    };
 
     // For recording back refs
     if (!idMap)
@@ -492,7 +494,7 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
             obj = new template();
     } else
         var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
-    idMap[obj.__id__.toString()] = obj;
+    idMap[pojo.__id__.toString()] = obj;
 
     if (obj.__template__.__name__ == 'Workflow')
         console.log("fromPojo workflow __transient__ = " + pojo.__transient__);
@@ -525,7 +527,7 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
             else
                 obj[prop] = pojo[prop];
     }
-    if (pojo._id) // For the benefit of persistObjectTemplate
+    if (!creator && pojo._id) // For the benefit of persistObjectTemplate
         obj._id = getId(pojo._id);
 
     function propXfer(prop) {

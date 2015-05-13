@@ -1,3 +1,5 @@
+## 0.1.34
+* Fixes to createCopy()
 ## 0.1.33
 * Added createCopy() to intelligently clone a portion of an object graph
 ## 0.1.30
