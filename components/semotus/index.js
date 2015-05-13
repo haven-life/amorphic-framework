@@ -91,7 +91,10 @@ RemoteObjectTemplate.createSession = function(role, sendMessage, sessionId) {
     this.role = role instanceof  Array ? role[1] : role;
     return sessionId;
 }
-
+RemoteObjectTemplate.deleteSession = function(sessionId) {
+    if (this.sessions[sessionId])
+        delete  this.sessions[sessionId];
+}
 RemoteObjectTemplate.setMinimumSequence = function(nextObjId) {
     this._getSession().nextObjId = Math.max(nextObjId, this._getSession().nextObjId);
 }

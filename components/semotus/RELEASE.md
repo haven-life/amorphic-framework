@@ -1,3 +1,5 @@
+## 0.1.27
+* Added deleteSession
 ## 0.1.26
 * Make sure receiving new objects does not cause extra changes to turn around to the server
 ## 0.1.25
