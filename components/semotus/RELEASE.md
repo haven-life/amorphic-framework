@@ -1,3 +1,5 @@
+## 0.1.28
+* Transient objects were generating errors if an equivalent non-transient was in the session
 ## 0.1.27
 * Added deleteSession
 ## 0.1.26

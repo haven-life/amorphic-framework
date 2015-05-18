@@ -1159,7 +1159,7 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
     template = this._resolveSubClass(template, objId, defineProperty);
 
     var session = this._getSession();
-    var sessionReference = session.objects[objId];
+    var sessionReference = !isTransient ? session.objects[objId] : null;
     if (sessionReference) {
         if (sessionReference.__template__ == template)
             var newValue = sessionReference;
