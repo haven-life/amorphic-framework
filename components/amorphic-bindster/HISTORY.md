@@ -1,3 +1,6 @@
+## 0.1.50
+* Router updates urls for nested routes (e.g. popups) and restores them
+* This allowed fixing a bug where sometimes a route would not be entered if it was already in the address bar
 ## 0.1.49
 * Allow bindSet to be called when using controller level validation
 * bindster_amorphic - don't override bindster or controller if already present

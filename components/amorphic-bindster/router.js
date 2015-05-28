@@ -7,7 +7,6 @@ AmorphicRouter =
     routes:{},          // Root of the routes
     currentRoute: null,
     hasPushState: !!(typeof(window) != 'undefined' && window.history && history.pushState),
-    lastParsedPath: null,
     pushedRoutes: [],
 
     /**
@@ -88,6 +87,7 @@ AmorphicRouter =
     popRoute: function() {
         this.leave();
         this.currentRoute = this.pushedRoutes.pop();
+        this._updateURL(this.currentRoute);
     },
     getRoute: function () {
         return this.currentRoute;
@@ -133,10 +133,17 @@ AmorphicRouter =
         for (var ix = 1; ix < arguments.length; ix++)
             this.pendingParameters.arguments.push(arguments[ix]);
 
+        this._updateURL(route);
         if (route.__nested)
             this.arrive(route);
-        else
+        else {
+            this._checkURL();
+            this.executedGoTo = true;
+        }
+    },
+    _updateURL: function (route) {
         {
+            route = route || {__path: ''}
             if (route.__load)
                 this.location.href = this._encodeURL(route);
             else if (this.options.usePushState && this.hasPushState) {
@@ -144,8 +151,6 @@ AmorphicRouter =
                 this.history.pushState(route.__path, route.__title ? route.__title : null, this._encodeURL(route));
             } else
                 this.location.hash = '#' + encodeURIComponent(this._encodeURL(route));
-            this._checkURL();
-            this.executedGoTo = true;
         }
     },
 
@@ -175,11 +180,8 @@ AmorphicRouter =
 
         // Grab the route from paths extracted from routeIn and signal arrival
         var route = this.paths[parsed.path];
-        if (route && this.lastParsedPath != JSON.stringify(parsed)) {
-            this.lastParsedPath = JSON.stringify(parsed);
+        if (route && route != this.currentRoute)
             this.arrive(route, parsed);
-        }
-
     },
 
     /**
