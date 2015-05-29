@@ -1300,8 +1300,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
                 ).then (function (error, count) {
                 if (error instanceof Array)
                     count = error[0]; // Don't know why things are returned this way
-                if (updateID && count == 0)
+                if (updateID && count == 0) {
+                    obj.__version__ = origVer;
                     throw new Error("Update Conflict");
+                }
                 this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
                 return Q(true);
             }.bind(this));

@@ -1,5 +1,5 @@
 ## 0.1.75
-* Doc subquery was broken when two instances of mongodb node modules make their way into a project
+* Update conflicts were resetting the version number meaning that the second time they would succeed
 ## 0.1.74
 * Alias feature to allow duplicate templates for same collection
 * Fixes to getFromPersistWithQuery for subdocuments
