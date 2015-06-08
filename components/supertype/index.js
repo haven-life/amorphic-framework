@@ -220,7 +220,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
 
         // If we don't have an init function or are a remote creation call parent constructor otherwise call init
         // function who will be responsible for calling parent constructor to allow for parameter passing.
-        if (this.fromRemote || !functionProperties.init) {
+        if (this.fromRemote || !functionProperties.init || objectTemplate.noInit) {
             if (parentTemplate && parentTemplate.isObjectTemplate)
                 parentTemplate.call(this);
         } else {
@@ -490,14 +490,14 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
             idMap[obj.__id__.toString()] = obj;
             return obj;
         }
-        if (!obj)
+        if (!obj) {
+            this.noInit = true;
             obj = new template();
+            this.noInit = false;
+        }
     } else
         var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
     idMap[pojo.__id__.toString()] = obj;
-
-    if (obj.__template__.__name__ == 'Workflow')
-        console.log("fromPojo workflow __transient__ = " + pojo.__transient__);
 
     // Go through all the properties and transfer them to newly created object
     var props = obj.__template__.getProperties();

@@ -1,3 +1,5 @@
+## 0.1.35
+* createCopy() now prevents calling init on cloned objects
 ## 0.1.34
 * Fixes to createCopy()
 ## 0.1.33
