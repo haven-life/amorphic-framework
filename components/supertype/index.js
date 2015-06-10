@@ -497,7 +497,7 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         }
     } else
         var obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
-    idMap[pojo.__id__.toString()] = obj;
+    idMap[getId(pojo.__id__.toString())] = obj;
 
     // Go through all the properties and transfer them to newly created object
     var props = obj.__template__.getProperties();

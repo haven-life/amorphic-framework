@@ -1,3 +1,5 @@
+## 0.1.36
+* fromJSON string was not handling references properly when using an id prefix
 ## 0.1.35
 * createCopy() now prevents calling init on cloned objects
 ## 0.1.34
