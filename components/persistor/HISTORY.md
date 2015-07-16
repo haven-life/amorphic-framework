@@ -1,3 +1,5 @@
+## 0.1.78
+* Fixed problem introduced in 1.77
 ## 0.1.77
 * Allow get/fetch by forcing queryOptions in model
 ## 0.1.75

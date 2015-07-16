@@ -285,7 +285,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var refType = of || type;
             if (refType && refType.__schema__) {
                 var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty)
-                if (isCrossDocRef || defineProperty.queryOptions) {
+                if (isCrossDocRef || defineProperty.autoFetch) {
                     (function () {
                         var closureProp = prop;
                         var closureFetch = defineProperty.fetch ? defineProperty.fetch : {};
@@ -445,7 +445,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var defineProperty = props[prop];
             var type = defineProperty.type;
             var of = defineProperty.of;
-            var isCrossDocRef = this.isCrossDocRef(obj.__template__, prop, defineProperty) || defineProperty.queryOptions;
+            var isCrossDocRef = this.isCrossDocRef(obj.__template__, prop, defineProperty) || defineProperty.autoFetch;
             var cascadeFetch = (cascade && cascade[prop]) ? cascade[prop] : null;
             var doFetch = defineProperty['fetch'] || cascadeFetch;
 

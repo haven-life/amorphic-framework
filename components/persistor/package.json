@@ -2,7 +2,7 @@
     "name": "persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/selsamman/persistor",
-    "version": "0.1.77",
+    "version": "0.1.78",
     "dependencies": {
         "q": "1.x",
         "supertype": "0.1.x",
