@@ -1,3 +1,5 @@
+## 0.1.77
+* Allow get/fetch by forcing queryOptions in model
 ## 0.1.75
 * Update conflicts were resetting the version number meaning that the second time they would succeed
 ## 0.1.74
