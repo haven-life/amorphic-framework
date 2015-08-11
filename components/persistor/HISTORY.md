@@ -1,3 +1,5 @@
+## 0.1.79
+* Add actual template name to the id of an object to allow for different classes reading an object
 ## 0.1.78
 * Fixed problem introduced in 1.77
 ## 0.1.77

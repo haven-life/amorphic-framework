@@ -402,7 +402,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
         // Create the new object with correct constructor using embedded ID if ObjectTemplate
         var obj = establishedObj || idMap[pojo._id.toString()] ||
-            this._createEmptyObject(template, 'perist-' + pojo._template.replace(/.*:/,'') +
+            this._createEmptyObject(template, 'persist' + template.__name__ + '-' + pojo._template.replace(/.*:/,'') +
                 "-"+ pojo._id.toString(), defineProperty, isTransient);
 
         // Once we find an object already fetch that is not transient query as normal for the rest
