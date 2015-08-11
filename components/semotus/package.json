@@ -2,7 +2,7 @@
     "name": "semotus",
     "description": "A subclass of supertype that synchronizes sets of objects.",
     "homepage": "https://github.com/selsamman/semotus",
-    "version": "0.1.28",
+    "version": "0.1.29",
     "dependencies": {
         "q": "1.x",
         "supertype": "0.1.x"

@@ -1,3 +1,5 @@
+## 0.1.29
+* Fix made in 0.1.28 caused entries to be deleted from the sesion.  Original problem fixed in persistor
 ## 0.1.28
 * Transient objects were generating errors if an equivalent non-transient was in the session
 ## 0.1.27
