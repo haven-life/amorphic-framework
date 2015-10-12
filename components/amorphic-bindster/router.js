@@ -150,7 +150,7 @@ AmorphicRouter =
                 this.location.hash = '';
                 this.history.pushState(route.__path, route.__title ? route.__title : null, this._encodeURL(route));
             } else
-                this.location.hash = '#' + encodeURIComponent(this._encodeURL(route));
+                this.location.hash = '#' + this._encodeURL(route);
         }
     },
 
