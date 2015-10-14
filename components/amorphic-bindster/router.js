@@ -144,13 +144,36 @@ AmorphicRouter =
     _updateURL: function (route) {
         {
             route = route || {__path: ''}
-            if (route.__load)
-                this.location.href = this._encodeURL(route);
-            else if (this.options.usePushState && this.hasPushState) {
-                this.location.hash = '';
-                this.history.pushState(route.__path, route.__title ? route.__title : null, this._encodeURL(route));
-            } else
-                this.location.hash = '#' + this._encodeURL(route);
+            var prefix = (this.options.usePushState && this.hasPushState) ?
+                route.__prefix : route.__prefix.replace(/-/, '');
+            switch(route.__prefix) {
+
+                // Non-pushState handling
+                case '/':
+                    this.location.href = '/' + this._encodeURL(route, route.__path, false);
+                    break;
+                case '#':
+                    this.location.hash = '#' + this._encodeURL(route, route.__path, true);
+                    break;
+                case '/#':
+                    if (this.location.pathname != '/')
+                        this.location.href = '/#'+ this._encodeURL(route, route.__path, true);
+                    else
+                        this.location.hash = '#' + this._encodeURL(route, route.__path, true);
+                    break;
+
+                case '-/':
+                    //this.location.hash = '';
+                    this.history.pushState(route.__path, route.__title ? route.__title : null, '/' + this._encodeURL(route, route.__path, false));
+                    break;
+                case '-#':
+                    this.history.pushState(route.__path, route.__title ? route.__title : null, '#' + this._encodeURL(route, route.__path, false));
+                    break;
+                case '-/#':
+                    //this.location.hash = '';
+                    this.history.pushState(route.__path, route.__title ? route.__title : null, '/#' + this._encodeURL(route, route.__path, false));
+                    break;
+            }
         }
     },
 
@@ -170,13 +193,18 @@ AmorphicRouter =
         // then may be overridden by the hash.  This let's subsequent
         // routes for an SPA be defined through a hash even through
         // the initial one came in as a path ? search.
-        var parsed = {parameters: {}};
+        var parsed = {parameters: {}, path: '/'};
         var hash = this.location.hash.replace(/^#/, '');
         var search = this.location.search.replace(/^\?/, '');
         if (this.location.pathname)
             parsed = this._parseURL(this.location.pathname + '?' + search);
-        if (hash)
-            parsed = this._parseURL(decodeURIComponent(hash), parsed);
+        if (hash) {
+            if (hash.match(/##(.*)/)) {
+                search = RegExp.$1;
+                hash = hash.replace(/##.*/, '');
+            }
+            parsed = this._parseURL(decodeURIComponent(hash) + '?' + search, parsed);
+        }
 
         // Grab the route from paths extracted from routeIn and signal arrival
         var route = this.paths[parsed.path];
@@ -215,10 +243,10 @@ AmorphicRouter =
      * @returns {*}
      * @private
      */
-    _encodeURL: function (route)
+    _encodeURL: function (route, url, isHash)
     {
-        var separator = '?';
-        var url = route.__path;
+        url = url.replace(/^\//, '');
+        var separator = isHash ? '##' : '?';
         for (var key in route.__parameters) {
             if (!(route.__parameters[key].encode === false)) {
                 url += separator + key + '=' + encodeURIComponent(this.controller.bindGet(route.__parameters[key].bind));
@@ -243,6 +271,16 @@ AmorphicRouter =
     {
         // Merge based on the path specified in leaf or the property as a path segment
         var pathSegment = typeof(routeIn.path) != 'undefined' ? routeIn.path : prop;
+        route.__prefix = this.options.defaultPrefix ? this.options.defaultPrefix : "";
+        if (pathSegment.match(/^([-#\/]*)/))
+            route.__prefix +=  RegExp.$1;
+        while (pathSegment.match(/^[-#\/]/))
+            pathSegment = pathSegment.replace(/^[-#\/]/, '');
+
+        if (!route.__prefix)
+            route.__prefix = '#';
+        if (this.options.usePushState == false)
+            route.__prefix = route.__prefix.replace(/-/, '');
         currPath = pathSegment ? currPath + '/' + pathSegment : currPath;
         this.paths[(currPath ? currPath : '/')] = route;
         route.__path = currPath.substr(0,1) == '/' ? currPath : '/' + currPath;

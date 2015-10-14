@@ -24,7 +24,13 @@ Each path can have these properties
     * getPath - function that returns the path of the route
     * Any user property included in the route definition 
 * exit - a runction execute when a new route is invoked
-* path - let's you override the default url path portion which defaults to /property
+* path - let's you override the default url path portion which defaults to #property, which is useful for a single page application
+    * /xxx means replace href
+    * \#xxx means use bookmark and append to URL
+    * \/\#xxx means use bookmark and replace URL
+    * -/xxx means replace href using pushState if possible
+    * -\#xxx means use bookmark and append to URL using pushState if possible
+    * -\/\#xxx means use bookmark and replace URL using pushState if possible
 * nested - indicates that the route is nested and the previous route is restored by router.popRoute()
 
 You can also define any other properties.  Since the route object is a tree your own properties are 

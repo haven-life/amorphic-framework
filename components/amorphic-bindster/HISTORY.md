@@ -1,3 +1,7 @@
+## 0.1.52
+* Added support for single and mult-page hybrid apps using encoding of the paths
+## 0.1.51
+* Stop double-encoding URLS to prevent funny looking URLs
 ## 0.1.50
 * Router updates urls for nested routes (e.g. popups) and restores them
 * This allowed fixing a bug where sometimes a route would not be entered if it was already in the address bar
