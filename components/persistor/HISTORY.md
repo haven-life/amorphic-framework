@@ -1,3 +1,5 @@
+## 0.2.00
+* Alpha support for knex
 ## 0.1.79
 * Add actual template name to the id of an object to allow for different classes reading an object
 ## 0.1.78
