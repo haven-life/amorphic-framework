@@ -14,10 +14,10 @@ module.exports = function (PersistObjectTemplate) {
      * @param obj  Only required parameter - the object to be saved
      * @param promises
      * @param masterId - if we are here to save sub-documents this is the top level id
-     * @param idMap
+     * @param txn
      * @return {*}
      */
-    PersistObjectTemplate.persistSaveKnex = function(obj, idMap) {
+    PersistObjectTemplate.persistSaveKnex = function(obj, txn) {
 
         this.debug("Saving " + obj.__template__.__name__);
 
@@ -71,7 +71,7 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignKey = schema.children[prop].id;
                     value.forEach(function (referencedObj) {
                         if(referencedObj[foreignKey] != obj._id)
-                            referencedObj.setDirty(true);
+                            referencedObj.setDirty(txn);
                         referencedObj[foreignKey] = obj._id;
                     });
                 }
@@ -98,7 +98,7 @@ module.exports = function (PersistObjectTemplate) {
             else
                 pojo[prop] = obj[prop];
         }
-        return this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null)
+        return this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn)
             .then (function (){return obj});
     }
     /**

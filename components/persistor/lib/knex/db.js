@@ -165,24 +165,26 @@ module.exports = function (PersistObjectTemplate) {
      * @param updateID
      * @returns {*}
      */
-    PersistObjectTemplate.saveKnexPojo = function(obj, pojo, updateID) {
+    PersistObjectTemplate.saveKnexPojo = function(obj, pojo, updateID, txn) {
         this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
 
         var origVer = obj.__version__;
-        var knex = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection
-        var table = this.dealias(obj.__template__.__collection__);
+        var tableName = this.dealias(obj.__template__.__collection__);
+        var knex = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection(tableName);
+        if (txn)
+            knex = knex.transacting(txn.knex);
 
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
         pojo.__version__ = obj.__version__;
 
         if (updateID)
-            return Q(knex(table)
+            return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
                 .then(checkUpdateResults)
                 .then(logSuccess.bind(this)))
         else
-            return Q(knex(table)
+            return Q(knex
                 .insert(pojo)
                 .then(logSuccess.bind(this)));
 

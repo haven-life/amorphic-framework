@@ -11,8 +11,9 @@ module.exports = function (PersistObjectTemplate) {
         return obj;
     }
 
-    PersistObjectTemplate.saved = function (obj) {
-        delete this.dirtyObjects[obj.__id__];
+    PersistObjectTemplate.saved = function (obj, txn) {
+        var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
+        delete dirtyObjects[obj.__id__];
     }
 
     /**

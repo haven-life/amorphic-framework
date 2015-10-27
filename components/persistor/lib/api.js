@@ -13,6 +13,7 @@
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
     var Q = require('q');
+    var _ = require('underscore');
 
     /**
      * PUBLIC INTERFACE FOR OBJECTS
@@ -23,7 +24,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         baseClassForPersist._injectIntoObject(object);
         var self = this;
 
-        object.persistSave = function ()
+        object.persistSave = function (txn)
         {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
@@ -31,7 +32,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     .then (function (obj) {
                     return Q(obj._id.toString())
                 })
-                : PersistObjectTemplate.persistSaveKnex(object)
+                : PersistObjectTemplate.persistSaveKnex(object, txn)
                 .then (function (obj) {
                 return Q(obj._id.toString());
             });
@@ -41,13 +42,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             return this.__template__.deleteFromPersistWithId(this._id)
         };
 
-        object.setDirty = function () {
+        object.setDirty = function (txn) {
             this.__dirty__ = true;
-            PersistObjectTemplate.setDirty(this);
+            PersistObjectTemplate.setDirty(this, txn);
         };
-        object.saved = function () {
+        object.saved = function (txn) {
             delete this['__dirty__'];
-            PersistObjectTemplate.saved(this);
+            PersistObjectTemplate.saved(this,txn);
         };
         object.isDirty = function () {
             return this['__dirty__'] ? true : false
@@ -209,24 +210,66 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     /**
      * PUBLIC INTERFACE FOR OBJECTTEMPLATE
      */
-    PersistObjectTemplate.setDirty = function (obj) {
-        this.dirtyObjects[obj.__id__] = obj;
+
+    /**
+     * Begin a transaction that will ultimately be ended with end. It is passed into setDirty so
+     * dirty objects can be accumulated.  Does not actually start a knex transaction until end
+     * @returns {{dirtyObjects: Array}}
+     */
+    PersistObjectTemplate.begin = function () {
+        return {dirtyObjects: {}};
     }
 
-    PersistObjectTemplate.saveAll = function () {
+    /**
+     * Does a saveAll on the set of dirty objects in the txn which was obtained from begin
+     * You may catch the error or look for a reject.  T
+     * @param txn
+     * @param callback = a callback that is passed a knex txn that can be used to do things like delete
+     * @returns {*|promise}
+     */
+    PersistObjectTemplate.end = function (txn, callback) {
+        var deferred = Q.defer();
+        var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_PG}).connection;
+        knex.transaction(function(knexTransaction) {
+            (callback ? callback.call(null, knexTransaction) : Q())
+                .then(function () {
+                    txn.knex = knexTransaction;
+                    this.saveAll(txn)
+                        .then(function() {
+                            knexTransaction.commit();
+                            deferred.resolve(true);
+                        })
+                        .catch(function(e) {
+                            knexTransaction.rollback();
+                            deferred.reject(e);
+                        })
+                }.bind(this))
+                .catch(function(e) {
+                    knexTransaction.rollback();
+                    deferred.reject(e);
+                })
+        }.bind(this));
+        return deferred.promise;
+    }
+    PersistObjectTemplate.setDirty = function (obj, txn) {
+        (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+    }
+
+    PersistObjectTemplate.saveAll = function (txn) {
         var promises = [];
         var somethingSaved = false;
-        for (var id in this.dirtyObjects) {
-            var obj = this.dirtyObjects[id];
-            promises.push(obj.persistSave().then(function () {
-                obj.saved();
+        var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
+        for (var id in dirtyObjects) {
+            var obj = dirtyObjects[id];
+            promises.push(obj.persistSave(txn).then(function () {
+                obj.saved(txn);
                 somethingSaved = true;
                 return Q()
             }));
         };
         return Q.all(promises)
             .then(function () {
-                return somethingSaved ? this.saveAll() : true;
+                return somethingSaved ? this.saveAll(txn) : true;
             }.bind (this));
     }
 

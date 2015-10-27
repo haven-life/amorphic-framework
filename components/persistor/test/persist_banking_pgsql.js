@@ -10,7 +10,7 @@ var _ = require("underscore");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
-
+var knex;
 
 PersistObjectTemplate.xdebug = function(txt) {
     console.log(txt);
@@ -269,17 +269,15 @@ describe("Banking Example", function () {
         console.log("starting banking");
         return Q()
             .then(function () {
-                var db = require('knex')({
+                knex = require('knex')({
                     client: 'pg',
                     connection: {
                         host     : '127.0.0.1',
                         database : 'persistor_banking',
                         user: 'nodejs'
                     }});
-                console.log(db.select('*').from('Transaction').where(function() {this.where('amount', '>', 20)}).toSQL().sql)
-
-                PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_PG, 'pg');
-                    done();
+                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_PG, 'pg');
+                done();
         }).fail(function(e){done(e)});;
     });
 
@@ -500,6 +498,7 @@ describe("Banking Example", function () {
             done(e)
         });
     });
+
     it("has a correct joint account balance for the joint account", function (done) {
         Account.getFromPersistWithId(jointAccount._id, {roles: true}).then (function (account) {
             expect(account.getBalance()).to.equal(jointAccount.getBalance());
@@ -508,6 +507,7 @@ describe("Banking Example", function () {
             done(e)
         })
     });
+
     it("Can fetch all transactions", function (done) {
         Transaction.getFromPersistWithQuery({}).then (function (transactions) {
             expect(transactions.length).to.equal(6);
@@ -516,17 +516,114 @@ describe("Banking Example", function () {
             done(e)
         })
     });
-/*
-    it ("can serialize and deserialize", function(done) {
-        Customer.getFromPersistWithId(customer_id, {roles: {account: true}}).then (function (customer) {
-            var str = customer.toJSONString();
-            var customer2 = Customer.fromJSON(str);
-            return verifyCustomer(customer2).then(function () {;
-                done();
-            });
-        }).fail(function(e){done(e)});
+
+    it("Can update addresses", function (done) {
+        Customer.getFromPersistWithId(sam._id).then (function (customer) {
+            expect(customer.addresses[1].city).to.equal("Rhinebeck");
+            customer.addresses[1].city="Red Hook";
+            return customer.addresses[1].persistSave();
+        }).then(function () {
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customer) {
+            expect(customer.addresses[1].city).to.equal("Red Hook");
+            done();
+        }).fail(function(e) {
+            done(e)
+        });
     });
-*/
+
+    it("Can get update conflicts", function (done) {
+        var customer;
+        return Customer.getFromPersistWithId(sam._id).then (function (c) {
+            customer = c;
+            expect(customer.addresses[1].city).to.equal("Red Hook");
+            return knex('address').where({'_id': customer.addresses[1]._id}).update({'__version__': 999});
+        }).then(function() {
+            customer.addresses[1].city="Red Hook";
+            return customer.addresses[1].persistSave();
+        }).then(function () {
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customer) {
+            expect("This should not have worked").to.equal(null);
+        }).fail(function(e) {
+            expect(e.message).to.equal("Update Conflict");
+            done()
+        });
+    });
+
+    it("Can transact", function (done) {
+        var customer;
+        return Customer.getFromPersistWithId(sam._id).then (function (c) {
+            customer = c;
+            expect(customer.addresses[1].city).to.equal("Red Hook");
+            customer.addresses[1].city="Rhinebeck";
+            customer.addresses[0].city="The Big Apple";
+            var txn = PersistObjectTemplate.begin();
+            customer.addresses[1].setDirty(txn);
+            customer.addresses[0].setDirty(txn);
+            return PersistObjectTemplate.end(txn);
+        }).then(function () {
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customer) {
+            expect(customer.addresses[1].city).to.equal("Rhinebeck");
+            expect(customer.addresses[0].city).to.equal("The Big Apple");
+            done();
+        }).fail(function(e) {
+            done(e)
+        });
+    });
+    it("Can get update conflicts on txn end and rollback", function (done) {
+        var customer;
+        var txn;
+        return Customer.getFromPersistWithId(sam._id).then (function (c) {
+            customer = c;
+            expect(customer.addresses[1].city).to.equal("Rhinebeck");
+            customer.addresses[1].city="Red Hook";
+            customer.addresses[0].city="New York";
+            txn = PersistObjectTemplate.begin();
+            customer.addresses[1].setDirty(txn);
+            customer.addresses[0].setDirty(txn);
+            return knex('address').where({'_id': customer.addresses[1]._id}).update({'__version__': 999});
+        }).then(function () {
+            return PersistObjectTemplate.end(txn);
+        }).catch(function (e) {
+            expect(e.message).to.equal("Update Conflict");
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customer) {
+            expect(customer.addresses[1].city).to.equal("Rhinebeck");
+            expect(customer.addresses[0].city).to.equal("The Big Apple");
+            done();
+        }).fail(function(e) {
+            done(e)
+        });
+    });
+
+    it("Can get update conflicts on txn end and rollback", function (done) { // Try again with a conflict on 2nd
+        var customer;
+        var txn;
+        return Customer.getFromPersistWithId(sam._id).then (function (c) {
+            customer = c;
+            expect(customer.addresses[1].city).to.equal("Rhinebeck");
+            customer.addresses[1].city="Red Hook";
+            customer.addresses[0].city="New York";
+            txn = PersistObjectTemplate.begin();
+            customer.addresses[1].setDirty(txn);
+            customer.addresses[0].setDirty(txn);
+            return knex('address').where({'_id': customer.addresses[0]._id}).update({'__version__': 999});
+        }).then(function () {
+            return PersistObjectTemplate.end(txn);
+        }).catch(function (e) {
+            expect(e.message).to.equal("Update Conflict");
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customer) {
+            expect(customer.addresses[1].city).to.equal("Rhinebeck");
+            expect(customer.addresses[0].city).to.equal("The Big Apple");
+            done();
+        }).fail(function(e) {
+            done(e)
+        });
+    });
+
 
     it("can delete", function (done) {
         Customer.getFromPersistWithQuery({},{roles: {fetch: {account: true}}}).then (function (customers) {
