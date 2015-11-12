@@ -1,3 +1,5 @@
+## 0.1.54
+* Added wild card route
 ## 0.1.52
 * Added support for single and mult-page hybrid apps using encoding of the paths
 ## 0.1.51

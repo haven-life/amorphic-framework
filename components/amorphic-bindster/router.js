@@ -207,7 +207,7 @@ AmorphicRouter =
         }
 
         // Grab the route from paths extracted from routeIn and signal arrival
-        var route = this.paths[parsed.path];
+        var route = this.paths[parsed.path] || this.paths['/*'];
         if (route && route != this.currentRoute)
             this.arrive(route, parsed);
     },
