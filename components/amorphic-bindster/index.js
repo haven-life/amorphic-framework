@@ -138,8 +138,8 @@ Bindster.prototype.setController = function(controller)
         this.bindster.setError(objRef, propRef, error);
     }
     controller.getErrorMessage = function(message) {
-            return this.bindster.getBindErrorData(null, message);
-        }
+        return this.bindster.getBindErrorData(null, message);
+    }
     controller.clearError = function (objRef, propRef) {
         this.bindster.clearError(objRef, propRef);
     }
@@ -457,7 +457,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         this.bookmarks.push(
                             {node: node,
                                 hash: tags.match ? tags.match :
-                                    "^" + ((node.name && node.name.length > 0) ? node.name : (node.id ? node.id : "__domstr_start__")) + "$",
+                                "^" + ((node.name && node.name.length > 0) ? node.name : (node.id ? node.id : "__domstr_start__")) + "$",
                                 action: tags.onarrival}
                         );
                         node.setAttribute("bookmarked", true);
@@ -493,13 +493,13 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             loopIndex++;
                             // Create new context for setting up index values in events and binds
                             var new_context = (tags.iterateindex || tags.iteratewith) ?
-                                context + (
+                            context + (
                                 (tags.iteratewith ? this.instance + ".set('" + tags.iteratewith + "', \""
                                     /*+ this.instance + ".data."*/ + tags.iterateon + "[" + ix + "]\");" :  "")
                                 + (tags.iterateindex ? this.instance + ".set('" + tags.iterateindex + "', " + ix + ");" : "")
                                 + (tags.iterateloopindex ? this.instance + ".set('" + tags.iterateloopindex + "', " + loopIndex + ");" : "")
                                 + (tags.iteratecounter ? this.instance + ".set('" + tags.iteratecounter + "', " + counter + ");" : "")
-                                ) : context;
+                            ) : context;
                             this.eval(new_context, null, 'with, index or counter attributes of iterate', node);
 
                             // Check filter expression
@@ -525,7 +525,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 node.bindster.inwaiting =  'no';
                                 this.render(node, new_context, finger_print, this.wrapStatus(node, wrapped_entity),
                                     tags.map ? tags.map.attrs : mapAttrs, cloned ||
-                                        node.bindster.cloned == 'yes' || node.bindster.inwaiting == 'yes', true);
+                                    node.bindster.cloned == 'yes' || node.bindster.inwaiting == 'yes', true);
                                 bypass = true;
                             }
                             else{
@@ -545,7 +545,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                     // Trim extra previously iterated nodes
                     var kill_node = node.nextSibling;
                     while(kill_node && kill_node.getAttribute && kill_node.getAttribute("bindster_iterateid") &&
-                        (kill_node.getAttribute("bindster_iterateid") == iterate_id))
+                    (kill_node.getAttribute("bindster_iterateid") == iterate_id))
                     {
                         var next = kill_node.nextSibling;
                         kill_node.parentNode.removeChild(kill_node);
@@ -1075,7 +1075,7 @@ Bindster.prototype.getBindAction = function(tags, value)
     var this_value = this.controller ? "self.controller.value" : "self.value";
     var this_previous_value = this.controller ? "this.controller.previous_value" : "this.previous_value";
     var controller_trigger = ((self.controller && typeof(self.controller.onchange) == "function") ?
-        "if(!isValidating && node){self.controller.onchange(node.bindster.tags.bind," + this_value +")};" : "")
+    "if(!isValidating && node){self.controller.onchange(node.bindster.tags.bind," + this_value +")};" : "")
     var model_trigger = (tags.trigger ? (tags.trigger + "; ") : "");
     var trigger = model_trigger + controller_trigger;
 
@@ -1088,19 +1088,19 @@ Bindster.prototype.getBindAction = function(tags, value)
         "if(target && target.bindster){target.bindster.bind = undefined}" +
         this_value + " = " + value +  ";" +
         ((typeof(bindsterTestFrameworkSet) == "function") ?
-            "if(!isValidating && node){bindsterTestFrameworkSet(node.bindster.tags.bind," + this_value +")};" : "") +
+        "if(!isValidating && node){bindsterTestFrameworkSet(node.bindster.tags.bind," + this_value +")};" : "") +
         (tags.parse ? (this_value + " = " + tags.parse + "; ") : "") +
         (tags.validate ? (tags.validate + "; ") : "") +
         this_previous_value + " = " + tags.bind  + ";" +
         "if (" + bind_error +") {delete " + bind_error + "} " +
         ((typeof(Q) != 'undefined' && tags.bind.match(/[a-zA-z]$/) && !tags.bind.match(/[^A-Za-z0-9_\(\)\.\[\]]/)) ?
-            "if (typeof(" + tags.bind + "Set) == 'function'){" +
-            bind_error + " = '__pending__';" + controller_trigger + tags.bind + "Set(" + this_value + ").then(" + "" +
-            "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
-            model_trigger + "}).call(self)}," +
-            "function(e){(function(){c.bindster.raiseError(bindTags, e);" + bind_error + " = e}).call(self)})" +
-            "}else{" +
-            tags.bind + " = " + this_value + ';' + trigger + "};"
+        "if (typeof(" + tags.bind + "Set) == 'function'){" +
+        bind_error + " = '__pending__';" + controller_trigger + tags.bind + "Set(" + this_value + ").then(" + "" +
+        "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
+        model_trigger + "}).call(self)}," +
+        "function(e){(function(){c.bindster.raiseError(bindTags, e);" + bind_error + " = e}).call(self)})" +
+        "}else{" +
+        tags.bind + " = " + this_value + ';' + trigger + "};"
             : (tags.bind + " = " + this_value + ";") + trigger) +
         " } catch (e) {if(!e.constructor.toString().match(/Error/)){c.bindster.raiseError(bindTags, e);" +
         bind_error + " = e} else {c.bindster.displayError(null, e, 'validation, parse or format', node)}; " +
@@ -1149,18 +1149,22 @@ Bindster.prototype.wrapStatus = function(node, wrapped_entity)
         return false;
     return wrapped_entity;
 }
-Bindster.prototype.addEvent = function(tags, event, action, defer, eval, originalAction)
+Bindster.prototype.addUserEvent = function(tags, event, action, defer, eval, originalAction) {
+    this.addEvent(tags, event, action, defer, eval, originalAction, "user");
+}
+Bindster.prototype.addEvent = function(tags, event, action, defer, eval, originalAction, prefix)
 {
+    var key = event + (prefix = prefix || 'bindster');
     if (!tags.events[event])
         tags.events[event] = new Array();
 
     // Ensure no duplicates because events added every render
     var events = tags.events[event];
     for (var ix = 0; ix < events.length; ++ix)
-        if (events[ix].action == action)
+        if (events[ix].key == key)
             return;
 
-    tags.events[event].push({action: action, originalAction: originalAction || action, defer: defer ? (defer > 0 ? defer * 1 : true) : false, eval: eval});
+    tags.events[event].push({key: key, action: action, originalAction: originalAction || action, defer: defer ? (defer > 0 ? defer * 1 : true) : false, eval: eval});
 }
 // Setup all events for the node
 Bindster.prototype.processEvents = function(node, tags, context, cloned, finger_print)
@@ -1209,7 +1213,7 @@ Bindster.prototype.processEvents = function(node, tags, context, cloned, finger_
         }
         // For mouseover/mouseout we eliminate redundant fires
         var get_node = (event_name == 'onmouseover' || event_name == 'onmouseout') ?
-            "var node = " + this.instance + ".processMouse(ev,'" + declared_id + "');" :
+        "var node = " + this.instance + ".processMouse(ev,'" + declared_id + "');" :
             "var node = ev.target ? ev.target : ev.srcElement; ";
 
         var set_focus = (event_name == 'onclick' || event_name == 'onenter') ? this.instance + ".set_focus = true;" : "";
@@ -1673,11 +1677,11 @@ Bindster.prototype.getTags = function (node, mapAttrs, finger_print)
             default:
                 var listener1 = ";if (typeof(onevent) == 'function'){onevent('" + attr + "','" + value.replace(/\'/g, "") + "');}";
                 var listener2 = (typeof(bindsterTestFrameworkEvent) == 'function' ?
-                    ";bindsterTestFrameworkEvent('" + attr + "','" + value.replace(/\'/g, "") + "', node);" : "");
+                ";bindsterTestFrameworkEvent('" + attr + "','" + value.replace(/\'/g, "") + "', node);" : "");
                 if (attr.match(/^(on\S*)$/))
-                    this.addEvent(tags, RegExp.$1, "{" + listener1 + value + listener2 + "}", null, null, value.replace(/\'/g, ""));
+                    this.addUserEvent(tags, RegExp.$1, "{" + listener1 + value + listener2 + "}", null, null, value.replace(/\'/g, ""));
                 else if (attr.match(/^(evalon\S*)$/))
-                    this.addEvent(tags, RegExp.$1.substr(4), "{" + listener1 + value + listener2 +"}", null, true);
+                    this.addUserEvent(tags, RegExp.$1.substr(4), "{" + listener1 + value + listener2 +"}", null, true);
                 else if (our_tag.length == 0) {
                     if (!tags.onpaint)
                         tags.onpaint = [];
@@ -1734,7 +1738,7 @@ Bindster.prototype.getOnPaint = function(element, expression)
         js = "(" + js + ")";
         depends.push({name: escape(js).replace(/[\%\*\@\-\+\.]/g, function(c)
         {return c == '%' ? '_pct_' : c == '+' ? '_plus_' : c == '*' ? '_star_' :
-                c == '@' ? '_at_'  : c == '-' ? '_minus' : c == '.' ? '_dot_'  : c}),
+            c == '@' ? '_at_'  : c == '-' ? '_minus' : c == '.' ? '_dot_'  : c}),
             value: js})
         return '" + ' + js + ' + "';
     });
@@ -2221,9 +2225,9 @@ Bindster.prototype.DOMTestClick = function(finger_print, node, events) {
             var event = events[ix];
             if ((!this.DOMTestRequestAction.selector || finger_print.match(this.DOMTestRequestAction.selector)) &&
                 ((this.DOMTestRequestAction.action && event.originalAction == this.DOMTestRequestAction.action) ||
-                    (this.DOMTestRequestAction.id && node.id && node.id == this.DOMTestRequestAction.id) ||
-                    (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text &&
-                        (!this.DOMTestRequestAction.type || this.DOMTestRequestAction.type.toLowerCase() == node.tagName.toLowerCase())))) {
+                (this.DOMTestRequestAction.id && node.id && node.id == this.DOMTestRequestAction.id) ||
+                (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text &&
+                (!this.DOMTestRequestAction.type || this.DOMTestRequestAction.type.toLowerCase() == node.tagName.toLowerCase())))) {
                 if (typeof(this.DOMTestRequestAction.sequence) == 'undefined' || this.DOMTestRequestAction.sequence-- == 0) {
                     this.DOMTestRequestAction.value = node;
                     this.DOMTestRequestAction.status = "OK"
@@ -2235,7 +2239,7 @@ Bindster.prototype.DOMTestClick = function(finger_print, node, events) {
         var href=node.href.replace(/.*#/, '#');
         if ((!this.DOMTestRequestAction.selector || finger_print.match(this.DOMTestRequestAction.selector)) &&
             ((this.DOMTestRequestAction.href && href == this.DOMTestRequestAction.href) ||
-                (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text)))
+            (this.DOMTestRequestAction.text && node.innerText && node.innerText == this.DOMTestRequestAction.text)))
         {
             document.location.href=node.href;
             this.DOMTestRequestAction.status = "OK"
@@ -2309,7 +2313,7 @@ BindsterControllerInterface.prototype.createEvent = function(node, event_name, o
     var action = "node.bindster.controller['" + member + "'].call(node.bindster.controller, ev)";
     var declared_id = node.bindster.id;
     var get_node = (true || event_name == 'mouseover' || event_name == 'mouseout') ?
-        "var node = " + this.bindster.instance + ".processMouse(ev,'" + declared_id + "');" :
+    "var node = " + this.bindster.instance + ".processMouse(ev,'" + declared_id + "');" :
         "var node = ev.target ? ev.target : ev.srcElement; ";
 
     var schedule_render = render ? this.bindster.instance + ".scheduleRender(" + render + ");" : "";
