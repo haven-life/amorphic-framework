@@ -1,4 +1,4 @@
-## 0.1.55
+## 0.1.56
 * Make sure there are no duplicate events for subtle changes in event action
 ## 0.1.54
 * Added wild card route

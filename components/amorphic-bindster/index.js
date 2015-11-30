@@ -1162,7 +1162,7 @@ Bindster.prototype.addEvent = function(tags, event, action, defer, eval, origina
     var events = tags.events[event];
     for (var ix = 0; ix < events.length; ++ix)
         if (events[ix].key == key)
-            return;
+            events.splice(ix, 1);
 
     tags.events[event].push({key: key, action: action, originalAction: originalAction || action, defer: defer ? (defer > 0 ? defer * 1 : true) : false, eval: eval});
 }
