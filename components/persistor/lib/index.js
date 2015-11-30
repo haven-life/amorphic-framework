@@ -58,9 +58,10 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
 
     PersistObjectTemplate.__id__ = nextId++;
     PersistObjectTemplate._superClass = baseClassForPersist;
-    PersistObjectTemplate.DB_PG = 'pg';
+    PersistObjectTemplate.DB_Knex = 'knex';
     PersistObjectTemplate.DB_Mongo = 'mongo';
     PersistObjectTemplate.dirtyObjects = {};
+    PersistObjectTemplate.savedObjects = {};
 
     PersistObjectTemplate.debug = function (message, type) {
     }

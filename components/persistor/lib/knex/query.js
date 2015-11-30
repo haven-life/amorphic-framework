@@ -24,7 +24,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param idMap
      * @param options
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (template, queryOrChains, cascade, skip, limit, isTransient, idMap, options)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject)
     {
 
         idMap = idMap || {};
@@ -39,20 +39,21 @@ module.exports = function (PersistObjectTemplate) {
         // Determine one-to-one relationships and add function chains for where
         var props = template.getProperties();
         var join = 1;
-        for (var prop in props)
-            if (props[prop].type.__objectTemplate__) {
+        for (var prop in props) {
+            if (props[prop].type && props[prop].type.__objectTemplate__) {
                 // Create the join spec with two keys
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                     throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");
                 var foreignKey = schema.parents[prop].id;
                 joins.push({
+                    prop: prop,
                     template: props[prop].type,
                     parentKey: '_id',
                     childKey: foreignKey,
                     alias: this.dealias(props[prop].type.__collection__) + join++
                 });
             }
-
+        }
         return Q(true)
             .then(getPOJOsFromQuery)
             .then(getTemplatesFromPOJOS.bind(this))
@@ -71,7 +72,8 @@ module.exports = function (PersistObjectTemplate) {
             });
             pojos.forEach(function (pojo) {
                 promises.push(
-                    PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, promises, idMap, cascade, isTransient, null, null, null, this.dealias(template.__collection__) + '___', joins)
+                    PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, promises, idMap, cascade, isTransient,
+                        null, establishedObject, null, this.dealias(template.__collection__) + '___', joins)
                         .then(function (obj) {results.push(obj);return Q(obj)})
                 );
             }.bind(this));
@@ -96,7 +98,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getTemplateFromKnexPOJO =
     function (pojo, template, promises, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins)
     {
-
+        var promises = [];
         prefix = prefix || "";
 
         this.debug("getTemplateFromKnexPOJO template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template']);
@@ -111,6 +113,9 @@ module.exports = function (PersistObjectTemplate) {
             topLevel = true;
             promises = [];
         }
+        // We also get arrays of established objects
+        if (establishedObj && establishedObj instanceof Array)
+            establishedObj = _.find(establishedObj, function (o) {return o._id == pojo[prefix + '_id']});
 
         // Create the new object with correct constructor using embedded ID if ObjectTemplate
         var obj = establishedObj || idMap[pojo[prefix + '_id']] ||
@@ -124,6 +129,7 @@ module.exports = function (PersistObjectTemplate) {
         var schema = obj.__template__.__schema__;
         obj._id = pojo[prefix + '_id'];
         idMap[obj._id] = obj;
+        //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
         if (pojo[prefix + '__version__'])
             obj.__version__ = pojo[prefix + '__version__'];
 
@@ -136,23 +142,27 @@ module.exports = function (PersistObjectTemplate) {
             var defineProperty = props[prop];
             var type = defineProperty.type;
             var of = defineProperty.of;
+            var actualType = of || type;
             var cascadeFetch = (cascade && cascade[prop]) ? cascade[prop] : null;
 
+            // Create a persistor if not already there
             var persistorPropertyName = prop + "Persistor";
-            obj[persistorPropertyName] = obj[persistorPropertyName] || {count: 0};
 
             // Make sure this is property is persistent and that it has a value.  We have to skip
             // undefined values in case a new property is added so it can retain it's default value
+            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
+                continue;
 
             if (!type)
                 throw new Error(obj.__template__.__name__ + "." + prop + " has no type decleration");
 
             if (type == Array && of.__collection__)
             {
-                obj[prop] = [];
+                if (!obj[prop])
+                    obj[prop];
                 if(!schema || !schema.children || !schema.children[prop])
                     throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
-                if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch)
+                if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch || obj[persistorPropertyName].isFetched)
                 {
                     (function () {
 
@@ -169,38 +179,38 @@ module.exports = function (PersistObjectTemplate) {
                             (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
 
                         // Fetch sub-ordinate entities and convert to objects
-                        promises.push(this.getFromPersistWithKnexQuery(defineProperty.of, query, closureCascade, null, limit, isTransient, idMap, options)
+                        promises.push(this.getFromPersistWithKnexQuery(defineProperty.of, query, closureCascade, null, limit, isTransient, idMap, options, obj[prop])
                         .then( function(objs) {
                             obj[closureProp] = objs;
-                            obj[closurePersistorProp].isFetched = true;
-                            obj[closurePersistorProp].start = options ? options.start || 0 : 0;
-                            obj[closurePersistorProp].next = obj[closurePersistorProp].start + objs.length;
-                            obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
+                            var start = options ? options.start || 0 : 0;
+                            updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
                         }.bind(this)));
 
                     }.bind(this))();
                 } else
-                    obj[persistorPropertyName].isFetched = false;
+                    updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
 
-                obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);  // For setters to register a change
-
-            } else if (type.isObjectTemplate)
+            } else if (type.isObjectTemplate && (schema || obj[prop] && obj[prop]._id))
             {
-                obj[prop] = null;
+                var foreignId = obj[prop] ? obj[prop]._id : null;
+                var originalForeignId = foreignId;
+                if (!obj[prop])
+                    obj[prop] = null;
                 // Determine the id needed
-                if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                    throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
-                var foreignKey = schema.parents[prop].id;
-                var foreignId = pojo[prefix + foreignKey] || obj[persistorPropertyName].id || "";
-
+                if (!foreignId) {
+                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                        throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                    var foreignKey = schema.parents[prop].id;
+                    var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
+                }
                 // Return copy if already there
                 if (idMap[foreignId]) {
-                    obj[prop] = idMap[foreignId];
-                    obj[persistorPropertyName].isFetched = true;
-                    obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
+                    if (!obj[prop] || obj[prop].__id__ != idMap[foreignId].__id__) {
+                        obj[prop] = idMap[foreignId];
+                        updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id:foreignId});
+                    }
                 } else {
-                    if (defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) {  // Only fetch ahead if requested
-                        obj[prop] = null;
+                    if (originalForeignId || defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) {
                         if (foreignId) {
                             var query = {_id: foreignId};
                             var options = {};
@@ -211,33 +221,30 @@ module.exports = function (PersistObjectTemplate) {
                                     (schema && schema.parents) ? schema.parents[prop].fetch : null, defineProperty.fetch);
                                 var closureForeignId = foreignId;
 
-                                var join = _.find(joins, function (j) {return j.template == defineProperty.type});
+                                var join = _.find(joins, function (j) {return j.prop == prop});
 
                                 var fetcher = join ?
                                     this.getTemplateFromKnexPOJO(pojo, defineProperty.type, promises, idMap, closureCascade, isTransient, defineProperty,
-                                                                 null, null, join.alias + "___") :
-                                    this.getFromPersistWithKnexQuery(defineProperty.type, query, closureCascade, null, null, isTransient, idMap, {});
+                                                                 obj[prop], null, join.alias + "___") :
+                                    this.getFromPersistWithKnexQuery(defineProperty.type, query, closureCascade, null, null, isTransient, idMap, {}, obj[prop]);
                                 promises.push(fetcher.then(function(objs) {
-                                        obj[closureProp] = objs[0];
                                         obj[closureProp] = idMap[closureForeignId];
-                                        obj[closurePersistorProp].isFetched = true;
-                                        obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
+                                    if (obj[closurePersistorProp]) {
+                                        updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
+                                    }
                                     }.bind(this)));
                             }.bind(this))();
                         } else {
-                            obj[persistorPropertyName].isFetched = true;
-                            obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
+                            updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
                         }
                     } else {
-                        obj[persistorPropertyName].isFetched = false;
-                        obj[persistorPropertyName].id = foreignId;
-                        obj[persistorPropertyName] = copyProps(obj[persistorPropertyName]);
+                        updatePersistorProp(obj, persistorPropertyName, {isFetched: false, id: foreignId})
                     }
                 }
             } else
                 if (typeof(pojo[prefix + prop]) != 'undefined') {
                     if (type == Date)
-                        obj[prop] = pojo[prefix + prop] ? new Date(pojo[prefix + prop]) : null;
+                        obj[prop] = pojo[prefix + prop] ? new Date(pojo[prefix + prop] * 1) : null;
                     else if (type == Number)
                         obj[prop] = pojo[prefix + prop] ? pojo[prefix + prop] * 1 : null;
                     else if (type == Object || type == Array)
@@ -253,8 +260,25 @@ module.exports = function (PersistObjectTemplate) {
                     newObj[prop] = obj[prop];
                 return newObj;
             }
+            function updatePersistorProp(obj, prop, values) {
+                if (!obj[prop])
+                    obj[prop] = {};
+                var modified = false;
+                _.map(values, function(value, key) {
+                    if (obj[prop][key] != value) {
+                        obj[prop][key] = value;
+                        modified = true;
+                    }
+                });
+                if (modified)
+                    obj[prop] = copyProps(obj[prop]);
+            }
+
 
         }
+        return Q.all(promises).then(function () {
+            return Q(obj);
+        });
         return topLevel ? this.resolveRecursivePromises(promises, obj).then(function (ret) {
             return Q(ret);
         }) : Q(obj);

@@ -1,6 +1,7 @@
 module.exports = function (PersistObjectTemplate) {
 
     var Q = require('q');
+    var _ = require('underscore');
 
     PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
 
@@ -13,7 +14,9 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.saved = function (obj, txn) {
         var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
+        var savedObjects = txn ? txn.savedObjects : this.savedObjects;
         delete dirtyObjects[obj.__id__];
+        savedObjects[obj.__id__] = obj;
     }
 
     /**
@@ -21,7 +24,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param obj - subdocument object to start at
      */
     PersistObjectTemplate.getTopObject = function(obj) {
-        var idMap = [];
+        var idMap = {};
         function traverse(obj) {
             idMap[obj.__id__] = obj;
             if (obj.__template__.__schema__.documentOf)
@@ -39,6 +42,31 @@ module.exports = function (PersistObjectTemplate) {
             return false;
         }
         return traverse(obj);
+    }
+
+    /**
+     * Walk through all objects in a document from the top
+     * @param obj - subdocument object to start at
+     */
+    PersistObjectTemplate.enumerateDocumentObjects = function(obj, callback) {
+        var idMap = {};
+        return traverse(obj);
+
+        function traverse(obj) {
+            idMap[obj.__id__] = obj;
+            callback.call(obj)
+            var props = obj.__template__.getProperties();
+            _.map(props, function (defineProperty, prop) {
+                if (defineProperty.type == Array && defineProperty.of.isObjectTemplate)
+                    _.map(obj[prop], function (value) {
+                        if (!idMap[value.__id])
+                            traverse(value);
+                    })
+                if (defineProperty.type.isObjectTemplate && !idMap[value.__id__]) {
+                    traverse(obj[prop]);
+                }
+            });
+        }
     }
 
     PersistObjectTemplate.getTemplateByCollection = function (collection) {
@@ -83,6 +111,8 @@ module.exports = function (PersistObjectTemplate) {
     };
 
     PersistObjectTemplate.getDBAlias = function (collection) {
+        if (!collection)
+            return '__default__';
         return collection.match(/(.*)\//) ? RegExp.$1 : '__default__'
     };
 

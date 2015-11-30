@@ -276,7 +276,7 @@ describe("Banking Example", function () {
                         database : 'persistor_banking',
                         user: 'nodejs'
                     }});
-                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_PG, 'pg');
+                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
                 done();
         }).fail(function(e){done(e)});;
     });
@@ -366,8 +366,10 @@ describe("Banking Example", function () {
     });
 
     it("can insert", function (done) {
+        console.log("Can Insert");
         PersistObjectTemplate.saveAll().then(function(id) {
             writing = false;
+            console.log("Inserted");
             done();
         }).fail(function(e){done(e)});
     });
@@ -458,16 +460,10 @@ describe("Banking Example", function () {
             expect(customer.roles[1].customer).to.equal(customer);
             expect(customer.roles[1].accountPersistor.isFetched).to.equal(false);
 
-            customer.roles[1].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then( function ()
+            return customer.roles[1].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then( function ()
             {
                 expect(customer.roles[1].account.number).to.equal(123);
-
-                var primaryRole = customer.roles[1].account.roles[0].relationship == 'primary' ?
-                    customer.roles[1].account.roles[0] : customer.roles[1].account.roles[1];
-                expect(primaryRole).to.equal(customer.roles[1]);
-                var jointRole = customer.roles[1].account.roles[0].relationship == 'joint' ?
-                    customer.roles[1].account.roles[0] : customer.roles[1].account.roles[1];
-                expect(jointRole).to.equal(jointRole.customer.roles[0]);
+                expect(customer.roles[1].account.roles.length).to.equal(3);
                 expect(customer.addresses[0].lines[0]).to.equal("500 East 83d");
                 expect(customer.addresses[1].lines[0]).to.equal("38 Haggerty Hill Rd");
                 expect(customer.addresses[1].customer).to.equal(customer);
@@ -483,8 +479,6 @@ describe("Banking Example", function () {
                 expect(karen.firstName).to.equal("Karen");
                 expect(ashling.firstName).to.equal("Ashling");
                 done();
-            }).fail(function(e){
-                 done(e)
             });
         }).fail(function(e){
             done(e)
@@ -534,11 +528,15 @@ describe("Banking Example", function () {
 
     it("Can get update conflicts", function (done) {
         var customer;
+        var isStale = false;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
             expect(customer.addresses[1].city).to.equal("Red Hook");
             return knex('address').where({'_id': customer.addresses[1]._id}).update({'__version__': 999});
-        }).then(function() {
+        }).then(function () {
+            return customer.addresses[1].isStale()
+        }).then(function(stale) {
+            isStale = stale
             customer.addresses[1].city="Red Hook";
             return customer.addresses[1].persistSave();
         }).then(function () {
@@ -547,12 +545,15 @@ describe("Banking Example", function () {
             expect("This should not have worked").to.equal(null);
         }).fail(function(e) {
             expect(e.message).to.equal("Update Conflict");
+            expect(isStale).to.equal(true);
             done()
         });
     });
 
     it("Can transact", function (done) {
         var customer;
+        var preSave = false;
+        this.dirtyCount = 0;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
             expect(customer.addresses[1].city).to.equal("Red Hook");
@@ -561,12 +562,19 @@ describe("Banking Example", function () {
             var txn = PersistObjectTemplate.begin();
             customer.addresses[1].setDirty(txn);
             customer.addresses[0].setDirty(txn);
+
+            txn.preSave=function () {preSave = true}
+            txn.postSave=function (txn) {
+                this.dirtyCount = _.toArray(txn.savedObjects).length
+            }.bind(this);
             return PersistObjectTemplate.end(txn);
         }).then(function () {
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
             expect(customer.addresses[1].city).to.equal("Rhinebeck");
             expect(customer.addresses[0].city).to.equal("The Big Apple");
+            expect(preSave).to.equal(true);
+            expect(this.dirtyCount).to.equal(2);
             done();
         }).fail(function(e) {
             done(e)

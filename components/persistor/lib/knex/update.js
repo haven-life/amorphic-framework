@@ -1,6 +1,7 @@
 module.exports = function (PersistObjectTemplate) {
 
     var Q = require('q');
+    var _ = require('underscore');
 
     /**
      * Save the object to persistent storage
@@ -39,6 +40,7 @@ module.exports = function (PersistObjectTemplate) {
 
         for (var prop in props)
         {
+
             var defineProperty = props[prop];
             var value = obj[prop];
 
@@ -66,18 +68,25 @@ module.exports = function (PersistObjectTemplate) {
                 if (!defineProperty.of.__collection__) {
                     pojo[prop] = value;
 
-                    // Templated arrays we need to make sure their foreign keys are up-to-date
+                // Templated arrays we need to make sure their foreign keys are up-to-date
                 } else if (value instanceof Array) {
                     var foreignKey = schema.children[prop].id;
                     value.forEach(function (referencedObj) {
-                        if(referencedObj[foreignKey] != obj._id)
-                            referencedObj.setDirty(txn);
-                        referencedObj[foreignKey] = obj._id;
+                        if (!defineProperty.of.__schema__.parents)
+                            throw new Error("Missing parent entry in " + defineProperty.of.__name__ + " for " + templateName);
+                            _.each(defineProperty.of.__schema__.parents, function(value, key) {
+                                if (value.id == foreignKey) {
+                                    if(!referencedObj[key + 'Persistor'] || (referencedObj[key + 'Persistor'].id != obj._id)) {
+                                        referencedObj.setDirty(txn);
+                                    }
+                                }
+                            })
                     });
                 }
-            }
+                updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, isFetched: true});
+
             // One-to-One
-            else if (defineProperty.type && defineProperty.type.isObjectTemplate)
+            } else if (defineProperty.type && defineProperty.type.isObjectTemplate)
             {
                 // Make sure schema is in order
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
@@ -88,8 +97,9 @@ module.exports = function (PersistObjectTemplate) {
                     value._id = this.createPrimaryKey();
                     value.setDirty();
                 }
-                obj[foreignKey] =  value._id;
+
                 pojo[foreignKey] =  value._id;
+                updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value._id, isFetched: true})
 
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
                 pojo[prop] = obj[prop] ? JSON.stringify(obj[prop]) : null;
@@ -100,6 +110,26 @@ module.exports = function (PersistObjectTemplate) {
         }
         return this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn)
             .then (function (){return obj});
+
+        function copyProps(obj) {
+            var newObj = {};
+            for (var prop in obj)
+                newObj[prop] = obj[prop];
+            return newObj;
+        }
+        function updatePersistorProp(obj, prop, values) {
+            if (!obj[prop])
+                obj[prop] = {};
+            var modified = false;
+            _.map(values, function(value, key) {
+                if (obj[prop][key] != value) {
+                    obj[prop][key] = value;
+                    modified = true;
+                }
+            });
+            if (modified)
+                obj[prop] = copyProps(obj[prop]);
+        }
     }
     /**
      * Remove objects from a collection/table

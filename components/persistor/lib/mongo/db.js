@@ -3,7 +3,7 @@ module.exports = function (PersistObjectTemplate) {
     var Q = require('q');
 
     /* Mongo implementation of save */
-    PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID) {
+    PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, txn) {
         this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
         var origVer = obj.__version__;
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
@@ -19,7 +19,11 @@ module.exports = function (PersistObjectTemplate) {
                     count = error[0]; // Don't know why things are returned this way
                 if (updateID && count == 0) {
                     obj.__version__ = origVer;
-                    throw new Error("Update Conflict");
+                    if (txn && txn.onUpdateConflict) {
+                        txn.onUpdateConflict(pojo)
+                        txn.updateConflict =  new Error("Update Conflict");
+                    } else
+                        throw new Error("Update Conflict");
                 }
                 this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
                 return Q(true);

@@ -192,6 +192,7 @@ var schema = {
         }
     },
     ReturnedMail: {
+        subDocumentOf: "customer",
         parents: {
             address: {id: 'address_id'}
         }

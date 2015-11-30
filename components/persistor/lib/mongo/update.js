@@ -17,7 +17,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param idMap
      * @return {*}
      */
-    PersistObjectTemplate.persistSaveMongo = function(obj, promises, masterId, idMap) {
+    PersistObjectTemplate.persistSaveMongo = function(obj, promises, masterId, idMap, txn) {
         if (!obj.__template__)
             throw new Error("Attempt to save an non-templated Object");
         if (!obj.__template__.__schema__)
@@ -253,7 +253,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         if (savePOJO)
-            promises.push(this.savePojoToMongo(obj, pojo, isDocumentUpdate ? new this.ObjectID(obj._id) : null));
+            promises.push(this.savePojoToMongo(obj, pojo, isDocumentUpdate ? new this.ObjectID(obj._id) : null, txn));
         if (resolvePromises)
             return this.resolveRecursivePromises(promises, pojo).then(function (pojo) {
                 pojo._id = obj._id;

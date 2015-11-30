@@ -1,3 +1,5 @@
+## 0.2.05
+* Further updates for knex support
 ## 0.2.00
 * Alpha support for knex
 ## 0.1.79

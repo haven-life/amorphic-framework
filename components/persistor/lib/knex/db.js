@@ -14,6 +14,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.getPOJOsFromKnexQuery = function(template, joins, queryOrChains, options) {
 
+//console.log("Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains));
 
         var tableName = this.dealias(template.__collection__);
         var knex = this.getDB(this.getDBAlias(template.__collection__)).connection(tableName);
@@ -54,8 +55,8 @@ module.exports = function (PersistObjectTemplate) {
         var selectString = select.toSQL().sql;
         return select.then(processResults, processError);
         function processResults(res) {
-            console.log("Processing Results for " + selectString)
-            console.log('Returned ' + res.length + ' rows');
+            //console.log("Processing Results for " + selectString)
+            //console.log('Returned ' + res.length + ' rows');
             return res;
         }
         function processError(err) {
@@ -167,37 +168,54 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.saveKnexPojo = function(obj, pojo, updateID, txn) {
         this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
-
         var origVer = obj.__version__;
         var tableName = this.dealias(obj.__template__.__collection__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection(tableName);
-        if (txn)
-            knex = knex.transacting(txn.knex);
 
-        obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
+        obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
 
         if (updateID)
             return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
+                .transacting(txn ? txn.knex : null)
                 .then(checkUpdateResults)
                 .then(logSuccess.bind(this)))
         else
             return Q(knex
                 .insert(pojo)
+                .transacting(txn ? txn.knex : null)
                 .then(logSuccess.bind(this)));
 
         function checkUpdateResults (countUpdated) {
             if (countUpdated < 1) {
                 obj.__version__ = origVer;
-                throw new Error("Update Conflict");
+                if (txn && txn.onUpdateConflict) {
+                    txn.onUpdateConflict(obj)
+                    txn.updateConflict =  true;
+                } else
+                    throw new Error("Update Conflict");
+
             }
         }
         function logSuccess() {
-            this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+            this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__ + " version " + obj.__version__, 'io');
+            console.log('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__ + " version " + obj.__version__);
         }
     }
+
+    PersistObjectTemplate.persistTouchKnex = function(obj, txn) {
+        this.debug('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+        console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
+        var tableName = this.dealias(obj.__template__.__collection__);
+        var knex = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection(tableName);
+        return knex
+            .transacting(txn ? txn.knex : null)
+            .where('_id', '=', obj._id)
+            .increment('__version__', 1)
+    }
+
     PersistObjectTemplate.createKnexTable = function(template) {
 
         var props = template.getProperties();
@@ -215,7 +233,7 @@ module.exports = function (PersistObjectTemplate) {
                 var defineProperty = props[prop];
                 if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
                     continue;
-                if (prop.match(/Persistor/))
+                if (prop.match(/PersistorPersistor/))
                     console.log(JSON.stringify(defineProperty));
                 if (defineProperty.type === Array) {
                     if (!defineProperty.of.__objectTemplate__)
@@ -293,8 +311,6 @@ module.exports = function (PersistObjectTemplate) {
         function processArrayProp(prop, value) {
             return [function () {
                 var statement = this;
-                if (!statement)
-                    console.log("stuffed");
                 if (prop.toLowerCase() == '$and') {
                     var firstProp = true;
                     _.each(value, function (obj) {
