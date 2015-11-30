@@ -219,7 +219,7 @@ RemoteObjectTemplate.subscribe = function (role) {
  *
  * @param remoteCall - key/value set containing the remote call details and pending sync chnages
  */
-RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
+RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, restoreSessionCallback) {
     if (!remoteCall)
         return;
     var hadChanges = 0;
@@ -251,69 +251,151 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId) {
         case 'call':
 
             this.log(1, "calling " + remoteCall.name + " [" + remoteCall.sequence + "]");
-            // Apply any pending changes passed along as part of the call and then either
-            // Call the method, sending back the result in a response message
-            // or return an error response so the caller will roll back
-            session.processingCall = true;
-            Q.fcall(function ()
-            {
-                var obj = session.objects[remoteCall.id];
-                return Q(((this.controller && this.controller['preServerCall'] ?
-                    this.controller && this.controller['preServerCall'].call(this.controller, remoteCall.changes.length > 2) : true))).then(function ()
-                {
-                    console.log("Calling " + remoteCall.name);
-                    var arguments = this._fromTransport(JSON.parse(remoteCall.arguments));
-                    if (this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
-                        var obj = session.objects[remoteCall.id];
-                        if (!obj)
-                            throw  new Error("Cannot find object " + remoteCall.id);
-                        if (this.role == 'server' && obj['validateServerCall'])
-                            if (!obj['validateServerCall'].call(obj, remoteCall.name))
-                                return Q.fcall(function(){throw  new Error(remoteCall.name + " refused");});
-                        return Q(obj[remoteCall.name].apply(obj, arguments)).then(function (returnValue) {
-                            return Q((this.controller && this.controller['postServerCall'] ?
-                                this.controller['postServerCall'].call(this.controller, remoteCall.changes.length > 2) : returnValue))
-                                .then(function () {
-                                    return returnValue
-                                }.bind(this));
-                        }.bind(this));
-                    } else
-                    {
-                        this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]");
-                        this._convertArrayReferencesToChanges();
-                        session.sendMessage({type: 'response', sync: false,
-                            changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
-                        this._deleteChanges();
-                        this._processQueue();
-                        throw "Sync Error";
-                    }
-                }.bind(this));
-            }.bind(this)).then(function(ret)
-            {
-                this._convertArrayReferencesToChanges();
-                session.sendMessage({type: 'response', sync: true, value: JSON.stringify(this._toTransport(ret)),
-                    name: remoteCall.name,
-                    changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
-                this._deleteChanges();
-                this._processQueue();
-                this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "]");
-                return Q(null);
+            var callContext = {retries: 0};
+            return processCall.call(this);
 
-            }.bind(this)).fail(function (err)
-            {
-                if (err != "Sync Error") {
-                    var errToSend = err instanceof Error ? {code: "internal_error", text: "An internal error occurred"}
-                        : typeof(err) == "string" ? {message: err} : err;
-                    if (err instanceof Error) // A non-thrown exception
-                        this.log(0, "Exception " + err.toString() + (err.stack ? " " + err.stack : ""));
-                    session.sendMessage({type: 'error', sync: true, value: errToSend,
-                        name: remoteCall.name,
-                        changes: JSON.stringify(this.getChanges()), remoteCallId: remoteCallId});
-                    this._deleteChanges();
-                    this._processQueue();
-                    this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "] error " + err.toString());
-                }
-            }.bind(this));
+        /**
+         * We process the call the remote method in stages starting by letting the controller examine the
+         * changes (preCallHook) and giving it a chance to refresh data if it needs to.  Then we apply any
+         * changes in the messages and give the object owning the method a chance to validate that the
+         * call is valid and take care of any authorization concerns.  Finally we let the controller perform
+         * any post-call processing such as commiting data and then we deal with a failure or success.
+         */
+        function processCall () {
+            return Q(true)
+                .then(preCallHook.bind(this))
+                .then(applyChangesAndValidateCall.bind(this))
+                .then(callIfValid.bind(this))
+                .then(postCallHook.bind(this))
+                .then(postCallSuccess.bind(this))
+                .fail(postCallFailure.bind(this));
+        }
+
+        /**
+         * If there is an update conflict we want to retry after restoring the session
+         * @returns {*}
+         */
+        function retryCall () {
+            if (restoreSessionCallback)
+                restoreSessionCallback();
+            return processCall.call(this);
+        }
+        /**
+         * Determine what objects changed and pass this to the preServerCall method on the controller
+         */
+        function preCallHook () {
+            if (this.controller && this.controller['preServerCall']) {
+                var changes = {};
+                for (var objId in JSON.parse(remoteCall.changes))
+                    changes[this.__dictionary__[objId.replace(/[^-]*-/,'').replace(/-.*/,'')].__name__] = true;
+                return this.controller['preServerCall'].call(this.controller, remoteCall.changes.length > 2, changes, callContext)
+            } else
+                return true;
+        }
+
+        /**
+         * Apply changes in the message and then validate the call.  Throw "Sync Error" if changes can't be applied
+         */
+        function applyChangesAndValidateCall () {
+            this.log(1, "Calling " + remoteCall.name);
+            var arguments = this._fromTransport(JSON.parse(remoteCall.arguments));
+            if (this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
+                var obj = session.objects[remoteCall.id];
+                if (!obj)
+                    throw  new Error("Cannot find object for remote call " + remoteCall.id);
+                if (this.role == 'server' && obj['validateServerCall'])
+                    return obj['validateServerCall'].call(obj, remoteCall.name, callContext);
+                else
+                    return true;
+            } else
+                throw "Sync Error";
+        }
+
+        /**
+         * If the changes could be applied and the validation was successful call the method
+         * @param isValid
+         */
+        function callIfValid(isValid) {
+            if (!isValid)
+                throw  new Error(remoteCall.name + " refused");
+            var obj = session.objects[remoteCall.id];
+            var arguments = this._fromTransport(JSON.parse(remoteCall.arguments));
+            return obj[remoteCall.name].apply(obj, arguments);
+        }
+
+        /**
+         * Let the controller know that the method was completed and give it a chance to commit changes
+         */
+        function postCallHook (returnValue) {
+            if (this.controller && this.controller['postServerCall'])
+                return Q(this.controller['postServerCall'].call(this.controller, remoteCall.changes.length > 2, callContext))
+                    .then(function () {
+                        return returnValue
+                    })
+            else
+                return returnValue;
+        }
+
+        /**
+         * Package up any changes resulting from the execution and send them back in the message, clearing
+         * our change queue to accumulate more changes for the next call
+         * @param ret
+         */
+        function postCallSuccess(ret) {
+            this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "]");
+            packageChanges.call(this, {type: 'response', sync: true, value: JSON.stringify(this._toTransport(ret)),
+                name: remoteCall.name,  remoteCallId: remoteCallId});
+        }
+
+        /**
+         * Handle errors by returning an apropriate message.  In all cases changes sent back though they
+         * @param err
+         */
+        function postCallFailure(err) {
+            if (err == "Sync Error") {
+                this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]");
+                packageChanges.call(this, {type: 'response', sync: false,
+                    changes: "", remoteCallId: remoteCallId});
+            } if (err.message == "Update Conflict") { // Not this may be caught in the trasport (e.g. Amorphic) and retried)
+                this.log(0, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "]");
+                if (callContext.retries++ < 5)
+                    return retryCall.call(this);
+                else
+                    packageChanges.call(this, {type: 'retry', sync: false, remoteCallId: remoteCallId});
+            } else {
+                this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "] error " + err.toString());
+                packageChanges.call(this, {type: 'error', sync: true, value: getError.call(this, err), name: remoteCall.name,
+                    remoteCallId: remoteCallId});
+            }
+        }
+
+        /**
+         * Distinquish between an actual error (will throw an Error object) and a string that the application may
+         * throw which is to get piped back to the caller.  For an actual error we want to log the stack trace
+         * @param err
+         * @returns {*}
+         */
+        function getError(err) {
+            var errToSend = err instanceof Error
+                ? {code: "internal_error", text: "An internal error occurred"}
+                : typeof(err) == "string" ? {message: err} : err;
+            if (err instanceof Error) // A non-thrown exception
+                this.log(0, "Exception " + err.toString() + (err.stack ? " " + err.stack : ""));
+            return errToSend;
+        }
+
+        /**
+         * Deal with changes going back to the caller
+         * @param message
+         */
+        function packageChanges(message) {
+            this._convertArrayReferencesToChanges();
+            message.changes = JSON.stringify(this.getChanges());
+            session.sendMessage(message);
+            this._deleteChanges();
+            this._processQueue();
+        }
+
             break;
 
         case 'response':
@@ -531,9 +613,37 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
         defineProperty.set = (function() {
             // use a closure to record the property name which is not passed to the setter
             var prop = propertyName; return function (value) {
-                if (this.__id__ && createChanges && this["__" + prop] !== value)
+                if (this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
                     objectTemplate._changedValue(this, prop, value);
+                    if (typeof(objectTemplate.setDirty) == "function")
+                        objectTemplate.setDirty(this, objectTemplate.currentTransaction);
+                }
                 this["__" + prop] = value;
+            }
+            function transform(data) {
+                try {
+                    if (defineProperty.type == String || defineProperty.type == Number || !data)
+                        return data;
+                    if (defineProperty.type == Date)
+                        return data.getTime();
+                    if (defineProperty.type == Array) {
+                        if (defineProperty.of.isObjectTemplate) {
+                            if (data.length) {
+                                var digest = "";
+                                for (var ix = 0; ix < data.length; ++ix)
+                                    digest += data.__id__;
+                                return digest;
+                            }
+                        } else
+                            return JSON.stringify(data);
+                    } else if(defineProperty.type.isObjectTemplate)
+                        return data.__id__;
+                    else
+                        return JSON.stringify(data);
+                } catch (e) {
+                    console.log("caught exception trying to stringify " + prop);
+                    return data;
+                }
             }
         })();
 
@@ -567,10 +677,10 @@ RemoteObjectTemplate._createChanges = function (defineProperty, template)
 {
     template = template || {};
     return !((defineProperty.isLocal == true) ||
-        (defineProperty.toServer == false && this.role == "client") ||
-        (defineProperty.toClient == false && this.role == "server") ||
-        (template.__toServer__ == false && this.role == "client") ||
-        (template.__toClient__ == false && this.role == "server"));
+    (defineProperty.toServer == false && this.role == "client") ||
+    (defineProperty.toClient == false && this.role == "server") ||
+    (template.__toServer__ == false && this.role == "client") ||
+    (template.__toClient__ == false && this.role == "server"));
 }
 
 /**
@@ -583,10 +693,10 @@ RemoteObjectTemplate._acceptChanges = function (defineProperty, template)
 {
     template = template || {};
     return !((defineProperty.isLocal == true) ||
-        (defineProperty.toServer == false && this.role == "server") ||
-        (defineProperty.toClient == false && this.role == "client") ||
-        (template.__toServer__ == false && this.role == "client") ||
-        (template.__toClient__ == false && this.role == "server"));
+    (defineProperty.toServer == false && this.role == "server") ||
+    (defineProperty.toClient == false && this.role == "client") ||
+    (template.__toServer__ == false && this.role == "client") ||
+    (template.__toClient__ == false && this.role == "server"));
 }
 
 /**
@@ -800,7 +910,7 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function()
                     // See if the value has changed
                     var currValue =
                         (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
-                            curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
+                        curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
                     var origValue = orig[ix];
                     if (origValue !== currValue ||
                         (changeGroup[obj.__id__] && changeGroup[obj.__id__][prop] && changeGroup[obj.__id__][prop][1][ix] != currValue))
@@ -849,7 +959,7 @@ RemoteObjectTemplate._convertValue = function (value)
         var newValue = [];
         for (var ix = 0; ix < value.length; ++ix)
             newValue[ix] =  value[ix] ? value[ix].__id__ ||
-                (typeof(value[ix]) == 'object' ? JSON.stringify(value[ix]) : value[ix].toString()) : null;
+            (typeof(value[ix]) == 'object' ? JSON.stringify(value[ix]) : value[ix].toString()) : null;
         return newValue;
     } else if (value && value.__id__)
         return value.__id__;
@@ -966,7 +1076,7 @@ RemoteObjectTemplate._applyObjectChanges = function(changes, rollback, obj, forc
                         validator.call(validatorThis, obj, prop, ix, defineProperty, unarray_newValue)
 
                     if (!this._applyPropertyChange(changes, rollback, obj, prop, ix,
-                        oldValue ? unarray(oldValue[ix]) : null, unarray_newValue, force))
+                            oldValue ? unarray(oldValue[ix]) : null, unarray_newValue, force))
                         return false;
                 }
                 this._trimArray(obj[prop]);
@@ -1090,7 +1200,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
     if (this.logLevel > 0) {
         var logValue = objId ? "{"+  objId + "}" : newValue instanceof Array ? "[" + newValue.length + "]" : newValue;
         this.changeString += (obj.__template__.__name__ + (ix >= 0 ? "[" + ix + "]" : "") + "." + prop +
-            " = " + this.cleanPrivateValues(prop, logValue) + "; ");
+        " = " + this.cleanPrivateValues(prop, logValue) + "; ");
     }
 
     rollback.push([obj, prop, ix, currentValue]);

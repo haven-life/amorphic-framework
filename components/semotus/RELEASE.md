@@ -1,3 +1,7 @@
+## 0.2.03
+* Added more tests and improved support for transactions in Amorphic
+## 0.1.31 Beta
+* Support for transactions
 ## 0.1.29
 * Fix made in 0.1.28 caused entries to be deleted from the sesion.  Original problem fixed in persistor
 ## 0.1.28
