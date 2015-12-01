@@ -741,7 +741,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                             this.validateValue(tags, bind_data);
                             this.setFocus(tags, node);
 
-                            if (!bind_error && (last_value != bind_data || this.radioButtonAlert))
+                            if (!bind_error && (last_value !== bind_data || this.radioButtonAlert))
                             {
                                 node.bindster.bind =  bind_data;
                                 if (node.checked && (bind_data + "") != current_value) {

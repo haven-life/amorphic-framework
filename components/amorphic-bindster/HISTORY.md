@@ -1,3 +1,5 @@
+## 0.1.57
+* Radio buttons with null value would end up not repainting after iteration (clones)
 ## 0.1.56
 * Make sure there are no duplicate events for subtle changes in event action
 ## 0.1.54
