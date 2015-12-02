@@ -103,9 +103,11 @@ module.exports = function (PersistObjectTemplate) {
 
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
                 pojo[prop] = obj[prop] ? JSON.stringify(obj[prop]) : null;
-            } else if (defineProperty.type == Date)
-                pojo[prop] = obj[prop] ? obj[prop].getTime() : null;
-            else
+            } else if (defineProperty.type == Date) {
+                pojo[prop] = obj[prop] ? obj[prop] : null;
+            } else if (defineProperty.type == Boolean) {
+                pojo[prop] = obj[prop] ? obj[prop] : null;
+            }  else
                 pojo[prop] = obj[prop];
         }
         return this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn)
