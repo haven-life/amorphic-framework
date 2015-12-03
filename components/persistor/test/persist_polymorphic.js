@@ -530,12 +530,8 @@ var knex = require('knex')({
         client: 'pg',
         connection: {
             host: '127.0.0.1',
-            port: 5433,
             database: 'persistor_banking',
-            //user: 'postgres',
-            //password: 'postgres'
-            user: 'pg_testuser',
-            password: 'pg_testuser'
+            user: 'nodejs'
         }
     });
 
@@ -546,12 +542,8 @@ describe('type mapping tests for parent/child relations', function () {
                 client: 'pg',
                 connection: {
                     host: '127.0.0.1',
-                    port: 5433,
                     database: 'persistor_banking',
-                    //user: 'postgres',
-                    //password: 'postgres'
-                    user: 'pg_testuser',
-                    password: 'pg_testuser'
+                    user: 'nodejs'
                 }
             });
             PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Knex, 'pg');

@@ -1,3 +1,5 @@
+## 0.2.06
+* Added support for getPOJOFromQuery
 ## 0.2.05
 * Further updates for knex support
 ## 0.2.00

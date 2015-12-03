@@ -392,7 +392,11 @@ describe("Banking Example", function () {
             done(e)
         })
     });
-
+    it("can fetch a pojo", function () {
+        return PersistObjectTemplate.getPOJOFromQuery(Customer, {firstName: "Sam"}).then(function (pojo) {
+            expect(pojo[0].firstName).to.equal("Sam");
+        });
+    });
 
     it("sam looks good", function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {

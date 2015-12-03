@@ -408,5 +408,30 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this._db[alias] = {connection: db, type: type}
     }
 
+    /**
+     * retrieve a PLain Old Javascript Object given a query
+     * @param template
+     * @param query
+     * @param options
+     * @returns {*}
+     */
+    PersistObjectTemplate.getPOJOFromQuery = function (template, query, options) {
+        var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
+        var previousDirtyTracking = this.__dirtyTracking__;
+        var prefix = PersistObjectTemplate.dealias(template.__collection__)
+        return dbType == PersistObjectTemplate.DB_Mongo ?
+            PersistObjectTemplate.getPOJOFromMongoQuery(template, query, options) :
+            PersistObjectTemplate.getPOJOsFromKnexQuery(template, [], query, options).then(function (pojos) {
+                pojos.forEach(function (pojo) {
+                    _.map(pojo, function(val, prop) {
+                        if (prop.match(RegExp("^" + prefix + "___"))) {
+                            pojo[prop.replace(RegExp("^" + prefix + "___"), '')] = pojo[prop];
+                            delete pojo[prop];
+                        }
+                    });
+                });
+                return pojos;
+            });
+    }
 
 }

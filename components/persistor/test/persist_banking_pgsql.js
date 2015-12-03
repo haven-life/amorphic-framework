@@ -273,10 +273,8 @@ describe("Banking from pgsql Example", function () {
                     client: 'pg',
                     connection: {
                         host     : '127.0.0.1',
-                        port:5433,
                         database : 'persistor_banking',
-                        user: 'postgres',
-                        password: 'postgres'
+                        user: 'nodejs'
                     }
                 });
                 PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
@@ -452,6 +450,11 @@ describe("Banking from pgsql Example", function () {
         }).fail(function(e) {
             done(e)
         })
+    });
+    it("can fetch a pojo", function () {
+        return PersistObjectTemplate.getPOJOFromQuery(Customer, {firstName: "Sam"}).then(function (pojo) {
+            expect(pojo[0].firstName).to.equal("Sam");
+        });
     });
 
 

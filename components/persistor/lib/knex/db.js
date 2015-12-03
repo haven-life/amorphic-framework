@@ -45,6 +45,8 @@ module.exports = function (PersistObjectTemplate) {
             this._schematracker.adds = track.add;
 
             function _diff(masterSchema, shadowSchema, opr, addMissingTable, addPredicate, diffs) {
+                if (!shadowSchema)
+                    console.log("Opps");
                 return Object.keys(masterSchema).reduce(function (diffs, table) {
                     if (shadowSchema[table]) {
                         (masterSchema[table].indexes || []).forEach(function (mstIdx) {
