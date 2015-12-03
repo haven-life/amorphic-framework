@@ -5,7 +5,7 @@ module.exports = function (PersistObjectTemplate) {
     var Q = require('q');
     var _ = require('underscore');
 
-    PersistObjectTemplate.saveSchema = function (alias) {
+        PersistObjectTemplate.saveSchema = function (alias) {
 
         var knex = this.getDB(alias).connection;
         var maxdbversion;
@@ -66,7 +66,7 @@ module.exports = function (PersistObjectTemplate) {
 
         var processDataAndUpdate = (function (dbSchema) {
             var currentschema = this._schema;
-            var prevschema;
+            var prevschema = {};
             if (dbSchema && dbSchema.schema)
                 prevschema = JSON.parse(dbSchema.schema);
             diff(currentschema, prevschema);
