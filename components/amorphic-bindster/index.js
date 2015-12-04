@@ -1049,6 +1049,16 @@ Bindster.prototype.getBindErrorReference = function(bind)
     else
         return "this.data." + this.bindster_error_prefix + bind;
 }
+Bindster.prototype.getBindErrorReferenceParts = function(bind)
+{
+    if (bind.match(/[^0-9a-zA-Z_$.\[\]\(\)]/))
+        return {obj: null, prop: null};
+
+    if (bind.match(/(.*?)\.([^.]+)$/))
+        return {obj: RegExp.$1, prop: this.bindster_error_prefix + RegExp.$2};
+    else
+        return {obj: "this.data.", prop: this.bindster_error_prefix + bind};
+}
 Bindster.prototype.getBindTempReference = function(bind)
 {
     if (bind.match(/(.*?)\.([^.]+)$/))
@@ -1084,6 +1094,8 @@ Bindster.prototype.getBindAction = function(tags, value)
     var x =    "try { " +
         "var self=this;" +
         "var isValidating=this.validate;" +
+        "var bind_error_obj = " + this.getBindErrorReferenceParts(tags.bind).obj + ";" +
+        "var bind_error_prop = '" + this.getBindErrorReferenceParts(tags.bind).prop + "';" +
         "var bindTags = '" + tags.bind + "';" +
         "if(target && target.bindster){target.bindster.bind = undefined}" +
         this_value + " = " + value +  ";" +
@@ -1096,9 +1108,9 @@ Bindster.prototype.getBindAction = function(tags, value)
         ((typeof(Q) != 'undefined' && tags.bind.match(/[a-zA-z]$/) && !tags.bind.match(/[^A-Za-z0-9_\(\)\.\[\]]/)) ?
         "if (typeof(" + tags.bind + "Set) == 'function'){" +
         bind_error + " = '__pending__';" + controller_trigger + tags.bind + "Set(" + this_value + ").then(" + "" +
-        "function() {(function(){if(" + bind_error + "){delete " + bind_error + "};" +
+        "function() {(function(){if(bind_error_obj && bind_error_obj[bind_error_prop]){delete bind_error_obj[bind_error_prop]};" +
         model_trigger + "}).call(self)}," +
-        "function(e){(function(){c.bindster.raiseError(bindTags, e);" + bind_error + " = e}).call(self)})" +
+        "function(e){(function(){c.bindster.raiseError(bindTags, e);bind_error_obj[bind_error_prop] = e}).call(self)})" +
         "}else{" +
         tags.bind + " = " + this_value + ';' + trigger + "};"
             : (tags.bind + " = " + this_value + ";") + trigger) +

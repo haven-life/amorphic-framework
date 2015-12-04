@@ -1,3 +1,5 @@
+## 0.1.58
+* __pending__ error not cleared with deferred set functions inside iterated blocks
 ## 0.1.57
 * Radio buttons with null value would end up not repainting after iteration (clones)
 ## 0.1.56
