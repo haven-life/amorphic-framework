@@ -356,7 +356,7 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
                 this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]");
                 packageChanges.call(this, {type: 'response', sync: false,
                     changes: "", remoteCallId: remoteCallId});
-            } if (err.message == "Update Conflict") { // Not this may be caught in the trasport (e.g. Amorphic) and retried)
+            } else if (err.message == "Update Conflict") { // Not this may be caught in the trasport (e.g. Amorphic) and retried)
                 this.log(0, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "]");
                 if (callContext.retries++ < 5)
                     return retryCall.call(this);
@@ -1279,11 +1279,11 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
     } else {
         this.dispenseId = objId;
         session.dispenseNextId = objId;  // stashObject will use this
-
+        var wasTransient = this.__transient__;
         if (isTransient)
             this.__transient__ = true;
         var newValue = new template();
-        this.__transient__ = false;
+        this.__transient__ = wasTransient;
         if (isTransient) {
             delete session.objects[objId];
             newValue.__transient__ = true;

@@ -1,3 +1,5 @@
+## 0.2.04 (also released as 1.32)
+* Fixed the error handling to permit recovery by client.js
 ## 0.2.03
 * Added more tests and improved support for transactions in Amorphic
 ## 0.1.31 Beta
