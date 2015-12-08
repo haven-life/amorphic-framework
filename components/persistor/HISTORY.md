@@ -1,3 +1,5 @@
+## 0.2.07
+* Cleaned up dependencies
 ## 0.2.06
 * Added support for getPOJOFromQuery
 ## 0.2.05
