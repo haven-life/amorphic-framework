@@ -79,7 +79,7 @@ module.exports = function (PersistObjectTemplate) {
             var cx = this;
             return knex.schema.createTableIfNotExists(schemaTable, function (table) {
                 table.increments('sequence_id').primary();
-                table.string(schemaField, 5000);
+                table.string(schemaField, 250000);
                 table.timestamps();
             }).then(function () {
                 return knex(schemaTable)
@@ -543,7 +543,7 @@ module.exports = function (PersistObjectTemplate) {
                             table.string(prop);
                     } else if (defineProperty.type.__objectTemplate__) {
                         if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                            throw   new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                            throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
                         var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                         table.string(foreignKey);
                     } else if (defineProperty.type === Number) {

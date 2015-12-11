@@ -1,3 +1,6 @@
+## 0.2.08
+* Fixed error message when missing schema entries during table sync
+* Increased size of schema entry
 ## 0.2.07
 * Cleaned up dependencies
 ## 0.2.06
