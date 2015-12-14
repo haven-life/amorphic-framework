@@ -232,8 +232,8 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
         this.__prop__ = function(prop) {
             return ObjectTemplate._getDefineProperty(prop, this.__template__);
         }
-        this.toJSONString = function() {
-            return ObjectTemplate.toJSONString(this);
+        this.toJSONString = function(cb) {
+            return ObjectTemplate.toJSONString(this, cb);
         }
         /* Clone and object calling a callback for each referenced object.
          The call back is passed (obj, prop, template)
@@ -547,7 +547,7 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
  *
  * @param obj
  */
-ObjectTemplate.toJSONString = function (obj) {
+ObjectTemplate.toJSONString = function (obj, cb) {
     var idMap = [];
     try {
         return JSON.stringify(obj, function (key, value) {
@@ -556,7 +556,7 @@ ObjectTemplate.toJSONString = function (obj) {
                     value = {__id__: value.__id__.toString()}
                 else
                     idMap[value.__id__.toString()] = value;
-            return value;
+            return cb ? cb(key, value) : value;
         });
     } catch (e) {
         throw e;

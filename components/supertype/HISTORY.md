@@ -1,3 +1,5 @@
+## 0.1.38
+* Allow replacer in toJSONSTring
 ## 0.1.37
 * Allow mixin to override properties
 ## 0.1.36
