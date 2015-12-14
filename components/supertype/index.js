@@ -418,8 +418,6 @@ ObjectTemplate._setupProperty = function(propertyName, defineProperty, objectPro
     // When a super class based on objectTemplate don't transport properties
     defineProperty.toServer = false;
     defineProperty.toClient = false;
-    if (defineProperties[propertyName])
-        throw ("duplicate property definition of property " + propertyName);
     defineProperties[propertyName] = defineProperty;
 };
 

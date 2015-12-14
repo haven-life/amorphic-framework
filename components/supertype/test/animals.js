@@ -8,9 +8,11 @@ Animal = ObjectTemplate.create("Animal",
 {
 	name: {type: String},
 	isMammal: {type: Boolean, value: true},
-	legs: {type: Number, value: 2}
+	legs: {type: Number}
 });
-
+Animal.mixin({
+	legs: {type: Number, value: 2} // Make sure duplicate props work
+});
 Lion = Animal.extend("Lion",
 {
 	init: function () {
@@ -18,7 +20,7 @@ Lion = Animal.extend("Lion",
 		this.name = "Lion";
 		this.legs = 4;
 	},
-	canRoar: function () {return true}
+	canRoar: function () {return true},
 });
 
 Bear = Animal.extend("Bear",

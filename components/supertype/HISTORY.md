@@ -1,3 +1,5 @@
+## 0.1.37
+* Allow mixin to override properties
 ## 0.1.36
 * fromJSON string was not handling references properly when using an id prefix
 ## 0.1.35
