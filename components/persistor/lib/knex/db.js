@@ -5,7 +5,13 @@ module.exports = function (PersistObjectTemplate) {
     var Q = require('q');
     var _ = require('underscore');
 
-        PersistObjectTemplate.saveSchema = function (alias) {
+    /**
+     * Save the schema so we can keep track of indexes. Must be called before tables are synchronized
+     * Should maybe be incorporated in setSchema as a trackIndexes option.
+     * @param alias
+     * @returns {*}
+     */
+    PersistObjectTemplate.saveSchema = function (alias) {
 
         var knex = this.getDB(alias).connection;
         var maxdbversion;
@@ -79,7 +85,7 @@ module.exports = function (PersistObjectTemplate) {
             var cx = this;
             return knex.schema.createTableIfNotExists(schemaTable, function (table) {
                 table.increments('sequence_id').primary();
-                table.string(schemaField, 250000);
+                table.text(schemaField);
                 table.timestamps();
             }).then(function () {
                 return knex(schemaTable)
@@ -242,7 +248,7 @@ module.exports = function (PersistObjectTemplate) {
         var tableName = this.dealias(template.__collection__);
         var knex = this.getDB(this.getDBAlias(template.__collection__)).connection;
         return knex(tableName).columnInfo(column).then(function(column) {
-           return column.type;
+            return column.type;
         });
     }
 
@@ -306,7 +312,7 @@ module.exports = function (PersistObjectTemplate) {
     }
 
     /**
-     *
+     * Save a Plain Old Javascript object given an Id.
      * @param obj
      * @param pojo
      * @param updateID
@@ -348,7 +354,6 @@ module.exports = function (PersistObjectTemplate) {
 
         function logSuccess() {
             this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__ + " version " + obj.__version__, 'io');
-            console.log('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__ + " version " + obj.__version__);
         }
     }
 
@@ -363,6 +368,8 @@ module.exports = function (PersistObjectTemplate) {
             while(template.__parent__)
                 template =  template.__parent__;
         })();
+        if(!template.__collection__)
+            throw new Error(template.__name__ + " is missing a schema entry");
 
         var props = template.getProperties();
         var knex = this.getDB(this.getDBAlias(template.__collection__)).connection
@@ -423,12 +430,12 @@ module.exports = function (PersistObjectTemplate) {
                     console.log(JSON.stringify(defineProperty));
                 if (defineProperty.type === Array) {
                     if (!defineProperty.of.__objectTemplate__)
-                        table.string(prop);
+                        table.text(prop);
                 } else if (defineProperty.type.__objectTemplate__) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw   new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw   new Error(defineProperty.type.__name__ + "." + prop + " is missing a parents schema entry");
                     var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
-                    table.string(foreignKey);
+                    table.text(foreignKey);
                 } else if (defineProperty.type === Number) {
                     table.bigint(prop);
                 } else if (defineProperty.type === Date) {
@@ -436,7 +443,7 @@ module.exports = function (PersistObjectTemplate) {
                 } else if (defineProperty.type === Boolean) {
                     table.boolean(prop);
                 } else
-                    table.string(prop);
+                    table.text(prop);
             }
             synchronizeIndexes.call(this, table);
         }
@@ -445,30 +452,43 @@ module.exports = function (PersistObjectTemplate) {
         function discoverColumns(table) {
             return knex(table).columnInfo().then(function (info) {
                 for (var prop in props) {
-                    if (!info.hasOwnProperty(prop)) {
+                    if (!info[propToColumnName(prop)]) {
                         _newFields[prop] = props[prop];
                     }
                     else {
-                        if (!iscompatible(props[prop].type.name, info[prop].type)) {
+                        if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
                             throw new Error("changing types for the fields is not allowed, please use scripts to make these changes");
                         }
                     }
 
                 }
             });
+
+            function propToColumnName(prop) {
+                var defineProperty = props[prop];
+                if (defineProperty.type.__objectTemplate__)
+                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                        throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
+                    else
+                        prop = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
+                return prop;
+            }
         }
 
         function iscompatible(persistortype, pgtype) {
             switch (persistortype) {
                 case 'String':
-                    return pgtype.indexOf('character') > -1;
-                    break;
+                case 'Object':
+                case 'Array':
+                    return pgtype.indexOf('text') > -1;
                 case 'Number':
                     return pgtype.indexOf('int') > -1;
                 case 'Boolean':
                     return pgtype.indexOf('bool') > -1;
                 case 'Date':
                     return pgtype.indexOf('timestamp') > -1;
+                default:
+                    return pgtype.indexOf('text') > -1; // Typed objects have no name
             }
         }
     }
@@ -528,32 +548,36 @@ module.exports = function (PersistObjectTemplate) {
             table.string('_id').primary();
             table.string('_template');
             table.biginteger('__version__');
+            var columnMap = {};
 
             recursiveColumnMap.call(this, template);
 
             function mapTableAndIndexes(table, props, schema) {
                 for (var prop in props) {
-                    var defineProperty = props[prop];
-                    if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
-                        continue;
-                    if (prop.match(/Persistor/))
-                        console.log(JSON.stringify(defineProperty));
-                    if (defineProperty.type === Array) {
-                        if (!defineProperty.of.__objectTemplate__)
-                            table.string(prop);
-                    } else if (defineProperty.type.__objectTemplate__) {
-                        if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                            throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
-                        var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
-                        table.string(foreignKey);
-                    } else if (defineProperty.type === Number) {
-                        table.bigint(prop);
-                    } else if (defineProperty.type === Date) {
-                        table.timestamp(prop);
-                    } else if (defineProperty.type === Boolean) {
-                        table.boolean(prop);
-                    } else
-                        table.string(prop);
+                    if (!columnMap[prop]) {
+                        var defineProperty = props[prop];
+                        if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
+                            continue;
+                        if (prop.match(/Persistor/))
+                            console.log(JSON.stringify(defineProperty));
+                        if (defineProperty.type === Array) {
+                            if (!defineProperty.of.__objectTemplate__)
+                                table.text(prop);
+                        } else if (defineProperty.type.__objectTemplate__) {
+                            if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                                throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
+                            var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
+                            table.text(foreignKey);
+                        } else if (defineProperty.type === Number) {
+                            table.bigint(prop);
+                        } else if (defineProperty.type === Date) {
+                            table.timestamp(prop);
+                        } else if (defineProperty.type === Boolean) {
+                            table.boolean(prop);
+                        } else
+                            table.text(prop);
+                        columnMap[prop] = true;
+                    }
                 }
                 createIndexes.call(this, table, schema);
             }

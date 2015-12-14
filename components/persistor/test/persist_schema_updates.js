@@ -251,7 +251,7 @@ describe('index synchronization checks', function () {
         });
         return knex.schema.createTableIfNotExists('ChangeFieldTypeTable', function (table) {
             table.integer('id');
-            table.string('name')
+            table.text('name')
         }).then(function () {
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ChangeFieldTypeTable).should.eventually.be.rejectedWith(Error);
         });
@@ -331,7 +331,7 @@ describe('index synchronization checks', function () {
                     knex.schema.dropTableIfExists('IndexSyncTable').then(function() {
                          knex.schema.createTableIfNotExists('IndexSyncTable', function (table) {
                             table.integer('id');
-                            table.string('name')
+                            table.text('name')
                         }).should.eventually.have.property("command", "CREATE")
                     }),
                   resetdata.should.eventually.have.property("command", "INSERT")

@@ -27,22 +27,24 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         object.persistSave = function (txn)
         {
             if (PersistObjectTemplate.getTopObject(object).__template__.__schema__.cascadeSave && !txn)
-                return object.cascadeSave();
+                return object.cascadeSave(txn);
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
                     .then (function (obj) {
-                    return Q(obj._id.toString())
-                })
+                        return Q(obj._id.toString())
+                    })
                 : PersistObjectTemplate.persistSaveKnex(object, txn)
                 .then (function (obj) {
-                return Q(obj._id.toString());
-            });
+                    return Q(obj._id.toString());
+                });
         };
 
-        object.cascadeSave = function () {
+        object.cascadeSave = function (txn) {
+            if (!txn && !PersistObjectTemplate.currentTransaction)
+                PersistObjectTemplate.begin();
             PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(object), function (obj) {
-                this.setDirty();
+                this.setDirty(txn || PersistObjectTemplate.currentTransaction);
             });
             return PersistObjectTemplate.end();
         };
@@ -62,7 +64,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         object.setDirty = function (txn) {
             this.__dirty__ = true;
             PersistObjectTemplate.setDirty(this, txn);
-          };
+        };
         object.saved = function (txn) {
             delete this['__dirty__'];
             PersistObjectTemplate.saved(this, txn);
@@ -74,7 +76,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             return this.__template__.countFromPersistWithQuery(
                 {_id: (dbType == PersistObjectTemplate.DB_Mongo) ? PersistObjectTemplate.ObjectID(this._id.toString()) : this._id,
-                 __version__: this.__version__}).then(function(count) {
+                    __version__: this.__version__}).then(function(count) {
                 return !count
             });
         };
@@ -290,68 +292,68 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         // Start the knext transaction
         knex.transaction(function(knexTransaction) {
 
-            persistorTransaction.knex = knexTransaction;
+                persistorTransaction.knex = knexTransaction;
 
-            Promise.resolve(
+                Promise.resolve(
                     persistorTransaction.preSave
-                    ? persistorTransaction.preSave.call(persistorTransaction, knexTransaction)
-                    : true
-                )
-                .then(processSaves.bind(this))
-                .then(function () {
-                    // If more dirty object rinse and repeat
-                    if(_.toArray(dirtyObjects). length > 0)
-                        return processSaves.call(this);
-                })
-                .then(processTouches.bind(this))
-                .then(function () {
+                        ? persistorTransaction.preSave.call(persistorTransaction, knexTransaction)
+                        : true
+                    )
+                    .then(processSaves.bind(this))
+                    .then(function () {
+                        // If more dirty object rinse and repeat
+                        if(_.toArray(dirtyObjects). length > 0)
+                            return processSaves.call(this);
+                    })
+                    .then(processTouches.bind(this))
+                    .then(function () {
 
-                    // Otherwise maybe call the postSave hook
-                    if (persistorTransaction.postSave)
-                        persistorTransaction.postSave(persistorTransaction);
+                        // Otherwise maybe call the postSave hook
+                        if (persistorTransaction.postSave)
+                            persistorTransaction.postSave(persistorTransaction);
 
-                    // And we are done with everything
-                    this.dirtyObjects = {};
-                    this.savedObjects = {};
-                    if (persistorTransaction.updateConflict)
-                        throw "Update Conflict";
-                    return knexTransaction.commit();
-                    return true;
-                })
-                .catch(rollback.bind(this));
+                        // And we are done with everything
+                        this.dirtyObjects = {};
+                        this.savedObjects = {};
+                        if (persistorTransaction.updateConflict)
+                            throw "Update Conflict";
+                        return knexTransaction.commit();
+                        return true;
+                    })
+                    .catch(rollback.bind(this));
 
-            // Walk through the dirty objects
-            function processSaves() {
-                return Promise.map(_.toArray(dirtyObjects), function (obj) {
-                    return (obj.__template__ && obj.__template__.__schema__
+                // Walk through the dirty objects
+                function processSaves() {
+                    return Promise.map(_.toArray(dirtyObjects), function (obj) {
+                        return (obj.__template__ && obj.__template__.__schema__
                             ?  obj.persistSave(persistorTransaction)
                             : Promise.resolve(true))
-                        .then(function () {
-                            obj.saved(persistorTransaction);
-                            return true;
-                        }.bind(this));
-                }.bind(this))
-            }
-            // Walk through the touched objects
-            function processTouches() {
-                return Promise.map(_.toArray(touchObjects), function (obj) {
-                    return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
-                        ?  obj.persistTouch(persistorTransaction)
-                        : Promise.resolve(true))
-                }.bind(this))
-            }
+                            .then(function () {
+                                obj.saved(persistorTransaction);
+                                return true;
+                            }.bind(this));
+                    }.bind(this))
+                }
+                // Walk through the touched objects
+                function processTouches() {
+                    return Promise.map(_.toArray(touchObjects), function (obj) {
+                        return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
+                            ?  obj.persistTouch(persistorTransaction)
+                            : Promise.resolve(true))
+                    }.bind(this))
+                }
 
-            function rollback (err) {
-                innerError = err;
-                return knexTransaction.rollback();
-            }
-        })
-        .then(function () {
-            deferred.resolve(true);
-        }.bind(this))
-        .catch(function (e) {
-            deferred.reject(e || innerError);
-        })
+                function rollback (err) {
+                    innerError = err;
+                    return knexTransaction.rollback();
+                }
+            })
+            .then(function () {
+                deferred.resolve(true);
+            }.bind(this))
+            .catch(function (e) {
+                deferred.reject(e || innerError);
+            })
         return deferred.promise;
     }
 

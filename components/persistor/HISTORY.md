@@ -1,3 +1,8 @@
+## 0.2.10
+* Fixed cascade save option 
+## 0.2.09
+* Changed from string to text for column types
+* Allow column to be overridden in sub-class
 ## 0.2.08
 * Fixed error message when missing schema entries during table sync
 * Increased size of schema entry
