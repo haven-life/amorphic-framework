@@ -531,8 +531,9 @@ var knex = require('knex')({
         connection: {
             host: '127.0.0.1',
             database: 'persistor_banking',
-            password: 'nodejs',
-            user: 'nodejs'
+            user: 'postgres',
+            password: 'postgres'
+
         }
     });
 
@@ -544,8 +545,9 @@ describe('type mapping tests for parent/child relations', function () {
                 connection: {
                     host: '127.0.0.1',
                     database: 'persistor_banking',
-                    password: 'nodejs',
-                    user: 'nodejs'
+                    user: 'postgres',
+                    password: 'postgres'
+
                 }
             });
             PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Knex, 'pg');

@@ -211,8 +211,9 @@ describe('index synchronization checks', function () {
                 connection: {
                     host: '127.0.0.1',
                     database: 'persistor_banking',
-                    password: 'nodejs',
-                    user: 'nodejs'
+                    user: 'postgres',
+                    password: 'postgres'
+
                 }
             });
             PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Knex, 'pg');
@@ -245,10 +246,9 @@ describe('index synchronization checks', function () {
             connection: {
                 host: '127.0.0.1',
                 database: 'persistor_banking',
-                //user: 'postgres',
-                //password: 'postgres'
-                password: 'nodejs',
-                user: 'nodejs'
+                user: 'postgres',
+                password: 'postgres'
+
             }
         });
         return knex.schema.createTableIfNotExists('ChangeFieldTypeTable', function (table) {
@@ -291,10 +291,8 @@ describe('index synchronization checks', function () {
         connection: {
             host: '127.0.0.1',
             database: 'persistor_banking',
-            //user: 'postgres',
-            //password: 'postgres'
-            password: 'nodejs',
-            user: 'nodejs'
+            user: 'postgres',
+            password: 'postgres'
         }
     });
 

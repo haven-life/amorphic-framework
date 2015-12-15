@@ -274,8 +274,9 @@ describe("Banking from pgsql Example", function () {
                     connection: {
                         host     : '127.0.0.1',
                         database : 'persistor_banking',
-                        user: 'nodejs',
-                        password: 'nodejs'
+                        user: 'postgres',
+                        password: 'postgres'
+
                     }
                 });
                 PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
