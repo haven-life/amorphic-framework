@@ -54,15 +54,16 @@ module.exports = function (PersistObjectTemplate) {
 
         function traverse(obj) {
             idMap[obj.__id__] = obj;
-            callback.call(obj)
+            callback.call(null, obj)
             var props = obj.__template__.getProperties();
             _.map(props, function (defineProperty, prop) {
-                if (defineProperty.type == Array && defineProperty.of.isObjectTemplate)
+                if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
                     _.map(obj[prop], function (value) {
                         if (!idMap[value.__id])
                             traverse(value);
                     })
-                if (defineProperty.type.isObjectTemplate && !idMap[value.__id__]) {
+
+                if (obj[prop] && defineProperty.type && defineProperty.type.isObjectTemplate && !idMap[obj[prop].__id__]) {
                     traverse(obj[prop]);
                 }
             });

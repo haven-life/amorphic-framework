@@ -26,27 +26,20 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         object.persistSave = function (txn)
         {
-            if (PersistObjectTemplate.getTopObject(object).__template__.__schema__.cascadeSave && !txn)
-                return object.cascadeSave(txn);
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
                     .then (function (obj) {
+                        if (txn)
+                            obj.saved(txn);
                         return Q(obj._id.toString())
                     })
                 : PersistObjectTemplate.persistSaveKnex(object, txn)
                 .then (function (obj) {
+                    if (txn)
+                        obj.saved(txn);
                     return Q(obj._id.toString());
                 });
-        };
-
-        object.cascadeSave = function (txn) {
-            if (!txn && !PersistObjectTemplate.currentTransaction)
-                PersistObjectTemplate.begin();
-            PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(object), function (obj) {
-                this.setDirty(txn || PersistObjectTemplate.currentTransaction);
-            });
-            return PersistObjectTemplate.end();
         };
 
         object.persistTouch = function (txn)
@@ -279,7 +272,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
 
     PersistObjectTemplate.end = function(persistorTransaction) {
-
+        console.log("Start of end");
         persistorTransaction = persistorTransaction || this.currentTransaction;
         var deferred = Q.defer();
         var Promise = require('bluebird');
@@ -318,6 +311,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         if (persistorTransaction.updateConflict)
                             throw "Update Conflict";
                         return knexTransaction.commit();
+                        console.log("End of end");
                         return true;
                     })
                     .catch(rollback.bind(this));
@@ -328,10 +322,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         return (obj.__template__ && obj.__template__.__schema__
                             ?  obj.persistSave(persistorTransaction)
                             : Promise.resolve(true))
-                            .then(function () {
-                                obj.saved(persistorTransaction);
-                                return true;
-                            }.bind(this));
                     }.bind(this))
                 }
                 // Walk through the touched objects
@@ -352,6 +342,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 deferred.resolve(true);
             }.bind(this))
             .catch(function (e) {
+                var err = e || innerError;
+                if (err && err.message && err.message != 'Update Conflict')
+                    console.log(err + err.stack);
                 deferred.reject(e || innerError);
             })
         return deferred.promise;
@@ -359,15 +352,38 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
 
     PersistObjectTemplate.setDirty = function (obj, txn) {
-        if (this.__dirtyTracking__ != false)
-            (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+
+        if (!obj)
+            return;
+
+        // Non persistent objects ignored
+        if (!obj.__template__.__schema__)
+            return;
+
+        // Use the current transaction if none passed
         txn = txn || PersistObjectTemplate.currentTransaction || null;
+
+        if (this.__dirtyTracking__ != false) {
+
+            // Record the the dirty object's id
+            (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+
+            // Potentially cascade to set other related objects as dirty
+            var topObject = PersistObjectTemplate.getTopObject(obj);
+            if (!topObject)
+                console.log("Warning: setDirty called for " + obj.__id__ + " which is an orphan");
+            if (topObject && topObject.__template__.__schema__.cascadeSave && !txn)
+                PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
+                    (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+                }.bind(this));
+        }
+
+        // Touch the top object if required so that if it will be modified and can be refereshed if needed
         if (txn && txn.touchTop && obj.__template__.__schema__) {
             var topObject = PersistObjectTemplate.getTopObject(obj);
             if (topObject)
                 txn.touchObjects[topObject.__id__] = topObject;
         }
-
     }
 
     PersistObjectTemplate.saveAll = function (txn) {

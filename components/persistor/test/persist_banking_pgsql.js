@@ -274,7 +274,8 @@ describe("Banking from pgsql Example", function () {
                     connection: {
                         host     : '127.0.0.1',
                         database : 'persistor_banking',
-                        user: 'nodejs'
+                        user: 'nodejs',
+                        password: 'nodejs'
                     }
                 });
                 PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
@@ -318,48 +319,56 @@ describe("Banking from pgsql Example", function () {
                 done();
             }).fail(function(e){done(e)});
     });
-
-    // Setup customers and addresses
-    var sam = new Customer("Sam", "M", "Elsamman");
-    var karen = new Customer("Karen", "M", "Burke");
-    var ashling = new Customer("Ashling", "", "Burke");
-
-
-    // Setup referrers
-    sam.referrers = [ashling, karen];
-    ashling.referredBy = sam;
-    karen.referredBy = sam;    sam.local1 = "foo";
+    var sam;
+    var karen;
+    var ashling;
+    var samsAccount;
+    var jointAccount;
 
 
-    sam.local2 = "bar";
+    it ("can create the data", function () {
+        // Setup customers and addresses
+        sam = new Customer("Sam", "M", "Elsamman");
+        karen = new Customer("Karen", "M", "Burke");
+        ashling = new Customer("Ashling", "", "Burke");
 
-    // Setup addresses
-    sam.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
-    sam.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
-    sam.addresses[0].addReturnedMail(new Date());
-    sam.addresses[0].addReturnedMail(new Date());
-    sam.addresses[1].addReturnedMail(new Date());
+        // Setup referrers
+        sam.referrers = [ashling, karen];
+        ashling.referredBy = sam;
+        karen.referredBy = sam;    sam.local1 = "foo";
 
-    karen.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
-    karen.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
-    karen.addresses[0].addReturnedMail(new Date());
+        sam.local2 = "bar";
 
-    ashling.addAddress(["End of the Road", ""], "Lexington", "KY", "34421");
+        // Setup addresses
+        sam.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
+        sam.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
-    // Setup accounts
-    var samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.addresses[0]);
-    var jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
-    jointAccount.addCustomer(karen, "joint");
-    jointAccount.addCustomer(ashling, "joint");
+        sam.addresses[0].addReturnedMail(new Date());
+        sam.addresses[0].addReturnedMail(new Date());
+        sam.addresses[1].addReturnedMail(new Date());
 
-    samsAccount.credit(100);                        // Sam has 100
-    samsAccount.debit(50)                           // Sam has 50
-    jointAccount.credit(200);                       // Joint has 200
-    jointAccount.transferTo(100, samsAccount);      // Joint has 100, Sam has 150
-    jointAccount.transferFrom(50, samsAccount);     // Joint has 150, Sam has 100
-    jointAccount.debit(25);                         // Joint has 125
+        karen.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
+        karen.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
+
+        karen.addresses[0].addReturnedMail(new Date());
+
+        ashling.addAddress(["End of the Road", ""], "Lexington", "KY", "34421");
+
+        // Setup accounts
+        samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.addresses[0]);
+        jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
+        jointAccount.addCustomer(karen, "joint");
+        jointAccount.addCustomer(ashling, "joint");
+
+        samsAccount.credit(100);                        // Sam has 100
+        samsAccount.debit(50)                           // Sam has 50
+        jointAccount.credit(200);                       // Joint has 200
+        jointAccount.transferTo(100, samsAccount);      // Joint has 100, Sam has 150
+        jointAccount.transferFrom(50, samsAccount);     // Joint has 150, Sam has 100
+        jointAccount.debit(25);                         // Joint has 125
+    });
 
     it("both accounts have the right balance", function () {
         expect(samsAccount.getBalance()).to.equal(100);
