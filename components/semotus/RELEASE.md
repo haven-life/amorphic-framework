@@ -1,3 +1,7 @@
+## 0.2.05
+* Don't pass in transaction to setDirty
+## 0.1.33
+* Temporary removed object stringify comparison on change detection as this is a breaking change that should be 2.x 
 ## 0.2.04 (also released as 1.32)
 * Fixed the error handling to permit recovery by client.js
 ## 0.2.03

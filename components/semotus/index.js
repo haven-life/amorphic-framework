@@ -616,7 +616,7 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                 if (this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
                     objectTemplate._changedValue(this, prop, value);
                     if (typeof(objectTemplate.setDirty) == "function")
-                        objectTemplate.setDirty(this, objectTemplate.currentTransaction);
+                        objectTemplate.setDirty(this);
                 }
                 this["__" + prop] = value;
             }
