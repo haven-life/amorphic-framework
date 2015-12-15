@@ -132,7 +132,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         while(!template.__schema__ && parent)
             if (parent.__schema__) {
                 template.__schema__ = parent.__schema__;
-                template.__collection__ = parent.__collection__;
+                if (!template.__schema__.table) // Allow table to govern subclasses
+                    template.__collection__ = parent.__collection__;
                 template.__topTemplate = parent.__topTemplate__;
                 parent = null;
             } else
@@ -219,6 +220,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     this.__dirtyTracking__ = previousDirtyTracking;
                     return res;
                 }.bind(this));
+        };
+
+        template.isKnex = function () {
+            var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
+            return dbType != PersistObjectTemplate.DB_Mongo;
         };
 
         // Add persistors to foreign key references
@@ -353,35 +359,38 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
     PersistObjectTemplate.setDirty = function (obj, txn) {
 
-        if (!obj)
-            return;
+                var explicitTxn = txn;
+                if (!obj)
+                    return;
 
-        // Non persistent objects ignored
-        if (!obj.__template__.__schema__)
-            return;
+                // Non persistent objects ignored
+                if (!obj.__template__.__schema__)
+                    return;
 
-        // Use the current transaction if none passed
-        txn = txn || PersistObjectTemplate.currentTransaction || null;
+                // Use the current transaction if none passed
+                txn = txn || PersistObjectTemplate.currentTransaction || null;
 
-        if (this.__dirtyTracking__ != false) {
+                if (this.__dirtyTracking__ != false) {
 
-            // Record the the dirty object's id
-            (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
-
-            // Potentially cascade to set other related objects as dirty
-            var topObject = PersistObjectTemplate.getTopObject(obj);
-            if (!topObject)
-                console.log("Warning: setDirty called for " + obj.__id__ + " which is an orphan");
-            if (topObject && topObject.__template__.__schema__.cascadeSave && !txn)
-                PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
+                    // Record the the dirty object's id
                     (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
-                }.bind(this));
-        }
 
-        // Touch the top object if required so that if it will be modified and can be refereshed if needed
-        if (txn && txn.touchTop && obj.__template__.__schema__) {
-            var topObject = PersistObjectTemplate.getTopObject(obj);
-            if (topObject)
+                    if (explicitTxn) {
+                        // Potentially cascade to set other related objects as dirty
+                        var topObject = PersistObjectTemplate.getTopObject(obj);
+                        if (!topObject)
+                            console.log("Warning: setDirty called for " + obj.__id__ + " which is an orphan");
+                        if (topObject && topObject.__template__.__schema__.cascadeSave && !txn)
+                            PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
+                                (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+                            }.bind(this));
+                    }
+                }
+
+                // Touch the top object if required so that if it will be modified and can be refereshed if needed
+                if (txn && txn.touchTop && obj.__template__.__schema__) {
+                    var topObject = PersistObjectTemplate.getTopObject(obj);
+                    if (topObject)
                 txn.touchObjects[topObject.__id__] = topObject;
         }
     }

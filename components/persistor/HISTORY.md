@@ -1,3 +1,6 @@
+## 0.2.12
+* Added an isKnex method to template
+* Allow table to override forcing subclasses into parent tables
 ## 0.2.11
 * Fixed cascade save option 
 ## 0.2.09
