@@ -84,7 +84,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient);
+                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascadeTop, isTransient, null, this, properties);
 
         };
 
@@ -100,6 +100,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient) :
                 self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties);
+
 
         };
         object.refresh = function ()

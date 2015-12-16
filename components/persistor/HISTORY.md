@@ -1,3 +1,5 @@
+## 0.2.14
+* fixes to fetch
 ## 0.2.13
 * removed saved from object which was conflicting with application data
 * fixes to deleteFromPersistWithQuery
