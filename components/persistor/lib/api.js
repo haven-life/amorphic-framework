@@ -31,13 +31,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
                     .then (function (obj) {
                         if (txn)
-                            obj.saved(txn);
+                            PersistObjectTemplate.saved(obj ,txn);
                         return Q(obj._id.toString())
                     })
                 : PersistObjectTemplate.persistSaveKnex(object, txn)
                 .then (function (obj) {
                     if (txn)
-                        obj.saved(txn);
+                        PersistObjectTemplate.saved(obj ,txn);
                     return Q(obj._id.toString());
                 });
         };
@@ -57,10 +57,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         object.setDirty = function (txn) {
             this.__dirty__ = true;
             PersistObjectTemplate.setDirty(this, txn);
-        };
-        object.saved = function (txn) {
-            delete this['__dirty__'];
-            PersistObjectTemplate.saved(this, txn);
         };
         object.isDirty = function () {
             return this['__dirty__'] ? true : false
@@ -104,6 +100,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient) :
                 self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties);
+
         };
         object.refresh = function ()
         {
@@ -114,9 +111,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, {}, this, properties) :
                 self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, {}, null, null, this, properties);
         };
-        /*
-         PersistObjectTemplate.getTemplateFromMongoPOJO = function (pojo, template, promises, defineProperty, idMap, cascade, establishedObj, specificProperties, isTransient)
-         */
     };
     /**
      * PUBLIC INTERFACE FOR TEMPLATES
@@ -185,7 +179,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query) :
-                PersistObjectTemplate.deleteFromPersistWithKnexId(template, query);
+                PersistObjectTemplate.deleteFromPersistWithKnexQuery(template, query);
         };
 
         /**
@@ -403,7 +397,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             (function () {
                 var obj = dirtyObjects[id];
                 promises.push(obj.persistSave(txn).then(function () {
-                    obj.saved(txn);
+                   PersistObjectTemplate.saved(obj,txn);
                     somethingSaved = true;
                 }));
             })();

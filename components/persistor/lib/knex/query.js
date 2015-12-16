@@ -40,7 +40,7 @@ module.exports = function (PersistObjectTemplate) {
         var props = template.getProperties();
         var join = 1;
         for (var prop in props) {
-            if (props[prop].type && props[prop].type.__objectTemplate__) {
+            if (props[prop].type && props[prop].type.__objectTemplate__ && props[prop].type.__collection__) {
                 // Create the join spec with two keys
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                     throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");

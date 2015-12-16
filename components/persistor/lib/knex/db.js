@@ -284,8 +284,8 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.deleteFromKnexQuery = function (template, queryOrChains) {
 
-        var knex = this.getDB(this.getDBAlias(templates.__collection__)).connection(tableName);
         var tableName = this.dealias(template.__collection__);
+        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection(tableName);
 
         // execute callback to chain on filter functions or convert mongo style filters
         if (typeof(queryOrChains) == "function")

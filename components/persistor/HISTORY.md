@@ -1,3 +1,7 @@
+## 0.2.13
+* removed saved from object which was conflicting with application data
+* fixes to deleteFromPersistWithQuery
+* fixes to fetch
 ## 0.2.12
 * Added an isKnex method to template
 * Allow table to override forcing subclasses into parent tables
