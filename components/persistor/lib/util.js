@@ -54,6 +54,8 @@ module.exports = function (PersistObjectTemplate) {
         return traverse(obj);
 
         function traverse(obj) {
+            if (!obj)
+                return;
             idMap[obj.__id__] = obj;
             callback.call(null, obj)
             var props = obj.__template__.getProperties();

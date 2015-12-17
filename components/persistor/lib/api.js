@@ -370,15 +370,16 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             // Record the the dirty object's id
             (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
 
-            if (explicitTxn) {
+            if (explicitTxn && obj.__template__.__schema__.cascadeSave) {
                 // Potentially cascade to set other related objects as dirty
                 var topObject = PersistObjectTemplate.getTopObject(obj);
                 if (!topObject)
                     console.log("Warning: setDirty called for " + obj.__id__ + " which is an orphan");
-                if (topObject && topObject.__template__.__schema__.cascadeSave)
+                if (topObject && topObject.__template__.__schema__.cascadeSave) {
                     PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
                         (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
                     }.bind(this));
+                }
             }
         }
 
