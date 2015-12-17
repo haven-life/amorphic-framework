@@ -1,3 +1,5 @@
+## 0.2.16
+* Fixes to cascade save
 ## 0.2.14
 * fixes to fetch
 ## 0.2.13

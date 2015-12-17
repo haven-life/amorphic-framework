@@ -60,7 +60,7 @@ module.exports = function (PersistObjectTemplate) {
             _.map(props, function (defineProperty, prop) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
                     _.map(obj[prop], function (value) {
-                        if (!idMap[value.__id])
+                        if (!idMap[value.__id__])
                             traverse(value);
                     })
 

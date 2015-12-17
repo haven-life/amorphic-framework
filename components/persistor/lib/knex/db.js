@@ -437,7 +437,7 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                     table.text(foreignKey);
                 } else if (defineProperty.type === Number) {
-                    table.bigint(prop);
+                    table.float(prop);
                 } else if (defineProperty.type === Date) {
                     table.timestamp(prop);
                 } else if (defineProperty.type === Boolean) {
@@ -482,7 +482,7 @@ module.exports = function (PersistObjectTemplate) {
                 case 'Array':
                     return pgtype.indexOf('text') > -1;
                 case 'Number':
-                    return pgtype.indexOf('int') > -1;
+                    return pgtype.indexOf('real') > -1;
                 case 'Boolean':
                     return pgtype.indexOf('bool') > -1;
                 case 'Date':
@@ -569,7 +569,7 @@ module.exports = function (PersistObjectTemplate) {
                             var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                             table.text(foreignKey);
                         } else if (defineProperty.type === Number) {
-                            table.bigint(prop);
+                            table.float(prop);
                         } else if (defineProperty.type === Date) {
                             table.timestamp(prop);
                         } else if (defineProperty.type === Boolean) {

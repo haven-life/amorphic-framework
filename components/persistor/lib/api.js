@@ -354,38 +354,38 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
     PersistObjectTemplate.setDirty = function (obj, txn) {
 
-                var explicitTxn = txn;
-                if (!obj)
-                    return;
+        var explicitTxn = txn;
+        if (!obj)
+            return;
 
-                // Non persistent objects ignored
-                if (!obj.__template__.__schema__)
-                    return;
+        // Non persistent objects ignored
+        if (!obj.__template__.__schema__)
+            return;
 
-                // Use the current transaction if none passed
-                txn = txn || PersistObjectTemplate.currentTransaction || null;
+        // Use the current transaction if none passed
+        txn = txn || PersistObjectTemplate.currentTransaction || null;
 
-                if (this.__dirtyTracking__ != false) {
+        if (this.__dirtyTracking__ != false) {
 
-                    // Record the the dirty object's id
-                    (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+            // Record the the dirty object's id
+            (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
 
-                    if (explicitTxn) {
-                        // Potentially cascade to set other related objects as dirty
-                        var topObject = PersistObjectTemplate.getTopObject(obj);
-                        if (!topObject)
-                            console.log("Warning: setDirty called for " + obj.__id__ + " which is an orphan");
-                        if (topObject && topObject.__template__.__schema__.cascadeSave && !txn)
-                            PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
-                                (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
-                            }.bind(this));
-                    }
-                }
+            if (explicitTxn) {
+                // Potentially cascade to set other related objects as dirty
+                var topObject = PersistObjectTemplate.getTopObject(obj);
+                if (!topObject)
+                    console.log("Warning: setDirty called for " + obj.__id__ + " which is an orphan");
+                if (topObject && topObject.__template__.__schema__.cascadeSave)
+                    PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
+                        (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+                    }.bind(this));
+            }
+        }
 
-                // Touch the top object if required so that if it will be modified and can be refereshed if needed
-                if (txn && txn.touchTop && obj.__template__.__schema__) {
-                    var topObject = PersistObjectTemplate.getTopObject(obj);
-                    if (topObject)
+        // Touch the top object if required so that if it will be modified and can be refereshed if needed
+        if (txn && txn.touchTop && obj.__template__.__schema__) {
+            var topObject = PersistObjectTemplate.getTopObject(obj);
+            if (topObject)
                 txn.touchObjects[topObject.__id__] = topObject;
         }
     }
@@ -398,7 +398,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             (function () {
                 var obj = dirtyObjects[id];
                 promises.push(obj.persistSave(txn).then(function () {
-                   PersistObjectTemplate.saved(obj,txn);
+                    PersistObjectTemplate.saved(obj,txn);
                     somethingSaved = true;
                 }));
             })();
