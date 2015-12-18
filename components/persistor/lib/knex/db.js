@@ -326,7 +326,7 @@ module.exports = function (PersistObjectTemplate) {
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
-
+        //console.log((updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
         if (updateID)
             return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
@@ -342,13 +342,13 @@ module.exports = function (PersistObjectTemplate) {
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
+                console.log("update conflict on " + obj.__id__ + " looking for " + origVer);
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj)
                     txn.updateConflict =  true;
                 } else
                     throw new Error("Update Conflict");
-
             }
         }
 
@@ -364,6 +364,7 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template) {
+        var tableName = this.dealias(template.__collection__);
         (function (){
             while(template.__parent__)
                 template =  template.__parent__;
@@ -373,14 +374,13 @@ module.exports = function (PersistObjectTemplate) {
 
         var props = template.getProperties();
         var knex = this.getDB(this.getDBAlias(template.__collection__)).connection
-        var tableName = this.dealias(template.__collection__);
         var schema = template.__schema__;
         var _newFields = {};
         var _cacheIndex = [];
         return Q().then(function(){
             return knex.schema.hasTable(tableName).then(function (exists) {
                 if (!exists) {
-                    return PersistObjectTemplate.createKnexTable(template);
+                    return PersistObjectTemplate.createKnexTable(template, tableName);
                 }
                 else {
                     return discoverColumns(tableName).then(function () {
@@ -509,15 +509,16 @@ module.exports = function (PersistObjectTemplate) {
      * @param template
      * @returns {*}
      */
-    PersistObjectTemplate.createKnexTable = function (template) {
+    PersistObjectTemplate.createKnexTable = function (template, collection) {
+        var collection = collection || template.__collection__;
         (function (){
             while(template.__parent__)
                 template =  template.__parent__;
         })();
 
         var props = template.getProperties();
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection
-        var tableName = this.dealias(template.__collection__);
+        var knex = this.getDB(this.getDBAlias(collection)).connection
+        var tableName = this.dealias(collection);
         var _cacheIndex = [];
 
         return knex.schema.createTable(tableName, createColumns.bind(this));

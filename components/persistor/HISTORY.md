@@ -1,3 +1,5 @@
+## 0.2.18
+* was attempting to join relations in local references
 ## 0.2.17
 * More fixes to cascade save
 ## 0.2.16
