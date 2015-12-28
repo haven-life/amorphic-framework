@@ -1,3 +1,5 @@
+## 0.2.20
+* Updated boolean handling
 ## 0.2.18
 * was attempting to join relations in local references
 ## 0.2.17
