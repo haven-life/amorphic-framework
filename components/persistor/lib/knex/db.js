@@ -117,16 +117,16 @@ module.exports = function (PersistObjectTemplate) {
 
 //console.log("Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains));
 
-        var tableName = this.dealias(template.__collection__);
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection(tableName);
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
 
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
         var select = knex.select(getColumnNames.bind(this)()).from(tableName);
         joins.forEach(function (join) {
-            select = select.leftOuterJoin(this.dealias(join.template.__collection__) + " as " + join.alias,
+            select = select.leftOuterJoin(this.dealias(join.template.__table__) + " as " + join.alias,
                 join.alias + "." + join.parentKey,
-                this.dealias(template.__collection__) + "." + join.childKey);
+                this.dealias(template.__table__) + "." + join.childKey);
         }.bind(this));
 
         // execute callback to chain on filter functions or convert mongo style filters
@@ -169,9 +169,9 @@ module.exports = function (PersistObjectTemplate) {
         function getColumnNames() {
             var cols = [];
             var self = this;
-            asStandard(template, this.dealias(template.__collection__));
+            asStandard(template, this.dealias(template.__table__));
             _.each(template.getProperties(), function (defineProperties, prop) {
-                as(template, this.dealias(template.__collection__), prop, defineProperties)
+                as(template, this.dealias(template.__table__), prop, defineProperties)
             }.bind(this));
             _.each(joins, function (join) {
                 asStandard(join.template, join.alias);
@@ -192,7 +192,7 @@ module.exports = function (PersistObjectTemplate) {
                 var of = defineProperty.of;
                 if (!self._persistProperty(defineProperty) || !defineProperty.enumerable)
                     return;
-                if (type == Array && of.__collection__) {
+                if (type == Array && of.__table__) {
                     return;
                 } else if (type.isObjectTemplate) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
@@ -212,8 +212,8 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.countFromKnexQuery = function (template, queryOrChains) {
 
-        var tableName = this.dealias(template.__collection__);
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection(tableName);
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         // execute callback to chain on filter functions or convert mongo style filters
         if (typeof(queryOrChains) == "function")
             queryOrChains(knex);
@@ -233,8 +233,8 @@ module.exports = function (PersistObjectTemplate) {
      * @param queryOrChains
      */
     PersistObjectTemplate.checkForKnexTable = function (template) {
-        var tableName = this.dealias(template.__collection__);
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         return Q(knex.schema.hasTable(tableName));
     };
 
@@ -245,8 +245,8 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.checkForKnexColumnType = function(template, column) {
-        var tableName = this.dealias(template.__collection__);
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         return knex(tableName).columnInfo(column).then(function(column) {
             return column.type;
         });
@@ -259,8 +259,8 @@ module.exports = function (PersistObjectTemplate) {
      * @constructor
      */
     PersistObjectTemplate.DropIfKnexIndexExists = function (template, indexName) {
-        var tableName = this.dealias(template.__collection__)
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var tableName = this.dealias(template.__table__)
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         if (indexName.indexOf('idx_') === -1)
             indexName = 'idx_' + tableName + '_' + indexName;
 
@@ -284,8 +284,8 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.deleteFromKnexQuery = function (template, queryOrChains) {
 
-        var tableName = this.dealias(template.__collection__);
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection(tableName);
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
 
         // execute callback to chain on filter functions or convert mongo style filters
         if (typeof(queryOrChains) == "function")
@@ -306,8 +306,8 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.deleteFromKnexId = function (template, id) {
 
-        var tableName = this.dealias(template.__collection__);
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection(tableName);
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         return knex.where({_id: id}).delete();
     }
 
@@ -319,10 +319,10 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.saveKnexPojo = function (obj, pojo, updateID, txn) {
-        this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+        this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
         var origVer = obj.__version__;
-        var tableName = this.dealias(obj.__template__.__collection__);
-        var knex = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection(tableName);
+        var tableName = this.dealias(obj.__template__.__table__);
+        var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
@@ -353,7 +353,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function logSuccess() {
-            this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__ + " version " + obj.__version__, 'io');
+            this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__table__ + " version " + obj.__version__, 'io');
         }
     }
 
@@ -364,16 +364,16 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template) {
-        var tableName = this.dealias(template.__collection__);
+        var tableName = this.dealias(template.__table__);
         (function (){
             while(template.__parent__)
                 template =  template.__parent__;
         })();
-        if(!template.__collection__)
+        if(!template.__table__)
             throw new Error(template.__name__ + " is missing a schema entry");
 
         var props = template.getProperties();
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection
         var schema = template.__schema__;
         var _newFields = {};
         var _cacheIndex = [];
@@ -494,10 +494,10 @@ module.exports = function (PersistObjectTemplate) {
     }
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn) {
-        this.debug('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
-        console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
-        var tableName = this.dealias(obj.__template__.__collection__);
-        var knex = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection(tableName);
+        this.debug('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
+        console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
+        var tableName = this.dealias(obj.__template__.__table__);
+        var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         return knex
             .transacting(txn ? txn.knex : null)
             .where('_id', '=', obj._id)
@@ -510,7 +510,7 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.createKnexTable = function (template, collection) {
-        var collection = collection || template.__collection__;
+        var collection = collection || template.__table__;
         (function (){
             while(template.__parent__)
                 template =  template.__parent__;
@@ -603,8 +603,8 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.dropKnexTable = function (template) {
 
         var props = template.getProperties();
-        var knex = this.getDB(this.getDBAlias(template.__collection__)).connection
-        var tableName = this.dealias(template.__collection__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection
+        var tableName = this.dealias(template.__table__);
         var schema = template.__schema__;
 
         return Q(knex.schema.dropTableIfExists(tableName));

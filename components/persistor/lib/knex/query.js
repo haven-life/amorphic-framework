@@ -40,7 +40,7 @@ module.exports = function (PersistObjectTemplate) {
         var props = template.getProperties();
         var join = 1;
         for (var prop in props) {
-            if (this._persistProperty(props[prop]) && props[prop].type && props[prop].type.__objectTemplate__ && props[prop].type.__collection__) {
+            if (this._persistProperty(props[prop]) && props[prop].type && props[prop].type.__objectTemplate__ && props[prop].type.__table__) {
                 // Create the join spec with two keys
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                     throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");
@@ -50,7 +50,7 @@ module.exports = function (PersistObjectTemplate) {
                     template: props[prop].type,
                     parentKey: '_id',
                     childKey: foreignKey,
-                    alias: this.dealias(props[prop].type.__collection__) + join++
+                    alias: this.dealias(props[prop].type.__table__) + join++
                 });
             }
         }
@@ -73,7 +73,7 @@ module.exports = function (PersistObjectTemplate) {
             pojos.forEach(function (pojo) {
                 promises.push(
                     PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, promises, idMap, cascade, isTransient,
-                        null, establishedObject, null, this.dealias(template.__collection__) + '___', joins)
+                        null, establishedObject, null, this.dealias(template.__table__) + '___', joins)
                         .then(function (obj) {results.push(obj);return Q(obj)})
                 );
             }.bind(this));
@@ -156,7 +156,7 @@ module.exports = function (PersistObjectTemplate) {
             if (!type)
                 throw new Error(obj.__template__.__name__ + "." + prop + " has no type decleration");
 
-            if (type == Array && of.__collection__)
+            if (type == Array && of.__table__)
             {
                 if (!obj[prop])
                     obj[prop];

@@ -65,7 +65,7 @@ module.exports = function (PersistObjectTemplate) {
                     throw  new Error(templateName + "." + prop + " is an Array with no 'of' declaration");
 
                 // Arrays of Pojos just get saved
-                if (!defineProperty.of.__collection__) {
+                if (!defineProperty.of.__table__) {
                     pojo[prop] = value;
 
                 // Templated arrays we need to make sure their foreign keys are up-to-date

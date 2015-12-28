@@ -50,7 +50,9 @@ module.exports = function (PersistObjectTemplate) {
             var template = this.__dictionary__[templateName];
             if (template) {
                 template.__schema__ = this._schema[template.__name__];
-                template.__collection__ = template.__schema__ ? template.__schema__.table ||
+                template.__table__ = template.__schema__ ? template.__schema__.table ||
+                    template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                template.__collection__ = template.__schema__ ?
                     template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
                 var parentTemplate = template.__parent__;
                 while (parentTemplate) {
