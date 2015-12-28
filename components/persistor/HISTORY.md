@@ -1,3 +1,5 @@
+## 0.2.22
+* Inherit collection and table for subclasses with a schema
 ## 0.2.21
 * Use __table__ rather than __schema__ in knex to allow schema to be dual-purposed
 ## 0.2.20

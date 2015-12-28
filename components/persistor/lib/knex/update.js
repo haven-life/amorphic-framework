@@ -70,6 +70,8 @@ module.exports = function (PersistObjectTemplate) {
 
                 // Templated arrays we need to make sure their foreign keys are up-to-date
                 } else if (value instanceof Array) {
+                    if (!schema.children[prop])
+                        throw new Error("Missing children entry for " + prop + " in " + templateName);
                     var foreignKey = schema.children[prop].id;
                     value.forEach(function (referencedObj) {
                         if (!defineProperty.of.__schema__.parents)

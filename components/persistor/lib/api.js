@@ -127,6 +127,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         while(!template.__schema__ && parent)
             if (parent.__schema__) {
                 template.__schema__ = parent.__schema__;
+                template.__collection = parent.__collection__;
+                template.__table__ = parent.__table__;
                 if (!template.__schema__.table) // Allow table to govern subclasses
                     template.__collection__ = parent.__collection__;
                 template.__topTemplate = parent.__topTemplate__;
