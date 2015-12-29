@@ -136,7 +136,16 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             } else
                 parent = parent.__parent__;
 
-
+        // Process subsets
+        if (template.__schema__ && template.__schema__.subsetOf) {
+            var mainTemplate = this.__dictionary__[template.__schema__.subsetOf];
+            if (!mainTemplate)
+                throw new Error("Reference to subsetOf " + template.__schema__.subsetOf + " not found for " + template.__name__);
+            template.__subsetOf__ = template.__schema__.subsetOf
+            template.__schema__ = mainTemplate.__schema__;
+            template.__collection = mainTemplate.__collection__;
+            template.__table__ = mainTemplate.__table__;
+        }
         baseClassForPersist._injectIntoTemplate(template);
 
         /**
@@ -325,7 +334,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         return (obj.__template__ && obj.__template__.__schema__
                             ?  obj.persistSave(persistorTransaction)
                             : Promise.resolve(true))
-                    }.bind(this))
+                    }.bind(this),{concurrency: 10})
                 }
                 // Walk through the touched objects
                 function processTouches() {

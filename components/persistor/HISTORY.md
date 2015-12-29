@@ -1,3 +1,6 @@
+## 0.2.23
+* support for query objects using subsetOf in schema
+* clean up parent pointers on cascade save for the benefit of data conversions
 ## 0.2.22
 * Inherit collection and table for subclasses with a schema
 ## 0.2.21

@@ -53,7 +53,7 @@ module.exports = function (PersistObjectTemplate) {
         var idMap = {};
         return traverse(obj);
 
-        function traverse(obj) {
+        function traverse(obj, parentObj) {
             if (!obj)
                 return;
             idMap[obj.__id__] = obj;
@@ -63,11 +63,16 @@ module.exports = function (PersistObjectTemplate) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
                     _.map(obj[prop], function (value) {
                         if (!idMap[value.__id__])
-                            traverse(value);
+                            traverse(value, obj);
                     })
 
-                if (obj[prop] && defineProperty.type && defineProperty.type.isObjectTemplate && !idMap[obj[prop].__id__]) {
-                    traverse(obj[prop]);
+                if (defineProperty.type && defineProperty.type.isObjectTemplate) {
+                    if (obj[prop]) {
+                        if (!idMap[obj[prop].__id__])
+                            traverse(obj[prop], obj);
+                    } else if (parentObj && defineProperty.type == parentObj.__template__) {
+                        obj[prop] = parentObj;
+                    }
                 }
             });
         }
