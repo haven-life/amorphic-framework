@@ -533,6 +533,7 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
             obj[prop] = pojo[prop];
     }
 
+    propXfer('__changed__');
     propXfer('__version__');
     propXfer('__toServer__');
     propXfer('__toClient__');
@@ -657,9 +658,9 @@ ObjectTemplate._getDefineProperty = function(prop, template)
 {
     return	template && (template != Object) && template.defineProperties && template.defineProperties[prop] ?
         template.defineProperties[prop] :
-            template && template.parentTemplate ?
-        this._getDefineProperty(prop, template.parentTemplate) :
-        null;
+        template && template.parentTemplate ?
+            this._getDefineProperty(prop, template.parentTemplate) :
+            null;
 };
 /**
  * returns a hash of all properties including those inherited

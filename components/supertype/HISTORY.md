@@ -1,3 +1,5 @@
+## 0.1.39
+* restore __changed__ internal property
 ## 0.1.38
 * Allow replacer in toJSONSTring
 ## 0.1.37
