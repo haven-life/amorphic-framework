@@ -50,11 +50,15 @@ module.exports = function (PersistObjectTemplate) {
             var template = this.__dictionary__[templateName];
             if (template) {
                 template.__schema__ = this._schema[template.__name__];
-                template.__table__ = template.__schema__ ? template.__schema__.table ||
-                template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
                 template.__collection__ = template.__schema__ ?
-                template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                    template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                if (template.__schema__ && template.__schema__.table)
+                    template.__table__ = template.__schema__.table;
                 var parentTemplate = template.__parent__;
+
+                var defaultTable = template.__schema__ ? template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+
+                // Inherit foreign keys and tables from your parents
                 while (parentTemplate) {
                     var schema = parentTemplate.__schema__;
                     if (schema && schema.children) {
@@ -73,9 +77,12 @@ module.exports = function (PersistObjectTemplate) {
                         for (var key in schema.parents)
                             template.__schema__.parents[key] = schema.parents[key];
                     }
+
+                    var defaultTable = schema ? schema.documentOf || schema.subDocumentOf || parentTemplate.__name__ : defaultTable;
                     parentTemplate = parentTemplate.__parent__;
                 }
             }
+            template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
         }
 
     }

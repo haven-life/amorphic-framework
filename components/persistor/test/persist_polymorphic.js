@@ -597,8 +597,8 @@ describe('type mapping tests for parent/child relations', function () {
 
     it("When trying to create child table, system should create the parent table", function () {
         return PersistObjectTemplate.createKnexTable(ChildToCreate).then(function (status) {
-            return Q.all([PersistObjectTemplate.checkForKnexTable(ChildCreatesThisParent).should.eventually.equal(true),
-                PersistObjectTemplate.checkForKnexTable(ChildToCreate).should.eventually.equal(false)
+            return Q.all([PersistObjectTemplate.checkForKnexTable(ChildCreatesThisParent, 'ChildCreatesThisParent').should.eventually.equal(true),
+                PersistObjectTemplate.checkForKnexTable(ChildToCreate, 'ChildToCreate').should.eventually.equal(false)
             ]);
         })
     });

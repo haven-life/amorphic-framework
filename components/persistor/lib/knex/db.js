@@ -230,8 +230,8 @@ module.exports = function (PersistObjectTemplate) {
      * @param template
      * @param queryOrChains
      */
-    PersistObjectTemplate.checkForKnexTable = function (template) {
-        var tableName = this.dealias(template.__table__);
+    PersistObjectTemplate.checkForKnexTable = function (template, tableName) {
+        var tableName = tableName ? tableName : this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         return Q(knex.schema.hasTable(tableName));
     };
@@ -598,11 +598,11 @@ module.exports = function (PersistObjectTemplate) {
      * @param template
      * @returns {*}
      */
-    PersistObjectTemplate.dropKnexTable = function (template) {
+    PersistObjectTemplate.dropKnexTable = function (template, tableName) {
 
         var props = template.getProperties();
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection
-        var tableName = this.dealias(template.__table__);
+        var tableName = tableName ? tableName : this.dealias(template.__table__);
         var schema = template.__schema__;
 
         return Q(knex.schema.dropTableIfExists(tableName));

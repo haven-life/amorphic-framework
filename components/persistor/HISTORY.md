@@ -1,3 +1,5 @@
+## 0.2.25
+* Changed default table inheritence
 ## 0.2.24
 * Numerous changes around dirty tracking and foreign key handling
 ## 0.2.23
