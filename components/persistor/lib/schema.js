@@ -81,8 +81,8 @@ module.exports = function (PersistObjectTemplate) {
                     var defaultTable = schema ? schema.documentOf || schema.subDocumentOf || parentTemplate.__name__ : defaultTable;
                     parentTemplate = parentTemplate.__parent__;
                 }
+                template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
             }
-            template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
         }
 
     }
