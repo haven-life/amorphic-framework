@@ -115,8 +115,6 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options) {
 
-//console.log("Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains));
-
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
 
@@ -156,8 +154,8 @@ module.exports = function (PersistObjectTemplate) {
         var selectString = select.toSQL().sql;
         return select.then(processResults, processError);
         function processResults(res) {
-            //console.log("Processing Results for " + selectString)
-            //console.log('Returned ' + res.length + ' rows');
+            var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
+            console.log("Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains));
             return res;
         }
 
@@ -326,7 +324,7 @@ module.exports = function (PersistObjectTemplate) {
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
-        //console.log((updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
+        console.log((updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
         if (updateID)
             return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)

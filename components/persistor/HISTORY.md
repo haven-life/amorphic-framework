@@ -1,3 +1,5 @@
+## 0.2.24
+* Numerous changes around dirty tracking and foreign key handling
 ## 0.2.23
 * support for query objects using subsetOf in schema
 * clean up parent pointers on cascade save for the benefit of data conversions

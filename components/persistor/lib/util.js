@@ -14,6 +14,7 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.saved = function (obj, txn) {
         delete obj['__dirty__'];
+        delete obj['__changed__'];
         var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
         var savedObjects = txn ? txn.savedObjects : this.savedObjects;
         delete dirtyObjects[obj.__id__];
@@ -59,6 +60,7 @@ module.exports = function (PersistObjectTemplate) {
             idMap[obj.__id__] = obj;
             callback.call(null, obj)
             var props = obj.__template__.getProperties();
+            var fixups = {}
             _.map(props, function (defineProperty, prop) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
                     _.map(obj[prop], function (value) {
@@ -70,10 +72,17 @@ module.exports = function (PersistObjectTemplate) {
                     if (obj[prop]) {
                         if (!idMap[obj[prop].__id__])
                             traverse(obj[prop], obj);
+                        fixups[prop] = "filled";
                     } else if (parentObj && defineProperty.type == parentObj.__template__) {
-                        obj[prop] = parentObj;
+                        if (!fixups[prop])
+                            fixups[prop] = parentObj;
                     }
                 }
+            });
+            // Take care of children with no parent pointers
+            _.each(fixups, function(fixup, key) {
+                if (fixup != "filled")
+                    obj[key] = fixup;
             });
         }
     }

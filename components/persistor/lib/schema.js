@@ -51,9 +51,9 @@ module.exports = function (PersistObjectTemplate) {
             if (template) {
                 template.__schema__ = this._schema[template.__name__];
                 template.__table__ = template.__schema__ ? template.__schema__.table ||
-                    template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
                 template.__collection__ = template.__schema__ ?
-                    template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
                 var parentTemplate = template.__parent__;
                 while (parentTemplate) {
                     var schema = parentTemplate.__schema__;
@@ -91,13 +91,13 @@ module.exports = function (PersistObjectTemplate) {
         if (refType && refType.__name__ && !refType.__schema__  && this._persistProperty(defineProperty))
             throw new Error("Missing schema entry for " + refType.__name__);
 
-        var collection = template.__collection__;
+        var collection = template.__table__ || template.__collection__;
         var childrenRef = schema && schema.children && schema.children[prop];
         var parentsRef = schema && schema.parents && schema.parents[prop];
         var crossChildren = schema && schema.children && schema.children[prop]  && schema.children[prop].crossDocument;
         var crossParent = schema && schema.parents && schema.parents[prop] && schema.parents[prop].crossDocument;
-        return (of && of.__collection__ && ((of.__collection__ != collection) || (childrenRef && crossChildren))) ||
-            (type && type.__collection__ && ((type.__collection__ != collection) || (parentsRef && crossParent)));
+        return (of && of.__collection__ && (((of.__table__ || of.__collection__) != collection) || (childrenRef && crossChildren))) ||
+            (type && type.__collection__ && (((type.__table__ || type.__collection__) != collection) || (parentsRef && crossParent)));
 
     }
 

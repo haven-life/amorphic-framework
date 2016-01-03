@@ -21,7 +21,6 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.persistSaveKnex = function(obj, txn) {
 
         this.debug("Saving " + obj.__template__.__name__);
-
         this.checkObject(obj);
 
         var template = obj.__template__;
@@ -68,7 +67,7 @@ module.exports = function (PersistObjectTemplate) {
                 if (!defineProperty.of.__table__) {
                     pojo[prop] = value;
 
-                // Templated arrays we need to make sure their foreign keys are up-to-date
+                    // Templated arrays we need to make sure their foreign keys are up-to-date
                 } else if (value instanceof Array) {
                     if (!schema.children[prop])
                         throw new Error("Missing children entry for " + prop + " in " + templateName);
@@ -76,18 +75,18 @@ module.exports = function (PersistObjectTemplate) {
                     value.forEach(function (referencedObj) {
                         if (!defineProperty.of.__schema__.parents)
                             throw new Error("Missing parent entry in " + defineProperty.of.__name__ + " for " + templateName);
-                            _.each(defineProperty.of.__schema__.parents, function(value, key) {
-                                if (value.id == foreignKey) {
-                                    if(!referencedObj[key + 'Persistor'] || (referencedObj[key + 'Persistor'].id != obj._id)) {
-                                        referencedObj.setDirty(txn);
-                                    }
+                        _.each(defineProperty.of.__schema__.parents, function(value, key) {
+                            if (value.id == foreignKey) {
+                                if(!referencedObj[key + 'Persistor'] || (referencedObj[key + 'Persistor'].id != obj._id)) {
+                                    referencedObj.setDirty(txn, null, true);
                                 }
-                            })
+                            }
+                        })
                     });
                 }
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, isFetched: true});
 
-            // One-to-One
+                // One-to-One
             } else if (defineProperty.type && defineProperty.type.isObjectTemplate)
             {
                 // Make sure schema is in order
@@ -97,7 +96,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 if (!value._id) {
                     value._id = this.createPrimaryKey();
-                    value.setDirty();
+                    value.setDirty(txn, null, true);
                 }
 
                 pojo[foreignKey] =  value._id;
