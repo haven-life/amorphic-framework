@@ -1,3 +1,5 @@
+## 0.2.06
+* Changes to set __changed__ when setters fire
 ## 0.2.05
 * Don't pass in transaction to setDirty
 ## 0.1.33

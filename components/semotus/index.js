@@ -31,6 +31,7 @@ var RemoteObjectTemplate = ObjectTemplate._createObject();
 //RemoteObjectTemplate._useGettersSetters = typeof(window) == "undefined" ? true : (document.addEventListener ? true : false);
 RemoteObjectTemplate._useGettersSetters = typeof(window) == "undefined" ? true : false;
 RemoteObjectTemplate.role = (typeof(window) == "undefined") ? "server" : "client";
+RemoteObjectTemplate.__changeTracking__ = true; // Set __changed__ when setter fires
 
 /**************************** Public Interface **********************************/
 
@@ -615,8 +616,8 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
             var prop = propertyName; return function (value) {
                 if (this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
                     objectTemplate._changedValue(this, prop, value);
-                    if (typeof(objectTemplate.setDirty) == "function")
-                        objectTemplate.setDirty(this);
+                    if (objectTemplate.__changeTracking__)
+                        this.__changed__ = true;
                 }
                 this["__" + prop] = value;
             }
