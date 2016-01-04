@@ -1,4 +1,4 @@
-## 0.2.26
+## 0.2.27
 * Fixed change tracking
 ## 0.2.25
 * Changed default table inheritence
