@@ -461,7 +461,18 @@ describe("Banking from pgsql Example", function () {
             done(e)
         })
     });
-    it("can fetch a pojo", function () {
+    it("Can fetch transfers with $nin", function (done) {
+        Transaction.getFromPersistWithQuery({type: {$nin: ['debit', 'credit']}},{account: true, fromAccount: true}).then (function (transactions) {
+            expect(transactions.length).to.equal(2);
+            expect(transactions[0].type).to.equal('xfer');
+            expect(transactions[1].type).to.equal('xfer');
+            expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
+            expect(transactions[0].account.__template__.__name__).to.equal('Account');
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });    it("can fetch a pojo", function () {
         return PersistObjectTemplate.getPOJOFromQuery(Customer, {firstName: "Sam"}).then(function (pojo) {
             expect(pojo[0].firstName).to.equal("Sam");
         });

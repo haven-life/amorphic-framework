@@ -749,9 +749,13 @@ module.exports = function (PersistObjectTemplate) {
                             }];
                         })()
                     else if (subProp.toLowerCase() == '$nin')
-                        parms = [function () {
-                            this.whereNotIn(params[0], params[2])
-                        }];
+                        (function () {
+                            var attr = params[0];
+                            var values = params[2];
+                            params = [function () {
+                                this.whereNotIn(attr, values)
+                            }];
+                        })()
                     else
                         throw "Can't handle " + prop + ":" + JSON.stringify((value));
                 }

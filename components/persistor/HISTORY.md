@@ -1,3 +1,5 @@
+## 0.2.28
+* Fixed $nin conversion
 ## 0.2.27
 * Fixed change tracking
 ## 0.2.25
