@@ -440,6 +440,18 @@ describe("Banking from pgsql Example", function () {
             done(e)
         })
     });
+    it("Can find debits and credits with a regex", function (done) {
+        Transaction.getFromPersistWithQuery({type: {$regex: '^.*It$', $options: 'i'}}).then (function (transactions) {
+            expect(transactions.length).to.equal(4);
+            expect(transactions[0].type).to.not.equal('xfer');
+            expect(transactions[1].type).to.not.equal('xfer');
+            expect(transactions[2].type).to.not.equal('xfer');
+            expect(transactions[3].type).to.not.equal('xfer');
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
 
     it("Can fetch all transactions", function (done) {
         Transaction.getFromPersistWithQuery({}).then (function (transactions) {
@@ -481,10 +493,10 @@ describe("Banking from pgsql Example", function () {
         Transaction
             .getKnex()
             .select(["transaction.amount", "account.number"])
-            .from(Transaction.getTableName() + " as transaction")
-            .rightOuterJoin(Account.getTableName() + " as account",
-                Transaction.getTableName() + "." + Transaction.getParentKey('fromAccount'),
-                Account.getTableName() + "." + Account.getPrimaryKey())
+            .from(Transaction.getTableName("transaction"))
+            .rightOuterJoin(Account.getTableName("account"),
+                Transaction.getParentKey('fromAccount', 'transaction'),
+                Account.getPrimaryKey('account'))
             .then(processResults)
 
         function processResults(res) {

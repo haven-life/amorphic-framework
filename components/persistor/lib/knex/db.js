@@ -756,7 +756,10 @@ module.exports = function (PersistObjectTemplate) {
                                 this.whereNotIn(attr, values)
                             }];
                         })()
-                    else
+                    else if (subProp.toLowerCase() == '$regex') {
+                        params[1] = value.$options && value.$options.match(/i/) ? '~*' : '~';
+                        delete value['$options']
+                    } else
                         throw "Can't handle " + prop + ":" + JSON.stringify((value));
                 }
             return params;

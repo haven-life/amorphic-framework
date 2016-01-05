@@ -1,3 +1,6 @@
+## 0.2.30
+* Added alias to native knex support
+* Added limited regex support
 ## 0.2.29
 * Added native knex support
 ## 0.2.28

@@ -248,17 +248,17 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var tableName = PersistObjectTemplate.dealias(template.__table__);
             return PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__table__)).connection(tableName);
         }
-        template.getTableName = function () {
-           return PersistObjectTemplate.dealias(template.__table__);
+        template.getTableName = function (alias) {
+           return PersistObjectTemplate.dealias(template.__table__) + (alias ? ' as ' + alias : "");
         }
-        template.getParentKey = function (prop) {
-           return template.__schema__.parents[prop].id;
+        template.getParentKey = function (prop, alias) {
+           return (alias ? alias + '.'  : "") + template.__schema__.parents[prop].id;
         }
-        template.getChildKey = function (prop) {
-            return template.__schema__.children[prop].id;
+        template.getChildKey = function (prop, alias) {
+            return (alias ? alias + '.'  : "") + template.__schema__.children[prop].id;
         }
-        template.getPrimaryKey = function () {
-            return '_id';
+        template.getPrimaryKey = function (alias) {
+            return (alias ? alias + '.'  : "") + '_id';
         }
         // Add persistors to foreign key references
 
