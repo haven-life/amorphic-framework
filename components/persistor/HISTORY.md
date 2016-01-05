@@ -1,3 +1,5 @@
+## 0.2.29
+* Added native knex support
 ## 0.2.28
 * Fixed $nin conversion
 ## 0.2.27

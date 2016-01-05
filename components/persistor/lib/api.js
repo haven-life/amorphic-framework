@@ -244,7 +244,22 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return dbType != PersistObjectTemplate.DB_Mongo;
         };
-
+        template.getKnex = function () {
+            var tableName = PersistObjectTemplate.dealias(template.__table__);
+            return PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__table__)).connection(tableName);
+        }
+        template.getTableName = function () {
+           return PersistObjectTemplate.dealias(template.__table__);
+        }
+        template.getParentKey = function (prop) {
+           return template.__schema__.parents[prop].id;
+        }
+        template.getChildKey = function (prop) {
+            return template.__schema__.children[prop].id;
+        }
+        template.getPrimaryKey = function () {
+            return '_id';
+        }
         // Add persistors to foreign key references
 
         var props = template.defineProperties;
@@ -414,7 +429,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 txn.touchObjects[topObject.__id__] = topObject;
         }
     }
-
     PersistObjectTemplate.saveAll = function (txn) {
         var promises = [];
         var somethingSaved = false;

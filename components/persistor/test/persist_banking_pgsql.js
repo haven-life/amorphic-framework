@@ -477,7 +477,22 @@ describe("Banking from pgsql Example", function () {
             expect(pojo[0].firstName).to.equal("Sam");
         });
     });
+    it ("can go native", function (done) {
+        Transaction
+            .getKnex()
+            .select(["transaction.amount", "account.number"])
+            .from(Transaction.getTableName() + " as transaction")
+            .rightOuterJoin(Account.getTableName() + " as account",
+                Transaction.getTableName() + "." + Transaction.getParentKey('fromAccount'),
+                Account.getTableName() + "." + Account.getPrimaryKey())
+            .then(processResults)
 
+        function processResults(res) {
+            console.log(JSON.stringify(res))
+            expect(res[0].amount + res[1].amount).to.equal(150);
+            done();
+        }
+    });
 
     it("sam looks good", function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
