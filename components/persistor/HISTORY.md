@@ -1,3 +1,5 @@
+## 0.2.31
+* Support for native joins
 ## 0.2.30
 * Added alias to native knex support
 * Added limited regex support

@@ -239,26 +239,77 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     return res;
                 }.bind(this));
         };
-
+        /**
+         * Determine whether we are using knex on this table
+         * @returns {boolean}
+         */
         template.isKnex = function () {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return dbType != PersistObjectTemplate.DB_Mongo;
         };
+        /**
+         * Get a knex object that can be used to create native queries (e.g. template.getKnex().select().from())
+         * @returns {*}
+         */
         template.getKnex = function () {
             var tableName = PersistObjectTemplate.dealias(template.__table__);
             return PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__table__)).connection(tableName);
         }
+        /**
+         * Return knex table name for template for use in native queries
+         * @param alias
+         * @returns {string}
+         */
         template.getTableName = function (alias) {
            return PersistObjectTemplate.dealias(template.__table__) + (alias ? ' as ' + alias : "");
         }
+        /**
+         * Return the foreign key for a given parent property for use in native queries
+         * @param prop
+         * @param alias
+         * @returns {string}
+         */
         template.getParentKey = function (prop, alias) {
            return (alias ? alias + '.'  : "") + template.__schema__.parents[prop].id;
         }
+        /**
+         * Return the foreign key for a given child property for use in native queries
+         * @param prop
+         * @param alias
+         * @returns {string}
+         */
         template.getChildKey = function (prop, alias) {
             return (alias ? alias + '.'  : "") + template.__schema__.children[prop].id;
         }
+        /**
+         * Return '_id'
+         * @param alias
+         * @returns {string}
+         */
         template.getPrimaryKey = function (alias) {
             return (alias ? alias + '.'  : "") + '_id';
+        }
+        /**
+         * return an array of join parameters (e.g. .rightOuterJoin.apply(template.getKnex(), Transaction.knexChildJoin(...)))
+         * @param targetTemplate
+         * @param primaryAlias
+         * @param targetAlias
+         * @param joinKey
+         * @returns {*[]}
+         */
+        template.knexParentJoin = function (targetTemplate, primaryAlias, targetAlias, joinKey) {
+            return [template.getTableName(), targetTemplate.getParentKey(joinKey, targetAlias),template.getPrimaryKey(primaryAlias)];
+        }
+        /**
+         * return an array of join parameters (e.g. .rightOuterJoin.apply(template.getKnex(), Transaction.knexChildJoin(...)))
+         * @param targetTemplate
+         * @param primaryAlias
+         * @param targetAlias
+         * @param joinKey
+         * @returns {*[]}
+         */
+        template.knexChildJoin = function (targetTemplate, primaryAlias, targetAlias, joinKey) {
+            return [template.getTableName(), targetTemplate.getChildKey(joinKey, primaryAlias),targetTemplate.getPrimaryKey(targetAlias)];
         }
         // Add persistors to foreign key references
 

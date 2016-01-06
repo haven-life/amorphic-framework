@@ -489,7 +489,7 @@ describe("Banking from pgsql Example", function () {
             expect(pojo[0].firstName).to.equal("Sam");
         });
     });
-    it ("can go native", function (done) {
+    it ("can go native parent join", function (done) {
         Transaction
             .getKnex()
             .select(["transaction.amount", "account.number"])
@@ -505,6 +505,51 @@ describe("Banking from pgsql Example", function () {
             done();
         }
     });
+    it ("can go native child join", function (done) {
+        Transaction
+            .getKnex()
+            .select(["transaction.amount", "account.number"])
+            .from(Account.getTableName("account"))
+            .rightOuterJoin(Transaction.getTableName("transaction"),
+                Account.getChildKey('fromAccountTransactions', 'transaction'),
+                Account.getPrimaryKey('account'))
+            .then(processResults)
+
+        function processResults(res) {
+            console.log(JSON.stringify(res))
+            expect(res[0].amount + res[1].amount).to.equal(150);
+            done();
+        }
+    });
+    it ("can go native with apply parent", function (done) {
+        Transaction
+            .getKnex()
+            .select(["transaction.amount", "account.number"])
+            .from(Transaction.getTableName("transaction"))
+            .rightOuterJoin.apply(Transaction.getKnex(), Account.knexParentJoin(Transaction, "account", "transaction", "fromAccount"))
+            .then(processResults)
+
+        function processResults(res) {
+            console.log(JSON.stringify(res))
+            expect(res[0].amount + res[1].amount).to.equal(150);
+            done();
+        }
+    });
+    it ("can go native with apply child", function (done) {
+        Transaction
+            .getKnex()
+            .select(["transaction.amount", "account.number"])
+            .from(Transaction.getTableName("transaction"))
+            .rightOuterJoin.apply(Account.getKnex(), Transaction.knexChildJoin(Account, "transaction", "account", "fromAccountTransactions"))
+            .then(processResults)
+
+        function processResults(res) {
+            console.log(JSON.stringify(res))
+            expect(res[0].amount + res[1].amount).to.equal(150);
+            done();
+        }
+    });
+
 
     it("sam looks good", function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
