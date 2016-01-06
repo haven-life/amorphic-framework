@@ -1,3 +1,5 @@
+##
+* Superclasses now to fetch all columns
 ## 0.2.32
 * Support for native joins
 ## 0.2.30

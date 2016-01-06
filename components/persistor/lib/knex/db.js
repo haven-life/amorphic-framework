@@ -167,13 +167,19 @@ module.exports = function (PersistObjectTemplate) {
         function getColumnNames() {
             var cols = [];
             var self = this;
+
+            var topTemplate = template;
+            while(topTemplate.__parent__)
+                topTemplate = __parent__;
+            var allProperties = getPropsRecursive(topTemplate);
+
             asStandard(template, this.dealias(template.__table__));
-            _.each(template.getProperties(), function (defineProperties, prop) {
+            _.each(getPropsRecursive(template), function (defineProperties, prop) {
                 as(template, this.dealias(template.__table__), prop, defineProperties)
             }.bind(this));
             _.each(joins, function (join) {
                 asStandard(join.template, join.alias);
-                _.each(join.template.getProperties(), function (defineProperties, prop) {
+                _.each(getPropsRecursive(join.template), function (defineProperties, prop) {
                     as(join.template, join.alias, prop, defineProperties)
                 })
             }.bind(this));
@@ -194,10 +200,19 @@ module.exports = function (PersistObjectTemplate) {
                     return;
                 } else if (type.isObjectTemplate) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  new Error(of.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw  new Error(type.__template__.__name__ + "." + prop + " is missing a parents schema entry");
                     prop = schema.parents[prop].id;
                 }
                 cols.push(prefix + "." + prop + " as " + (prefix ? prefix + "___" : "") + prop);
+            }
+            function getPropsRecursive(template, map) {
+                map = map || {};
+                _.map(template.defineProperties, function (val, prop) {map[prop] = val});
+                template = template.__children__;
+                template.forEach(function(template){
+                    getPropsRecursive(template, map);
+                });
+                return map;
             }
         }
     }

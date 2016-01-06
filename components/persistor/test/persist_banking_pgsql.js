@@ -115,16 +115,16 @@ var Account = PersistObjectTemplate.create("Account", {
 	roles:      {type: Array, of: Role, value: [], fetch: true},
     address:    {type: Address},
     debit: function (amount) {
-       new Transaction(this, 'debit', amount);
+        new Debit(this, 'debit', amount);
     },
     credit: function (amount) {
-       new Transaction(this, 'credit', amount);
+        new Credit(this, 'credit', amount);
     },
     transferFrom: function (amount, fromAccount) {
-       new Transaction(this, 'xfer', amount, fromAccount)
+        new Xfer(this, 'xfer', amount, fromAccount)
     },
     transferTo: function (amount, toAccount) {
-       new Transaction(toAccount, 'xfer', amount, this);
+        new Xfer(toAccount, 'xfer', amount, this);
     },
     getBalance: function () {
         var balance = 0;
@@ -151,21 +151,35 @@ Address.mixin({
     account:  {type: Account}
 });
 var Transaction = PersistObjectTemplate.create("Transaction", {
-	init:       function (account, type, amount, fromAccount) {
-		this.account = account;
-		this.fromAccount = fromAccount;
-		this.type = type;
+    init:       function (account, type, amount) {
+        this.account = account;
+        this.type = type;
         this.amount = amount;
         if (account)
             account.transactions.push(this);
-		if (fromAccount)
-			fromAccount.fromAccountTransactions.push(this);
-        this.setDirty();
-	},
-	amount:     {type: Number},
-	type:       {type: String},
-	account:    {type: Account, fetch: true},
-	fromAccount: {type: Account, fetch: true}
+    },
+    amount:     {type: Number},
+    type:       {type: String},
+    account:    {type: Account, fetch: true},
+});
+var Debit = Transaction.extend("Debit", {
+    init:       function (account, type, amount) {
+        Transaction.call(this, account, type, amount);
+    }
+});
+var Credit = Transaction.extend("Credit", {
+    init:       function (account, type, amount) {
+        Transaction.call(this, account, type, amount);
+    }
+});
+var Xfer = Transaction.extend("Xfer", {
+    fromAccount: {type: Account, fetch: true},
+    init:       function (account, type, amount, fromAccount) {
+        this.fromAccount = fromAccount;
+        Transaction.call(this, account, type, amount);
+        if (fromAccount)
+            fromAccount.fromAccountTransactions.push(this);
+    }
 });
 
 Customer.mixin({
@@ -229,11 +243,20 @@ var schema = {
         }
     },
     Transaction: {
-        subDocumentOf: "pg/transaction",
+        documentOf: "pg/transaction",
         parents: {
             account: {id: 'account_id'},
             fromAccount: {id: 'from_account_id'}
         }
+    },
+    Xfer: {
+        documentOf: "pg/transaction"
+    },
+    Debit: {
+        documentOf: "pg/transaction"
+    },
+    Credit: {
+        documentOf: "pg/transaction"
     }
 }
 
