@@ -1,4 +1,4 @@
-## 0.2.31
+## 0.2.32
 * Support for native joins
 ## 0.2.30
 * Added alias to native knex support

@@ -298,7 +298,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {*[]}
          */
         template.knexParentJoin = function (targetTemplate, primaryAlias, targetAlias, joinKey) {
-            return [template.getTableName(), targetTemplate.getParentKey(joinKey, targetAlias),template.getPrimaryKey(primaryAlias)];
+            return [template.getTableName() + ' as ' + primaryAlias, targetTemplate.getParentKey(joinKey, targetAlias),template.getPrimaryKey(primaryAlias)];
         }
         /**
          * return an array of join parameters (e.g. .rightOuterJoin.apply(template.getKnex(), Transaction.knexChildJoin(...)))
@@ -309,7 +309,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {*[]}
          */
         template.knexChildJoin = function (targetTemplate, primaryAlias, targetAlias, joinKey) {
-            return [template.getTableName(), targetTemplate.getChildKey(joinKey, primaryAlias),targetTemplate.getPrimaryKey(targetAlias)];
+            return [template.getTableName() + ' as ' + primaryAlias, targetTemplate.getChildKey(joinKey, primaryAlias),targetTemplate.getPrimaryKey(targetAlias)];
         }
         // Add persistors to foreign key references
 
