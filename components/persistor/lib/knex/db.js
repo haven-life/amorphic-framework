@@ -170,7 +170,7 @@ module.exports = function (PersistObjectTemplate) {
 
             var topTemplate = template;
             while(topTemplate.__parent__)
-                topTemplate = __parent__;
+                topTemplate = topTemplate.__parent__;
             var allProperties = getPropsRecursive(topTemplate);
 
             asStandard(template, this.dealias(template.__table__));
