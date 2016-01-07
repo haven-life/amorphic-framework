@@ -139,9 +139,9 @@ module.exports = function (PersistObjectTemplate) {
      *
      * @param options
      */
-    PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query)
+    PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query, txn)
     {
-        return this.deleteFromKnexQuery(template, query);
+        return this.deleteFromKnexQuery(template, query, txn);
     }
 
     /**
@@ -149,9 +149,9 @@ module.exports = function (PersistObjectTemplate) {
      *
      * @param options
      */
-    PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id)
+    PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id, txn)
     {
-        return this.deleteFromKnexId(template, id);
+        return this.deleteFromKnexId(template, id, txn);
     }
 
 }

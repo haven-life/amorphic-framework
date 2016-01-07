@@ -160,7 +160,7 @@ var Transaction = PersistObjectTemplate.create("Transaction", {
     },
     amount:     {type: Number},
     type:       {type: String},
-    account:    {type: Account, fetch: true},
+    account:    {type: Account},
 });
 var Debit = Transaction.extend("Debit", {
     init:       function (account, type, amount) {
@@ -245,7 +245,7 @@ var schema = {
     Transaction: {
         documentOf: "pg/transaction",
         parents: {
-            account: {id: 'account_id'},
+            account: {id: 'account_id', fetch: true},
             fromAccount: {id: 'from_account_id'}
         }
     },
@@ -412,6 +412,16 @@ describe("Banking from pgsql Example", function () {
         Account.getFromPersistWithQuery(null,{address: true}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
+    it("Transactions have accounts fetched", function (done) {
+        Xfer.getFromPersistWithQuery({type: 'xfer'}).then (function (transactions) {
+            expect(transactions.length).to.equal(2);
+            expect(!!transactions[0].account._id).to.equal(true);
+            expect(!!transactions[1].account._id).to.equal(true);
             done();
         }).fail(function(e) {
             done(e)
@@ -758,18 +768,23 @@ describe("Banking from pgsql Example", function () {
 
     it("can delete", function (done) {
         Customer.getFromPersistWithQuery({},{roles: {fetch: {account: true}}}).then (function (customers) {
-            var promises = [];
-            customers.forEach(function(customer) {
-                customer.roles.forEach(function (role){
-                    var account = role.account;
-                    account.roles.forEach(function(role) {
-                        promises.push(role.persistDelete());
-                        promises.push(role.account.persistDelete());
-                    })
+            function deleteStuff(txn) {
+                var promises = [];
+                customers.forEach(function(customer) {
+                    customer.roles.forEach(function (role){
+                        var account = role.account;
+                        account.roles.forEach(function(role) {
+                            promises.push(role.persistDelete(txn));
+                            promises.push(role.account.persistDelete(txn));
+                        })
+                    });
+                    promises.push(customer.persistDelete());
                 });
-                promises.push(customer.persistDelete());
-            });
-            return Q.allSettled(promises).then (function () {
+                return Q.allSettled(promises);
+            }
+            var txn = PersistObjectTemplate.begin();
+            txn.preSave= deleteStuff;
+            return PersistObjectTemplate.end(txn).then (function () {
                 return Customer.countFromPersistWithQuery()
             }).then (function (count) {
                 expect(count).to.equal(0);

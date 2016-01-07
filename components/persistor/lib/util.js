@@ -54,24 +54,28 @@ module.exports = function (PersistObjectTemplate) {
         var idMap = {};
         return traverse(obj);
 
-        function traverse(obj, parentObj) {
+        function traverse(obj, parentObj, prop) {
             if (!obj)
                 return;
-            idMap[obj.__id__] = obj;
+            console.log((parentObj ? parentObj.__id__ + "-" : "top") + (prop ? prop : "") + "-" + obj.__id__);
             callback.call(null, obj)
             var props = obj.__template__.getProperties();
             var fixups = {}
             _.map(props, function (defineProperty, prop) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
-                    _.map(obj[prop], function (value) {
-                        if (!idMap[value.__id__])
-                            traverse(value, obj);
-                    })
+                    if (!idMap[obj.__id__ + "-" + prop]) {
+                        idMap[obj.__id__ + "-" + prop] = true;
+                        _.map(obj[prop], function (value) {
+                            traverse(value, obj, prop);
+                        })
+                    }
 
                 if (defineProperty.type && defineProperty.type.isObjectTemplate) {
                     if (obj[prop]) {
-                        if (!idMap[obj[prop].__id__])
-                            traverse(obj[prop], obj);
+                        if (!idMap[obj.__id__ + "-" + prop]) {
+                            idMap[obj.__id__ + "-" + prop] = true;
+                            traverse(obj[prop], obj, prop);
+                        }
                         fixups[prop] = "filled";
                     } else if (parentObj && defineProperty.type == parentObj.__template__) {
                         if (!fixups[prop])
@@ -79,6 +83,8 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
             });
+            if (obj.__id__.match(/income/i))
+                console.log("Filling in capitalNeeds " + obj.__id__);
             // Take care of children with no parent pointers
             _.each(fixups, function(fixup, key) {
                 if (fixup != "filled")

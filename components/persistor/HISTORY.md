@@ -1,3 +1,7 @@
+## 0.2.35
+* Fixed cascading saves on dirty
+* Fixed subclass properties on query 
+* Transaction support in delete
 ## 0.2.34
 * Superclasses now to fetch all columns
 ## 0.2.32

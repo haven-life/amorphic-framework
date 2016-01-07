@@ -50,8 +50,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 : PersistObjectTemplate.persistTouchKnex(object, txn);
         };
 
-        object.persistDelete = function () {
-            return this.__template__.deleteFromPersistWithId(this._id)
+        object.persistDelete = function (txn) {
+            return this.__template__.deleteFromPersistWithId(this._id, txn)
         };
 
         object.setDirty = function (txn, onlyIfChanged, noCascade) {
@@ -198,11 +198,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param query
          */
-        template.deleteFromPersistWithQuery = function(query) {
+        template.deleteFromPersistWithQuery = function(query, txn) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query) :
-                PersistObjectTemplate.deleteFromPersistWithKnexQuery(template, query);
+                PersistObjectTemplate.deleteFromPersistWithKnexQuery(template, query, txn);
         };
 
         /**
@@ -210,12 +210,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param id
          */
-        template.deleteFromPersistWithId = function(id) {
+        template.deleteFromPersistWithId = function(id, txn) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoId(template, id) :
-                PersistObjectTemplate.deleteFromPersistWithKnexId(template, id))
+                PersistObjectTemplate.deleteFromPersistWithKnexId(template, id, txn))
                 .then( function(res) {
                     PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;

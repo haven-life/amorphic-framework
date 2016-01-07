@@ -168,11 +168,6 @@ module.exports = function (PersistObjectTemplate) {
             var cols = [];
             var self = this;
 
-            var topTemplate = template;
-            while(topTemplate.__parent__)
-                topTemplate = topTemplate.__parent__;
-            var allProperties = getPropsRecursive(topTemplate);
-
             asStandard(template, this.dealias(template.__table__));
             _.each(getPropsRecursive(template), function (defineProperties, prop) {
                 as(template, this.dealias(template.__table__), prop, defineProperties)
@@ -200,21 +195,20 @@ module.exports = function (PersistObjectTemplate) {
                     return;
                 } else if (type.isObjectTemplate) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  new Error(type.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw  new Error(type.__name__ + "." + prop + " is missing a parents schema entry");
                     prop = schema.parents[prop].id;
                 }
                 cols.push(prefix + "." + prop + " as " + (prefix ? prefix + "___" : "") + prop);
             }
             function getPropsRecursive(template, map) {
                 map = map || {};
-                _.map(template.defineProperties, function (val, prop) {map[prop] = val});
+                _.map(template.getProperties(), function (val, prop) {map[prop] = val});
                 template = template.__children__;
                 template.forEach(function(template){
                     getPropsRecursive(template, map);
                 });
                 return map;
-            }
-        }
+            }        }
     }
     /**
      * Get the count of rows
@@ -295,10 +289,11 @@ module.exports = function (PersistObjectTemplate) {
 
      * @returns {*}
      */
-    PersistObjectTemplate.deleteFromKnexQuery = function (template, queryOrChains) {
+    PersistObjectTemplate.deleteFromKnexQuery = function (template, queryOrChains, txn) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
+        knex.transacting(txn ? txn.knex : null);
 
         // execute callback to chain on filter functions or convert mongo style filters
         if (typeof(queryOrChains) == "function")
@@ -317,10 +312,11 @@ module.exports = function (PersistObjectTemplate) {
 
      * @returns {*}
      */
-    PersistObjectTemplate.deleteFromKnexId = function (template, id) {
+    PersistObjectTemplate.deleteFromKnexId = function (template, id, txn) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
+        knex.transacting(txn ? txn.knex : null);
         return knex.where({_id: id}).delete();
     }
 
