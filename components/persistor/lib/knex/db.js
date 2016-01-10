@@ -19,6 +19,7 @@ module.exports = function (PersistObjectTemplate) {
         var schemaField = 'schema';
         var latestVersion = 1;
         this._schematracker = this._schematracker || {};
+        this._schemacache = {};
 
         var isSchemaUpdated = function(){
             return _.keys(this._schematracker.adds).length > 0 ||
@@ -373,7 +374,8 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template) {
-        var tableName = this.dealias(template.__table__);
+        var aliasedTableName = template.__table__;
+        var tableName = this.dealias(aliasedTableName);
         (function (){
             while(template.__parent__)
                 template =  template.__parent__;
@@ -385,7 +387,6 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection
         var schema = template.__schema__;
         var _newFields = {};
-        var _cacheIndex = [];
         return Q().then(function(){
             return knex.schema.hasTable(tableName).then(function (exists) {
                 if (!exists) {
@@ -409,13 +410,13 @@ module.exports = function (PersistObjectTemplate) {
                 _.map(this._schematracker[operation][tn], (function (object, key) {
                     var type = object.def.type;
                     var columns = object.def.columns;
-                    var name = 'idx_' + tableName + '_' + object.name
-                    if (!_.contains(_cacheIndex, name)) {
-                        _cacheIndex.push(name);
+                    var name = 'idx_' + tableName + '_' + object.name;
+                    if (!this._schemacache[name]) {
+                        this._schemacache[name] = true;
                         if (operation === 'add')
                             return table[type](columns, name);
                         else if (operation === 'dels')
-                            return table['drop' + type](name);
+                            return table['drop' + type.replace(/index/, 'Index')](name);
                         else
                             return table[type](columns, name);
                     }
@@ -460,15 +461,17 @@ module.exports = function (PersistObjectTemplate) {
         function discoverColumns(table) {
             return knex(table).columnInfo().then(function (info) {
                 for (var prop in props) {
-                    if (!info[propToColumnName(prop)]) {
-                        _newFields[prop] = props[prop];
-                    }
-                    else {
-                        if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
-                            throw new Error("changing types for the fields is not allowed, please use scripts to make these changes");
+                    var defineProperty = props[prop];
+                    if (PersistObjectTemplate._persistProperty(defineProperty)) {
+                        if (!info[propToColumnName(prop)]) {
+                            _newFields[prop] = props[prop];
+                        }
+                        else {
+                            if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
+                                throw new Error("changing types for the fields is not allowed, please use scripts to make these changes");
+                            }
                         }
                     }
-
                 }
             });
 

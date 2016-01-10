@@ -53,7 +53,7 @@ module.exports = function (PersistObjectTemplate) {
             if (template) {
                 template.__schema__ = this._schema[template.__name__];
                 template.__collection__ = template.__schema__ ?
-                    template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
                 if (template.__schema__ && template.__schema__.table)
                     template.__table__ = template.__schema__.table;
                 var parentTemplate = template.__parent__;
@@ -86,16 +86,21 @@ module.exports = function (PersistObjectTemplate) {
                 template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
             }
 
+
             for (var templateName in schema)
-                addFKIndexes(schema[templateName])
+                if (!(PersistObjectTemplate.__dictionary__[templateName] || {}).__parent__) {
+                    addFKIndexes(schema[templateName])
+                }
         }
         function addFKIndexes(schema) {
             if (!schema.noAutoIndex)
                 _.map(schema.parents, addIndex);
 
             function addIndex(val, prop) {
+                var keyName = "FK_" + prop;
                 schema.indexes = schema.indexes || [];
-                schema.indexes.push({name: "FK_" + prop, def: {columns: [val.id], type: "index"}});
+                if (!_.find(schema.indexes, function (s) {return s.name == keyName}))
+                    schema.indexes.push({name: keyName, def: {columns: [val.id], type: "index"}});
             }
         }
 
