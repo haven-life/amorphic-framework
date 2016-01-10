@@ -1,4 +1,4 @@
-## 0.2.36
+## 0.2.37
 * Handling of null values
 * Automatically index foreign keys
 ## 0.2.35

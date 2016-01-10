@@ -29,7 +29,6 @@ module.exports = function (PersistObjectTemplate) {
         // Establish a hash of collections keyed by collection name that has the main template for the collection
         var collections = {};
         for (var templateName in schema) {
-            addFKIndexes(schema[templateName])
             var template = this.getTemplateByName(templateName);
             if (template && schema[templateName].documentOf) {
 
@@ -86,6 +85,9 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
             }
+
+            for (var templateName in schema)
+                addFKIndexes(schema[templateName])
         }
         function addFKIndexes(schema) {
             if (!schema.noAutoIndex)
