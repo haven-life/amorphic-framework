@@ -253,10 +253,15 @@ module.exports = function (PersistObjectTemplate) {
                     if (type == Date)
                         obj[prop] = pojo[prefix + prop] ? new Date(pojo[prefix + prop] * 1) : null;
                     else if (type == Number)
-                        obj[prop] = pojo[prefix + prop] ? pojo[prefix + prop] * 1 : null;
+                        obj[prop] = (!pojo[prefix + prop] && pojo[prefix + prop] !== 0) ? null : pojo[prefix + prop] * 1;
                     else if (type == Object || type == Array)
-                        obj[prop] = pojo[prefix + prop] ? JSON.parse(pojo[prefix + prop]) : null;
-                    else
+                        try {
+                            obj[prop] = pojo[prefix + prop] ? JSON.parse(pojo[prefix + prop]) : null;
+                        } catch (e) {
+                            console.log("Error retrieving " + obj.__id__ + "." + prop + " -- " + e.message);
+                            obj[prop] = null;
+                        }
+                else
                         obj[prop] = pojo[prefix + prop];
                 }
 

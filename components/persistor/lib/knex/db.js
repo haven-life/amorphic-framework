@@ -389,7 +389,7 @@ module.exports = function (PersistObjectTemplate) {
         return Q().then(function(){
             return knex.schema.hasTable(tableName).then(function (exists) {
                 if (!exists) {
-                    return PersistObjectTemplate.createKnexTable(template, tableName);
+                    return PersistObjectTemplate.createKnexTable(template, template.__table__);
                 }
                 else {
                     return discoverColumns(tableName).then(function () {
@@ -397,7 +397,6 @@ module.exports = function (PersistObjectTemplate) {
                     }.bind(this));
                 }
             }.bind(this))}.bind(this));
-
 
         function synchronizeIndexes(table) {
             _.each(Object.getOwnPropertyNames(this._schematracker), function (key) {
@@ -770,6 +769,8 @@ module.exports = function (PersistObjectTemplate) {
                     else if (subProp.toLowerCase() == '$regex') {
                         params[1] = value.$options && value.$options.match(/i/) ? '~*' : '~';
                         delete value['$options']
+                        if (params[2] && params[2].source)
+                            params[2] = params[2].source;
                     } else
                         throw "Can't handle " + prop + ":" + JSON.stringify((value));
                 }

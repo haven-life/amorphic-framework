@@ -1,6 +1,8 @@
 module.exports = function (PersistObjectTemplate) {
 
     var Q = require('q');
+    var _ = require('underscore');
+
 
     PersistObjectTemplate.setSchema = function (schema) {
         this._schema = schema;
@@ -27,6 +29,7 @@ module.exports = function (PersistObjectTemplate) {
         // Establish a hash of collections keyed by collection name that has the main template for the collection
         var collections = {};
         for (var templateName in schema) {
+            addFKIndexes(schema[templateName])
             var template = this.getTemplateByName(templateName);
             if (template && schema[templateName].documentOf) {
 
@@ -82,6 +85,15 @@ module.exports = function (PersistObjectTemplate) {
                     parentTemplate = parentTemplate.__parent__;
                 }
                 template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
+            }
+        }
+        function addFKIndexes(schema) {
+            if (!schema.noAutoIndex)
+                _.map(schema.parents, addIndex);
+
+            function addIndex(val, prop) {
+                schema.indexes = schema.indexes || [];
+                schema.indexes.push({name: "FK_" + prop, def: {columns: [val.id], type: "index"}});
             }
         }
 

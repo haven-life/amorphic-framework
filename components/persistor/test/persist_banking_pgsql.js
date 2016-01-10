@@ -37,7 +37,10 @@ var Customer = PersistObjectTemplate.create("Customer", {
 	middleName: {type: String, value: "", length: 40, rule: "name"},
 	lastName:	{type: String, value: "", length: 40, rule: ["name", "required"]},
 	local1:      {type: String, persist: false, value: "local1"},
-	local2:      {type: String, isLocal: true, value: "local2"}
+	local2:      {type: String, isLocal: true, value: "local2"},
+    nullNumber:  {type: Number, value: null},
+    nullDate:    {type: Date, value: null},
+    nullString: {type: String, value: null}
 });
 var Address = PersistObjectTemplate.create("Address", {
 	init:       function (customer) {
@@ -279,7 +282,7 @@ function clearCollection(template) {
         collectionName = RegExp.$1;
         return PersistObjectTemplate.dropKnexTable(template)
         .then(function () {
-            return PersistObjectTemplate.createKnexTable(template).then(function(){return 0});
+            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(template).then(function(){return 0});
         });
     } else
         throw "Invalid collection name " + collectionName;
@@ -586,6 +589,9 @@ describe("Banking from pgsql Example", function () {
 
     it("sam looks good", function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
+            expect(customer.nullNumber).to.equal(null);
+            expect(customer.nullString).to.equal(null);
+            expect(customer.nullDate).to.equal(null);
             expect(customer.firstName).to.equal("Sam");
             expect(customer.local1).to.equal("local1");
             expect(customer.local2).to.equal("local2");

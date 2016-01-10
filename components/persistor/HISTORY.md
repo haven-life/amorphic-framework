@@ -1,3 +1,6 @@
+## 0.2.36
+* Handling of null values
+* Automatically index foreign keys
 ## 0.2.35
 * Fixed cascading saves on dirty
 * Fixed subclass properties on query 
