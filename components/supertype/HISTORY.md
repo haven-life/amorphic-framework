@@ -1,3 +1,5 @@
+## 0.1.40
+* support for getters and setters
 ## 0.1.39
 * restore __changed__ internal property
 ## 0.1.38

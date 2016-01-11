@@ -252,7 +252,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
 
     template.prototype = templatePrototype;
 
-    var createProperty = function (propertyName, propertyValue) {
+    var createProperty = function (propertyName, propertyValue, properties) {
         // record the initialization function
         if (propertyName == 'init' && typeof(propertyValue) == 'function') {
             functionProperties.init = propertyValue;
@@ -261,7 +261,8 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
             var defineProperty = null;	// defineProperty to be added to defineProperties
 
             // Determine the property value which may be a defineProperties structure or just an initial value
-            var type = (propertyValue == null) ? 'null' : typeof(propertyValue);
+            var descriptor = properties ? Object.getOwnPropertyDescriptor(properties, propertyName) : {};
+            var type = descriptor.get || descriptor.set ? 'getset' : ((propertyValue == null) ? 'null' : typeof(propertyValue));
             switch (type) {
 
                 // Figure out whether this is a defineProperty structure (has a constructor of object)
@@ -302,6 +303,10 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
                 case 'function':
                     templatePrototype[propertyName] = objectTemplate._setupFunction(propertyName, propertyValue);
                     break;
+
+                case 'getset': // getters and setters
+                    Object.defineProperty(templatePrototype, propertyName, descriptor);
+                    break;
             }
 
             // If a defineProperty to be added
@@ -314,7 +319,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     // objectProperties that have to be reinstantiated and attach functions to the prototype
     for (var propertyName in properties) {
         var propertyValue = properties[propertyName];
-        createProperty(propertyName, propertyValue);
+        createProperty(propertyName, propertyValue, properties);
     };
 
     template.defineProperties = defineProperties;
