@@ -134,6 +134,9 @@ module.exports = function (PersistObjectTemplate) {
 
             var schema = obj.__template__.__schema__;
             obj._id = pojo[prefix + '_id'];
+            // Eliminate recursive hunts
+            if (idMap[obj._id])
+                return Q(obj);
             idMap[obj._id] = obj;
             //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
             if (pojo[prefix + '__version__'])
@@ -261,7 +264,7 @@ module.exports = function (PersistObjectTemplate) {
                             console.log("Error retrieving " + obj.__id__ + "." + prop + " -- " + e.message);
                             obj[prop] = null;
                         }
-                else
+                    else
                         obj[prop] = pojo[prefix + prop];
                 }
 

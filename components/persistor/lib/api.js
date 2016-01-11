@@ -264,7 +264,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {string}
          */
         template.getTableName = function (alias) {
-           return PersistObjectTemplate.dealias(template.__table__) + (alias ? ' as ' + alias : "");
+            return PersistObjectTemplate.dealias(template.__table__) + (alias ? ' as ' + alias : "");
         }
         /**
          * Return the foreign key for a given parent property for use in native queries
@@ -273,7 +273,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {string}
          */
         template.getParentKey = function (prop, alias) {
-           return (alias ? alias + '.'  : "") + template.__schema__.parents[prop].id;
+            return (alias ? alias + '.'  : "") + template.__schema__.parents[prop].id;
         }
         /**
          * Return the foreign key for a given child property for use in native queries
@@ -471,17 +471,18 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 PersistObjectTemplate.enumerateDocumentObjects(PersistObjectTemplate.getTopObject(obj), function (obj) {
                     if (!onlyIfChanged || obj.__changed__) {
                         (txn ? txn.dirtyObjects : this.dirtyObjects)[obj.__id__] = obj;
+                        // Touch the top object if required so that if it will be modified and can be refereshed if needed
+                        if (txn && txn.touchTop && obj.__template__.__schema__) {
+                            var topObject = PersistObjectTemplate.getTopObject(obj);
+                            if (topObject)
+                                txn.touchObjects[topObject.__id__] = topObject;
+                        }
+
                     }
                 }.bind(this));
             }
         }
 
-        // Touch the top object if required so that if it will be modified and can be refereshed if needed
-        if (txn && txn.touchTop && obj.__template__.__schema__) {
-            var topObject = PersistObjectTemplate.getTopObject(obj);
-            if (topObject)
-                txn.touchObjects[topObject.__id__] = topObject;
-        }
     }
     PersistObjectTemplate.saveAll = function (txn) {
         var promises = [];

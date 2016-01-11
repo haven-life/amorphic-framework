@@ -82,13 +82,12 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
             });
-            if (obj.__id__.match(/income/i))
-                console.log("Filling in capitalNeeds " + obj.__id__);
             // Take care of children with no parent pointers
-            _.each(fixups, function(fixup, key) {
-                if (fixup != "filled")
-                    obj[key] = fixup;
-            });
+            if (PersistObjectTemplate.enableOrphanHookups)
+                _.each(fixups, function(fixup, key) {
+                    if (fixup != "filled")
+                        obj[key] = fixup;
+                });
         }
     }
 
