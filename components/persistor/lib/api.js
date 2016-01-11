@@ -54,11 +54,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             return this.__template__.deleteFromPersistWithId(this._id, txn)
         };
 
-        object.setDirty = function (txn, onlyIfChanged, noCascade) {
-            PersistObjectTemplate.setDirty(this, txn, onlyIfChanged, noCascade);
+        object.setDirty = function (txn, onlyIfChanged, cascade) {
+            PersistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade);
         };
-        object.cascadeSave = function () {
-            PersistObjectTemplate.setDirty(this, PersistObjectTemplate.currentTransaction, true, false);
+        object.cascadeSave = function (txn) {
+            PersistObjectTemplate.setDirty(this, txn || PersistObjectTemplate.currentTransaction, true, false);
         };
         object.isDirty = function () {
             return this['__dirty__'] ? true : false

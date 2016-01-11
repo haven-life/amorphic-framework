@@ -1,3 +1,5 @@
+## 0.2.46
+* SetDirty defaults to not cascade
 ## 0.2.45
 * You must set PersistObjectTemplate.enableOrphanHookups to set dangling parent pointers
 * Optimize not reprocessing duplicately fetched entities
