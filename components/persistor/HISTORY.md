@@ -1,4 +1,6 @@
-## 0.2.38
+## 0.2.40
+* object.cascadeSave
+## 0.2.39
 * Handling of null values
 * Automatically index foreign keys
 ## 0.2.35

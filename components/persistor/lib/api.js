@@ -57,6 +57,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         object.setDirty = function (txn, onlyIfChanged, noCascade) {
             PersistObjectTemplate.setDirty(this, txn, onlyIfChanged, noCascade);
         };
+        object.cascadeSave = function () {
+            PersistObjectTemplate.setDirty(this, PersistObjectTemplate.currentTransaction, true, false);
+        };
         object.isDirty = function () {
             return this['__dirty__'] ? true : false
         };

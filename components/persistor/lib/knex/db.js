@@ -52,9 +52,7 @@ module.exports = function (PersistObjectTemplate) {
             this._schematracker.adds = track.add;
 
             function _diff(masterSchema, shadowSchema, opr, addMissingTable, addPredicate, diffs) {
-                if (!shadowSchema)
-                    console.log("Opps");
-                return Object.keys(masterSchema).reduce(function (diffs, table) {
+                  return Object.keys(masterSchema).reduce(function (diffs, table) {
                     if (shadowSchema[table]) {
                         (masterSchema[table].indexes || []).forEach(function (mstIdx) {
                             var shdIdx = _.findWhere(shadowSchema[table].indexes, {name: mstIdx.name});
@@ -390,7 +388,7 @@ module.exports = function (PersistObjectTemplate) {
         return Q().then(function(){
             return knex.schema.hasTable(tableName).then(function (exists) {
                 if (!exists) {
-                    return PersistObjectTemplate.createKnexTable(template, template.__table__);
+                    return PersistObjectTemplate.createKnexTable(template, aliasedTableName);
                 }
                 else {
                     return discoverColumns(tableName).then(function () {
@@ -435,8 +433,6 @@ module.exports = function (PersistObjectTemplate) {
                 if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
                     continue;
 
-                if (prop.match(/Persistor/))
-                    console.log(JSON.stringify(defineProperty));
                 if (defineProperty.type === Array) {
                     if (!defineProperty.of.__objectTemplate__)
                         table.text(prop);
@@ -570,9 +566,7 @@ module.exports = function (PersistObjectTemplate) {
                         var defineProperty = props[prop];
                         if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
                             continue;
-                        if (prop.match(/Persistor/))
-                            console.log(JSON.stringify(defineProperty));
-                        if (defineProperty.type === Array) {
+                         if (defineProperty.type === Array) {
                             if (!defineProperty.of.__objectTemplate__)
                                 table.text(prop);
                         } else if (defineProperty.type.__objectTemplate__) {

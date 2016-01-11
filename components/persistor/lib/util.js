@@ -57,7 +57,6 @@ module.exports = function (PersistObjectTemplate) {
         function traverse(obj, parentObj, prop) {
             if (!obj)
                 return;
-            console.log((parentObj ? parentObj.__id__ + "-" : "top") + (prop ? prop : "") + "-" + obj.__id__);
             callback.call(null, obj)
             var props = obj.__template__.getProperties();
             var fixups = {}
