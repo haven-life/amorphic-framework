@@ -78,7 +78,7 @@ module.exports = function (PersistObjectTemplate) {
                         _.each(defineProperty.of.__schema__.parents, function(value, key) {
                             if (value.id == foreignKey) {
                                 if(!referencedObj[key + 'Persistor'] || (referencedObj[key + 'Persistor'].id != obj._id)) {
-                                    referencedObj.setDirty(txn, null, true);
+                                    referencedObj.setDirty(txn);
                                 }
                             }
                         })
@@ -96,7 +96,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 if (!value._id) {
                     value._id = this.createPrimaryKey();
-                    value.setDirty(txn, null, true);
+                    value.setDirty(txn);
                 }
 
                 pojo[foreignKey] =  value._id;
