@@ -176,7 +176,7 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                     var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
 
-                    if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch || obj[persistorPropertyName].isFetched)
+                    if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch || (obj[persistorPropertyName] && obj[persistorPropertyName].isFetched))
                     {
                         (function () {
 

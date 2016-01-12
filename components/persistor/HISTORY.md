@@ -1,3 +1,6 @@
+## 0.2.49
+* Remove from dirty list objects deleted in a transaction with object.persistDelete
+* Implemented pruneOrphans to ensure orphans in a one-to-many relationship disappear
 ## 0.2.48
 * Added support for filtered collections
 ## 0.2.47
@@ -5,6 +8,7 @@
 ## 0.2.45
 * You must set PersistObjectTemplate.enableOrphanHookups to set dangling parent pointers
 * Optimize not reprocessing duplicately fetched entities
+*** Note that this feature means you have to replicate fetch specs for all paths to an object
 * Correct touching of top object only for changed objects
 ## 0.2.40
 * object.cascadeSave

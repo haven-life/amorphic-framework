@@ -54,7 +54,7 @@ var Address = PersistObjectTemplate.create("Address", {
 	country:    {type: String, value: "US", length: 3}
 });
 Customer.mixin({
-    referredBy: {type: Customer, fetch: true},
+    referredBy: {type: Customer},
     referrers:  {type: Array, of: Customer, value: [], fetch: true},
 	addAddress: function(type, lines, city, state, zip) {
 		var address = new Address(this);
@@ -207,8 +207,8 @@ var schema = {
         children: {
             roles: {id: "customer_id"},
             referrers: {id: "referred_id"},
-            primaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'primary'}},
-            secondaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'secondary'}}
+            primaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'primary'}, pruneOrphans: true},
+            secondaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'secondary'}, pruneOrphans: true}
         },
         parents: {
             referredBy: {id: "referred_id"}
@@ -372,11 +372,10 @@ describe("Banking from pgsql Example", function () {
         sam.local2 = "bar";
 
         // Setup addresses
-        sam.addAddress("primary", ["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
+        sam.addAddress("primary", ["500 East 83", "Apt 1E"], "New York", "NY", "10028");
         sam.addAddress("secondary", ["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
-        sam.primaryAddresses[0].addReturnedMail(new Date());
-        sam.primaryAddresses[0].addReturnedMail(new Date());
+        sam.secondaryAddresses[0].addReturnedMail(new Date());
         sam.secondaryAddresses[0].addReturnedMail(new Date());
 
         karen.addAddress("primary", ["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
@@ -418,6 +417,41 @@ describe("Banking from pgsql Example", function () {
         Account.getFromPersistWithQuery(null,{address: true}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
+    it("Customers have addresses", function (done) {
+        Customer.getFromPersistWithQuery(null, {primaryAddresses: true, secondaryAddresses: true}).then (function (customers) {
+            expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
+            customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
+            customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
+    it("Accounts sloppily replace addresses", function (done) {
+        sam.primaryAddresses.splice(0, 1);
+        sam.addAddress("primary", ["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
+        Q()
+            .then(function () {
+                return sam.persistSave()
+            })
+            .then(function () {
+                return sam.primaryAddresses[0].persistSave()
+            })
+            .then(function (){done()})
+            .fail(function(e) {
+                done(e)
+            })
+    });
+    it("Customers have addresses", function (done) {
+        Customer.getFromPersistWithQuery(null, {primaryAddresses: true, secondaryAddresses: true}).then (function (customers) {
+            expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
+                customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
+                customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
             done();
         }).fail(function(e) {
             done(e)
@@ -610,8 +644,7 @@ describe("Banking from pgsql Example", function () {
                 expect(customer.secondaryAddresses[0].lines[0]).to.equal("38 Haggerty Hill Rd");
                 expect(customer.secondaryAddresses[0].customer).to.equal(customer);
 
-                expect(customer.primaryAddresses[0].returnedMail.length).to.equal(2);
-                expect(customer.secondaryAddresses[0].returnedMail.length).to.equal(1);
+                expect(customer.secondaryAddresses[0].returnedMail.length).to.equal(2);
 
                 var sam = customer;
                 var r1 = customer.referrers[0];

@@ -28,6 +28,7 @@ module.exports = function (PersistObjectTemplate) {
         var templateName = template.__name__;
         var isDocumentUpdate = obj.__version__ ? true : false;
         var props = template.getProperties();
+        var promises = [];
 
         obj._id = obj._id || this.createPrimaryKey();
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
@@ -90,7 +91,11 @@ module.exports = function (PersistObjectTemplate) {
                                 }
                             }
                         })
-                    });
+                        if (!referencedObj._id)
+                            referencedObj._id = this.createPrimaryKey();
+                    }.bind(this));
+                    if (schema.children[prop].pruneOrphans)
+                        promises.push(this.knexPruneOrphans(obj, prop, txn, foreignFilterKey, foreignFilterValue));
                 }
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, isFetched: true});
 
@@ -119,7 +124,8 @@ module.exports = function (PersistObjectTemplate) {
             }  else
                 pojo[prop] = obj[prop];
         }
-        return this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn)
+        promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn))
+        return Q.all(promises)
             .then (function (){return obj});
 
         function copyProps(obj) {

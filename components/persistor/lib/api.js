@@ -51,6 +51,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         object.persistDelete = function (txn) {
+            if (txn) {
+                delete txn.dirtyObjects[this.__id__];
+            }
             return this.__template__.deleteFromPersistWithId(this._id, txn)
         };
 
@@ -358,7 +361,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {{dirtyObjects: Array}}
      */
     PersistObjectTemplate.begin = function () {
-        var txn = {dirtyObjects: {}, savedObjects: {}, touchObjects: {}};
+        var txn = {id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}};
         this.currentTransaction = txn;
         return txn;
     }
@@ -382,7 +385,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
                 Promise.resolve(
                     persistorTransaction.preSave
-                        ? persistorTransaction.preSave.call(persistorTransaction, knexTransaction)
+                        ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction)
                         : true
                     )
                     .then(processSaves.bind(this))

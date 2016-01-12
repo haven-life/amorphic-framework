@@ -302,6 +302,27 @@ module.exports = function (PersistObjectTemplate) {
 
         return knex.delete();
     }
+    PersistObjectTemplate.knexPruneOrphans = function (obj, property, txn, filterKey, filterValue) {
+
+        var template= obj.__template__;
+        var defineProperty = template.getProperties()[property]
+        var tableName = this.dealias(defineProperty.of.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
+        knex.transacting(txn ? txn.knex : null);
+        var foreignKey = template.__schema__.children[property].id;
+        var goodList = []
+        _.each(obj[property], function(o) {
+            if (o._id)
+                goodList.push(o._id);
+        });
+        knex = (goodList.length > 0 ? knex.whereNotIn('_id', goodList) : knex)
+        knex = knex.andWhere(foreignKey, obj._id)
+        knex = (filterKey ? knex.andWhere(filterKey, filterValue) : knex);
+        knex = knex.delete();
+
+        console.log(knex.toSQL().sql + " ? = " + (filterValue || "") + " ? = " + obj._id + " ? = " + goodList.join(","))
+        return knex;
+    }
 
     /**
      * Delete a Row
@@ -334,7 +355,7 @@ module.exports = function (PersistObjectTemplate) {
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
-        console.log((updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
+        console.log(txn ? txn.id : '-#-', (updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
         if (updateID)
             return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
@@ -350,7 +371,7 @@ module.exports = function (PersistObjectTemplate) {
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                console.log("update conflict on " + obj.__id__ + " looking for " + origVer);
+                console.log(txn ? txn.id : '-#-', "update conflict on " + obj.__id__ + " looking for " + origVer);
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj)
