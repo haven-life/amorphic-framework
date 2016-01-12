@@ -72,12 +72,20 @@ module.exports = function (PersistObjectTemplate) {
                     if (!schema.children[prop])
                         throw new Error("Missing children entry for " + prop + " in " + templateName);
                     var foreignKey = schema.children[prop].id;
+                    if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
+                        throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
+                    var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
+                    var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                     value.forEach(function (referencedObj) {
                         if (!defineProperty.of.__schema__.parents)
                             throw new Error("Missing parent entry in " + defineProperty.of.__name__ + " for " + templateName);
                         _.each(defineProperty.of.__schema__.parents, function(value, key) {
                             if (value.id == foreignKey) {
-                                if(!referencedObj[key + 'Persistor'] || (referencedObj[key + 'Persistor'].id != obj._id)) {
+                                // If the persistor property has not been setup then set it dirty so it will be filled in
+                                if(!referencedObj[key + 'Persistor'] || referencedObj[key + 'Persistor'].id != obj._id ||
+                                    (foreignFilterKey ? referencedObj[foreignFilterKey] != foreignFilterValue : false)) {
+                                    if (foreignFilterKey)
+                                        referencedObj[foreignFilterKey] = foreignFilterValue;
                                     referencedObj.setDirty(txn);
                                 }
                             }

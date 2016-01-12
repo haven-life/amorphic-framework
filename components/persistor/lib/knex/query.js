@@ -171,6 +171,11 @@ module.exports = function (PersistObjectTemplate) {
                         obj[prop];
                     if(!schema || !schema.children || !schema.children[prop])
                         throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
+                    if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
+                        throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
+                    var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
+                    var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
+
                     if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch || obj[persistorPropertyName].isFetched)
                     {
                         (function () {
@@ -180,6 +185,8 @@ module.exports = function (PersistObjectTemplate) {
                             var options = defineProperty.queryOptions || {sort: {_id: 1}};
                             var limit = options.limit || null;
                             query[schema.children[prop].id] = obj._id;
+                            if (foreignFilterKey)
+                                query[foreignFilterKey] = foreignFilterValue;
 
                             // Handle
                             var closureProp = prop;

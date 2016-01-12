@@ -56,16 +56,17 @@ var Address = PersistObjectTemplate.create("Address", {
 Customer.mixin({
     referredBy: {type: Customer, fetch: true},
     referrers:  {type: Array, of: Customer, value: [], fetch: true},
-	addAddress: function(lines, city, state, zip) {
+	addAddress: function(type, lines, city, state, zip) {
 		var address = new Address(this);
 		address.lines = lines;
 		address.city = city;
 		address.state = state;
 		address.postalCode = zip;
         address.customer = this;
-		this.addresses.push(address);
+		this[type == 'primary' ? 'primaryAddresses' : 'secondaryAddresses'].push(address);
 	},
-	addresses:  {type: Array, of: Address, value: [], fetch: true}
+	primaryAddresses:  {type: Array, of: Address, value: [], fetch: true},
+    secondaryAddresses:  {type: Array, of: Address, value: [], fetch: true}
     });
 var ReturnedMail = PersistObjectTemplate.create("ReturnedMail", {
     date: {type: Date},
@@ -79,6 +80,7 @@ var ReturnedMail = PersistObjectTemplate.create("ReturnedMail", {
 });
 Address.mixin({
     customer:  {type: Customer},
+    type: {type: String},
     returnedMail: {type: Array, of: ReturnedMail, value: []},
     addReturnedMail: function (date) {
         this.returnedMail.push(new ReturnedMail(this, date));
@@ -205,7 +207,8 @@ var schema = {
         children: {
             roles: {id: "customer_id"},
             referrers: {id: "referred_id"},
-            addresses: {id: "customer_id", fetch: true}
+            primaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'primary'}},
+            secondaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'secondary'}}
         },
         parents: {
             referredBy: {id: "referred_id"}
@@ -369,23 +372,23 @@ describe("Banking from pgsql Example", function () {
         sam.local2 = "bar";
 
         // Setup addresses
-        sam.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
-        sam.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
+        sam.addAddress("primary", ["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
+        sam.addAddress("secondary", ["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
-        sam.addresses[0].addReturnedMail(new Date());
-        sam.addresses[0].addReturnedMail(new Date());
-        sam.addresses[1].addReturnedMail(new Date());
+        sam.primaryAddresses[0].addReturnedMail(new Date());
+        sam.primaryAddresses[0].addReturnedMail(new Date());
+        sam.secondaryAddresses[0].addReturnedMail(new Date());
 
-        karen.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
-        karen.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
+        karen.addAddress("primary", ["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
+        karen.addAddress("secondary", ["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
 
-        karen.addresses[0].addReturnedMail(new Date());
+        karen.primaryAddresses[0].addReturnedMail(new Date());
 
-        ashling.addAddress(["End of the Road", ""], "Lexington", "KY", "34421");
+        ashling.addAddress("primary", ["End of the Road", ""], "Lexington", "KY", "34421");
 
         // Setup accounts
-        samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.addresses[0]);
-        jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
+        samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.primaryAddresses[0]);
+        jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.primaryAddresses[0]);
         jointAccount.addCustomer(karen, "joint");
         jointAccount.addCustomer(ashling, "joint");
 
@@ -603,12 +606,12 @@ describe("Banking from pgsql Example", function () {
             {
                 expect(customer.roles[1].account.number).to.equal(123);
                 expect(customer.roles[1].account.roles.length).to.equal(3);
-                expect(customer.addresses[0].lines[0]).to.equal("500 East 83d");
-                expect(customer.addresses[1].lines[0]).to.equal("38 Haggerty Hill Rd");
-                expect(customer.addresses[1].customer).to.equal(customer);
+                expect(customer.primaryAddresses[0].lines[0]).to.equal("500 East 83d");
+                expect(customer.secondaryAddresses[0].lines[0]).to.equal("38 Haggerty Hill Rd");
+                expect(customer.secondaryAddresses[0].customer).to.equal(customer);
 
-                expect(customer.addresses[0].returnedMail.length).to.equal(2);
-                expect(customer.addresses[1].returnedMail.length).to.equal(1);
+                expect(customer.primaryAddresses[0].returnedMail.length).to.equal(2);
+                expect(customer.secondaryAddresses[0].returnedMail.length).to.equal(1);
 
                 var sam = customer;
                 var r1 = customer.referrers[0];
@@ -652,13 +655,13 @@ describe("Banking from pgsql Example", function () {
 
     it("Can update addresses", function (done) {
         Customer.getFromPersistWithId(sam._id).then (function (customer) {
-            expect(customer.addresses[1].city).to.equal("Rhinebeck");
-            customer.addresses[1].city="Red Hook";
-            return customer.addresses[1].persistSave();
+            expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            customer.secondaryAddresses[0].city="Red Hook";
+            return customer.secondaryAddresses[0].persistSave();
         }).then(function () {
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
-            expect(customer.addresses[1].city).to.equal("Red Hook");
+            expect(customer.secondaryAddresses[0].city).to.equal("Red Hook");
             done();
         }).fail(function(e) {
             done(e)
@@ -670,14 +673,14 @@ describe("Banking from pgsql Example", function () {
         var isStale = false;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
-            expect(customer.addresses[1].city).to.equal("Red Hook");
-            return knex('address').where({'_id': customer.addresses[1]._id}).update({'__version__': 999});
+            expect(customer.secondaryAddresses[0].city).to.equal("Red Hook");
+            return knex('address').where({'_id': customer.secondaryAddresses[0]._id}).update({'__version__': 999});
         }).then(function () {
-            return customer.addresses[1].isStale()
+            return customer.secondaryAddresses[0].isStale()
         }).then(function(stale) {
             isStale = stale
-            customer.addresses[1].city="Red Hook";
-            return customer.addresses[1].persistSave();
+            customer.secondaryAddresses[0].city="Red Hook";
+            return customer.secondaryAddresses[0].persistSave();
         }).then(function () {
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
@@ -695,12 +698,12 @@ describe("Banking from pgsql Example", function () {
         this.dirtyCount = 0;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
-            expect(customer.addresses[1].city).to.equal("Red Hook");
-            customer.addresses[1].city="Rhinebeck";
-            customer.addresses[0].city="The Big Apple";
+            expect(customer.secondaryAddresses[0].city).to.equal("Red Hook");
+            customer.secondaryAddresses[0].city="Rhinebeck";
+            customer.primaryAddresses[0].city="The Big Apple";
             var txn = PersistObjectTemplate.begin();
-            customer.addresses[1].setDirty(txn);
-            customer.addresses[0].setDirty(txn);
+            customer.secondaryAddresses[0].setDirty(txn);
+            customer.primaryAddresses[0].setDirty(txn);
 
             txn.preSave=function () {preSave = true}
             txn.postSave=function (txn) {
@@ -710,8 +713,8 @@ describe("Banking from pgsql Example", function () {
         }).then(function () {
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
-            expect(customer.addresses[1].city).to.equal("Rhinebeck");
-            expect(customer.addresses[0].city).to.equal("The Big Apple");
+            expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             expect(preSave).to.equal(true);
             expect(this.dirtyCount).to.equal(2);
             done();
@@ -724,21 +727,21 @@ describe("Banking from pgsql Example", function () {
         var txn;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
-            expect(customer.addresses[1].city).to.equal("Rhinebeck");
-            customer.addresses[1].city="Red Hook";
-            customer.addresses[0].city="New York";
+            expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            customer.secondaryAddresses[0].city="Red Hook";
+            customer.primaryAddresses[0].city="New York";
             txn = PersistObjectTemplate.begin();
-            customer.addresses[1].setDirty(txn);
-            customer.addresses[0].setDirty(txn);
-            return knex('address').where({'_id': customer.addresses[1]._id}).update({'__version__': 999});
+            customer.secondaryAddresses[0].setDirty(txn);
+            customer.primaryAddresses[0].setDirty(txn);
+            return knex('address').where({'_id': customer.secondaryAddresses[0]._id}).update({'__version__': 999});
         }).then(function () {
             return PersistObjectTemplate.end(txn);
         }).catch(function (e) {
             expect(e.message).to.equal("Update Conflict");
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
-            expect(customer.addresses[1].city).to.equal("Rhinebeck");
-            expect(customer.addresses[0].city).to.equal("The Big Apple");
+            expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             done();
         }).fail(function(e) {
             done(e)
@@ -750,21 +753,21 @@ describe("Banking from pgsql Example", function () {
         var txn;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
-            expect(customer.addresses[1].city).to.equal("Rhinebeck");
-            customer.addresses[1].city="Red Hook";
-            customer.addresses[0].city="New York";
+            expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            customer.secondaryAddresses[0].city="Red Hook";
+            customer.primaryAddresses[0].city="New York";
             txn = PersistObjectTemplate.begin();
-            customer.addresses[1].setDirty(txn);
-            customer.addresses[0].setDirty(txn);
-            return knex('address').where({'_id': customer.addresses[0]._id}).update({'__version__': 999});
+            customer.secondaryAddresses[0].setDirty(txn);
+            customer.primaryAddresses[0].setDirty(txn);
+            return knex('address').where({'_id': customer.primaryAddresses[0]._id}).update({'__version__': 999});
         }).then(function () {
             return PersistObjectTemplate.end(txn);
         }).catch(function (e) {
             expect(e.message).to.equal("Update Conflict");
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
-            expect(customer.addresses[1].city).to.equal("Rhinebeck");
-            expect(customer.addresses[0].city).to.equal("The Big Apple");
+            expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             done();
         }).fail(function(e) {
             done(e)

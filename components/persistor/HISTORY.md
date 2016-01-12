@@ -1,3 +1,5 @@
+## 0.2.48
+* Added support for filtered collections
 ## 0.2.47
 * SetDirty defaults to not cascade
 ## 0.2.45
