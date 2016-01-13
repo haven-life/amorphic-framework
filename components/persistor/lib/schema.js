@@ -107,6 +107,9 @@ module.exports = function (PersistObjectTemplate) {
     }
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {
+        // With knex everything is cross doc
+        if (template.isKnex())
+            return true;
         var schema = template.__schema__;
         var type = defineProperty.type;
         var of = defineProperty.of;

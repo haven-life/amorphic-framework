@@ -1,3 +1,6 @@
+## 0.2.50
+* self-referential entities not getting a persistor (still needs to be addressed in amorphic)
+* changed the way recursive fetches protects against infinite recursion so fetch specs fully honored
 ## 0.2.49
 * Remove from dirty list objects deleted in a transaction with object.persistDelete
 * Implemented pruneOrphans to ensure orphans in a one-to-many relationship disappear

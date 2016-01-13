@@ -134,9 +134,7 @@ module.exports = function (PersistObjectTemplate) {
 
             var schema = obj.__template__.__schema__;
             obj._id = pojo[prefix + '_id'];
-            // Eliminate recursive hunts
-            if (idMap[obj._id])
-                return Q(obj);
+
             idMap[obj._id] = obj;
             //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
             if (pojo[prefix + '__version__'])
@@ -176,7 +174,8 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                     var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
 
-                    if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch || (obj[persistorPropertyName] && obj[persistorPropertyName].isFetched))
+                    if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch ||
+                        (obj[persistorPropertyName].isFetched && !obj[persistorPropertyName].isFetching))
                     {
                         (function () {
 
@@ -195,6 +194,7 @@ module.exports = function (PersistObjectTemplate) {
                                 (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
 
                             // Fetch sub-ordinate entities and convert to objects
+                            obj[persistorPropertyName].isFetching = true;
                             promises.push(this.getFromPersistWithKnexQuery(defineProperty.of, query, closureCascade, null, limit, isTransient, idMap, options, obj[prop])
                                 .then( function(objs) {
                                     obj[closureProp] = objs;
@@ -226,7 +226,8 @@ module.exports = function (PersistObjectTemplate) {
                             updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id:foreignId});
                         }
                     } else {
-                        if (originalForeignId || defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) {
+                        if ((originalForeignId || defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
+                            (!obj[persistorPropertyName].isFetching)) {
                             if (foreignId) {
                                 var query = {_id: foreignId};
                                 var options = {};
@@ -244,6 +245,7 @@ module.exports = function (PersistObjectTemplate) {
                                             this.getTemplateFromKnexPOJO(pojo, defineProperty.type, promises, idMap, closureCascade, isTransient, defineProperty,
                                                 obj[prop], null, join.alias + "___") : Q(true)) :
                                         this.getFromPersistWithKnexQuery(defineProperty.type, query, closureCascade, null, null, isTransient, idMap, {}, obj[prop]);
+                                    obj[persistorPropertyName].isFetching = true;
                                     promises.push(fetcher.then(function(objs) {
                                         obj[closureProp] = idMap[closureForeignId];
                                         if (obj[closurePersistorProp]) {
@@ -283,6 +285,7 @@ module.exports = function (PersistObjectTemplate) {
                     return newObj;
                 }
                 function updatePersistorProp(obj, prop, values) {
+                    values['isFetching'] = false;
                     if (!obj[prop])
                         obj[prop] = {};
                     var modified = false;

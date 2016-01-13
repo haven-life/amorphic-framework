@@ -366,9 +366,8 @@ describe("Banking from pgsql Example", function () {
         // Setup referrers
         sam.referrers = [ashling, karen];
         ashling.referredBy = sam;
-        karen.referredBy = sam;    sam.local1 = "foo";
-
-
+        karen.referredBy = sam;
+        sam.local1 = "foo";
         sam.local2 = "bar";
 
         // Setup addresses
@@ -624,7 +623,7 @@ describe("Banking from pgsql Example", function () {
     });
 
 
-    it("sam looks good", function (done) {
+    it("sam looks good on fresh fetch", function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
             expect(customer.nullNumber).to.equal(null);
             expect(customer.nullString).to.equal(null);
@@ -635,6 +634,42 @@ describe("Banking from pgsql Example", function () {
             expect(customer.roles[1].relationship).to.equal("primary");
             expect(customer.roles[1].customer).to.equal(customer);
             expect(customer.roles[1].accountPersistor.isFetched).to.equal(false);
+
+            return customer.roles[1].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then( function ()
+            {
+                expect(customer.roles[1].account.number).to.equal(123);
+                expect(customer.roles[1].account.roles.length).to.equal(3);
+                expect(customer.primaryAddresses[0].lines[0]).to.equal("500 East 83d");
+                expect(customer.secondaryAddresses[0].lines[0]).to.equal("38 Haggerty Hill Rd");
+                expect(customer.secondaryAddresses[0].customer).to.equal(customer);
+
+                expect(customer.secondaryAddresses[0].returnedMail.length).to.equal(2);
+
+                var sam = customer;
+                var r1 = customer.referrers[0];
+                var r2 = customer.referrers[1];
+                var karen = r1.firstName == "Karen" ? r1 : r2;
+                var ashling = r1.firstName == "Karen" ? r2 : r1;
+                expect(karen.firstName).to.equal("Karen");
+                expect(ashling.firstName).to.equal("Ashling");
+                done();
+            });
+        }).fail(function(e){
+            done(e)
+        });
+    });
+    it("sam looks good on refresh", function (done) {
+        sam.refresh().then (function () {
+            var customer = sam;
+            expect(customer.nullNumber).to.equal(null);
+            expect(customer.nullString).to.equal(null);
+            expect(customer.nullDate).to.equal(null);
+            expect(customer.firstName).to.equal("Sam");
+            expect(customer.local1).to.equal("foo");
+            expect(customer.local2).to.equal("bar");
+            expect(customer.roles[1].relationship).to.equal("primary");
+            expect(customer.roles[1].customer).to.equal(customer);
+            expect(customer.roles[1].accountPersistor.isFetched).to.equal(true); // because it was already fetched
 
             return customer.roles[1].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then( function ()
             {
