@@ -106,8 +106,22 @@ module.exports = function (PersistObjectTemplate) {
         var schema = obj.__template__.__schema__;
     }
 
-    PersistObjectTemplate.createPrimaryKey = function () {
-        return (new PersistObjectTemplate.ObjectID).toString();
+    PersistObjectTemplate.createPrimaryKey = function (obj) {
+        var key = (new PersistObjectTemplate.ObjectID).toString();
+        if (PersistObjectTemplate.objectMap)
+            PersistObjectTemplate.objectMap[key] = obj;
+        return key;
+    }
+
+    PersistObjectTemplate.getObjectId = function (template, pojo, prefix) {
+        if (PersistObjectTemplate.objectMap && PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()])
+            return PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()].__id__;
+        else
+            return 'persist' + template.__name__ + '-' + pojo[prefix + '_template'].replace(/.*:/,'') + "-" + pojo[prefix + '_id'].toString()
+    }
+
+    PersistObjectTemplate.getCachedObject = function (id) {
+        return (PersistObjectTemplate.objectMap || {})[id];
     }
 
     PersistObjectTemplate._persistProperty = function(defineProperty) {

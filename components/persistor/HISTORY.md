@@ -1,3 +1,7 @@
+## 0.2.52
+* Fixed some flaws in 2.50
+* Added support for PersistObjectTemplate.objectMap = {} to prevent object __id__ values from changing when refetched
+* Fixed refresh
 ## 0.2.50
 * self-referential entities not getting a persistor (still needs to be addressed in amorphic)
 * changed the way recursive fetches protects against infinite recursion so fetch specs fully honored

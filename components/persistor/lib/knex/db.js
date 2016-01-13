@@ -52,7 +52,7 @@ module.exports = function (PersistObjectTemplate) {
             this._schematracker.adds = track.add;
 
             function _diff(masterSchema, shadowSchema, opr, addMissingTable, addPredicate, diffs) {
-                  return Object.keys(masterSchema).reduce(function (diffs, table) {
+                return Object.keys(masterSchema).reduce(function (diffs, table) {
                     if (shadowSchema[table]) {
                         (masterSchema[table].indexes || []).forEach(function (mstIdx) {
                             var shdIdx = _.findWhere(shadowSchema[table].indexes, {name: mstIdx.name});
@@ -526,6 +526,7 @@ module.exports = function (PersistObjectTemplate) {
         console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
+        obj._id++;
         return knex
             .transacting(txn ? txn.knex : null)
             .where('_id', '=', obj._id)
@@ -587,7 +588,7 @@ module.exports = function (PersistObjectTemplate) {
                         var defineProperty = props[prop];
                         if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
                             continue;
-                         if (defineProperty.type === Array) {
+                        if (defineProperty.type === Array) {
                             if (!defineProperty.of.__objectTemplate__)
                                 table.text(prop);
                         } else if (defineProperty.type.__objectTemplate__) {

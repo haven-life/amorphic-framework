@@ -116,18 +116,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
         object.refresh = function ()
         {
-            var idMap = {};
-            var properties = this.__template__.getProperties();
-            var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
-            var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
-            PersistObjectTemplate.__changeTracking__ = false;
-            return (dbType == PersistObjectTemplate.DB_Mongo ?
-                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, {}, this, properties) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, {}, null, null, this, properties))
-                .then(function (res) {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
-                    return res;
-                })
+            return this.__template__.getFromPersistWithId(object._id, null, null, true)
         };
     };
     /**
@@ -168,13 +157,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param id
          */
-        template.getFromPersistWithId = function(id, cascade, isTransient, idMap) {
+        template.getFromPersistWithId = function(id, cascade, isTransient, idMap, isRefresh) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             PersistObjectTemplate.__changeTracking__ = false;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap) :
-                PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap))
+                PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh))
                 .then( function(res) {
                     PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;
@@ -326,7 +315,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var collection = template.__collection__;
             var of = defineProperty.of;
             var refType = of || type;
-            if (refType && refType.__schema__) {
+
+            if (refType && refType.isObjectTemplate && PersistObjectTemplate._persistProperty(defineProperty)) {
                 var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty)
                 if (isCrossDocRef || defineProperty.autoFetch) {
                     (function () {

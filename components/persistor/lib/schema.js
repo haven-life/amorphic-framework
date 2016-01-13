@@ -107,15 +107,14 @@ module.exports = function (PersistObjectTemplate) {
     }
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {
-        var schema = template.__schema__;
+        var schema = getSchema(template);
         var type = defineProperty.type;
         var of = defineProperty.of;
         var refType = of || type;
-        if (!schema)  // No schema no persistor
-            return false;
+        var refTypeSchema = getSchema(refType);
 
-        if (refType && refType.__name__ && !refType.__schema__  && this._persistProperty(defineProperty))
-            throw new Error("Missing schema entry for " + refType.__name__);
+        if (!schema || !refTypeSchema)  // No schema no persistor
+            return false;
 
         // With knex everything is cross doc
         if (template.isKnex())
@@ -129,6 +128,13 @@ module.exports = function (PersistObjectTemplate) {
         return (of && of.__collection__ && (((of.__table__ || of.__collection__) != collection) || (childrenRef && crossChildren))) ||
             (type && type.__collection__ && (((type.__table__ || type.__collection__) != collection) || (parentsRef && crossParent)));
 
+        function getSchema(template) {
+            if (!template)
+                return null;
+            while (!template.__schema__ && template.__parent__)
+                template = template.__parent__;
+            return template.__schema__;
+        }
     }
 
 }

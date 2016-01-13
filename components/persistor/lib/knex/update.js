@@ -30,7 +30,7 @@ module.exports = function (PersistObjectTemplate) {
         var props = template.getProperties();
         var promises = [];
 
-        obj._id = obj._id || this.createPrimaryKey();
+        obj._id = obj._id || this.createPrimaryKey(obj);
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
 
         /**
@@ -92,7 +92,7 @@ module.exports = function (PersistObjectTemplate) {
                             }
                         })
                         if (!referencedObj._id)
-                            referencedObj._id = this.createPrimaryKey();
+                            referencedObj._id = this.createPrimaryKey(referencedObj);
                     }.bind(this));
                     if (schema.children[prop].pruneOrphans)
                         promises.push(this.knexPruneOrphans(obj, prop, txn, foreignFilterKey, foreignFilterValue));
@@ -108,7 +108,7 @@ module.exports = function (PersistObjectTemplate) {
 
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 if (!value._id) {
-                    value._id = this.createPrimaryKey();
+                    value._id = this.createPrimaryKey(value);
                     value.setDirty(txn);
                 }
 
