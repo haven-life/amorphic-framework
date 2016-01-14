@@ -83,7 +83,8 @@ module.exports = function (PersistObjectTemplate) {
                         _.each(defineProperty.of.__schema__.parents, function(value, key) {
                             if (value.id == foreignKey) {
                                 // If the persistor property has not been setup then set it dirty so it will be filled in
-                                if(!referencedObj[key + 'Persistor'] || referencedObj[key + 'Persistor'].id != obj._id ||
+                                if(!referencedObj[key + 'Persistor'] || !referencedObj[key + 'Persistor'].id ||
+                                    referencedObj[key + 'Persistor'].id != obj._id ||
                                     (foreignFilterKey ? referencedObj[foreignFilterKey] != foreignFilterValue : false)) {
                                     if (foreignFilterKey)
                                         referencedObj[foreignFilterKey] = foreignFilterValue;

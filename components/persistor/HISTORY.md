@@ -1,3 +1,5 @@
+## 0.2.53
+* Nested dirty sets were not working
 ## 0.2.52
 * Fixed some flaws in 2.50
 * Added support for PersistObjectTemplate.objectMap = {} to prevent object __id__ values from changing when refetched

@@ -379,11 +379,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         : true
                     )
                     .then(processSaves.bind(this))
-                    .then(function () {
-                        // If more dirty object rinse and repeat
-                        if(_.toArray(dirtyObjects). length > 0)
-                            return processSaves.call(this);
-                    })
                     .then(processTouches.bind(this))
                     .then(function () {
 
@@ -409,8 +404,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         return (obj.__template__ && obj.__template__.__schema__
                             ?  obj.persistSave(persistorTransaction)
                             : Promise.resolve(true))
-                    }.bind(this),{concurrency: 10})
-                }
+                    }.bind(this),{concurrency: 10}).then (function () {
+                        if(_.toArray(dirtyObjects). length > 0)
+                            return processSaves.call(this);
+                    });
+
+                    }
                 // Walk through the touched objects
                 function processTouches() {
                     return Promise.map(_.toArray(touchObjects), function (obj) {

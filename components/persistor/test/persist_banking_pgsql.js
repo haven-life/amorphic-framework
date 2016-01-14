@@ -405,7 +405,11 @@ describe("Banking from pgsql Example", function () {
 
     it("can insert", function (done) {
         console.log("Can Insert");
-        PersistObjectTemplate.saveAll().then(function(id) {
+        PersistObjectTemplate.begin();
+        sam.setDirty();
+        ashling.setDirty();
+        karen.setDirty();
+        PersistObjectTemplate.end().then(function(id) {
             writing = false;
             console.log("Inserted");
             done();
