@@ -1,3 +1,5 @@
+## 0.1.41
+* fixed a problem where getters were getting called as templates were being defined
 ## 0.1.40
 * support for getters and setters
 ## 0.1.39

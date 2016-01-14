@@ -252,56 +252,62 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
 
     template.prototype = templatePrototype;
 
+
     var createProperty = function (propertyName, propertyValue, properties) {
+        if (!properties) {
+            properties = {};
+            properties[propertyName] = propertyValue;
+        }
+
         // record the initialization function
-        if (propertyName == 'init' && typeof(propertyValue) == 'function') {
-            functionProperties.init = propertyValue;
+        if (propertyName == 'init' && typeof(properties[propertyName]) == 'function') {
+            functionProperties.init = properties[propertyName];
         } else
         {
             var defineProperty = null;	// defineProperty to be added to defineProperties
 
             // Determine the property value which may be a defineProperties structure or just an initial value
             var descriptor = properties ? Object.getOwnPropertyDescriptor(properties, propertyName) : {};
-            var type = descriptor.get || descriptor.set ? 'getset' : ((propertyValue == null) ? 'null' : typeof(propertyValue));
+            var type = descriptor.get || descriptor.set ? 'getset' : ((properties[propertyName] == null) ? 'null' : typeof(properties[propertyName]));
             switch (type) {
 
                 // Figure out whether this is a defineProperty structure (has a constructor of object)
                 case 'object': // or array
                     // Handle remote function calls
-                    if (propertyValue.body && typeof(propertyValue.body) == "function") {
+                    if (properties[propertyName].body && typeof(properties[propertyName].body) == "function") {
                         templatePrototype[propertyName] =
-                            objectTemplate._setupFunction(propertyName, propertyValue.body, propertyValue.on, propertyValue.validate);
-                        if (propertyValue.type)
-                            templatePrototype[propertyName].__returns__ = propertyValue.type;
-                        if (propertyValue.of) {
-                            templatePrototype[propertyName].__returns__ = propertyValue.of;
+                            objectTemplate._setupFunction(propertyName, properties[propertyName].body, properties[propertyName].on, properties[propertyName].validate);
+                        if (properties[propertyName].type)
+                            templatePrototype[propertyName].__returns__ = properties[propertyName].type;
+                        if (properties[propertyName].of) {
+                            templatePrototype[propertyName].__returns__ = properties[propertyName].of;
                             templatePrototype[propertyName].__returnsarray__ = true;
                         }
                         break;
-                        //var origin = propertyValue.constructor.toString().replace(/^function */m,'').replace(/\(.*/m,'');
+                        //var origin = properties[propertyName].constructor.toString().replace(/^function */m,'').replace(/\(.*/m,'');
                         //if (origin.match(/^Object/)) { // A defineProperty type definition
-                    } else if (propertyValue.type) {
-                        defineProperty = propertyValue;
-                        propertyValue.writable = true;  // We are using setters
-                        if (typeof(propertyValue.enumerable) == 'undefined')
-                            propertyValue.enumerable = true;
+                    } else if (properties[propertyName].type) {
+                        defineProperty = properties[propertyName];
+                        properties[propertyName].writable = true;  // We are using setters
+                        if (typeof(properties[propertyName].enumerable) == 'undefined')
+                            properties[propertyName].enumerable = true;
                         break;
                     }
 
                 case 'string':
-                    defineProperty = {type: String, value: propertyValue, enumerable: true, writable: true, isLocal: true};
+                    defineProperty = {type: String, value: properties[propertyName], enumerable: true, writable: true, isLocal: true};
                     break;
 
                 case 'boolean':
-                    defineProperty = {type: Boolean, value: propertyValue, enumerable: true, writable: true, isLocal: true};
+                    defineProperty = {type: Boolean, value: properties[propertyName], enumerable: true, writable: true, isLocal: true};
                     break;
 
                 case 'number':
-                    defineProperty = {type: Number, value: propertyValue, enumerable: true, writable: true, isLocal: true};
+                    defineProperty = {type: Number, value: properties[propertyName], enumerable: true, writable: true, isLocal: true};
                     break;
 
                 case 'function':
-                    templatePrototype[propertyName] = objectTemplate._setupFunction(propertyName, propertyValue);
+                    templatePrototype[propertyName] = objectTemplate._setupFunction(propertyName, properties[propertyName]);
                     break;
 
                 case 'getset': // getters and setters
@@ -318,8 +324,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     // Walk through properties and construct the defineProperties hash of properties, the list of
     // objectProperties that have to be reinstantiated and attach functions to the prototype
     for (var propertyName in properties) {
-        var propertyValue = properties[propertyName];
-        createProperty(propertyName, propertyValue, properties);
+        createProperty(propertyName, null, properties);
     };
 
     template.defineProperties = defineProperties;
