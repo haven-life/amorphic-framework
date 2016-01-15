@@ -528,10 +528,29 @@ describe("Banking from pgsql Example", function () {
             done(e)
         })
     });
-
+    var transactionIds = [];
     it("Can fetch all transactions", function (done) {
-        Transaction.getFromPersistWithQuery({}).then (function (transactions) {
+        Transaction.getFromPersistWithQuery({}, null, null, null, null, null, {sort: {_id: 1}}).then (function (transactions) {
             expect(transactions.length).to.equal(6);
+            transactions.forEach(function(t){transactionIds.push(t._id)});
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
+    it("Can fetch the first transaction", function (done) {
+        Transaction.getFromPersistWithQuery({}, null, 0, 1, null, null, {sort: {_id: 1}}).then (function (transactions) {
+            expect(transactions.length).to.equal(1);
+            expect(transactions[0]._id).to.equal(transactionIds[0]);
+            done();
+        }).fail(function(e) {
+            done(e)
+        })
+    });
+    it("Can fetch the next to last transaction", function (done) {
+        Transaction.getFromPersistWithQuery({}, null, 4, 1, null, null, {sort: {_id: 1}}).then (function (transactions) {
+            expect(transactions.length).to.equal(1);
+            expect(transactions[0]._id).to.equal(transactionIds[4]);
             done();
         }).fail(function(e) {
             done(e)

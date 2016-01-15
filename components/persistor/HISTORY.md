@@ -1,3 +1,6 @@
+## 0.2.54
+* Preserve sort order which was broken
+* Added limit and offset
 ## 0.2.53
 * Nested dirty sets were not working
 ## 0.2.52

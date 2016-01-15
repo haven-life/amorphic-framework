@@ -144,11 +144,16 @@ module.exports = function (PersistObjectTemplate) {
                     descending.push(tableName + "." + key);
             });
             if (ascending.length)
-                select.orderBy(ascending);
+                select = select.orderBy(ascending);
             if (descending.length)
-                select.orderBy(descending, 'DESC');
-
+                select = select.orderBy(descending, 'DESC');
         }
+        if (options && options.limit) {
+            select = select.limit(options.limit)
+            select = select.offset(0)
+        }
+        if (options && options.offset)
+            select = select.offset(options.offset)
 
         var selectString = select.toSQL().sql;
         return select.then(processResults, processError);

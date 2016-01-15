@@ -58,6 +58,12 @@ module.exports = function (PersistObjectTemplate) {
                     });
             }
         }
+        options = options || {}
+        if (skip)
+            options.offset = skip;
+        if (limit)
+            options.limit = limit;
+
         return Q(true)
             .then(getPOJOsFromQuery)
             .then(getTemplatesFromPOJOS.bind(this))
@@ -74,11 +80,13 @@ module.exports = function (PersistObjectTemplate) {
                     pojo.__alias__.push(join.template);
                 });
             });
-            pojos.forEach(function (pojo) {
+            var sortMap = {};
+            pojos.forEach(function (pojo, ix) {
+                sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix;
                 promises.push(
                     PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, promises, idMap, cascade, isTransient,
                         null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh)
-                        .then(function (obj) {results.push(obj);return Q(obj)})
+                        .then(function (obj) {results[sortMap[obj._id]] = obj;return Q(obj)})
                 );
             }.bind(this));
         }
