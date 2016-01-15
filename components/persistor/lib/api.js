@@ -496,6 +496,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         for (var id in dirtyObjects) {
             (function () {
                 var obj = dirtyObjects[id];
+                delete dirtyObjects[obj.__id__];
                 promises.push(obj.persistSave(txn).then(function () {
                     PersistObjectTemplate.saved(obj,txn);
                     somethingSaved = true;

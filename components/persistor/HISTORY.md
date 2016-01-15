@@ -1,3 +1,5 @@
+## 0.2.56
+* Fixed situation where setting filter types could fail to write out 
 ## 0.2.55
 * Merge schema for subsets
 ## 0.2.54

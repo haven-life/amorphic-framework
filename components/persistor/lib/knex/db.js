@@ -323,9 +323,12 @@ module.exports = function (PersistObjectTemplate) {
         knex = (goodList.length > 0 ? knex.whereNotIn('_id', goodList) : knex)
         knex = knex.andWhere(foreignKey, obj._id)
         knex = (filterKey ? knex.andWhere(filterKey, filterValue) : knex);
-        knex = knex.delete();
+        //console.log(knex.toSQL().sql + " ? = " + (filterValue || "") + " ? = " + obj._id + " ? = " + goodList.join(","))
+        knex = knex.delete().then(function (res) {
+            if (res)
+                console.log(res + " " + tableName + " records pruned from " + obj._id);
+        });
 
-        console.log(knex.toSQL().sql + " ? = " + (filterValue || "") + " ? = " + obj._id + " ? = " + goodList.join(","))
         return knex;
     }
 

@@ -17,7 +17,6 @@ module.exports = function (PersistObjectTemplate) {
         delete obj['__changed__'];
         var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
         var savedObjects = txn ? txn.savedObjects : this.savedObjects;
-        delete dirtyObjects[obj.__id__];
         savedObjects[obj.__id__] = obj;
     }
 
