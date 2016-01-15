@@ -1,3 +1,5 @@
+## 0.2.55
+* Merge schema for subsets
 ## 0.2.54
 * Preserve sort order which was broken
 * Added limit and offset

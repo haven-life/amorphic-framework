@@ -146,11 +146,24 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             if (!mainTemplate)
                 throw new Error("Reference to subsetOf " + template.__schema__.subsetOf + " not found for " + template.__name__);
             template.__subsetOf__ = template.__schema__.subsetOf
-            template.__schema__ = mainTemplate.__schema__;
+            mergeRelationships(template.__schema__, mainTemplate.__schema__);
             template.__collection = mainTemplate.__collection__;
             template.__table__ = mainTemplate.__table__;
         }
         baseClassForPersist._injectIntoTemplate(template);
+
+        function mergeRelationships(orig, overlay) {
+            _.each(overlay.children,function (value, key) {
+                orig.children = orig.children || {};
+                if (!orig.children[key])
+                    orig.children[key] = value;
+            });
+            _.each(overlay.parents,function (value, key) {
+                orig.parents = orig.parents || {};
+                if (!orig.parents[key])
+                    orig.parents[key] = value;
+            });
+        }
 
         /**
          * Return a single instance of an object of this class given an id
@@ -409,7 +422,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                             return processSaves.call(this);
                     });
 
-                    }
+                }
                 // Walk through the touched objects
                 function processTouches() {
                     return Promise.map(_.toArray(touchObjects), function (obj) {
