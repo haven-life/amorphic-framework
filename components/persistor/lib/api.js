@@ -116,7 +116,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
         object.refresh = function ()
         {
-            return this.__template__.getFromPersistWithId(object._id, null, null, true)
+            return this.__template__.getFromPersistWithId(object._id, null, null, null, true)
         };
     };
     PersistObjectTemplate.getPersistorProps = function () {

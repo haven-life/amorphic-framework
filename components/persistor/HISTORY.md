@@ -1,4 +1,4 @@
-## 0.2.58
+## 0.2.59
 * fully force refreshes
 ## 0.2.57
 * More robust boolean handling in Mongo
