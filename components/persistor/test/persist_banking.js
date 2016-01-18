@@ -30,7 +30,10 @@ var Customer = PersistObjectTemplate.create("Customer", {
 	lastName:	{type: String, value: "", length: 40, rule: ["name", "required"]},
 	phones:		{type: Array, of: String, value: [""], max: 3},
 	local1:      {type: String, persist: false, value: "local1"},
-	local2:      {type: String, isLocal: true, value: "local2"}
+	local2:      {type: String, isLocal: true, value: "local2"},
+    number:     {type: Number, value: "23"},
+    boolTrue:   {type: Boolean, value: true},
+    boolFalse:  {type: Boolean, value: false},
 });
 var Address = PersistObjectTemplate.create("Address", {
 	init:       function (customer) {
@@ -403,6 +406,9 @@ describe("Banking Example", function () {
             expect(customer.firstName).to.equal("Sam");
             expect(customer.local1).to.equal("local1");
             expect(customer.local2).to.equal("local2");
+            expect(customer.number).to.equal(23);
+            expect(customer.boolTrue).to.equal(true);
+            expect(customer.boolFalse).to.equal(false);
             expect(customer.roles[0].relationship).to.equal("primary");
             expect(customer.roles[0].customer).to.equal(customer);
             expect(customer.roles[0].accountPersistor.isFetched).to.equal(false);

@@ -119,6 +119,24 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             return this.__template__.getFromPersistWithId(object._id, null, null, true)
         };
     };
+    PersistObjectTemplate.getPersistorProps = function () {
+        persistorProps = {};
+        _.each(PersistObjectTemplate.__dictionary__, processTemplate);
+        return persistorProps;
+
+        function processTemplate(template) {
+
+            var props = template.getProperties();
+            _.each(props, processDefineProperty);
+
+            function processDefineProperty(defineProperty, prop) {
+                if (prop.match(/Persistor$/) && prop.substr(0, 2) != '__') {
+                    persistorProps[template.__name__] = persistorProps[template.__name__] || {}
+                    persistorProps[template.__name__][prop.replace(/Persistor$/, '')] = 1;
+                }
+            }
+        }
+    }
     /**
      * PUBLIC INTERFACE FOR TEMPLATES
      */

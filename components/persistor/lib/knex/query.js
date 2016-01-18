@@ -277,19 +277,20 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 } else
                 if (typeof(pojo[prefix + prop]) != 'undefined') {
+                    var value = pojo[prefix + prop];
                     if (type == Date)
-                        obj[prop] = pojo[prefix + prop] ? new Date(pojo[prefix + prop] * 1) : null;
+                        obj[prop] = value ? new Date(value * 1) : null;
                     else if (type == Number)
-                        obj[prop] = (!pojo[prefix + prop] && pojo[prefix + prop] !== 0) ? null : pojo[prefix + prop] * 1;
+                        obj[prop] = (!value && value !== 0) ? null : value * 1;
                     else if (type == Object || type == Array)
                         try {
-                            obj[prop] = pojo[prefix + prop] ? JSON.parse(pojo[prefix + prop]) : null;
+                            obj[prop] = value ? JSON.parse(value) : null;
                         } catch (e) {
                             console.log("Error retrieving " + obj.__id__ + "." + prop + " -- " + e.message);
                             obj[prop] = null;
                         }
                     else
-                        obj[prop] = pojo[prefix + prop];
+                        obj[prop] = value;
                 }
 
 

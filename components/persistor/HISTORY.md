@@ -1,3 +1,6 @@
+## 0.2.57
+* More robust boolean handling in Mongo
+* Support for enumurating persistor properties for amorphic
 ## 0.2.56
 * Fixed situation where setting filter types could fail to write out 
 ## 0.2.55
