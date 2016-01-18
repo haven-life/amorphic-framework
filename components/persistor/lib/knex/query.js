@@ -233,7 +233,7 @@ module.exports = function (PersistObjectTemplate) {
                         var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
                     }
                     // Return copy if already there
-                    var cachedObject = this.getCachedObject(foreignId) || idMap[foreignId];
+                    var cachedObject = (!isRefresh && this.getCachedObject(foreignId)) || idMap[foreignId];
                     if (cachedObject) {
                         if (!obj[prop] || obj[prop].__id__ != cachedObject.__id__) {
                             obj[prop] = cachedObject;

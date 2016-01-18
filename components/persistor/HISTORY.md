@@ -1,3 +1,5 @@
+## 0.2.58
+* fully force refreshes
 ## 0.2.57
 * More robust boolean handling in Mongo
 * Support for enumurating persistor properties for amorphic
