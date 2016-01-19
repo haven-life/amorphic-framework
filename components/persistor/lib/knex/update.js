@@ -72,22 +72,35 @@ module.exports = function (PersistObjectTemplate) {
                 } else if (value instanceof Array) {
                     if (!schema.children[prop])
                         throw new Error("Missing children entry for " + prop + " in " + templateName);
-                    var foreignKey = schema.children[prop].id;
+                    var childForeignKey = schema.children[prop].id;
                     if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
                         throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
                     var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                     var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                     value.forEach(function (referencedObj) {
+
                         if (!defineProperty.of.__schema__.parents)
                             throw new Error("Missing parent entry in " + defineProperty.of.__name__ + " for " + templateName);
-                        _.each(defineProperty.of.__schema__.parents, function(value, key) {
-                            if (value.id == foreignKey) {
-                                // If the persistor property has not been setup then set it dirty so it will be filled in
-                                if(!referencedObj[key + 'Persistor'] || !referencedObj[key + 'Persistor'].id ||
-                                    referencedObj[key + 'Persistor'].id != obj._id ||
-                                    (foreignFilterKey ? referencedObj[foreignFilterKey] != foreignFilterValue : false)) {
+
+                        // Go through each of the parents in the schema to find the one matching this reference
+                        _.each(defineProperty.of.__schema__.parents, function(parentSchemaEntry, parentProp) {
+
+                            if (parentSchemaEntry.id == childForeignKey) {
+
+                                // If anything is missing in the child such as the persistor property not having been
+                                // setup or the filter property not being setup, fill in and set it dirty
+                                if(!referencedObj[parentProp + 'Persistor'] || !referencedObj[parentProp + 'Persistor'].id ||
+                                    referencedObj[parentProp + 'Persistor'].id != obj._id ||
+                                    (foreignFilterKey ? referencedObj[foreignFilterKey] != foreignFilterValue : false))
+                                {
+                                    // Take care of filter property
                                     if (foreignFilterKey)
                                         referencedObj[foreignFilterKey] = foreignFilterValue;
+
+                                    // Force parent pointer
+                                    if (referencedObj[parentProp] != obj)
+                                        referencedObj[parentProp] = obj;
+
                                     referencedObj.setDirty(txn);
                                 }
                             }

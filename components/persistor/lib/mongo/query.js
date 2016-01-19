@@ -405,7 +405,7 @@ module.exports = function (PersistObjectTemplate) {
             if (typeof(pojo[prop]) != 'undefined') {
                 if (type == Date)
                     obj[prop] = pojo[prop] ? new Date(pojo[prop]) : null;
-                if (type == Number)
+                else if (type == Number)
                     obj[prop] = (!pojo[prop] && pojo[prop] !== 0) ? null : pojo[prop] * 1;
                 else if (type == Boolean)
                     obj[prop] = (pojo[prop] === true || obj[prop] === "true") ? true : ((pojo[prop] === false || obj[prop] === "false") ? false : null)

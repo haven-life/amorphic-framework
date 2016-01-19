@@ -50,6 +50,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param obj - subdocument object to start at
      */
     PersistObjectTemplate.enumerateDocumentObjects = function(obj, callback) {
+
         var idMap = {};
         return traverse(obj);
 
@@ -58,7 +59,6 @@ module.exports = function (PersistObjectTemplate) {
                 return;
             callback.call(null, obj)
             var props = obj.__template__.getProperties();
-            var fixups = {}
             _.map(props, function (defineProperty, prop) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
                     if (!idMap[obj.__id__ + "-" + prop]) {
@@ -74,19 +74,9 @@ module.exports = function (PersistObjectTemplate) {
                             idMap[obj.__id__ + "-" + prop] = true;
                             traverse(obj[prop], obj, prop);
                         }
-                        fixups[prop] = "filled";
-                    } else if (parentObj && defineProperty.type == parentObj.__template__) {
-                        if (!fixups[prop])
-                            fixups[prop] = parentObj;
                     }
                 }
             });
-            // Take care of children with no parent pointers
-            if (PersistObjectTemplate.enableOrphanHookups)
-                _.each(fixups, function(fixup, key) {
-                    if (fixup != "filled")
-                        obj[key] = fixup;
-                });
         }
     }
 

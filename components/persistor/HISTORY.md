@@ -1,3 +1,5 @@
+## 0.2.61
+* Changed the updates to always fill in parent pointers for child relationships
 ## 0.2.59
 * fully force refreshes
 ## 0.2.57
