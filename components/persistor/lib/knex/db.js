@@ -534,7 +534,7 @@ module.exports = function (PersistObjectTemplate) {
         console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
-        obj._id++;
+        obj.__version__++;
         return knex
             .transacting(txn ? txn.knex : null)
             .where('_id', '=', obj._id)

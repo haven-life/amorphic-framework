@@ -1,3 +1,5 @@
+## 0.2.63
+* Fixed touch top object logic
 ## 0.2.62
 * Improve boolean type conversion on Mongo
 ## 0.2.61

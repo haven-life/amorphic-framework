@@ -505,7 +505,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }.bind(this));
             }
         }
-
+        if (txn && txn.touchTop && obj.__template__.__schema__) {
+            var topObject = PersistObjectTemplate.getTopObject(obj);
+            if (topObject)
+                txn.touchObjects[topObject.__id__] = topObject;
+        }
     }
     PersistObjectTemplate.saveAll = function (txn) {
         var promises = [];
