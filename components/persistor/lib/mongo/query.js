@@ -408,7 +408,7 @@ module.exports = function (PersistObjectTemplate) {
                 else if (type == Number)
                     obj[prop] = (!pojo[prop] && pojo[prop] !== 0) ? null : pojo[prop] * 1;
                 else if (type == Boolean)
-                    obj[prop] = (pojo[prop] === true || obj[prop] === "true") ? true : ((pojo[prop] === false || obj[prop] === "false") ? false : null)
+                    obj[prop] = (pojo[prop] === true || pojo[prop] === "true") ? true : ((pojo[prop] === false || pojo[prop] === "false") ? false : null)
                 else
                     obj[prop] = pojo[prop];
             }
