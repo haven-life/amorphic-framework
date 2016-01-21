@@ -159,7 +159,7 @@ module.exports = function (PersistObjectTemplate) {
         return select.then(processResults, processError);
         function processResults(res) {
             var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
-            console.log("Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains));
+            //console.log("Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains));
             return res;
         }
 
@@ -363,7 +363,7 @@ module.exports = function (PersistObjectTemplate) {
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
-        console.log(txn ? txn.id : '-#-', (updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
+        //console.log(txn ? txn.id : '-#-', (updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
         if (updateID)
             return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
@@ -531,7 +531,7 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn) {
         this.debug('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
-        console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
+        //console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;

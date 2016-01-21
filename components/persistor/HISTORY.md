@@ -1,3 +1,5 @@
+## 0.2.64
+* Removed logging
 ## 0.2.63
 * Fixed touch top object logic
 ## 0.2.62
