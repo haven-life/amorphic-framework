@@ -1,3 +1,6 @@
+## 0.2.65
+* Made persistor prop touching compatible with new semotus
+* changed Number type to Double Precision
 ## 0.2.64
 * Removed logging
 ## 0.2.63

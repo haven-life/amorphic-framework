@@ -294,13 +294,9 @@ module.exports = function (PersistObjectTemplate) {
                 }
 
 
-                function copyProps(obj) {
-                    var newObj = {};
-                    for (var prop in obj)
-                        newObj[prop] = obj[prop];
-                    return newObj;
-                }
                 function updatePersistorProp(obj, prop, values) {
+                    if (prop == 'otherSurgeryDetailsPersistor')
+                        console.log("otherSurgeryDetails");
                     values['isFetching'] = false;
                     if (!obj[prop])
                         obj[prop] = {};
@@ -311,8 +307,11 @@ module.exports = function (PersistObjectTemplate) {
                             modified = true;
                         }
                     });
-                    if (modified)
-                        obj[prop] = copyProps(obj[prop]);
+                    if (modified) {
+                        var tempProps = obj[prop];
+                        obj[prop] = null;
+                        obj[prop] = tempProps;
+                    }
                 }
 
 

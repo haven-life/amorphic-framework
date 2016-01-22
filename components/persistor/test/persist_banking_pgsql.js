@@ -385,8 +385,8 @@ describe("Banking from pgsql Example", function () {
         ashling.addAddress("primary", ["End of the Road", ""], "Lexington", "KY", "34421");
 
         // Setup accounts
-        samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.primaryAddresses[0]);
-        jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.primaryAddresses[0]);
+        samsAccount = new Account(123412341234123, ['Sam Elsamman'], sam, sam.primaryAddresses[0]);
+        jointAccount = new Account(.123412341234123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.primaryAddresses[0]);
         jointAccount.addCustomer(karen, "joint");
         jointAccount.addCustomer(ashling, "joint");
 
@@ -420,6 +420,8 @@ describe("Banking from pgsql Example", function () {
         Account.getFromPersistWithQuery(null,{address: true}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');
+            expect(accounts[0].number).to.equal(123412341234123);
+            expect(accounts[1].number).to.equal(.123412341234123);
             done();
         }).fail(function(e) {
             done(e)
@@ -660,7 +662,7 @@ describe("Banking from pgsql Example", function () {
 
             return customer.roles[1].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then( function ()
             {
-                expect(customer.roles[1].account.number).to.equal(123);
+                expect(customer.roles[1].account.number).to.equal(.123412341234123);
                 expect(customer.roles[1].account.roles.length).to.equal(3);
                 expect(customer.primaryAddresses[0].lines[0]).to.equal("500 East 83d");
                 expect(customer.secondaryAddresses[0].lines[0]).to.equal("38 Haggerty Hill Rd");
@@ -696,7 +698,7 @@ describe("Banking from pgsql Example", function () {
 
             return customer.roles[1].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then( function ()
             {
-                expect(customer.roles[1].account.number).to.equal(123);
+                expect(customer.roles[1].account.number).to.equal(.123412341234123);
                 expect(customer.roles[1].account.roles.length).to.equal(3);
                 expect(customer.primaryAddresses[0].lines[0]).to.equal("500 East 83d");
                 expect(customer.secondaryAddresses[0].lines[0]).to.equal("38 Haggerty Hill Rd");
