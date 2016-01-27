@@ -1,3 +1,5 @@
+## 0.1.42
+* Don't copy __version__ on copyObject to avoid update conflicts
 ## 0.1.41
 * fixed a problem where getters were getting called as templates were being defined
 ## 0.1.40

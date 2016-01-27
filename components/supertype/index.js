@@ -542,9 +542,10 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         if (pojo[prop])
             obj[prop] = pojo[prop];
     }
-
-    propXfer('__changed__');
-    propXfer('__version__');
+    if (!creator) {
+        propXfer('__changed__');
+        propXfer('__version__');
+    }
     propXfer('__toServer__');
     propXfer('__toClient__');
     return obj;
