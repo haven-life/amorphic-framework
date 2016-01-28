@@ -331,7 +331,7 @@ describe('index synchronization checks', function () {
                     knex.schema.dropTableIfExists('CreateNewType').should.eventually.have.property("command", "DROP"),
                     knex.schema.dropTableIfExists('IndexSyncTable').then(function() {
                          knex.schema.createTableIfNotExists('IndexSyncTable', function (table) {
-                            table.integer('id');
+                            table.double('id');
                             table.text('name')
                         }).should.eventually.have.property("command", "CREATE")
                     }),

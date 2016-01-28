@@ -648,6 +648,7 @@ describe('type mapping tests for parent/child relations', function () {
             dob: {type: Date}
         })
 
+        schema.childSynchronize = {};
         PersistObjectTemplate._verifySchema();
         return  PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize).then(function (status) {
