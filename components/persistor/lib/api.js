@@ -151,7 +151,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         while(!template.__schema__ && parent)
             if (parent.__schema__) {
                 template.__schema__ = parent.__schema__;
-                template.__collection = parent.__collection__;
+                template.__collection__ = parent.__collection__;
                 template.__table__ = template.__schema__.table ? template.__schema__.table :parent.__table__;
                 template.__topTemplate = parent.__topTemplate__;
                 parent = null;
@@ -165,7 +165,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 throw new Error("Reference to subsetOf " + template.__schema__.subsetOf + " not found for " + template.__name__);
             template.__subsetOf__ = template.__schema__.subsetOf
             mergeRelationships(template.__schema__, mainTemplate.__schema__);
-            template.__collection = mainTemplate.__collection__;
+            template.__collection__ = mainTemplate.__collection__;
             template.__table__ = mainTemplate.__table__;
         }
         baseClassForPersist._injectIntoTemplate(template);
