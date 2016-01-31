@@ -18,7 +18,8 @@ module.exports = function (PersistObjectTemplate) {
         var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
         var savedObjects = txn ? txn.savedObjects : this.savedObjects;
         if (savedObjects)
-            savedObjects[obj.__id__] = obj;    }
+            savedObjects[obj.__id__] = obj;
+    }
 
     /**
      * Walk one-to-one links to arrive at the top level document
@@ -97,20 +98,16 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.createPrimaryKey = function (obj) {
         var key = (new PersistObjectTemplate.ObjectID).toString();
-        if (PersistObjectTemplate.objectMap)
-            PersistObjectTemplate.objectMap[key] = obj;
+        if (PersistObjectTemplate.objectMap && !obj.__transient__)
+            PersistObjectTemplate.objectMap[key] = obj.__id__;
         return key;
     }
 
     PersistObjectTemplate.getObjectId = function (template, pojo, prefix) {
         if (PersistObjectTemplate.objectMap && PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()])
-            return PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()].__id__;
+            return PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()];
         else
             return 'persist' + template.__name__ + '-' + pojo[prefix + '_template'].replace(/.*:/,'') + "-" + pojo[prefix + '_id'].toString()
-    }
-
-    PersistObjectTemplate.getCachedObject = function (id) {
-        return (PersistObjectTemplate.objectMap || {})[id];
     }
 
     PersistObjectTemplate._persistProperty = function(defineProperty) {
@@ -120,15 +117,14 @@ module.exports = function (PersistObjectTemplate) {
             return true;
     }
 
-
     /* Mongo implementation of open */
     PersistObjectTemplate.getDB = function(alias)
     {
         if (!this._db)
             throw  new Error("You must do PersistObjectTempate.setDB()");
-        if (!this._db[alias])
+        if (!this._db[alias || '__default__'])
             throw  new Error("DB Alias " + alias + " not set with corresponding PersistObjectTempate.setDB(db, type, alias)");
-        return this._db[alias];
+        return this._db[alias || '__default__'];
     }
 
     PersistObjectTemplate.dealias = function (collection) {

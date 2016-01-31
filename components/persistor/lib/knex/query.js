@@ -142,9 +142,6 @@ module.exports = function (PersistObjectTemplate) {
             var schema = obj.__template__.__schema__;
             obj._id = pojo[prefix + '_id'];
 
-            var cahcedObject = this.getCachedObject(obj._id);
-            if (cachedObject && !isRefresh)
-                return cachedObject;
             if (idMap[obj._id])
                 return Q(idMap[obj._id]);
 
@@ -233,7 +230,7 @@ module.exports = function (PersistObjectTemplate) {
                         var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
                     }
                     // Return copy if already there
-                    var cachedObject = (!isRefresh && this.getCachedObject(foreignId)) || idMap[foreignId];
+                    var cachedObject = idMap[foreignId];
                     if (cachedObject) {
                         if (!obj[prop] || obj[prop].__id__ != cachedObject.__id__) {
                             obj[prop] = cachedObject;

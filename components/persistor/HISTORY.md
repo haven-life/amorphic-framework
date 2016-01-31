@@ -1,3 +1,5 @@
+## 0.2.68
+* Changed the id mapping works in a way that eliminates is dual function as an extra cache
 ## 0.2.66
 * Fixed problem that broke Mongo
 ## 0.2.65
