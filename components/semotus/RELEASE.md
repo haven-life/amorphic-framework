@@ -1,3 +1,5 @@
+## 0.2.08
+* Arrays not triggering changes
 ## 0.2.07
 * Fixed __transient leak
 * Pass an extra parameter to onPreServerCall to indicate a refresh should be done.

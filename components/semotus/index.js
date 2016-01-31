@@ -633,7 +633,7 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                             if (data.length) {
                                 var digest = "";
                                 for (var ix = 0; ix < data.length; ++ix)
-                                    digest += data.__id__;
+                                    digest += data[ix].__id__;
                                 return digest;
                             }
                         } else
