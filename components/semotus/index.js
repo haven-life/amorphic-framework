@@ -262,8 +262,8 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
          * call is valid and take care of any authorization concerns.  Finally we let the controller perform
          * any post-call processing such as commiting data and then we deal with a failure or success.
          */
-        function processCall () {
-            return Q(true)
+        function processCall (forceupdate) {
+            return Q(forceupdate)
                 .then(preCallHook.bind(this))
                 .then(applyChangesAndValidateCall.bind(this))
                 .then(callIfValid.bind(this))
@@ -279,17 +279,17 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
         function retryCall () {
             if (restoreSessionCallback)
                 restoreSessionCallback();
-            return processCall.call(this);
+            return processCall.call(this, true);
         }
         /**
          * Determine what objects changed and pass this to the preServerCall method on the controller
          */
-        function preCallHook () {
+        function preCallHook (forceupdate) {
             if (this.controller && this.controller['preServerCall']) {
                 var changes = {};
                 for (var objId in JSON.parse(remoteCall.changes))
                     changes[this.__dictionary__[objId.replace(/[^-]*-/,'').replace(/-.*/,'')].__name__] = true;
-                return this.controller['preServerCall'].call(this.controller, remoteCall.changes.length > 2, changes, callContext)
+                return this.controller['preServerCall'].call(this.controller, remoteCall.changes.length > 2, changes, callContext, forceupdate)
             } else
                 return true;
         }
@@ -512,7 +512,8 @@ RemoteObjectTemplate._stashObject = function(obj, template) {
     session.dispenseNextId = null;
     if (!obj.__id__) {
         obj.__id__ = objectId;
-        session.objects[obj.__id__] = obj;
+        if (!this.__transient__)
+            session.objects[obj.__id__] = obj;
     }
     if (obj.__id__.match(/^client.*?-([0-9]*)$/))
         this.maxClientSequence = Math.max(this.maxClientSequence, RegExp.$1);
@@ -1271,7 +1272,7 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
 
     var session = this._getSession();
     var sessionReference = session.objects[objId];
-    if (sessionReference) {
+    if (sessionReference && !isTransient) {
         if (sessionReference.__template__ == template)
             var newValue = sessionReference;
         else
@@ -1282,11 +1283,10 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
         session.dispenseNextId = objId;  // stashObject will use this
         var wasTransient = this.__transient__;
         if (isTransient)
-            this.__transient__ = true;
+            this.__transient__ = true; // prevent stashObject from adding to sessions.objects
         var newValue = new template();
         this.__transient__ = wasTransient;
         if (isTransient) {
-            delete session.objects[objId];
             newValue.__transient__ = true;
         }
     }

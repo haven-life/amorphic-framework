@@ -1,3 +1,6 @@
+## 0.2.07
+* Fixed __transient leak
+* Pass an extra parameter to onPreServerCall to indicate a refresh should be done.
 ## 0.2.06
 * Changes to set __changed__ when setters fire
 ## 0.2.05
