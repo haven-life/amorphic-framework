@@ -12,9 +12,7 @@ var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectT
 var writing = true;
 var knex;
 
-PersistObjectTemplate.xdebug = function(txt) {
-    console.log(txt);
-}
+PersistObjectTemplate.debugInfo = 'io;api';
 
 /*
 PersistObjectTemplate.debug = function(m, t) {

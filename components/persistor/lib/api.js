@@ -26,6 +26,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         object.persistSave = function (txn)
         {
+            PersistObjectTemplate.debug("persistSave " + object.__template__.__name__ + " " + object.__id__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
@@ -44,6 +45,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         object.persistTouch = function (txn)
         {
+            PersistObjectTemplate.debug("persistTouch " + object.__template__.__name__ + " " + object.__id__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
@@ -51,6 +53,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         object.persistDelete = function (txn) {
+            PersistObjectTemplate.debug("persistTouch " + object.__template__.__name__ + " " + object.__id__, 'api');
             if (txn) {
                 delete txn.dirtyObjects[this.__id__];
             }
@@ -77,6 +80,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         object.fetchProperty = function (prop, cascade, queryOptions, isTransient, idMap)
         {
+            PersistObjectTemplate.debug("fetchProperty " + object.__template__.__name__ + " " + object._id, 'api');
             idMap = idMap || {};
             var properties = {}
             var objectProperties = this.__template__.getProperties();
@@ -95,6 +99,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         object.fetch = function (cascade, isTransient, idMap)
         {
+            PersistObjectTemplate.debug("fetch " + object.__template__.__name__ + " " + object._id, 'api');
             idMap = idMap || {};
 
             var properties = {}
@@ -116,6 +121,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
         object.refresh = function ()
         {
+            PersistObjectTemplate.debug("refresh " + object.__template__.__name__ + " " + object._id, 'api');
             return this.__template__.getFromPersistWithId(object._id, null, null, null, true)
         };
     };
@@ -189,6 +195,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param id
          */
         template.getFromPersistWithId = function(id, cascade, isTransient, idMap, isRefresh) {
+            PersistObjectTemplate.debug("getFromPersistWithId " + template.__name__ + " " + id, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             PersistObjectTemplate.__changeTracking__ = false;
@@ -207,6 +214,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param query
          */
         template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap, options) {
+            PersistObjectTemplate.debug("getFromPersistWithQuery " + template.__name__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             PersistObjectTemplate.__changeTracking__ = false;
@@ -237,6 +245,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param id
          */
         template.deleteFromPersistWithId = function(id, txn) {
+            PersistObjectTemplate.debug("deleteFromPersistWithId " + template.__name__ + " " + id, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
@@ -254,6 +263,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param query
          */
         template.countFromPersistWithQuery = function(query) {
+            PersistObjectTemplate.debug("countFromPersistWithQuery " + template.__name__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             PersistObjectTemplate.__changeTracking__ = false;
@@ -389,7 +399,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
 
     PersistObjectTemplate.end = function(persistorTransaction) {
-        console.log("Start of end");
+        this.debug("end - start of transaction ", 'api');
         persistorTransaction = persistorTransaction || this.currentTransaction;
         var deferred = Q.defer();
         var Promise = require('bluebird');
@@ -456,6 +466,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }
             })
             .then(function () {
+                this.debug("end - transaction completed", 'api');
                 deferred.resolve(true);
             }.bind(this))
             .catch(function (e) {

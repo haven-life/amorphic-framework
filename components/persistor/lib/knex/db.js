@@ -156,10 +156,10 @@ module.exports = function (PersistObjectTemplate) {
             select = select.offset(options.offset)
 
         var selectString = select.toSQL().sql;
-        return select.then(processResults, processError);
+        return select.then(processResults.bind(this), processError);
         function processResults(res) {
             var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
-            //console.log("Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains));
+            this.debug("Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains), 'io');
             return res;
         }
 
@@ -326,8 +326,8 @@ module.exports = function (PersistObjectTemplate) {
         //console.log(knex.toSQL().sql + " ? = " + (filterValue || "") + " ? = " + obj._id + " ? = " + goodList.join(","))
         knex = knex.delete().then(function (res) {
             if (res)
-                console.log(res + " " + tableName + " records pruned from " + obj._id);
-        });
+                this.debug(res + " " + tableName + " records pruned from " + obj._id, 'io');
+        }.bind(this));
 
         return knex;
     }
@@ -356,20 +356,19 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.saveKnexPojo = function (obj, pojo, updateID, txn) {
-        this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
         var origVer = obj.__version__;
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
-        //console.log(txn ? txn.id : '-#-', (updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__);
+        this.debug((txn ? txn.id + " ": '-#- ') + (updateID ? 'updating ' : 'insert ') + obj.__id__ + ' ' + pojo.__version__, 'io');
         if (updateID)
             return Q(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
                 .transacting(txn ? txn.knex : null)
-                .then(checkUpdateResults)
+                .then(checkUpdateResults.bind(this))
                 .then(logSuccess.bind(this)))
         else
             return Q(knex
@@ -379,7 +378,7 @@ module.exports = function (PersistObjectTemplate) {
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                console.log(txn ? txn.id : '-#-', "update conflict on " + obj.__id__ + " looking for " + origVer);
+                this.debug(txn ? txn.id : '-#-', "update conflict on " + obj.__id__ + " looking for " + origVer, 'conflict');
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj)
@@ -531,7 +530,6 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn) {
         this.debug('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
-        //console.log('touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;

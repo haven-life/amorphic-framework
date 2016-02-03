@@ -63,7 +63,14 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.dirtyObjects = {};
     PersistObjectTemplate.savedObjects = {};
 
-    PersistObjectTemplate.debug = function (message, type) {
+    PersistObjectTemplate.debug = function (data, type) {
+        if (this.debugInfo && type && this.debugInfo.match(type)) {
+            var t = new Date();
+            var time = t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate() + " " +
+                t.toTimeString().replace(/ .*/, '') + ":" + t.getMilliseconds();
+            var message = (time + (this.currentSession ? "(" + this.currentSession +") " : "") + " Persistor: " + data);
+            console.log(message);
+        }
     }
 
     require("./api.js")(PersistObjectTemplate, baseClassForPersist);

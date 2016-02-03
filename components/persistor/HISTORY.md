@@ -1,3 +1,5 @@
+## 0.2.69
+* Robust logging via objectTemplate.debugInfo = "io;api"
 ## 0.2.68
 * Changed the id mapping works in a way that eliminates is dual function as an extra cache
 ## 0.2.66

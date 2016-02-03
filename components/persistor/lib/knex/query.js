@@ -113,7 +113,7 @@ module.exports = function (PersistObjectTemplate) {
             var promises = [];
             prefix = prefix || "";
 
-            this.debug("getTemplateFromKnexPOJO template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template']);
+            this.debug("getTemplateFromKnexPOJO template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template'], 'query');
 
 
             // For recording back refs
@@ -290,10 +290,7 @@ module.exports = function (PersistObjectTemplate) {
                         obj[prop] = value;
                 }
 
-
                 function updatePersistorProp(obj, prop, values) {
-                    if (prop == 'otherSurgeryDetailsPersistor')
-                        console.log("otherSurgeryDetails");
                     values['isFetching'] = false;
                     if (!obj[prop])
                         obj[prop] = {};
@@ -310,8 +307,6 @@ module.exports = function (PersistObjectTemplate) {
                         obj[prop] = tempProps;
                     }
                 }
-
-
             }
             return Q.all(promises).then(function () {
                 return Q(obj);
