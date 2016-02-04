@@ -1,3 +1,5 @@
+## 0.2.09
+* Data sync recovery was allowing two server requests to be processed simaltaneously
 ## 0.2.08
 * Arrays not triggering changes
 ## 0.2.07

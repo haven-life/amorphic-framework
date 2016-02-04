@@ -401,6 +401,7 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
 
         case 'response':
         case 'error':
+            var doProcessQueue = true;
             this.log(1, "got remote response for " + remoteCall.name + "[" + remoteCall.sequence + "]");
             // If we are out of sync queue up a set Root if on server.  This could occur
             // if a session is restored but their are pending calls
@@ -419,11 +420,14 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
                     } else {
                         this._rollbackChanges();
                         session.pendingRemoteCalls[remoteCallId].deferred.reject({code: "internal_error_rollback", text:"An internal error occured"});
+                        if (this.role == 'client') // client.js in amorphic will take care of this
+                            doProcessQueue = false;
                     }
                 }
                 delete session.pendingRemoteCalls[remoteCallId];
             }
-            this._processQueue();
+            if (doProcessQueue)
+                this._processQueue();
             return hadChanges == 2 ? true : false;
     }
 };
