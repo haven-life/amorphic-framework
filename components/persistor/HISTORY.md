@@ -1,3 +1,7 @@
+## 0.2.70
+* Defensive code against null elements in arrays
+* Added call to MarkChangedArrayReferences when running with Semotus
+* Changed default persistor to fetch: false
 ## 0.2.69
 * Robust logging via objectTemplate.debugInfo = "io;api"
 ## 0.2.68

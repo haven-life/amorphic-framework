@@ -77,7 +77,12 @@ module.exports = function (PersistObjectTemplate) {
                         throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
                     var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                     var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
-                    value.forEach(function (referencedObj) {
+                    value.forEach(function (referencedObj, ix) {
+
+                        if (!referencedObj) {
+                            console.log(obj.__id__ + "." + prop + "[" + ix + "] is null");
+                            return;
+                        }
 
                         if (!defineProperty.of.__schema__.parents)
                             throw new Error("Missing parent entry in " + defineProperty.of.__name__ + " for " + templateName);

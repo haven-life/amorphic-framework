@@ -367,7 +367,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         var toClient = !(defineProperty.isLocal || (defineProperty.toClient === false))
                         if (!props[closureProp + 'Persistor'])
                             template.createProperty(closureProp + 'Persistor', {type: Object, toClient: toClient,
-                                toServer: false, persist: false, value: {isFetched: false, isFetching: false}});
+                                toServer: false, persist: false,
+                                value: {isFetched: defineProperty.autoFetch ? false : true, isFetching: false}});
                         if (!template.prototype[closureProp + 'Fetch'])
                             template.createProperty(closureProp + 'Fetch', {on: "server", body: function (start, limit)
                             {
@@ -483,6 +484,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @param txn
      */
     PersistObjectTemplate.setDirty = function (obj, txn, onlyIfChanged, noCascade) {
+
+        // Get array references too
+        if (onlyIfChanged && this.MarkChangedArrayReferences)
+            this.MarkChangedArrayReferences();
 
         txn = txn || this.currentTransaction;
 

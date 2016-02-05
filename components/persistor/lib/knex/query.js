@@ -127,7 +127,12 @@ module.exports = function (PersistObjectTemplate) {
             }
             // We also get arrays of established objects
             if (establishedObj && establishedObj instanceof Array)
-                establishedObj = _.find(establishedObj, function (o) {return o._id == pojo[prefix + '_id']});
+                establishedObj = _.find(establishedObj, function (o) {
+                    if (o)
+                        return o._id == pojo[prefix + '_id']
+                    else
+                        console.log("getTemplateFromKnexPOJO found an empty establishedObj " + template.__name__);
+                   });
 
             // Create the new object with correct constructor using embedded ID if ObjectTemplate
             if (!establishedObj &&!pojo[prefix + '_template'])
