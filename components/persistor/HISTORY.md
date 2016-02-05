@@ -1,3 +1,5 @@
+## 0.2.71
+* Merged pull request for table sync
 ## 0.2.70
 * Defensive code against null elements in arrays
 * Added call to MarkChangedArrayReferences when running with Semotus
