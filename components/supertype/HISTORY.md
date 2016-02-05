@@ -1,3 +1,5 @@
+## 0.1.43
+* Was converting null to init value when reconstituting objects
 ## 0.1.42
 * Don't copy __version__ on copyObject to avoid update conflicts
 ## 0.1.41

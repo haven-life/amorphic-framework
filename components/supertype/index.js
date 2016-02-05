@@ -513,7 +513,9 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         var value = pojo[prop];
         var defineProperty = props[prop];
         var type = defineProperty.type;
-        if (type && typeof(pojo[prop]) != 'undefined' && pojo[prop] != null)
+        if (type && pojo[prop] == null)
+            obj[prop] = null;
+        else if (type && typeof(pojo[prop]) != 'undefined')
             if (type == Array && defineProperty.of && defineProperty.of.isObjectTemplate) // Array of templated objects
             {
                 obj[prop] = [];
