@@ -568,16 +568,16 @@ describe('type mapping tests for parent/child relations', function () {
             })();
         })();
 
-        return Q.all([PersistObjectTemplate.dropKnexTable(Parent).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(Parent_Idx).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(ChildCreatesThisParent).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(ChildCreatesThisParent1).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(ParentMulteLevel1).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(ParentMulteLevelIndx1).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevel).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(parentSynchronize).should.eventually.have.property("command", "DROP")
+        return Q.all([PersistObjectTemplate.dropKnexTable(Parent),
+            PersistObjectTemplate.dropKnexTable(Parent_Idx),
+            PersistObjectTemplate.dropKnexTable(ChildCreatesThisParent),
+            PersistObjectTemplate.dropKnexTable(ChildCreatesThisParent1),
+            PersistObjectTemplate.dropKnexTable(ParentMulteLevel1),
+            PersistObjectTemplate.dropKnexTable(ParentMulteLevelIndx1),
+            PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevel),
+            PersistObjectTemplate.dropKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel),
+            PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes),
+            PersistObjectTemplate.dropKnexTable(parentSynchronize)
         ]).should.notify(done);;
     })
 

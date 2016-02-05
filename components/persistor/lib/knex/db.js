@@ -246,7 +246,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.checkForKnexTable = function (template, tableName) {
         var tableName = tableName ? tableName : this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
-        return Q(knex.schema.hasTable(tableName));
+        return knex.schema.hasTable(tableName);
     };
 
     /**
@@ -640,7 +640,7 @@ module.exports = function (PersistObjectTemplate) {
         var tableName = tableName ? tableName : this.dealias(template.__table__);
         var schema = template.__schema__;
 
-        return Q(knex.schema.dropTableIfExists(tableName));
+        return knex.schema.dropTableIfExists(tableName);
     }
 
     /**

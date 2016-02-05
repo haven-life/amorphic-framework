@@ -345,7 +345,7 @@ describe("Banking from pgsql Example", function () {
             }).then(function (count) {
                 expect(count).to.equal(0);
                 done();
-            }).fail(function(e){done(e)});
+            }).catch(function(e){done(e)});
     });
     var sam;
     var karen;

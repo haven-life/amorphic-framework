@@ -221,13 +221,13 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
         })();
         return Q.all([
-            PersistObjectTemplate.dropKnexTable(Employee).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(Manager).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(BoolTable).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(DateTable).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(SingleIndexTable).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(MultipleIndexTable).should.eventually.have.property("command", "DROP"),
-            PersistObjectTemplate.dropKnexTable(Parent).should.eventually.have.property("command", "DROP")
+            PersistObjectTemplate.dropKnexTable(Employee),
+            PersistObjectTemplate.dropKnexTable(Manager),
+            PersistObjectTemplate.dropKnexTable(BoolTable),
+            PersistObjectTemplate.dropKnexTable(DateTable),
+            PersistObjectTemplate.dropKnexTable(SingleIndexTable),
+            PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
+            PersistObjectTemplate.dropKnexTable(Parent)
         ]).should.notify(done);
     });
 
@@ -324,19 +324,18 @@ describe('index synchronization checks', function () {
                     })
             })();
             return Q.all(
-                [knex.schema.dropTableIfExists('BoolTable').should.eventually.have.property("command", "DROP"),
-                    knex.schema.dropTableIfExists('ChangeFieldTypeTable').should.eventually.have.property("command", "DROP"),
-                    knex.schema.dropTableIfExists('DateTable').should.eventually.have.property("command", "DROP"),
-                    knex.schema.dropTableIfExists('CreatingTable').should.eventually.have.property("command", "DROP"),
-                    knex.schema.dropTableIfExists('CreateNewType').should.eventually.have.property("command", "DROP"),
+                [knex.schema.dropTableIfExists('BoolTable'),
+                    knex.schema.dropTableIfExists('ChangeFieldTypeTable'),
+                    knex.schema.dropTableIfExists('DateTable'),
+                    knex.schema.dropTableIfExists('CreatingTable'),
+                    knex.schema.dropTableIfExists('CreateNewType'),
                     knex.schema.dropTableIfExists('IndexSyncTable').then(function() {
                          knex.schema.createTableIfNotExists('IndexSyncTable', function (table) {
                             table.double('id');
                             table.text('name')
-                        }).should.eventually.have.property("command", "CREATE")
+                        })
                     }),
-                  resetdata.should.eventually.have.property("command", "INSERT")
-
+                  resetdata
                 ]).should.notify(done);
         });
 
@@ -350,7 +349,7 @@ describe('index synchronization checks', function () {
 
            return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
                     return knex.schema.table('IndexSyncTable', function (table) {
-                        table.dropIndex([], 'Idx_IndexSyncTable_Fst_Index');
+                        table.dropIndex([], 'Idx_IndexSyncTable_name');
                     }).should.eventually.have.property("command")
                 }
             );
