@@ -950,6 +950,60 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function()
         }
     }
 };
+/**
+ * Determine whether each array reference was an actual change or just a reference
+ * If an actual change set __changed__
+ * @private
+ */
+RemoteObjectTemplate.MarkChangedArrayReferences = function()
+{
+    var session = this._getSession();
+    var subscriptions = this._getSubscriptions();
+    for (var subscription in subscriptions) {
+        if (subscriptions[subscription] != this.processingSubscription)
+        {
+            var refChangeGroup = this.getChangeGroup('array', subscription);
+
+            // Look at every array reference
+            for (var key in refChangeGroup) {
+
+                // split the key into an id and property name
+                var param = key.split("/");
+                var id = param[0];
+                var prop = param[1];
+
+                // Get the current and original (at time of reference) values
+                var obj = session.objects[id];
+
+                if (!obj)
+                    continue;
+
+                var curr = obj[(this._useGettersSetters ? '__' : '') + prop];
+                var orig = refChangeGroup[key];
+
+                if (!curr)
+                    curr = [];
+                if (!orig)
+                    orig = [];
+
+                // Walk through all elements (which ever is longer, original or new)
+                var len = Math.max(curr.length, orig.length);
+                for (var ix = 0; ix < len; ++ix)
+                {
+                    // See if the value has changed
+                    var currValue =
+                        (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
+                        curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
+                    var origValue = orig[ix];
+                    if (origValue !== currValue)
+                        obj.__changed__ = true;
+                }
+
+            }
+        }
+    }
+};
+
 
 /**
  * Convert property value to suitabile change format which is always a string

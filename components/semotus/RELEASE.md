@@ -1,3 +1,5 @@
+## 0.2.11
+* Added api to flag objects with __changed__ for referenced arrays that changed 
 ## 0.2.09
 * Data sync recovery was allowing two server requests to be processed simaltaneously
 ## 0.2.08

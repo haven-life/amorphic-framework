@@ -37,7 +37,9 @@ var clientController = new ClientController();
 ClientObjectTemplate.controller = clientController;
 
 var serverController = ServerObjectTemplate._createEmptyObject(ServerController, clientController.__id__);
+ServerObjectTemplate.syncSession();
 ServerObjectTemplate.controller = serverController;
+ServerObjectTemplate.__changeTracking__ = true;
 
 var serverAssert;
 
@@ -299,7 +301,10 @@ describe("Banking Example", function () {
     });
     it("change results on server", function (done) {
         serverAssert = function () {
+            expect(serverController.sam.roles[0].account.transactions[0].__changed__).to.equal(true);
+            serverController.sam.roles[0].account.transactions[0].__changed__ = false;
             serverController.sam.roles[0].account.transactions[0].amount = 200;
+            expect(serverController.sam.roles[0].account.transactions[0].__changed__).to.equal(true);
         }
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance()).to.equal(200);
@@ -335,6 +340,27 @@ describe("Banking Example", function () {
             }).fail(function(e) {
                 done(e)
             });
+    });
+    it("change tracking to work with arrays", function (done) {
+        serverAssert = function () {
+            expect(serverController.sam.roles[0].account.__changed__).to.equal(false);
+            serverController.__template__.__objectTemplate__.MarkChangedArrayReferences();
+            expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
+            serverController.sam.roles[0].account.__changed__ = false;
+            serverController.sam.roles[0].account.debit(50);
+            expect(serverController.sam.roles[0].account.__changed__).to.equal(false);
+            serverController.__template__.__objectTemplate__.MarkChangedArrayReferences();
+            expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
+        }
+        var balance = serverController.sam.roles[0].account.getBalance();
+        serverController.sam.roles[0].account.__changed__ = false;
+        clientController.sam.roles[0].account.debit(50);
+        clientController.mainFunc().then(function () {
+             expect(serverController.sam.roles[0].account.getBalance()).to.equal(balance - 100);
+             done();
+        }).fail(function(e) {
+            done(e)
+        });
     });
 
 
