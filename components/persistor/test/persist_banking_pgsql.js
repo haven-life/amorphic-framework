@@ -12,7 +12,7 @@ var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectT
 var writing = true;
 var knex;
 
-PersistObjectTemplate.debugInfo = 'io;api';
+PersistObjectTemplate.debugInfo = 'none';//'api;io';
 
 /*
 PersistObjectTemplate.debug = function(m, t) {
@@ -306,7 +306,7 @@ describe("Banking from pgsql Example", function () {
 
                     }
                 });
-                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
+                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
                 done();
         }).fail(function(e){done(e)});;
     });
@@ -762,8 +762,8 @@ describe("Banking from pgsql Example", function () {
     it("Can get update conflicts", function (done) {
         var customer;
         var isStale = false;
-        return Customer.getFromPersistWithId(sam._id).then (function (c) {
-            customer = c;
+        return Customer.getFromPersistWithId(sam._id).then (function (sam) {
+            customer = sam;
             expect(customer.secondaryAddresses[0].city).to.equal("Red Hook");
             return knex('address').where({'_id': customer.secondaryAddresses[0]._id}).update({'__version__': 999});
         }).then(function () {
@@ -819,6 +819,7 @@ describe("Banking from pgsql Example", function () {
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
             expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             customer.secondaryAddresses[0].city="Red Hook";
             customer.primaryAddresses[0].city="New York";
             txn = PersistObjectTemplate.begin();
@@ -845,6 +846,7 @@ describe("Banking from pgsql Example", function () {
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
             expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
+            expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             customer.secondaryAddresses[0].city="Red Hook";
             customer.primaryAddresses[0].city="New York";
             txn = PersistObjectTemplate.begin();
@@ -865,6 +867,142 @@ describe("Banking from pgsql Example", function () {
         });
     });
 
+    it("Two transactions can happen on the same connection pool", function (done) {
+
+        var txn1 = PersistObjectTemplate.begin(true);
+        var txn2 = PersistObjectTemplate.begin(true);
+        var txn1Sam, txn1Karen, txn2Sam, txn2Karen;
+
+        Q()
+            .then(function () {
+                return Customer.getFromPersistWithId(sam._id)
+            }).then(function (sam) {
+            txn1Sam = sam;
+            return Customer.getFromPersistWithId(sam._id)
+        }).then(function (sam) {
+            txn2Sam = sam;
+            expect(sam.firstName).to.equal('Sam');
+            return Customer.getFromPersistWithId(karen._id)
+        }).then(function (karen) {
+            txn1Karen = karen;
+            return Customer.getFromPersistWithId(karen._id)
+        }).then(function (karen) {
+            txn2Karen = karen;
+
+            txn1Sam.firstName = "txn1Sam";
+            txn1Sam.setDirty(txn1);
+
+            txn2Karen.firstName = "txn2Karen";
+            txn2Karen.setDirty(txn2);
+
+            txn1.postSave = function () {
+                return Q()
+                .then(function () {
+                    return Customer.getFromPersistWithId(sam._id);
+                }).then(function (sam) {
+                    expect(sam.firstName).to.equal("Sam");     // Outside world does not see new value of sam
+                    return PersistObjectTemplate.end(txn2)     // Update Karen and end transaction txn2
+                }).then(function () {
+                    return Customer.getFromPersistWithId(sam._id)
+                }).then(function (sam) {
+                    expect(sam.firstName).to.equal("Sam");     // Outside world still does not see new value of sam
+                })
+            }
+            return PersistObjectTemplate.end(txn1); // Do update of sam but don't commit
+          }).then(function () {
+            return Customer.getFromPersistWithId(sam._id)
+        }).then(function (sam) {
+            expect(sam.firstName).to.equal("txn1Sam");
+            return Customer.getFromPersistWithId(karen._id)
+        }).then(function (karen) {
+            expect(karen.firstName).to.equal("txn2Karen");
+            done();
+        }).fail(function(err) {
+            console.error(err);
+            done(err)
+        });
+    });
+
+    it("Can get a deadlock rollback", function (done) {
+
+        /* Sequence to get a deadlock:
+        1 - txn1 - end() procssesing: update sam (acquire exclusive lock)
+        2 - txn2 - end() processing: update karen (aquire exclusive lock), update sam (request lock on sam),
+        3 - txn1 - postSave processing: update karen (request exclusive lock that can't be granted   */
+        var oldLogging = PersistObjectTemplate.debugInfo;
+
+        var txn1 = PersistObjectTemplate.begin(true);
+        var txn2 = PersistObjectTemplate.begin(true);
+        var txn1Sam, txn1Karen, txn2Sam, txn2Karen;
+        var txn1Error = false;
+        var txn2Error = false;
+
+        Q()
+        .then(function () {
+            return Customer.getFromPersistWithId(sam._id)
+         }).then(function (sam) {
+            txn1Sam = sam;
+            return Customer.getFromPersistWithId(sam._id)
+         }).then(function (sam) {
+            txn2Sam = sam;
+            expect(sam.firstName).to.equal('txn1Sam');
+            return Customer.getFromPersistWithId(karen._id)
+        }).then(function (karen) {
+            txn1Karen = karen;
+            return Customer.getFromPersistWithId(karen._id)
+        }).then(function (karen) {
+            txn2Karen = karen;
+            txn1Sam.firstName = "txn1SamDead";
+            txn1Sam.setDirty(txn1);
+            txn2Karen.firstName = "txn2KarenDead";
+            txn2Karen.setDirty(txn2);
+            txn2Sam.firstName = "txn2SamDead";
+            txn2Sam.setDirty(txn2);
+            txn1.postSave = function () {
+                console.log("txn1 postSave hook ending txn2 - update sam & karen")
+                Q.delay(100)
+                .then(function () {
+                    // Update will not return because it is requesting a lock on Karen
+                    console.log("touching karen");
+                    txn1Karen.persistTouch(txn1) // 3 update karen
+                        .then(function () {
+                            console.log("Persist Touch returned");
+                        })
+                        .catch(function (e) {
+                            if (e.message != "Update Conflict")
+                                done(e);
+                            txn2Error = true;
+                        })
+                })
+                // Update will not return because it is requesting a lock on Sam
+                return PersistObjectTemplate.end(txn2)// 2 - update sam (req lock), update karen (exc lock)
+                .catch(function (e) {
+                    expect(e.message).to.equal("Update Conflict");
+                    txn2Error = true;
+                });
+            }
+            console.log("ending 1 - update sam");
+            return PersistObjectTemplate.end(txn1); // 1 - update sam (exc lock)
+        }).catch(function (e) {
+            if (e.message != "Update Conflict")
+                done(e);
+            expect(e.message).to.equal("Update Conflict");
+            txn1Error = true;
+        }).then(function () {
+            expect((txn1Error ? 1 : 0) + (txn2Error ? 1 : 0)).to.equal(1);
+            expect(!!(txn1.innerError || txn2.innerError).toString().match(/deadlock/)).to.equal(true);
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function (sam) {
+            expect(sam.firstName).to.equal(txn1Error ? 'txn1Sam' : "txn1SamDead"); // Failed
+            return Customer.getFromPersistWithId(karen._id);
+        }).then(function (karen) {
+            expect(karen.firstName).to.equal(txn2Error ? 'txn2Karen' : "txn2KarenDead"); // Survived (Not sure order will always be the same
+            done();
+        }).fail(function(err) {
+            console.error(err);
+            done(err)
+        });
+    });
 
     it("can delete", function (done) {
         Customer.getFromPersistWithQuery({},{roles: {fetch: {account: true}}}).then (function (customers) {

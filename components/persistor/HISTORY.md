@@ -1,3 +1,5 @@
+## 0.2.72
+* Handle deadlocks as update conflicts
 ## 0.2.71
 * Merged pull request for table sync
 ## 0.2.70

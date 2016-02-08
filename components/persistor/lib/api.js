@@ -392,9 +392,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * dirty objects can be accumulated.  Does not actually start a knex transaction until end
      * @returns {{dirtyObjects: Array}}
      */
-    PersistObjectTemplate.begin = function () {
+    PersistObjectTemplate.begin = function (notDefault) {
         var txn = {id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}};
-        this.currentTransaction = txn;
+        if (!notDefault)
+            this.currentTransaction = txn;
         return txn;
     }
 
@@ -415,29 +416,19 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
                 persistorTransaction.knex = knexTransaction;
 
-                Promise.resolve(
-                    persistorTransaction.preSave
-                        ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction)
-                        : true
-                    )
+                Promise.resolve(true)
+                    .then(processPreSave.bind(this))
                     .then(processSaves.bind(this))
                     .then(processTouches.bind(this))
-                    .then(function () {
-
-                        // Otherwise maybe call the postSave hook
-                        if (persistorTransaction.postSave)
-                            persistorTransaction.postSave(persistorTransaction);
-
-                        // And we are done with everything
-                        this.dirtyObjects = {};
-                        this.savedObjects = {};
-                        if (persistorTransaction.updateConflict)
-                            throw "Update Conflict";
-                        return knexTransaction.commit();
-                        console.log("End of end");
-                        return true;
-                    })
+                    .then(processPostSave.bind(this))
+                    .then(processCommit.bind(this))
                     .catch(rollback.bind(this));
+
+                function processPreSave() {
+                    return persistorTransaction.preSave
+                        ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction)
+                        : true
+                }
 
                 // Walk through the dirty objects
                 function processSaves() {
@@ -452,6 +443,24 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     });
 
                 }
+
+                function processPostSave() {
+                    return persistorTransaction.postSave ? persistorTransaction.postSave(persistorTransaction)
+                        : true;
+                }
+
+                // And we are done with everything
+                function processCommit() {
+
+                    this.dirtyObjects = {};
+                    this.savedObjects = {};
+                    if (persistorTransaction.updateConflict)
+                        throw "Update Conflict";
+                    return knexTransaction.commit();
+                    console.log("End of end");
+                    return true;
+                }
+
                 // Walk through the touched objects
                 function processTouches() {
                     return Promise.map(_.toArray(touchObjects), function (obj) {
@@ -462,7 +471,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }
 
                 function rollback (err) {
-                    innerError = err;
+                    persistorTransaction.innerError = err;
+                    innerError = err.toString().match(/deadlock detected$/i) ? new Error("Update Conflict") : err;
                     return knexTransaction.rollback();
                 }
             })

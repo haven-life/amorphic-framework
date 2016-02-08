@@ -537,6 +537,9 @@ module.exports = function (PersistObjectTemplate) {
             .transacting(txn ? txn.knex : null)
             .where('_id', '=', obj._id)
             .increment('__version__', 1)
+        .then(function () {
+            this.debug('touched ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
+        }.bind(this))
     }
 
     /**
