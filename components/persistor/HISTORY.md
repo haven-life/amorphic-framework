@@ -1,3 +1,5 @@
+## 0.2.74
+* Eliminate duplicate indexes
 ## 0.2.73
 * Correction to schema management
 ## 0.2.72
