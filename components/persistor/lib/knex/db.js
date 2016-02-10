@@ -436,13 +436,20 @@ module.exports = function (PersistObjectTemplate) {
                 _.map(this._schematracker[operation][tn], (function (object, key) {
                     var type = object.def.type;
                     var columns = object.def.columns;
-                    var name = 'idx_' + tableName + '_' + object.name;
+                    var name = _.reduce(object.def.columns, function (name, col) {
+                        return name + '_' + col;
+                    }, 'idx_' + tableName);
+
+                    //var name = 'idx_' + tableName + '_' + object.name;
                     if (!this._schemacache[name]) {
                         this._schemacache[name] = true;
                         if (operation === 'add')
                             return table[type](columns, name);
-                        else if (operation === 'dels')
-                            return table['drop' + type.replace(/index/, 'Index')]([], name);
+                        else if (operation === 'dels') {
+                            type= type.replace(/index/, 'Index');
+                            type = type.replace(/unique/, 'Unique')
+                            return table['drop' + type]([], name);
+                        }
                         else
                             return table[type](columns, name);
                     }

@@ -675,7 +675,13 @@ describe('type mapping tests for parent/child relations', function () {
 
         return PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize).then(function (status) {
-                return PersistObjectTemplate.checkForKnexTable(parentSynchronize).should.eventually.equal(true);
+                return PersistObjectTemplate.checkForKnexTable(parentSynchronize).should.eventually.equal(true).then(function(){
+                    schema.childSynchronize.indexes = JSON.parse('[{"name": "scd_index","def": {"columns": ["name"],"type": "unique"}}]');
+                    return PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
+                        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize);
+                        //return Q();
+                    })
+                })
             })
         })
 
