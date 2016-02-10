@@ -1,3 +1,5 @@
+## 0.2.73
+* Correction to schema management
 ## 0.2.72
 * Handle deadlocks as update conflicts
 ## 0.2.71
