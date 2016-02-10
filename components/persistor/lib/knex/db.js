@@ -442,7 +442,7 @@ module.exports = function (PersistObjectTemplate) {
                         if (operation === 'add')
                             return table[type](columns, name);
                         else if (operation === 'dels')
-                            return table['drop' + type.replace(/index/, 'Index')](name);
+                            return table['drop' + type.replace(/index/, 'Index')]([], name);
                         else
                             return table[type](columns, name);
                     }
