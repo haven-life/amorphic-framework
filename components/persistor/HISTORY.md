@@ -1,3 +1,5 @@
+## 0.2.75
+* Don't fetch just because of an existing object relationship, fetches must be specified in spec
 ## 0.2.74
 * Eliminate duplicate indexes
 ## 0.2.73

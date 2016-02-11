@@ -47,8 +47,7 @@ module.exports = function (PersistObjectTemplate) {
                     throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");
                 var foreignKey = schema.parents[prop].id;
                 var cascadeFetch = (cascade && cascade[prop]) ? cascade[prop] : null;
-                var originalForeignId = establishedObject && establishedObject[prop] ? establishedObject[prop]._id : null;
-                if (originalForeignId || defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch == true)
+                if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch == true) && cascadeFetch != false)
                     joins.push({
                         prop: prop,
                         template: props[prop].type,
@@ -189,8 +188,8 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                     var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
 
-                    if (defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch ||
-                        (obj[persistorPropertyName].isFetched && !obj[persistorPropertyName].isFetching))
+                    if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
+                        cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
                         (function () {
 
@@ -224,7 +223,6 @@ module.exports = function (PersistObjectTemplate) {
                 } else if (type.isObjectTemplate && (schema || obj[prop] && obj[prop]._id))
                 {
                     var foreignId = obj[prop] ? obj[prop]._id : null;
-                    var originalForeignId = isRefresh ? foreignId : null;
                     if (!obj[prop])
                         obj[prop] = null;
                     // Determine the id needed
@@ -242,9 +240,8 @@ module.exports = function (PersistObjectTemplate) {
                             updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id:foreignId});
                         }
                     } else {
-                        if ((originalForeignId || defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
-
-                            (!obj[persistorPropertyName].isFetching)) {
+                        if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
+                            cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
                                 var query = {_id: foreignId};
                                 var options = {};
