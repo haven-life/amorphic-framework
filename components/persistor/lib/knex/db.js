@@ -544,9 +544,9 @@ module.exports = function (PersistObjectTemplate) {
             .transacting(txn ? txn.knex : null)
             .where('_id', '=', obj._id)
             .increment('__version__', 1)
-        .then(function () {
-            this.debug('touched ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
-        }.bind(this))
+            .then(function () {
+                this.debug('touched ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'io');
+            }.bind(this))
     }
 
     /**
@@ -565,7 +565,6 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(collection)).connection
         var tableName = this.dealias(collection);
         var _cacheIndex = [];
-
         return knex.schema.createTable(tableName, createColumns.bind(this));
         function setIndex(table, index) {
             if (index.def) {
@@ -575,6 +574,8 @@ module.exports = function (PersistObjectTemplate) {
                     return name + '_' + col;
                 }, 'idx_' + tableName);
                 if (!_.contains(_cacheIndex, name)) {
+                    if (this._schemacache)
+                        this._schemacache[name] = true;
                     _cacheIndex.push(name);
                     table[index.def.type](index.def.columns, name);
                 }
@@ -584,7 +585,7 @@ module.exports = function (PersistObjectTemplate) {
             if (!schema) return;
             if (schema.indexes) {
                 schema.indexes.forEach(function (index) {
-                        setIndex(table, index);
+                        setIndex.call(this, table, index);
                     }.bind(this)
                 )
             }
