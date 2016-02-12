@@ -1,3 +1,5 @@
+## 0.2.78
+* Allow fetches specs in API specified as false to override.
 ## 0.2.77
 * Syncrhonization broken on an empty database in previous release
 ## 0.2.76

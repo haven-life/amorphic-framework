@@ -46,7 +46,7 @@ module.exports = function (PersistObjectTemplate) {
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                     throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");
                 var foreignKey = schema.parents[prop].id;
-                var cascadeFetch = (cascade && cascade[prop]) ? cascade[prop] : null;
+                var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
                 if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch == true) && cascadeFetch != false)
                     joins.push({
                         prop: prop,
@@ -131,7 +131,7 @@ module.exports = function (PersistObjectTemplate) {
                         return o._id == pojo[prefix + '_id']
                     else
                         console.log("getTemplateFromKnexPOJO found an empty establishedObj " + template.__name__);
-                   });
+                });
 
             // Create the new object with correct constructor using embedded ID if ObjectTemplate
             if (!establishedObj &&!pojo[prefix + '_template'])
@@ -164,7 +164,7 @@ module.exports = function (PersistObjectTemplate) {
                 var type = defineProperty.type;
                 var of = defineProperty.of;
                 var actualType = of || type;
-                var cascadeFetch = (cascade && cascade[prop]) ? cascade[prop] : null;
+                var cascadeFetch = (cascade && typeof(cascade[prop] != 'undefined')) ? cascade[prop] : null;
 
                 // Create a persistor if not already there
                 var persistorPropertyName = prop + "Persistor";
