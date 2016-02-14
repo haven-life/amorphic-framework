@@ -85,25 +85,41 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
             }
-
-
-            for (var templateName in schema)
-                if (!(PersistObjectTemplate.__dictionary__[templateName] || {}).__parent__) {
-                    addFKIndexes(schema[templateName])
-                }
         }
-        function addFKIndexes(schema) {
-            if (!schema.noAutoIndex)
-                _.map(schema.parents, addIndex);
+        // Add indexes for one-to-many foreign key relationships, primary keys automatically added by syncTable
+        if (!PersistObjectTemplate.noAutoIndex) {
+            var indexes = {}
+            for (var templateName in this._schema) {
+                var template = PersistObjectTemplate.__dictionary__[templateName];
+                if (template) {
+                    addFKIndexes.call(this, this._schema[templateName], template, templateName)
+                }
+                function addFKIndexes(schema, template, templateName) {
 
-            function addIndex(val, prop) {
-                var keyName = "FK_" + prop;
-                schema.indexes = schema.indexes || [];
-                if (!_.find(schema.indexes, function (s) {return s.name == keyName}))
-                    schema.indexes.push({name: keyName, def: {columns: [val.id], type: "index"}});
+                    // Some folks may not want this
+                    if (!schema.noAutoIndex)
+                        _.map(schema.parents, addIndex.bind(this));
+
+                    // For a given parent relationship in the schema decide if an index should be added
+                    function addIndex(val, prop) {
+
+                        // To get only one-to-many keys find the corresponding children entry and look up by id
+                        var parentTemplate = template ? template.getProperties()[prop] : null;
+                        var parentSchema = (parentTemplate && parentTemplate.type) ? this._schema[parentTemplate.type.__name__] : null;
+                        var isOTM = (parentSchema && parentSchema.children) ?
+                            !!_.find(parentSchema.children, function(child) { return child.id == val.id}) : false;
+
+                        // Add the entry mindful of avoiding duplicates
+                        schema.indexes = schema.indexes || [];
+                        var keyName = "idx_" + schema.table + "_fk_" + val.id;
+                        if (isOTM && !indexes[keyName]) {
+                            indexes[keyName] = true;
+                            schema.indexes.push({name: keyName, def: {columns: [val.id], type: "index"}});
+                        }
+                    }
+                }
             }
         }
-
     }
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {

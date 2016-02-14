@@ -1,3 +1,6 @@
+## 0.2.79
+* Improved logging on end()
+* Optimized index creation to only create indexes on one-to-many relationships
 ## 0.2.78
 * Allow fetches specs in API specified as false to override.
 ## 0.2.77

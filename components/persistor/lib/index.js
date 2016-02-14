@@ -64,7 +64,7 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
     PersistObjectTemplate.savedObjects = {};
 
     PersistObjectTemplate.debug = function (data, type) {
-        if (this.debugInfo && type && this.debugInfo.match(type)) {
+        if (this.debugInfo && type && this.debugInfo.match(type) || type == 'error') {
             var t = new Date();
             var time = t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate() + " " +
                 t.toTimeString().replace(/ .*/, '') + ":" + t.getMilliseconds();

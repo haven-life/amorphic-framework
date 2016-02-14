@@ -457,8 +457,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     if (persistorTransaction.updateConflict)
                         throw "Update Conflict";
                     return knexTransaction.commit();
-                    console.log("End of end");
-                    return true;
                 }
 
                 // Walk through the touched objects
@@ -471,11 +469,14 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }
 
                 function rollback (err) {
-                    persistorTransaction.innerError = err;
-                    innerError = err.toString().match(/deadlock detected$/i) ? new Error("Update Conflict") : err;
-                    return knexTransaction.rollback();
+                    return knexTransaction.rollback().then (function () {
+                        var deadlock = err.toString().match(/deadlock detected$/i)
+                        persistorTransaction.innerError = err;
+                        innerError = deadlock ? new Error("Update Conflict") : err;
+                        this.debug("end - transaction rolled back " + innerError.message + (deadlock + " from deadlock"), 'api');
+                    }.bind(this));
                 }
-            })
+            }.bind(this))
             .then(function () {
                 this.debug("end - transaction completed", 'api');
                 deferred.resolve(true);
@@ -483,7 +484,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             .catch(function (e) {
                 var err = e || innerError;
                 if (err && err.message && err.message != 'Update Conflict')
-                    console.log(err + err.stack);
+                    this.debug("transaction ended with error " + err.message + err.stack, 'error');
                 deferred.reject(e || innerError);
             })
         return deferred.promise;
