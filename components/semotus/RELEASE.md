@@ -1,3 +1,5 @@
+## 0.2.12
+* Added logging of response time and app level extra id info
 ## 0.2.11
 * Added api to flag objects with __changed__ for referenced arrays that changed 
 ## 0.2.09

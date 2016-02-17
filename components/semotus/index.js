@@ -41,13 +41,14 @@ RemoteObjectTemplate.maxClientSequence = 1;
 RemoteObjectTemplate.log = function (level, data) {
     if (level > this.logLevel)
         return;
+    var extraID = this.reqSession && this.reqSession.loggingID ? "-" + this.reqSession.loggingID : "";
     var t = new Date();
     var time = t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate() + " " +
         t.toTimeString().replace(/ .*/, '') + ":" + t.getMilliseconds();
     if (level == 0 && this.changeString)
         console.log(time + "(" + this.currentSession +") " + (level == 0 ? 'ERROR: ' : '') + "RemoteObjectTemplate: Recently applied changes to "
             + this.changeCount + " objects " + this.changeString);
-    var message = (time + "(" + this.currentSession +") " + "RemoteObjectTemplate:" + data);
+    var message = (time + "(" + this.currentSession + extraID + ") " + "RemoteObjectTemplate:" + data);
     console.log(message);
     var logger = this.logger
     if (level == 0 && this.logger)
@@ -252,8 +253,12 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
         case 'call':
 
             this.log(1, "calling " + remoteCall.name + " [" + remoteCall.sequence + "]");
-            var callContext = {retries: 0};
+            var callContext = {retries: 0, startTime: new Date()};
             return processCall.call(this);
+
+            function logTime() {
+                return " - request took " + ((new Date()).getTime() - callContext.startTime.getTime()) + "ms";
+            }
 
         /**
          * We process the call the remote method in stages starting by letting the controller examine the
@@ -343,7 +348,7 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
          * @param ret
          */
         function postCallSuccess(ret) {
-            this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "]");
+            this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "]" + logTime());
             packageChanges.call(this, {type: 'response', sync: true, value: JSON.stringify(this._toTransport(ret)),
                 name: remoteCall.name,  remoteCallId: remoteCallId});
         }
@@ -354,17 +359,19 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
          */
         function postCallFailure(err) {
             if (err == "Sync Error") {
-                this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]");
+                this.log(0, "Could not apply changes on calling " + remoteCall.name+ "[" + remoteCall.sequence + "]" + logTime());
                 packageChanges.call(this, {type: 'response', sync: false,
                     changes: "", remoteCallId: remoteCallId});
             } else if (err.message == "Update Conflict") { // Not this may be caught in the trasport (e.g. Amorphic) and retried)
-                this.log(0, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "]");
-                if (callContext.retries++ < 5)
+                if (callContext.retries++ < 5) {
+                    this.log(1, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "] - retrying");
                     return retryCall.call(this);
-                else
+                } else {
+                    this.log(1, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "] - failed " + logTime());
                     packageChanges.call(this, {type: 'retry', sync: false, remoteCallId: remoteCallId});
+                }
             } else {
-                this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "] error " + err.toString());
+                this.log(1, "replying to " + remoteCall.name + " [" + remoteCall.sequence + "] error " + err.toString() + logTime());
                 packageChanges.call(this, {type: 'error', sync: true, value: getError.call(this, err), name: remoteCall.name,
                     remoteCallId: remoteCallId});
             }

@@ -40,6 +40,8 @@ var serverController = ServerObjectTemplate._createEmptyObject(ServerController,
 ServerObjectTemplate.syncSession();
 ServerObjectTemplate.controller = serverController;
 ServerObjectTemplate.__changeTracking__ = true;
+ServerObjectTemplate.reqSession = {loggingID: "test"};
+ServerObjectTemplate.logLevel = 1;
 
 var serverAssert;
 
