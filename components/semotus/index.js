@@ -252,13 +252,30 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
 
         case 'call':
 
+            if (this.reqSession && this.reqSession.semotus)  {
+                if (!this.reqSession.semotus.callStartTime)
+                    this.reqSession.semotus.callStartTime = (new Date()).getTime();
+                else
+                if ((this.reqSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
+                    this.log(1, " blocking call to " + remoteCall.name + " [" + remoteCall.sequence + "] - call in progress");
+                    session.sendMessage({type: 'response', sync: false, changes: "", remoteCallId: remoteCallId});
+                    this._deleteChanges();
+                    this._processQueue();
+                    break;
+                }
+            }
+
             this.log(1, "calling " + remoteCall.name + " [" + remoteCall.sequence + "]");
             var callContext = {retries: 0, startTime: new Date()};
-            return processCall.call(this);
+            return processCall.call(this).finally (function (arg) {
+                if (this.reqSession && this.reqSession.semotus && this.reqSession.semotus.callStartTime)
+                    this.reqSession.semotus.callStartTime = 0;
+                return arg;
+            }.bind(this));
 
-            function logTime() {
-                return " - request took " + ((new Date()).getTime() - callContext.startTime.getTime()) + "ms";
-            }
+        function logTime() {
+            return " - request took " + ((new Date()).getTime() - callContext.startTime.getTime()) + "ms";
+        }
 
         /**
          * We process the call the remote method in stages starting by letting the controller examine the

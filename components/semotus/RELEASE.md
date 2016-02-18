@@ -1,3 +1,5 @@
+## 0.2.13
+* Ability to prevent overlapping calls when running with amorphic 
 ## 0.2.12
 * Added logging of response time and app level extra id info
 ## 0.2.11

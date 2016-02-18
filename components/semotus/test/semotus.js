@@ -15,6 +15,8 @@ ClientObjectTemplate._useGettersSetters = false;
 var ServerObjectTemplate = require('../index.js')._createObject();
 ServerObjectTemplate.role = "server";
 ServerObjectTemplate._useGettersSetters = true;
+ServerObjectTemplate.maxCallTime = 60 * 1000;
+
 
 function sendToServer(message) {
     ServerObjectTemplate.processMessage(message);
@@ -40,7 +42,7 @@ var serverController = ServerObjectTemplate._createEmptyObject(ServerController,
 ServerObjectTemplate.syncSession();
 ServerObjectTemplate.controller = serverController;
 ServerObjectTemplate.__changeTracking__ = true;
-ServerObjectTemplate.reqSession = {loggingID: "test"};
+ServerObjectTemplate.reqSession = {loggingID: "test", semotus: {}};
 ServerObjectTemplate.logLevel = 1;
 
 var serverAssert;
@@ -339,6 +341,24 @@ describe("Banking Example", function () {
             }, function (e) {
                 expect(e.message).to.equal("get stuffed");
                 done()
+            }).fail(function(e) {
+                done(e)
+            });
+    });
+    it("can get a synchronization error from overlapping calls", function (done) {
+        serverAssert = function () {
+            return Q.delay(1000);
+        }
+        clientController.mainFunc()
+            .then(function () {
+                expect("Should not be here").to.equal(false);
+            });
+        clientController.mainFunc()
+            .then(function () {
+                expect("Should not be here").to.equal(false);
+            }, function (e) {
+                console.log(e);
+                Q.delay(1000).then(function () {done()});
             }).fail(function(e) {
                 done(e)
             });
