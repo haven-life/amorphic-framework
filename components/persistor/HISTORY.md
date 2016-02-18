@@ -1,3 +1,5 @@
+## 0.2.84
+* Incorrect logging of errors on txn end
 ## 0.2.83
 * minor logging changes
 ## 0.2.80

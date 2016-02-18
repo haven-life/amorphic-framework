@@ -486,7 +486,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 if (err && err.message && err.message != 'Update Conflict')
                     this.debug("transaction ended with error " + err.message + err.stack, 'error');
                 deferred.reject(e || innerError);
-            })
+            }.bind(this))
         return deferred.promise;
     }
     /**
