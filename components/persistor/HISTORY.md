@@ -1,3 +1,5 @@
+## 0.2.83
+* minor logging changes
 ## 0.2.80
 * minor logging changes
 ## 0.2.79

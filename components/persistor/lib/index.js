@@ -68,7 +68,8 @@ module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPer
             var t = new Date();
             var time = t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate() + " " +
                 t.toTimeString().replace(/ .*/, '') + ":" + t.getMilliseconds();
-            var message = (time + (this.currentSession ? "(" + this.currentSession +") " : "") + " Persistor: " + data);
+            var extraID = this.reqSession && this.reqSession.loggingID ? "-" + this.reqSession.loggingID : "";
+            var message = (time + (this.currentSession ? "(" + this.currentSession + extraID + ") " : "") + " Persistor: " + data);
             console.log(message);
         }
     }
