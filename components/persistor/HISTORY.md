@@ -1,3 +1,5 @@
+## 0.2.80
+* minor logging changes
 ## 0.2.79
 * Improved logging on end()
 * Optimized index creation to only create indexes on one-to-many relationships

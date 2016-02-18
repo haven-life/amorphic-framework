@@ -473,7 +473,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         var deadlock = err.toString().match(/deadlock detected$/i)
                         persistorTransaction.innerError = err;
                         innerError = deadlock ? new Error("Update Conflict") : err;
-                        this.debug("end - transaction rolled back " + innerError.message + (deadlock + " from deadlock"), 'api');
+                        this.debug("end - transaction rolled back " + innerError.message + (deadlock ? " from deadlock" : ""), 'api');
                     }.bind(this));
                 }
             }.bind(this))

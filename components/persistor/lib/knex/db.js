@@ -378,7 +378,7 @@ module.exports = function (PersistObjectTemplate) {
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                this.debug(txn ? txn.id : '-#-', "update conflict on " + obj.__id__ + " looking for " + origVer, 'conflict');
+                this.debug(txn ? txn.id : '-#-' + " update conflict on " + obj.__id__ + " looking for " + origVer, 'conflict');
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj)
