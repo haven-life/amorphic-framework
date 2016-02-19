@@ -380,9 +380,9 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
                 packageChanges.call(this, {type: 'response', sync: false,
                     changes: "", remoteCallId: remoteCallId});
             } else if (err.message == "Update Conflict") { // Not this may be caught in the trasport (e.g. Amorphic) and retried)
-                if (callContext.retries++ < 5) {
+                if (callContext.retries++ < 3) {
                     this.log(1, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "] - retrying");
-                    return retryCall.call(this);
+                    return Q.delay(callContext.retries * 1000).then(retryCall.bind(this));
                 } else {
                     this.log(1, "Update Conflict" + remoteCall.name+ "[" + remoteCall.sequence + "] - failed " + logTime());
                     packageChanges.call(this, {type: 'retry', sync: false, remoteCallId: remoteCallId});

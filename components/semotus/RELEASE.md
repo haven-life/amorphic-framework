@@ -1,3 +1,5 @@
+## 0.2.14
+* Delay on return of update conflicts and reduce count to 3.
 ## 0.2.13
 * Ability to prevent overlapping calls when running with amorphic 
 ## 0.2.12
