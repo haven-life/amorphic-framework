@@ -1,3 +1,5 @@
+## 0.2.15
+* Fix for blocking code to make it work with session serialization
 ## 0.2.14
 * Delay on return of update conflicts and reduce count to 3.
 ## 0.2.13

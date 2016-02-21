@@ -346,6 +346,7 @@ describe("Banking Example", function () {
             });
     });
     it("can get a synchronization error from overlapping calls", function (done) {
+        this.timeout(7000);
         serverAssert = function () {
             return Q.delay(1000);
         }

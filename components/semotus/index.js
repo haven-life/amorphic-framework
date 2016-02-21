@@ -256,22 +256,20 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
                 if (!this.reqSession.semotus.callStartTime)
                     this.reqSession.semotus.callStartTime = (new Date()).getTime();
                 else
-                if ((this.reqSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
-                    this.log(1, " blocking call to " + remoteCall.name + " [" + remoteCall.sequence + "] - call in progress");
-                    session.sendMessage({type: 'response', sync: false, changes: "", remoteCallId: remoteCallId});
-                    this._deleteChanges();
-                    this._processQueue();
-                    break;
-                }
+                    if ((this.reqSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
+                        Q.delay(5000).then(function () {
+                            this.log(1, " blocking call to " + remoteCall.name + " [" + remoteCall.sequence + "] - call in progress");
+                            session.sendMessage({type: 'response', sync: false, changes: "", remoteCallId: remoteCallId});
+                            this._deleteChanges();
+                            this._processQueue();
+                        }.bind(this));
+                        break;
+                    }
             }
 
             this.log(1, "calling " + remoteCall.name + " [" + remoteCall.sequence + "]");
             var callContext = {retries: 0, startTime: new Date()};
-            return processCall.call(this).finally (function (arg) {
-                if (this.reqSession && this.reqSession.semotus && this.reqSession.semotus.callStartTime)
-                    this.reqSession.semotus.callStartTime = 0;
-                return arg;
-            }.bind(this));
+            return processCall.call(this);
 
         function logTime() {
             return " - request took " + ((new Date()).getTime() - callContext.startTime.getTime()) + "ms";
@@ -416,6 +414,8 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
         function packageChanges(message) {
             this._convertArrayReferencesToChanges();
             message.changes = JSON.stringify(this.getChanges());
+            if (this.reqSession && this.reqSession.semotus && this.reqSession.semotus.callStartTime)
+                this.reqSession.semotus.callStartTime = 0;
             session.sendMessage(message);
             this._deleteChanges();
             this._processQueue();
