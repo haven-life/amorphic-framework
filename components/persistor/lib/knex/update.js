@@ -45,19 +45,22 @@ module.exports = function (PersistObjectTemplate) {
             var value = obj[prop];
 
             // Deal with properties we don't plan to save
-            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable ||
-                typeof(value) == "undefined" || value == null) {
+            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == "undefined" || value == null) {
 
                 // Make sure we don't wipe out foreign keys of non-cascaded object references
                 if (defineProperty.type != Array &&
                     defineProperty.type && defineProperty.type.isObjectTemplate &&
                     obj[prop + 'Persistor'] && !obj[prop + 'Persistor'].isFetched && obj[prop + 'Persistor'].id &&
-                    !(!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id))
+                    !(!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)) {
 
                     pojo[schema.parents[prop].id] = obj[prop + 'Persistor'].id;
+                    continue;
+                }
 
-                continue;
+                if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == "undefined")
+                    continue;
             }
+
             // Handle Arrays
             if (defineProperty.type == Array && defineProperty.of.isObjectTemplate)
             {
@@ -126,13 +129,13 @@ module.exports = function (PersistObjectTemplate) {
                     throw   new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
 
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
-                if (!value._id) {
+                if (value && !value._id) {
                     value._id = this.createPrimaryKey(value);
                     value.setDirty(txn);
                 }
 
-                pojo[foreignKey] =  value._id;
-                updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value._id, isFetched: true})
+                pojo[foreignKey] =  value ? value._id : null
+                updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value ? value._id : null, isFetched: true})
 
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
                 pojo[prop] = obj[prop] ? JSON.stringify(obj[prop]) : null;

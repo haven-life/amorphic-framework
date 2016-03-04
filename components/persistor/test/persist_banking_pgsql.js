@@ -1003,6 +1003,21 @@ describe("Banking from pgsql Example", function () {
             done(err)
         });
     });
+    it("Can change things to null", function (done) {
+        Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
+            customer.firstName = null;
+            customer.referredBy = null;
+            return customer.persistSave()
+        }).then (function () {
+            return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
+        }).then (function (customer) {
+            expect(customer.firstName).to.equal(null);
+            expect(customer.referredBy).to.equal(null);
+            done();
+        }.bind(this)).fail(function(e) {
+            done(e)
+        })
+    });
 
     it("can delete", function (done) {
         Customer.getFromPersistWithQuery({},{roles: {fetch: {account: true}}}).then (function (customers) {

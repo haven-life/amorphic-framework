@@ -466,6 +466,21 @@ describe("Banking Example", function () {
             done(e)
         })
     });
+    it("Can change things to null", function (done) {
+        Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
+           customer.firstName = null;
+           customer.referredBy = null;
+           return customer.persistSave()
+        }).then (function () {
+           return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
+        }).then (function (customer) {
+           expect(customer.firstName).to.equal(null);
+           expect(customer.referredBy).to.equal(null);
+           done();
+        }.bind(this)).fail(function(e) {
+            done(e)
+        })
+    });
 /*
     it ("can serialize and deserialize", function(done) {
         Customer.getFromPersistWithId(customer_id, {roles: {account: true}}).then (function (customer) {

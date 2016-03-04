@@ -1,3 +1,5 @@
+## 0.2.85
+* Handling of setting null values
 ## 0.2.84
 * Incorrect logging of errors on txn end
 ## 0.2.83

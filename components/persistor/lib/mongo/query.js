@@ -129,9 +129,8 @@ module.exports = function (PersistObjectTemplate) {
 
             // Make sure this is property is persistent and that it has a value.  We have to skip
             // undefined values in case a new property is added so it can retain it's default value
-            //@@@ Not sure this should test for null as you should be able to store null values
             if (!this._persistProperty(defineProperty) || !defineProperty.enumerable ||
-                (!isCrossDocRef && (typeof(value) == "undefined" || value == null)))
+                (!isCrossDocRef && (typeof(value) == "undefined")))
                 continue;
             if (!type)
                 throw new Error(obj.__template__.__name__ + "." + prop + " has no type decleration");

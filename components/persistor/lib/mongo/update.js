@@ -90,8 +90,7 @@ module.exports = function (PersistObjectTemplate) {
             var defineProperty = props[prop];
             var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty);
             var value = obj[prop];
-            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable ||
-                typeof(value) == "undefined" || value == null) {
+            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == "undefined" || value == null) {
 
                 // Make sure we don't wipe out foreign keys of non-cascaded object references
                 if (defineProperty.type != Array &&
@@ -101,8 +100,10 @@ module.exports = function (PersistObjectTemplate) {
                     !(!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id))
                 {
                     pojo[schema.parents[prop].id] = new this.ObjectID(obj[prop + 'Persistor'].id.toString())
+                    continue;
                 }
-                continue;
+                if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == "undefined")
+                    continue;
             }
 
             // For arrays we either just copy each element or link and save each element
@@ -197,7 +198,9 @@ module.exports = function (PersistObjectTemplate) {
                 {
 
                     // If already stored in this document or stored in some other document make reference an id
-                    if (value._id && (idMap[value._id.toString()] || value._id.replace(/:.*/, '') != masterId))
+                    if (value == null)
+                        pojo[foreignKey] = null;
+                    else if (value._id && (idMap[value._id.toString()] || value._id.replace(/:.*/, '') != masterId))
                         pojo[foreignKey] = value._id.toString();
 
                     // otherwise as long as in same collection just continue saving the sub-document
@@ -233,16 +236,16 @@ module.exports = function (PersistObjectTemplate) {
 
                     var foreignKey = schema.parents[prop].id;
                     // Make sure referenced entity has an id
-                    if (!value._id) {
+                    if (value && !value._id) {
                         value._id = this.getDBID().toString(); // Create one
                         value.__dirty__ = true;     // Will need to be saved
                     }
                     // Make sure we point to that id
                     if (!obj[foreignKey] || obj[foreignKey].toString != value._id.toString()) {
-                        obj[foreignKey] = value._id.toString();
+                        obj[foreignKey] = value ? value._id.toString() : null;
                     }
-                    pojo[foreignKey] = new this.ObjectID(obj[foreignKey]);
-                    if (value.__dirty__)
+                    pojo[foreignKey] = value ? new this.ObjectID(obj[foreignKey]) : null;
+                    if (value && value.__dirty__)
                         promises.push(this.persistSaveMongo(value, promises, null, idMap));
                 }
             }
