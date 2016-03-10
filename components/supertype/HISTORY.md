@@ -1,3 +1,5 @@
+## 0.1.44
+* Allow pojo to be passed into creator callback
 ## 0.1.43
 * Was converting null to init value when reconstituting objects
 ## 0.1.42
