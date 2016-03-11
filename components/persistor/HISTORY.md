@@ -1,3 +1,5 @@
+## 0.2.86
+* Corrected synchrnonization of schema when properties added to extended templates
 ## 0.2.85
 * Handling of setting null values
 ## 0.2.84
