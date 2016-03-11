@@ -204,15 +204,19 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 cols.push(prefix + "." + prop + " as " + (prefix ? prefix + "___" : "") + prop);
             }
+
             function getPropsRecursive(template, map) {
                 map = map || {};
-                _.map(template.getProperties(), function (val, prop) {map[prop] = val});
+                _.map(template.getProperties(), function (val, prop) {
+                    map[prop] = val
+                });
                 template = template.__children__;
-                template.forEach(function(template){
+                template.forEach(function (template) {
                     getPropsRecursive(template, map);
                 });
                 return map;
-            }        }
+            }
+        }
     }
     /**
      * Get the count of rows
@@ -409,7 +413,7 @@ module.exports = function (PersistObjectTemplate) {
         if(!template.__table__)
             throw new Error(template.__name__ + " is missing a schema entry");
 
-        var props = template.getProperties();
+        var props = getPropsRecursive(template);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection
         var schema = template.__schema__;
         var _newFields = {};
@@ -532,6 +536,18 @@ module.exports = function (PersistObjectTemplate) {
                 default:
                     return pgtype.indexOf('text') > -1; // Typed objects have no name
             }
+        }
+
+        function getPropsRecursive(template, map) {
+            map = map || {};
+            _.map(template.getProperties(), function (val, prop) {
+                map[prop] = val
+            });
+            template = template.__children__;
+            template.forEach(function (template) {
+                getPropsRecursive(template, map);
+            });
+            return map;
         }
     }
 
