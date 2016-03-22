@@ -783,7 +783,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 }
                                 // Add a please select ... item if no value matches and remove it if something selected
                                 if (!selected) {
-                                    var child = node.appendChild(document.createElement('OPTION'));
+                                    var child = node.insertBefore(document.createElement('OPTION'), node.firstChild);
                                     child.value = bind_data;
                                     child.text = pleaseSelect;
                                     child.selected = true;
