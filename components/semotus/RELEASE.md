@@ -1,3 +1,5 @@
+## 0.2.16
+* Allow values in extended classes to override base class
 ## 0.2.15
 * Fix for blocking code to make it work with session serialization
 ## 0.2.14

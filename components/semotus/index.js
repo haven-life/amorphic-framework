@@ -622,14 +622,10 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
         byValue: !(typeof(value) == 'boolean' || typeof(value) == 'number' || typeof(value) == 'string' || value == null)
     };
 
-    // Don't redefine if in superclass
-    var existingDefineProperty = parentTemplate ? this._getDefineProperty(propertyName, parentTemplate) : null;
-    if (!existingDefineProperty) {
-        // One property for real name which will have a getter and setter
-        // and another property for the actual value __propertyname
-        defineProperties[propertyName] = defineProperty;
-        defineProperties['__' + propertyName] = {enumerable: false, writable: true};
-    }
+    // One property for real name which will have a getter and setter
+    // and another property for the actual value __propertyname
+    defineProperties[propertyName] = defineProperty;
+    defineProperties['__' + propertyName] = {enumerable: false, writable: true};
 
     // In the case where there are now getters and setters, the __prop represents
     // the original value
