@@ -1,3 +1,5 @@
+## 0.1.45
+* Handle overriding of values in extended classes
 ## 0.1.44
 * Allow pojo to be passed into creator callback
 ## 0.1.43

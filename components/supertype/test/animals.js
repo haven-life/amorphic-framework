@@ -4,29 +4,29 @@ var ObjectTemplate = require('../index.js');
 
 /* Teacher Student Example */
 
-Animal = ObjectTemplate.create("Animal",
+BaseTemplate = ObjectTemplate.create("BaseTemplate",
 {
 	name: {type: String},
 	isMammal: {type: Boolean, value: true},
 	legs: {type: Number}
 });
-Animal.mixin({
+BaseTemplate.mixin({
 	legs: {type: Number, value: 2} // Make sure duplicate props work
 });
-Lion = Animal.extend("Lion",
+Lion = BaseTemplate.extend("Lion",
 {
 	init: function () {
-		Animal.call(this);
+		BaseTemplate.call(this);
 		this.name = "Lion";
 		this.legs = 4;
 	},
 	canRoar: function () {return true},
 });
 
-Bear = Animal.extend("Bear",
+Bear = BaseTemplate.extend("Bear",
 {
 	init: function () {
-		Animal.call(this);
+		BaseTemplate.call(this);
 		this.name = "Bear";
 	},
 	canHug: function () {return true}
@@ -34,13 +34,13 @@ Bear = Animal.extend("Bear",
 
 Ark = ObjectTemplate.create("Ark",
 {
-	animals: {type: Array, of: Animal, value: []},
+	animals: {type: Array, of: BaseTemplate, value: []},
 	board: function (animal) {
 		animal.ark = this;
 		this.animals.push(animal)
 	}
 });
-Animal.mixin(
+BaseTemplate.mixin(
 {
 	ark:    {type: Ark}
 });

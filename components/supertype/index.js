@@ -182,11 +182,13 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
         if (objectTemplate.__transient__) {
             this.__transient__ = true;
         }
+        var prunedObjectProperties = pruneExisting(this, objectProperties);
+        var prunedDefineProperties = pruneExisting(this, defineProperties);
 
         try {
             // Create properties either with EMCA 5 defineProperties or by hand
             if (Object.defineProperties)
-                Object.defineProperties(this, defineProperties);	// This method will be added pre-EMCA 5
+                Object.defineProperties(this, prunedDefineProperties);	// This method will be added pre-EMCA 5
         } catch (e) {
             console.log(e);
         }
@@ -197,9 +199,10 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
                 this[prop] = obj[prop];
         }
 
+
         // Initialize properties from the defineProperties value property
-        for (var propertyName in objectProperties) {
-            var defineProperty = objectProperties[propertyName];
+        for (var propertyName in prunedObjectProperties) {
+            var defineProperty = prunedObjectProperties[propertyName];
             if (typeof(defineProperty.init) != 'undefined')
                 if (defineProperty.byValue)
                     this[propertyName] = ObjectTemplate.clone(defineProperty.init, defineProperty.of || defineProperty.type || null);
@@ -248,6 +251,14 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
         this.createCopy = function(creator) {
             return ObjectTemplate.createCopy(this, creator);
         };
+
+        function pruneExisting(obj, props) {
+            var newProps = {};
+            for (var prop in props)
+                if (typeof(obj[prop]) == 'undefined')
+                    newProps[prop] = props[prop];
+            return newProps;
+        }
     };
 
     template.prototype = templatePrototype;
@@ -491,7 +502,7 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         return;
 
     if (creator) {
-        var obj = creator(parent, prop, template, idMap[pojo.__id__.toString()], pojo.__transient__, pojo);
+        var obj = creator(parent, prop, template, idMap[pojo.__id__.toString()], pojo.__transient__);
         //console.log ("creator returned " + obj + " on " + template.__name__ + "." + prop);
         if (obj instanceof Array) {
             obj = obj[0];
@@ -565,12 +576,11 @@ ObjectTemplate.toJSONString = function (obj, cb) {
     var idMap = [];
     try {
         return JSON.stringify(obj, function (key, value) {
-            if (value && value.__template__ && value.__id__) {
+            if (value && value.__template__ && value.__id__)
                 if (idMap[value.__id__])
                     value = {__id__: value.__id__.toString()}
                 else
                     idMap[value.__id__.toString()] = value;
-            }
             return cb ? cb(key, value) : value;
         });
     } catch (e) {
