@@ -1,3 +1,5 @@
+## 0.1.46
+* Allow functions for __isLocal__ on templates
 ## 0.1.45
 * Handle overriding of values in extended classes
 ## 0.1.44

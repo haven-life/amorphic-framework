@@ -56,12 +56,15 @@ ObjectTemplate.setTemplateProperties = function(template, name, props)
     template.__objectTemplate__ = this;
     template.__children__ = [];
     props = props || {};
-    if (props.isLocal) {
+    var isLocal = typeof(props.isLocal) == 'function' ? props.isLocal() : props.isLocal;
+    if (isLocal) {
         props.toServer = false;
         props.toClient = false;
     }
-    template.__toClient__ = props.toClient == false ?  false : true;
-    template.__toServer__ = props.toServer == false ?  false : true;
+    var toClient = typeof(props.toClient) == 'function' ? props.toClient() : props.toClient;
+    var toServer = typeof(props.toServer) == 'function' ? props.toServer() : props.toServer;
+    template.__toClient__ = toClient == false ?  false : true;
+    template.__toServer__ = toServer == false ?  false : true;
 };
 
 /**
