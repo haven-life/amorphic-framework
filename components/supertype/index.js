@@ -47,6 +47,45 @@ ObjectTemplate.init = function () {
 ObjectTemplate.getTemplateByName = function (name) {
     return this.__dictionary__[name];
 }
+ObjectTemplate.getTemplateProperties = function(props)
+{
+    var templateProperties = {};
+    if (ObjectTemplate.__toClient__ == false)
+        props.toClient = false;
+
+    if (processProp(props.isLocal,'isLocalRuleSet')) {
+        props.toServer = false;
+        props.toClient = false;
+    }
+    templateProperties.__toClient__ = processProp(props.toClient, 'toClientRuleSet') == false ?  false : true;
+    templateProperties.__toServer__ = processProp(props.toServer, 'toServerRuleSet') == false ?  false : true;
+
+    return templateProperties;
+    /**
+     * Allow the property to be either a boolean a function that returns a boolean or a string
+     * matched against a rule set array of string in ObjectTemplate
+     * @param prop
+     * @returns {function(this:ObjectTemplate)}
+     */
+    function processProp(prop, ruleSet) {
+        var ret = null;
+        if (typeof(prop) == 'function')
+            ret = prop.call(ObjectTemplate);
+        else if (typeof(prop) == 'string') {
+            ret = false;
+            if (ObjectTemplate[ruleSet])
+                ObjectTemplate[ruleSet].map(function (rule) {ret = ret ? ret : rule == prop});
+        } else if (prop instanceof Array) {
+            prop.forEach(function (prop) {
+                ret = ret  == null ? ret : processProp(prop, ruleSet)
+            });
+        }
+        else
+            ret = prop;
+        return ret;
+    }
+
+}
 ObjectTemplate.setTemplateProperties = function(template, name, props)
 {
     this.__templatesToInject__[name] = template;
@@ -55,16 +94,8 @@ ObjectTemplate.setTemplateProperties = function(template, name, props)
     template.__injections__ = [];
     template.__objectTemplate__ = this;
     template.__children__ = [];
-    props = props || {};
-    var isLocal = typeof(props.isLocal) == 'function' ? props.isLocal() : props.isLocal;
-    if (isLocal) {
-        props.toServer = false;
-        props.toClient = false;
-    }
-    var toClient = typeof(props.toClient) == 'function' ? props.toClient() : props.toClient;
-    var toServer = typeof(props.toServer) == 'function' ? props.toServer() : props.toServer;
-    template.__toClient__ = toClient == false ?  false : true;
-    template.__toServer__ = toServer == false ?  false : true;
+    template.__toClient__ = props.__toClient__;
+    template.__toServer__ = props.__toServer__;
 };
 
 /**
@@ -84,13 +115,15 @@ ObjectTemplate.create = function (name, properties) {
     if (typeof(name) != 'undefined' && name.name) {
         var props = name;
         name = props.name;
-    }
+    } else
+        props = {};
     if (typeof(name) != 'string' || name.match(/[^A-Za-z0-9_]/))
         throw new Error("incorrect template name");
     if (typeof(properties) != 'object')
         throw new Error("missing template property definitions");
-    var template = this._createTemplate(null, Object, properties ? properties : name);
-    this.setTemplateProperties(template, name, props);
+    var createProps = this.getTemplateProperties(props);
+    var template = this._createTemplate(null, Object, properties ? properties : name, createProps);
+    this.setTemplateProperties(template, name, createProps);
     return template;
 };
 
@@ -110,8 +143,8 @@ ObjectTemplate.extend = function (parentTemplate, name, properties)
         throw new Error("incorrect template name");
     if (typeof(properties) != 'object')
         throw new Error("missing template property definitions");
-    var template = this._createTemplate(null, parentTemplate, properties ? properties : name);
-    this.setTemplateProperties(template, name);
+    var template = this._createTemplate(null, parentTemplate, properties ? properties : name, parentTemplate);
+    this.setTemplateProperties(template, name, parentTemplate);
 
     // Maintain graph of parent and child templates
     template.__parent__ = parentTemplate;
@@ -128,7 +161,7 @@ ObjectTemplate.extend = function (parentTemplate, name, properties)
  */
 ObjectTemplate.mixin = function (template, properties)
 {
-    return this._createTemplate(template, null, properties);
+    return this._createTemplate(template, null, properties, template);
 };
 
 /**
@@ -152,7 +185,7 @@ ObjectTemplate.globalInject = function (injector) {
  * @return {Function}
  * @private
  */
-ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
+ObjectTemplate._createTemplate = function (template, parentTemplate, properties, createProperties)
 {
     // We will return a constructor that can be used in a new function
     // that will call an init() function found in properties, define properties using Object.defineProperties
@@ -267,7 +300,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
     template.prototype = templatePrototype;
 
 
-    var createProperty = function (propertyName, propertyValue, properties) {
+    var createProperty = function (propertyName, propertyValue, properties, createProperties) {
         if (!properties) {
             properties = {};
             properties[propertyName] = propertyValue;
@@ -285,12 +318,12 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
             var type = descriptor.get || descriptor.set ? 'getset' : ((properties[propertyName] == null) ? 'null' : typeof(properties[propertyName]));
             switch (type) {
 
-                // Figure out whether this is a defineProperty structure (has a constructor of object)
+              // Figure out whether this is a defineProperty structure (has a constructor of object)
                 case 'object': // or array
                     // Handle remote function calls
                     if (properties[propertyName].body && typeof(properties[propertyName].body) == "function") {
                         templatePrototype[propertyName] =
-                            objectTemplate._setupFunction(propertyName, properties[propertyName].body, properties[propertyName].on, properties[propertyName].validate);
+                          objectTemplate._setupFunction(propertyName, properties[propertyName].body, properties[propertyName].on, properties[propertyName].validate);
                         if (properties[propertyName].type)
                             templatePrototype[propertyName].__returns__ = properties[propertyName].type;
                         if (properties[propertyName].of) {
@@ -331,14 +364,14 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties)
 
             // If a defineProperty to be added
             if (defineProperty)
-                objectTemplate._setupProperty(propertyName, defineProperty, objectProperties, defineProperties, parentTemplate);
+                objectTemplate._setupProperty(propertyName, defineProperty, objectProperties, defineProperties, parentTemplate, createProperties);
         }
     }
 
     // Walk through properties and construct the defineProperties hash of properties, the list of
     // objectProperties that have to be reinstantiated and attach functions to the prototype
     for (var propertyName in properties) {
-        createProperty(propertyName, null, properties);
+        createProperty(propertyName, null, properties, createProperties);
     };
 
     template.defineProperties = defineProperties;
@@ -535,16 +568,16 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
                 obj[prop] = [];
                 for (var ix = 0; ix < pojo[prop].length; ++ix)
                     obj[prop][ix] = pojo[prop][ix] ?
-                        (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
-                            idMap[getId(pojo[prop][ix].__id__.toString())] :
-                            this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
-                        : null;
+                      (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
+                        idMap[getId(pojo[prop][ix].__id__.toString())] :
+                        this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
+                      : null;
             }
             else if (type.isObjectTemplate) // Templated objects
 
                 obj[prop] =	(pojo[prop].__id__ && idMap[getId(pojo[prop].__id__.toString())] ?
-                    idMap[getId(pojo[prop].__id__.toString())] :
-                    this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier, obj, prop, creator));
+                  idMap[getId(pojo[prop].__id__.toString())] :
+                  this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier, obj, prop, creator));
 
             else if (type == Date)
                 obj[prop] = pojo[prop] ? new Date(pojo[prop]) : null;
@@ -684,10 +717,10 @@ ObjectTemplate._createEmptyObject = function(template, objId, defineProperty)
 ObjectTemplate._getDefineProperty = function(prop, template)
 {
     return	template && (template != Object) && template.defineProperties && template.defineProperties[prop] ?
-        template.defineProperties[prop] :
-        template && template.parentTemplate ?
-            this._getDefineProperty(prop, template.parentTemplate) :
-            null;
+      template.defineProperties[prop] :
+      template && template.parentTemplate ?
+        this._getDefineProperty(prop, template.parentTemplate) :
+        null;
 };
 /**
  * returns a hash of all properties including those inherited
