@@ -44,10 +44,10 @@ RemoteObjectTemplate.log = function (level, data) {
     var extraID = this.reqSession && this.reqSession.loggingID ? "-" + this.reqSession.loggingID : "";
     var t = new Date();
     var time = t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate() + " " +
-        t.toTimeString().replace(/ .*/, '') + ":" + t.getMilliseconds();
+      t.toTimeString().replace(/ .*/, '') + ":" + t.getMilliseconds();
     if (level == 0 && this.changeString)
         console.log(time + "(" + this.currentSession +") " + (level == 0 ? 'ERROR: ' : '') + "RemoteObjectTemplate: Recently applied changes to "
-            + this.changeCount + " objects " + this.changeString);
+          + this.changeCount + " objects " + this.changeString);
     var message = (time + "(" + this.currentSession + extraID + ") " + "RemoteObjectTemplate:" + data);
     console.log(message);
     var logger = this.logger
@@ -284,12 +284,12 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
          */
         function processCall (forceupdate) {
             return Q(forceupdate)
-                .then(preCallHook.bind(this))
-                .then(applyChangesAndValidateCall.bind(this))
-                .then(callIfValid.bind(this))
-                .then(postCallHook.bind(this))
-                .then(postCallSuccess.bind(this))
-                .fail(postCallFailure.bind(this));
+              .then(preCallHook.bind(this))
+              .then(applyChangesAndValidateCall.bind(this))
+              .then(callIfValid.bind(this))
+              .then(postCallHook.bind(this))
+              .then(postCallSuccess.bind(this))
+              .fail(postCallFailure.bind(this));
         }
 
         /**
@@ -350,9 +350,9 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
         function postCallHook (returnValue) {
             if (this.controller && this.controller['postServerCall'])
                 return Q(this.controller['postServerCall'].call(this.controller, remoteCall.changes.length > 2, callContext))
-                    .then(function () {
-                        return returnValue
-                    })
+                  .then(function () {
+                      return returnValue
+                  })
             else
                 return returnValue;
         }
@@ -400,8 +400,8 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
          */
         function getError(err) {
             var errToSend = err instanceof Error
-                ? {code: "internal_error", text: "An internal error occurred"}
-                : typeof(err) == "string" ? {message: err} : err;
+              ? {code: "internal_error", text: "An internal error occurred"}
+              : typeof(err) == "string" ? {message: err} : err;
             if (err instanceof Error) // A non-thrown exception
                 this.log(0, "Exception " + err.toString() + (err.stack ? " " + err.stack : ""));
             return errToSend;
@@ -463,12 +463,11 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
 RemoteObjectTemplate.serializeAndGarbageCollect = function () {
     var session = this._getSession();
     var idMap = {};
-    var itemsBefore = count(session);
-    idMap[this.controller.__id__] = this.controller;
+    var itemsBefore = count(session.objects);
     var serial =  serialize(this.controller)
     session.objects = idMap;
     var itemsAfter = count(idMap);
-    RemoteObjectTemplate.log(1, (itemsAfter - itemsBefore) + " objects freed - session size " + Math.floor(serial.length / 1000) + "KB")
+    this.log(1, (itemsAfter - itemsBefore) + " objects freed - session size " + Math.floor(serial.length / 1000) + "KB")
     return serial;
     function serialize (obj) {
         try {
@@ -481,9 +480,14 @@ RemoteObjectTemplate.serializeAndGarbageCollect = function () {
                 return value;
             });
         } catch (e) {
-            RemoteObjectTemplate.log(1, "Error serializing session " + e.message + e.stack);
+            this.log(1, "Error serializing session " + e.message + e.stack);
             return null;
         }
+    }
+    function count(idMap) {
+        var ix = 0;
+        _.map(idMap, function () {ix++});
+        return ix;
     }
 };
 /**
@@ -845,8 +849,8 @@ RemoteObjectTemplate._logChanges = function (obj)
 RemoteObjectTemplate._changedValue = function (obj, prop, value)
 {
     if (obj.__transient__ || this.__transient__ ||
-        (this.role == "client" && obj.__template__.__toClient__ == false) ||
-        (this.role == "server" && obj.__template__.__toServer__ == false))
+      (this.role == "client" && obj.__template__.__toClient__ == false) ||
+      (this.role == "server" && obj.__template__.__toServer__ == false))
         return
 
     var subscriptions = this._getSubscriptions()
@@ -889,8 +893,8 @@ RemoteObjectTemplate._changedValue = function (obj, prop, value)
 RemoteObjectTemplate.   _referencedArray = function (obj, prop, arrayRef, sessionId)
 {
     if (obj.__transient__ || this.__transient__ ||
-        (this.role == "client" && obj.__template__.__toClient__ == false) ||
-        (this.role == "server" && obj.__template__.__toServer__ == false))
+      (this.role == "client" && obj.__template__.__toClient__ == false) ||
+      (this.role == "server" && obj.__template__.__toServer__ == false))
         return
 
     // Track this for each subscription
@@ -965,11 +969,11 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function()
                 {
                     // See if the value has changed
                     var currValue =
-                        (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
-                        curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
+                      (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
+                      curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
                     var origValue = orig[ix];
                     if (origValue !== currValue ||
-                        (changeGroup[obj.__id__] && changeGroup[obj.__id__][prop] && changeGroup[obj.__id__][prop][1][ix] != currValue))
+                      (changeGroup[obj.__id__] && changeGroup[obj.__id__][prop] && changeGroup[obj.__id__][prop][1][ix] != currValue))
                     {
                         // Create a new change group key if needed
                         if (!changeGroup[obj.__id__])
@@ -1042,8 +1046,8 @@ RemoteObjectTemplate.MarkChangedArrayReferences = function()
                 {
                     // See if the value has changed
                     var currValue =
-                        (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
-                        curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
+                      (typeof(curr[ix]) != 'undefined' && curr[ix] != null) ?
+                      curr[ix].__id__ || ('=' + JSON.stringify(curr[ix])) : undefined;
                     var origValue = orig[ix];
                     if (origValue !== currValue)
                         obj.__changed__ = true;
@@ -1162,7 +1166,7 @@ RemoteObjectTemplate._applyObjectChanges = function(changes, rollback, obj, forc
         var defineProperty = this._getDefineProperty(prop, obj.__template__);
         if (!defineProperty) {
             this.log(0, "Could not apply change to " + obj.__template__.__name__ + "." + prop +
-                " property not defined in template");
+              " property not defined in template");
             return false;
 
         }
@@ -1186,7 +1190,7 @@ RemoteObjectTemplate._applyObjectChanges = function(changes, rollback, obj, forc
                         validator.call(validatorThis, obj, prop, ix, defineProperty, unarray_newValue)
 
                     if (!this._applyPropertyChange(changes, rollback, obj, prop, ix,
-                            oldValue ? unarray(oldValue[ix]) : null, unarray_newValue, force))
+                        oldValue ? unarray(oldValue[ix]) : null, unarray_newValue, force))
                         return false;
                 }
                 this._trimArray(obj[prop]);
@@ -1229,7 +1233,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
         var currentValue = (ix >= 0) ? obj[prop][ix] : obj[prop];
     } catch (e) {
         this.log(0, "Could not apply change to " + obj.__template__.__name__ + "." + prop +
-            " based on property definition");
+          " based on property definition");
         return false;
     }
 
@@ -1246,8 +1250,8 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
     // Make sure old value that is reported matches current value
     if (!singleDirection && !force && oldValueConverted != currentValueConverted) { // conflict will have to roll back
         this.log(0, "Could not apply change to " + obj.__template__.__name__ + "." + prop +
-            " expecting " +  this.cleanPrivateValues(prop, oldValueConverted) +
-            " but presently " + this.cleanPrivateValues(prop, currentValueConverted));
+          " expecting " +  this.cleanPrivateValues(prop, oldValueConverted) +
+          " but presently " + this.cleanPrivateValues(prop, currentValueConverted));
         return false;
     }
 
@@ -1255,7 +1259,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
     // either a fundemental type or a templated object, creating it if needed
     if (!this._acceptChanges(defineProperty, obj.__template__)) {
         this.log(0, "Could not accept changes to " + obj.__template__.__name__ + "." + prop +
-            " based on property definition");
+          " based on property definition");
         return false;
     }
 
@@ -1272,8 +1276,8 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
         newValue =  newValue == null ? null : new Date(newValue);
     else if (type == Object && newValue) {
         newValue = (typeof(newValue) == 'string') ?
-            (JSON.parse((newValue && newValue.substr(0,1) == '=') ? newValue.substr(1) : newValue))
-            : newValue;
+          (JSON.parse((newValue && newValue.substr(0,1) == '=') ? newValue.substr(1) : newValue))
+          : newValue;
     }
     else if (newValue && typeof(type) == "function") {
         objId = newValue;
@@ -1282,7 +1286,7 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
                 newValue = session.objects[objId];
             else {
                 this.log(0, "Could not apply change to " + obj.__template__.__name__ + "." + prop +
-                    " id (" + objId + ") is type " + session.objects[objId].__template__.__name__);
+                  " id (" + objId + ") is type " + session.objects[objId].__template__.__name__);
                 return false;
             }
         } else {
@@ -1385,7 +1389,7 @@ RemoteObjectTemplate._createEmptyObject = function(template, objId, defineProper
             var newValue = sessionReference;
         else
             throw  new Error("_createEmptyObject called for " + template.__name__ +
-                " and session object with that id exists but for template " + session.objects[objId].__template__.__name__)
+              " and session object with that id exists but for template " + session.objects[objId].__template__.__name__)
     } else {
         this.dispenseId = objId;
         session.dispenseNextId = objId;  // stashObject will use this
