@@ -1,3 +1,5 @@
+## 1.0.0-beta.1
+* moving to symver style of number for next round of changes
 ## 0.2.86
 * Corrected synchrnonization of schema when properties added to extended templates
 ## 0.2.85
