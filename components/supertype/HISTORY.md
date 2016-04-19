@@ -1,3 +1,5 @@
+## 1.0.0-beta.1
+* Better support for excluding from the browse
 ## 0.1.46
 * Allow functions for __isLocal__ on templates
 ## 0.1.45
