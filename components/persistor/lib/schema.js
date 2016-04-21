@@ -1,6 +1,5 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
     var _ = require('underscore');
 
 

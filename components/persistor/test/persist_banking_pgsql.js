@@ -264,7 +264,7 @@ var schema = {
     }
 }
 
-var MongoClient = require('mongodb').MongoClient;
+var MongoClient = require('mongodb-bluebird');
 var Q = require('Q');
 var db;
 
@@ -273,10 +273,9 @@ function clearCollection(template) {
     console.log("Clearing " + collectionName);
     if (collectionName.match(/mongo\/(.*)/)) {
         collectionName = RegExp.$1;
-        return Q.ninvoke(db, "collection", collectionName).then(function (collection) {
-            return Q.ninvoke(collection, "remove", {}, {w:1}).then (function () {
-                return Q.ninvoke(collection, "count")
-            });
+        var collection = db.collection(collectionName);
+        return collection.remove({}, {w:1}).then (function () {
+            return collection.count()
         });
     }
     else if (collectionName.match(/pg\/(.*)/)) {
@@ -308,18 +307,18 @@ describe("Banking from pgsql Example", function () {
                 });
                 PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
                 done();
-        }).fail(function(e){done(e)});;
+        }).catch(function(e){done(e)});;
     });
 
     it ("opens the database Mongo", function (done) {
         console.log("starting banking");
-        return Q.ninvoke(MongoClient, "connect", "mongodb://localhost:27017/testpersist").then(function (dbopen) {
+        return MongoClient.connect("mongodb://localhost:27017/testpersist").then(function (dbopen) {
             db = dbopen;
             PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Mongo, 'mongo');
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             done();
-        }).fail(function(e){done(e)});;
+        }).catch(function(e){done(e)});;
     });
 
     it ("clears the bank", function (done) {
@@ -411,7 +410,7 @@ describe("Banking from pgsql Example", function () {
             writing = false;
             console.log("Inserted");
             done();
-        }).fail(function(e){done(e)});
+        }).catch(function(e){done(e)});
     });
 
     it("Accounts have addresses", function (done) {
@@ -421,7 +420,7 @@ describe("Banking from pgsql Example", function () {
             expect(accounts[0].number).to.equal(123412341234123);
             expect(accounts[1].number).to.equal(.123412341234123);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -431,7 +430,7 @@ describe("Banking from pgsql Example", function () {
             customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
             customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -446,7 +445,7 @@ describe("Banking from pgsql Example", function () {
                 return sam.primaryAddresses[0].persistSave()
             })
             .then(function (){done()})
-            .fail(function(e) {
+            .catch(function(e) {
                 done(e)
             })
     });
@@ -456,7 +455,7 @@ describe("Banking from pgsql Example", function () {
                 customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
                 customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -466,7 +465,7 @@ describe("Banking from pgsql Example", function () {
             expect(!!transactions[0].account._id).to.equal(true);
             expect(!!transactions[1].account._id).to.equal(true);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -477,7 +476,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions.length).to.equal(1);
             expect(transactions[0].amount).to.equal(200);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -486,7 +485,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions.length).to.equal(1);
             expect(transactions[0].amount).to.equal(200);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -499,7 +498,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions[2].type).to.not.equal('xfer');
             expect(transactions[3].type).to.not.equal('xfer');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -512,7 +511,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions[2].type).to.not.equal('xfer');
             expect(transactions[3].type).to.not.equal('xfer');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -524,7 +523,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions[2].type).to.not.equal('xfer');
             expect(transactions[3].type).to.not.equal('xfer');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -534,7 +533,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions.length).to.equal(6);
             transactions.forEach(function(t){transactionIds.push(t._id)});
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -543,7 +542,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions.length).to.equal(1);
             expect(transactions[0]._id).to.equal(transactionIds[0]);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -552,7 +551,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions.length).to.equal(1);
             expect(transactions[0]._id).to.equal(transactionIds[4]);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -564,7 +563,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
             expect(transactions[0].account.__template__.__name__).to.equal('Account');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -576,7 +575,7 @@ describe("Banking from pgsql Example", function () {
             expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
             expect(transactions[0].account.__template__.__name__).to.equal('Account');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });    it("can fetch a pojo", function () {
@@ -677,7 +676,7 @@ describe("Banking from pgsql Example", function () {
                 expect(ashling.firstName).to.equal("Ashling");
                 done();
             });
-        }).fail(function(e){
+        }).catch(function(e){
             done(e)
         });
     });
@@ -713,7 +712,7 @@ describe("Banking from pgsql Example", function () {
                 expect(ashling.firstName).to.equal("Ashling");
                 done();
             });
-        }).fail(function(e){
+        }).catch(function(e){
             done(e)
         });
     });
@@ -721,7 +720,7 @@ describe("Banking from pgsql Example", function () {
         Account.getFromPersistWithId(samsAccount._id, {roles: true}).then (function (account) {
             expect(account.getBalance()).to.equal(samsAccount.getBalance());
             done();
-        }).fail(function(e){
+        }).catch(function(e){
             done(e)
         });
     });
@@ -730,7 +729,7 @@ describe("Banking from pgsql Example", function () {
         Account.getFromPersistWithId(jointAccount._id, {roles: true}).then (function (account) {
             expect(account.getBalance()).to.equal(jointAccount.getBalance());
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -739,7 +738,7 @@ describe("Banking from pgsql Example", function () {
         Transaction.getFromPersistWithQuery({}).then (function (transactions) {
             expect(transactions.length).to.equal(6);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -754,7 +753,7 @@ describe("Banking from pgsql Example", function () {
         }).then(function(customer) {
             expect(customer.secondaryAddresses[0].city).to.equal("Red Hook");
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         });
     });
@@ -776,7 +775,7 @@ describe("Banking from pgsql Example", function () {
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customer) {
             expect("This should not have worked").to.equal(null);
-        }).fail(function(e) {
+        }).catch(function(e) {
             expect(e.message).to.equal("Update Conflict");
             expect(isStale).to.equal(true);
             done()
@@ -809,7 +808,7 @@ describe("Banking from pgsql Example", function () {
             expect(preSave).to.equal(true);
             expect(this.dirtyCount).to.equal(2);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         });
     });
@@ -835,7 +834,7 @@ describe("Banking from pgsql Example", function () {
             expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
             expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         });
     });
@@ -862,7 +861,7 @@ describe("Banking from pgsql Example", function () {
             expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
             expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         });
     });
@@ -917,7 +916,7 @@ describe("Banking from pgsql Example", function () {
         }).then(function (karen) {
             expect(karen.firstName).to.equal("txn2Karen");
             done();
-        }).fail(function(err) {
+        }).catch(function(err) {
             console.error(err);
             done(err)
         });
@@ -998,7 +997,7 @@ describe("Banking from pgsql Example", function () {
         }).then(function (karen) {
             expect(karen.firstName).to.equal(txn2Error ? 'txn2Karen' : "txn2KarenDead"); // Survived (Not sure order will always be the same
             done();
-        }).fail(function(err) {
+        }).catch(function(err) {
             console.error(err);
             done(err)
         });
@@ -1014,7 +1013,7 @@ describe("Banking from pgsql Example", function () {
             expect(customer.firstName).to.equal(null);
             expect(customer.referredBy).to.equal(null);
             done();
-        }.bind(this)).fail(function(e) {
+        }.bind(this)).catch(function(e) {
             done(e)
         })
     });
@@ -1049,11 +1048,11 @@ describe("Banking from pgsql Example", function () {
                 expect(count).to.equal(0);
                 done();
             });
-        }).fail(function(e){done(e)});
+        }).catch(function(e){done(e)});
     });
 
     it("closes the database", function (done) {
-        db.close(function () {
+        db.close().then(function () {
             console.log("ending banking");
             done()
         });

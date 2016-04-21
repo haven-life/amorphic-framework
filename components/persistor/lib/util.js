@@ -1,9 +1,9 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
     var _ = require('underscore');
 
-    PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
+    PersistObjectTemplate.ObjectID = require('mongodb-bluebird').mongodb.ObjectID;
 
     PersistObjectTemplate.createTransientObject = function (cb) {
         this.__transient__ = true;
@@ -148,10 +148,10 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.resolveRecursivePromises = function(promises, returnValue) {
         var promisesToResolve = promises.length;
-        return Q.all(promises).then(function() {
+        return Promise.all(promises).then(function() {
             promises.splice(0, promisesToResolve);
             return promises.length > 0 ? PersistObjectTemplate.resolveRecursivePromises(promises, returnValue)
-                : Q.fcall(function(){return returnValue});
+                : Promise.resolve(returnValue);
         });
     }
 }

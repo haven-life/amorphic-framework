@@ -227,15 +227,14 @@ var schema = {
     }
 }
 
-var MongoClient = require('mongodb').MongoClient;
+var MongoClient = require('mongodb-bluebird');
 var Q = require('Q');
 var db;
 
 function clearCollection(collectionName) {
-	return Q.ninvoke(db, "collection", collectionName).then(function (collection) {
-		return Q.ninvoke(collection, "remove", {}, {w:1}).then (function () {
-			return Q.ninvoke(collection, "count")
-		});
+    var collection = db.collection(collectionName);
+	return collection.remove({}, {w:1}).then (function () {
+        return collection.count()
 	});
 }
 
@@ -243,13 +242,13 @@ describe("Banking Example", function () {
 
     it ("opens the database", function (done) {
         console.log("starting banking");
-        return Q.ninvoke(MongoClient, "connect", "mongodb://localhost:27017/testpersist").then(function (dbopen) {
+        return MongoClient.connect("mongodb://localhost:27017/testpersist").then(function (dbopen) {
             db = dbopen;
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             done();
-        }).fail(function(e){done(e)});;
+        }).catch(function(e){done(e)});;
     });
 
     it ("clears the bank", function (done) {
@@ -263,7 +262,7 @@ describe("Banking Example", function () {
             }).then(function (count) {
                 expect(count).to.equal(0);
                 done();
-            }).fail(function(e){done(e)});
+            }).catch(function(e){done(e)});
     });
 
     // Setup customers and addresses
@@ -319,14 +318,14 @@ describe("Banking Example", function () {
             expect(sam._id).to.equal(id);
             writing = false;
             done();
-        }).fail(function(e){done(e)});
+        }).catch(function(e){done(e)});
     });
     it("Accounts have addresses", function (done) {
         Account.getFromPersistWithQuery(null,{address: true}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -335,7 +334,7 @@ describe("Banking Example", function () {
             expect(transactions.length).to.equal(1);
             expect(transactions[0].amount).to.equal(200);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -344,7 +343,7 @@ describe("Banking Example", function () {
             expect(transactions.length).to.equal(1);
             expect(transactions[0].amount).to.equal(200);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -357,7 +356,7 @@ describe("Banking Example", function () {
             expect(transactions[2].type).to.not.equal('xfer');
             expect(transactions[3].type).to.not.equal('xfer');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -370,7 +369,7 @@ describe("Banking Example", function () {
             expect(transactions[2].type).to.not.equal('xfer');
             expect(transactions[3].type).to.not.equal('xfer');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -379,7 +378,7 @@ describe("Banking Example", function () {
         Transaction.getFromPersistWithQuery({}).then (function (transactions) {
             expect(transactions.length).to.equal(6);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -391,7 +390,7 @@ describe("Banking Example", function () {
             expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
             expect(transactions[0].account.__template__.__name__).to.equal('Account');
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -438,7 +437,7 @@ describe("Banking Example", function () {
                 expect(ashling.firstName).to.equal("Ashling");
                 done();
             });
-        }).fail(function(e){
+        }).catch(function(e){
             done(e)
         });
     });
@@ -446,7 +445,7 @@ describe("Banking Example", function () {
         Account.getFromPersistWithId(samsAccount._id, {roles: true}).then (function (account) {
             expect(account.getBalance()).to.equal(samsAccount.getBalance());
             done();
-        }).fail(function(e){
+        }).catch(function(e){
             done(e)
         });
     });
@@ -454,7 +453,7 @@ describe("Banking Example", function () {
         Account.getFromPersistWithId(jointAccount._id, {roles: true}).then (function (account) {
             expect(account.getBalance()).to.equal(jointAccount.getBalance());
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -462,7 +461,7 @@ describe("Banking Example", function () {
         Transaction.getFromPersistWithQuery({}).then (function (transactions) {
             expect(transactions.length).to.equal(6);
             done();
-        }).fail(function(e) {
+        }).catch(function(e) {
             done(e)
         })
     });
@@ -477,7 +476,7 @@ describe("Banking Example", function () {
            expect(customer.firstName).to.equal(null);
            expect(customer.referredBy).to.equal(null);
            done();
-        }.bind(this)).fail(function(e) {
+        }.bind(this)).catch(function(e) {
             done(e)
         })
     });
@@ -489,7 +488,7 @@ describe("Banking Example", function () {
             return verifyCustomer(customer2).then(function () {;
                 done();
             });
-        }).fail(function(e){done(e)});
+        }).catch(function(e){done(e)});
     });
 */
 
@@ -519,11 +518,11 @@ describe("Banking Example", function () {
                 expect(count).to.equal(0);
                 done();
             });
-        }).fail(function(e){done(e)});
+        }).catch(function(e){done(e)});
     });
 
     it("closes the database", function (done) {
-        db.close(function () {
+        db.close().then(function () {
             console.log("ending banking");
             done()
         });

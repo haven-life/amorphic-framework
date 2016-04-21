@@ -1,6 +1,6 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
     var _ = require('underscore');
 
     /**
@@ -147,7 +147,7 @@ module.exports = function (PersistObjectTemplate) {
                 pojo[prop] = obj[prop];
         }
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn))
-        return Q.all(promises)
+        return Promise.all(promises)
             .then (function (){return obj});
 
         function copyProps(obj) {

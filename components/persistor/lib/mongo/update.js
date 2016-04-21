@@ -1,6 +1,6 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
 
     /**
      * Save the object to persistent storage
@@ -278,7 +278,7 @@ module.exports = function (PersistObjectTemplate) {
             objs.each(function(obj) {
                 promises.push(obj.persistDelete());
             });
-            return Q.all(promises);
+            return Promise.all(promises);
         });
     }
 

@@ -2,7 +2,7 @@ module.exports = function (PersistObjectTemplate) {
 
 
 
-    var Q = require('q');
+    var Promise = require('bluebird');
     var _ = require('underscore');
 
     /**
@@ -34,7 +34,7 @@ module.exports = function (PersistObjectTemplate) {
                     schema: JSON.stringify(this._schema)
                 })
             }
-            return Q();
+            return Promise.resolve();
         }).bind(this);
 
         var diff = (function (memSchema, dbSchema) {
@@ -93,7 +93,7 @@ module.exports = function (PersistObjectTemplate) {
             }).then(function (record) {
                 if (record[0] !== undefined)
                     latestVersion = record[0].sequence_id;
-                return Q().then(processDataAndUpdate(record[0]));
+                return Promise.resolve().then(processDataAndUpdate(record[0]));
             }).then(updateSchema).catch(function (error) {
                 throw error;
             });
@@ -368,14 +368,14 @@ module.exports = function (PersistObjectTemplate) {
         pojo.__version__ = obj.__version__;
         this.debug((txn ? txn.id + " ": '-#- ') + (updateID ? 'updating ' : 'insert ') + obj.__id__ + '[' + obj._id + '] ' + pojo.__version__, 'write');
         if (updateID)
-            return Q(knex
+            return Promise.resolve(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
                 .transacting(txn ? txn.knex : null)
                 .then(checkUpdateResults.bind(this))
                 .then(logSuccess.bind(this)))
         else
-            return Q(knex
+            return Promise.resolve(knex
                 .insert(pojo)
                 .transacting(txn ? txn.knex : null)
                 .then(logSuccess.bind(this)));
@@ -417,7 +417,7 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection
         var schema = template.__schema__;
         var _newFields = {};
-        return Q().then(function(){
+        return Promise.resolve().then(function(){
             return knex.schema.hasTable(tableName).then(function (exists) {
                 if (!exists) {
                     return PersistObjectTemplate.createKnexTable(template, aliasedTableName);

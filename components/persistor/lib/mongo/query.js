@@ -1,6 +1,6 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
 
     PersistObjectTemplate.getFromPersistWithMongoId = function (template, id, cascade, isTransient, idMap) {
         return this.getFromPersistWithMongoQuery(template, {_id: PersistObjectTemplate.ObjectID(id.toString())}, cascade, null, null, isTransient, idMap)
@@ -263,7 +263,7 @@ module.exports = function (PersistObjectTemplate) {
                                 obj[closurePersistorProp].start = options ? options.start || 0 : 0;
                                 obj[closurePersistorProp].next = obj[closurePersistorProp].start + pojos.length;
                                 obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
-                                return Q.fcall(function(){return true}); // Say we done
+                                return Promise.resolve(true); // Say we done
                             }));
                         }.bind(this))();
                     } else
@@ -386,7 +386,7 @@ module.exports = function (PersistObjectTemplate) {
                                             obj[closureProp] = idMap[closureForeignId];
                                             obj[closurePersistorProp].isFetched = true;
                                             obj[closurePersistorProp] = copyProps(obj[closurePersistorProp]);
-                                            return Q(true);
+                                            return Promise.resolve(true);
                                         }.bind(self)));
                                 })();
                             } else {

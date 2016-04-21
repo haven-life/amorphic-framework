@@ -12,7 +12,7 @@
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
     var _ = require('underscore');
 
     /**
@@ -33,13 +33,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     .then (function (obj) {
                         if (txn)
                             PersistObjectTemplate.saved(obj ,txn);
-                        return Q(obj._id.toString())
+                        return Promise.resolve(obj._id.toString())
                     })
                 : PersistObjectTemplate.persistSaveKnex(object, txn)
                 .then (function (obj) {
                     if (txn)
                         PersistObjectTemplate.saved(obj ,txn);
-                    return Q(obj._id.toString());
+                    return Promise.resolve(obj._id.toString());
                 });
         };
 
@@ -403,8 +403,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     PersistObjectTemplate.end = function(persistorTransaction) {
         this.debug("end - start of transaction ", 'api');
         persistorTransaction = persistorTransaction || this.currentTransaction;
-        var deferred = Q.defer();
-        var Promise = require('bluebird');
         var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction ? persistorTransaction.dirtyObjects : this.dirtyObjects;
         var touchObjects = persistorTransaction ? persistorTransaction.touchObjects : {};
@@ -412,7 +410,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         var innerError;
 
         // Start the knext transaction
-        knex.transaction(function(knexTransaction) {
+        return knex.transaction(function(knexTransaction) {
 
                 persistorTransaction.knex = knexTransaction;
 
@@ -436,7 +434,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
                         return (obj.__template__ && obj.__template__.__schema__
                             ?  obj.persistSave(persistorTransaction)
-                            : Promise.resolve(true))
+                            : true)
                     }.bind(this),{concurrency: 10}).then (function () {
                         if(_.toArray(dirtyObjects). length > 0)
                             return processSaves.call(this);
@@ -464,7 +462,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     return Promise.map(_.toArray(touchObjects), function (obj) {
                         return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
                             ?  obj.persistTouch(persistorTransaction)
-                            : Promise.resolve(true))
+                            : true)
                     }.bind(this))
                 }
 
@@ -479,15 +477,15 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             }.bind(this))
             .then(function () {
                 this.debug("end - transaction completed", 'api');
-                deferred.resolve(true);
+                return true;
             }.bind(this))
             .catch(function (e) {
                 var err = e || innerError;
                 if (err && err.message && err.message != 'Update Conflict')
                     this.debug("transaction ended with error " + err.message + err.stack, 'error');
-                deferred.reject(e || innerError);
+                throw(e || innerError);
             }.bind(this))
-        return deferred.promise;
+
     }
     /**
      * Set the object dirty along with all descendant objects in the logical "document"
@@ -552,7 +550,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }));
             })();
         };
-        return Q.all(promises)
+        return Promise.all(promises)
             .then(function () {
                 if (!somethingSaved && txn && txn.postSave) {
                     txn.postSave(txn);

@@ -7,7 +7,7 @@
         "q": "1.x",
         "supertype": "1.0.x",
         "underscore": "1.x",
-        "mongodb": "1.x",
+        "mongodb-bluebird": "x",
         "bluebird": "x",
         "knex": "*",
         "pg":"*"

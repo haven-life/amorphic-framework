@@ -1,6 +1,6 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
     var _ = require('underscore');
 
     PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh) {
@@ -63,7 +63,7 @@ module.exports = function (PersistObjectTemplate) {
         if (limit)
             options.limit = limit;
 
-        return Q(true)
+        return Promise.resolve(true)
             .then(getPOJOsFromQuery)
             .then(getTemplatesFromPOJOS.bind(this))
             .then(resolvePromises.bind(this))
@@ -85,7 +85,7 @@ module.exports = function (PersistObjectTemplate) {
                 promises.push(
                     PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, promises, idMap, cascade, isTransient,
                         null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh)
-                        .then(function (obj) {results[sortMap[obj._id]] = obj;return Q(obj)})
+                        .then(function (obj) {results[sortMap[obj._id]] = obj;return Promise.resolve(obj)})
                 );
             }.bind(this));
         }
@@ -147,7 +147,7 @@ module.exports = function (PersistObjectTemplate) {
             obj._id = pojo[prefix + '_id'];
 
             if (idMap[obj._id])
-                return Q(idMap[obj._id]);
+                return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
             //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
@@ -257,7 +257,7 @@ module.exports = function (PersistObjectTemplate) {
                                     var fetcher = join ?
                                         (pojo[join.alias + "____id"] ?
                                             this.getTemplateFromKnexPOJO(pojo, defineProperty.type, promises, idMap, closureCascade, isTransient, defineProperty,
-                                                obj[prop], null, join.alias + "___", null, isRefresh) : Q(true)) :
+                                                obj[prop], null, join.alias + "___", null, isRefresh) : Promise.resolve(true)) :
                                         this.getFromPersistWithKnexQuery(defineProperty.type, query, closureCascade, null, null, isTransient, idMap, {}, obj[prop], isRefresh);
                                     obj[persistorPropertyName].isFetching = true;
                                     promises.push(fetcher.then(function(objs) {
@@ -310,12 +310,12 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
             }
-            return Q.all(promises).then(function () {
-                return Q(obj);
+            return Promise.all(promises).then(function () {
+                return Promise.resolve(obj);
             });
             return topLevel ? this.resolveRecursivePromises(promises, obj).then(function (ret) {
-                return Q(ret);
-            }) : Q(obj);
+                return Promise.resolve(ret);
+            }) : Promise.resolve(obj);
         };
 
 }

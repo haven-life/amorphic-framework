@@ -1,6 +1,6 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Q = require('q');
+    var Promise = require('bluebird');
 
     /* Mongo implementation of save */
     PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, txn) {
@@ -8,64 +8,60 @@ module.exports = function (PersistObjectTemplate) {
         var origVer = obj.__version__;
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
         pojo.__version__ = obj.__version__;
-        return Q.ninvoke(this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection,
-            "collection", this.dealias(obj.__template__.__collection__)).then (function (collection) {
-            return (updateID ?  Q.ninvoke(collection, "update",
-                    origVer  ? {__version__: origVer, _id: updateID} :
-                    {_id: updateID}, pojo, {w:1}) :
-                    Q.ninvoke(collection, "save", pojo, {w:1})
-            ).then (function (error, count) {
-                if (error instanceof Array)
-                    count = error[0]; // Don't know why things are returned this way
-                if (updateID && count == 0) {
-                    obj.__version__ = origVer;
-                    if (txn && txn.onUpdateConflict) {
-                        txn.onUpdateConflict(pojo)
-                        txn.updateConflict =  new Error("Update Conflict");
-                    } else
-                        throw new Error("Update Conflict");
-                }
-                this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
-                return Q(true);
-            }.bind(this));
+        var db = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection;
+        var collection = db.collection(this.dealias(obj.__template__.__collection__));
+        return (updateID ?
+            collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1}) :
+            collection.save(pojo, {w:1})
+        ).then (function (error, count) {
+            if (error instanceof Array)
+                count = error[0]; // Don't know why things are returned this way
+            if (updateID && count == 0) {
+                obj.__version__ = origVer;
+                if (txn && txn.onUpdateConflict) {
+                    txn.onUpdateConflict(pojo)
+                    txn.updateConflict =  new Error("Update Conflict");
+                } else
+                    throw new Error("Update Conflict");
+            }
+            this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+            return true;
         }.bind(this));
     }
+
+    /**
+     * Removes documents based on a query
+     * @param template
+     * @param query
+     * @returns {Promise}
+     */
     PersistObjectTemplate.deleteFromMongoQuery = function(template, query) {
-        return Q.ninvoke(this.getDB(this.getDBAlias(template.__collection__)).connection,
-            "collection", this.dealias(template.__collection__), {w:1, fsync:true}).then (function (collection) {
-            return Q.ninvoke(collection, "remove", query);
-        });
+        var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var collection = db.collection( this.dealias(template.__collection__));
+        return collection.remove(query, {w:1, fsync:true});
     }
 
     PersistObjectTemplate.getPOJOFromMongoQuery = function(template, query, options) {
         this.debug("db." + template.__collection__ + ".find({" + JSON.stringify(query) + "})", 'io');
-        return Q.ninvoke(this.getDB(this.getDBAlias(template.__collection__)).connection,
-            "collection", this.dealias(template.__collection__)).then (function (collection) {
-            options = options || {};
-            if (!options.sort)
-                options.sort = {_id:1};
-            return Q.ninvoke(collection, "find", query, null, options).then( function (cursor) {
-                return Q.ninvoke(cursor, "toArray")
-            });
-        });
+        var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var collection = db.collection( this.dealias(template.__collection__));
+        options = options || {};
+        if (!options.sort)
+            options.sort = {_id:1};
+        return collection.find(query, null, options);
     }
 
     PersistObjectTemplate.countFromMongoQuery = function(template, query) {
-        return Q.ninvoke(this.getDB(this.getDBAlias(template.__collection__)).connection,
-            "collection", this.dealias(template.__collection__)).then (function (collection) {
-            return Q.ninvoke(collection, "find", query).then( function (cursor) {
-                return Q.ninvoke(cursor, "count", false);
-            });
-        });
+        var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var collection = db.collection( this.dealias(template.__collection__));
+        return collection.count(query);
     }
 
     PersistObjectTemplate.distinctFromMongoQuery = function(template, field, query) {
-        return Q.ninvoke(this.getDB(this.getDBAlias(template.__collection__)).connection,
-            "collection", this.dealias(template.__collection__)).then (function (collection) {
-            return Q.ninvoke(collection, "distinct", field, query)
-        });
+        var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
+        var collection = db.collection( this.dealias(template.__collection__));
+        return collection.distinct(field, query)
     }
-
 
     PersistObjectTemplate.getPOJOFromMongoId = function (template, id, cascade, isTransient, idMap) {
         var self = this;
