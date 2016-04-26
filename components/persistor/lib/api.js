@@ -220,7 +220,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate.__changeTracking__ = false;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, cascade, start, limit, isTransient, idMap, options) :
-                PersistObjectTemplate.getFromPersistWithKnexQuery(template, query, cascade, start, limit, isTransient, idMap, options))
+                PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, cascade, start, limit, isTransient, idMap, options))
                 .then( function(res) {
                     PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;

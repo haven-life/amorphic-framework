@@ -156,6 +156,7 @@ module.exports = function (PersistObjectTemplate) {
             select = select.offset(options.offset)
 
         var selectString = select.toSQL().sql;
+        this.debug("Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains), 'read');
         return select.then(processResults.bind(this), processError);
         function processResults(res) {
             var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
