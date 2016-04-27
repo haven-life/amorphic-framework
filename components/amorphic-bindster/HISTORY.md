@@ -1,3 +1,5 @@
+## 1.0.0-beta.1
+* Going to semver convention
 ## 0.1.58
 * __pending__ error not cleared with deferred set functions inside iterated blocks
 ## 0.1.57
