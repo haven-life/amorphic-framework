@@ -1,4 +1,4 @@
-## 1.0.0-beta.2
+## 1.0.0-beta.3
 * Added serialization of reads to avoid overruning pool
 * Added consolidation of duplicate queries
 ## 1.0.0-beta.1

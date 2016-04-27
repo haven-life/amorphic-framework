@@ -292,9 +292,9 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                var query = {_id: foreignId};
-                                var options = {};
                                 (function () {
+                                    var query = {_id: foreignId};
+                                    var options = {};
                                     var closureProp = prop;
                                     var closurePersistorProp = persistorPropertyName;
                                     var closureCascade = this.processCascade(query, options, cascadeFetch,
