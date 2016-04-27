@@ -1,3 +1,5 @@
+## 1.0.0-beta.4
+* Added consolidation of children that are in same table with different filter criteria
 ## 1.0.0-beta.3
 * Added serialization of reads to avoid overruning pool
 * Added consolidation of duplicate queries

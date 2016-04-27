@@ -226,22 +226,58 @@ module.exports = function (PersistObjectTemplate) {
                         throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
                     if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
                         throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
-                    var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
-                    var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
 
                     if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
                         cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
+                        function collectLikeFilters (prop, query, thisDefineProperty, foreignFilterKey) {
+
+                            // Collect a structure of similar filters (excluding the first one)
+                            var filters = null;
+                            var excluded = 0; // Exclude first
+                            for (var definePropertyKey in props) {
+                                var filter = schema.children[definePropertyKey] ? schema.children[definePropertyKey].filter : null;
+                                if (defineProperty.of == thisDefineProperty.of && filter && filter.property == foreignFilterKey && excluded++) {
+                                    filters = filters || {};
+                                    filters[definePropertyKey] = {
+                                        foreignFilterKey: filter.property,
+                                        foreignFilterValue: filter.value,
+                                    }
+                                }
+                            }
+                            return filters;
+                        }
+                        function buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps) {
+                            if (alternateProps) {
+                              query['$or'] = _.map(alternateProps, function(prop) {
+                                  var condition = {}
+                                  condition[prop.foreignFilterKey] = prop.foreignFilterValue;
+                                  return condition;
+                              })
+                                var condition = {}
+                                condition[foreignFilterKey] =  foreignFilterValue;
+                                query['$or'].push(condition);
+                            } else
+                              query[foreignFilterKey] =  foreignFilterValue;
+                        }
                         (function () {
 
+                            var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
+                            var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                             // Construct foreign key query
                             var query = {};
                             var options = defineProperty.queryOptions || {sort: {_id: 1}};
                             var limit = options.limit || null;
                             query[schema.children[prop].id] = obj._id;
-                            if (foreignFilterKey)
-                                query[foreignFilterKey] = foreignFilterValue;
-
+                            if (foreignFilterKey) {
+                                // accumulate hash of all like properties (except the first one)
+                                var alternateProps = collectLikeFilters(prop, query, defineProperty, foreignFilterKey);
+                                // If other than the first one just leave it for the original to take care of
+                                if (alternateProps && alternateProps[prop])
+                                    return;
+                                else
+                                    buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps);
+                            }
                             // Handle
                             var closureOf = defineProperty.of;
                             var closureProp = prop;
@@ -257,7 +293,18 @@ module.exports = function (PersistObjectTemplate) {
                                     return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
                                       limit, isTransient, idMap, options, obj[closureProp], isRefresh)
                                     .then( function(objs) {
-                                        obj[closureProp] = objs;
+                                        if (foreignFilterKey) {
+                                            obj[closureProp] =  _.filter(objs, function (obj) {
+                                                  return obj[foreignFilterKey] == foreignFilterValue;
+                                            });
+                                            if (alternateProps)
+                                              _.each(alternateProps, function(alternateProp, alternatePropKey) {
+                                                  obj[alternatePropKey] = _.filter(objs, function (obj) {
+                                                        return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
+                                                  })
+                                              })
+                                        } else
+                                            obj[closureProp] = objs;
                                         var start = options ? options.start || 0 : 0;
                                         updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
                                         resolve();
