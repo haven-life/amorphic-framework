@@ -12,7 +12,7 @@ var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectT
 var writing = true;
 var knex;
 
-PersistObjectTemplate.debugInfo = 'conflict;write;read';//'api;io';
+PersistObjectTemplate.debugInfo = 'api;conflict;write;read';//'api;io';
 
 /*
 PersistObjectTemplate.debug = function(m, t) {
@@ -242,7 +242,7 @@ var schema = {
     Role: {
         documentOf: "pg/role",
         parents: {
-            customer: {id: 'customer_id'},
+            customer: {id: 'customer_id', fetch: "yes"},
             account: {id: 'account_id'}
         }
     },
@@ -419,6 +419,7 @@ describe("Banking from pgsql Example", function () {
             expect(accounts[0].address.__template__.__name__).to.equal('Address');
             expect(accounts[0].number).to.equal(123412341234123);
             expect(accounts[1].number).to.equal(.123412341234123);
+            expect(accounts[0].roles[0].customer.firstName).to.equal('Sam');
             done();
         }).catch(function(e) {
             done(e)

@@ -45,6 +45,8 @@ module.exports = function (PersistObjectTemplate) {
         requests = requests || [];
 
         idMap = idMap || {};
+        if (!idMap['resolver'])
+          idMap['resolver'] = {};
 
         var promises = [];
         var returnedObj;
@@ -95,7 +97,7 @@ module.exports = function (PersistObjectTemplate) {
             return promise;
 
         function getPOJOsFromQuery () {
-            return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, skip, limit);
+            return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver']);
         }
 
         function getTemplatesFromPOJOS(pojos) {

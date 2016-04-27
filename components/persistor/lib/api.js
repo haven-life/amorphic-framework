@@ -435,7 +435,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         return (obj.__template__ && obj.__template__.__schema__
                             ?  obj.persistSave(persistorTransaction)
                             : true)
-                    }.bind(this),{concurrency: 10}).then (function () {
+                    }.bind(this),{concurrency: PersistObjectTemplate.concurrency}).then (function () {
                         if(_.toArray(dirtyObjects). length > 0)
                             return processSaves.call(this);
                     });

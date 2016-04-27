@@ -112,7 +112,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param options
      * @returns {*}
      */
-    PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options) {
+    PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
@@ -155,12 +155,26 @@ module.exports = function (PersistObjectTemplate) {
         if (options && options.offset)
             select = select.offset(options.offset)
 
-        var selectString = select.toSQL().sql;
+        var selectString = select.toString();
+        if (map && map[selectString])
+            return new Promise(function (resolve) {
+                map[selectString].push(resolve);
+            })
+        if (map)
+            map[selectString] = [];
+        
         this.debug("Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains), 'read');
         return select.then(processResults.bind(this), processError);
         function processResults(res) {
             var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
             this.debug("Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains), 'read');
+            if (map && map[selectString]) {
+                map[selectString].forEach(function(resolve){
+                    //console.log("Consolidated request for " + selectString);
+                    resolve(res)
+                });
+                delete map[selectString];
+            }
             return res;
         }
 

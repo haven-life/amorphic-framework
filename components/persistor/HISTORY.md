@@ -1,3 +1,6 @@
+## 1.0.0-beta.2
+* Added serialization of reads to avoid overruning pool
+* Added consolidation of duplicate queries
 ## 1.0.0-beta.1
 * moving to symver style of number for next round of changes
 ## 0.2.86
