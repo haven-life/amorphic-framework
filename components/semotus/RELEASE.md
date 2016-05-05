@@ -1,3 +1,7 @@
+## 1.0.0-beta.2
+* Fix in toServer, toClient handling
+## 1.0.0-beta.1
+* Garbage collection and template level toServer toClient attributes
 ## 0.2.16
 * Allow values in extended classes to override base class
 ## 0.2.15
