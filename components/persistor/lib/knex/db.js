@@ -23,8 +23,8 @@ module.exports = function (PersistObjectTemplate) {
 
         var isSchemaUpdated = function(){
             return _.keys(this._schematracker.adds).length > 0 ||
-                _.keys(this._schematracker.changes).length > 0 ||
-                _.keys(this._schematracker.dels).length > 0
+              _.keys(this._schematracker.changes).length > 0 ||
+              _.keys(this._schematracker.dels).length > 0
         }.bind(this)
 
         var updateSchema = (function () {
@@ -88,8 +88,8 @@ module.exports = function (PersistObjectTemplate) {
                 table.timestamps();
             }).then(function () {
                 return knex(schemaTable)
-                    .orderBy('sequence_id', 'desc')
-                    .limit(1)
+                  .orderBy('sequence_id', 'desc')
+                  .limit(1)
             }).then(function (record) {
                 if (record[0] !== undefined)
                     latestVersion = record[0].sequence_id;
@@ -119,11 +119,11 @@ module.exports = function (PersistObjectTemplate) {
 
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
-        var select = knex.select(getColumnNames.bind(this)()).from(tableName);
+        var select = knex.select(getColumnNames.bind(this, template)()).from(tableName);
         joins.forEach(function (join) {
             select = select.leftOuterJoin(this.dealias(join.template.__table__) + " as " + join.alias,
-                join.alias + "." + join.parentKey,
-                this.dealias(template.__table__) + "." + join.childKey);
+              join.alias + "." + join.parentKey,
+              this.dealias(template.__table__) + "." + join.childKey);
         }.bind(this));
 
         // execute callback to chain on filter functions or convert mongo style filters
@@ -162,7 +162,7 @@ module.exports = function (PersistObjectTemplate) {
             })
         if (map)
             map[selectString] = [];
-        
+
         this.debug("Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains), 'read');
         return select.then(processResults.bind(this), processError);
         function processResults(res) {
@@ -183,9 +183,12 @@ module.exports = function (PersistObjectTemplate) {
             throw err;
         }
 
-        function getColumnNames() {
+        function getColumnNames(template) {
             var cols = [];
             var self = this;
+
+            while(template.__parent__)
+                template = template.__parent__;
 
             asStandard(template, this.dealias(template.__table__));
             _.each(getPropsRecursive(template), function (defineProperties, prop) {
@@ -384,20 +387,20 @@ module.exports = function (PersistObjectTemplate) {
         this.debug((txn ? txn.id + " ": '-#- ') + (updateID ? 'updating ' : 'insert ') + obj.__id__ + '[' + obj._id + '] ' + pojo.__version__, 'write');
         if (updateID)
             return Promise.resolve(knex
-                .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
-                .update(pojo)
-                .transacting(txn ? txn.knex : null)
-                .then(checkUpdateResults.bind(this))
-                .then(logSuccess.bind(this)))
+              .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
+              .update(pojo)
+              .transacting(txn ? txn.knex : null)
+              .then(checkUpdateResults.bind(this))
+              .then(logSuccess.bind(this)))
         else
             return Promise.resolve(knex
-                .insert(pojo)
-                .transacting(txn ? txn.knex : null)
-                .then(logSuccess.bind(this)));
+              .insert(pojo)
+              .transacting(txn ? txn.knex : null)
+              .then(logSuccess.bind(this)));
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                this.debug(txn ? txn.id : '-#-' + " update conflict on " + obj.__id__ + " looking for " + origVer, 'conflict');
+                this.debug((txn ? txn.id : '-#-') + " update conflict on " + obj.__id__ + " looking for " + origVer, 'conflict');
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj)
@@ -572,12 +575,12 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;
         return knex
-            .transacting(txn ? txn.knex : null)
-            .where('_id', '=', obj._id)
-            .increment('__version__', 1)
-            .then(function () {
-                this.debug('touched ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'write');
-            }.bind(this))
+          .transacting(txn ? txn.knex : null)
+          .where('_id', '=', obj._id)
+          .increment('__version__', 1)
+          .then(function () {
+              this.debug('touched ' + obj.__template__.__name__ + " to " + obj.__template__.__table__, 'write');
+          }.bind(this))
     }
 
     /**
@@ -616,8 +619,8 @@ module.exports = function (PersistObjectTemplate) {
             if (!schema) return;
             if (schema.indexes) {
                 schema.indexes.forEach(function (index) {
-                        setIndex.call(this, table, index);
-                    }.bind(this)
+                      setIndex.call(this, table, index);
+                  }.bind(this)
                 )
             }
         }
@@ -716,10 +719,10 @@ module.exports = function (PersistObjectTemplate) {
             for (var prop in query) {
                 var params = processProp(statement, prop, query[prop]);
                 statement = firstProp ?
-                    (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                        statement.where(params[0])) :
-                    (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
-                        statement.andWhere(params[0]));
+                  (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
+                    statement.where(params[0])) :
+                  (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
+                    statement.andWhere(params[0]));
                 firstProp = false;
             }
             return statement;
@@ -740,10 +743,10 @@ module.exports = function (PersistObjectTemplate) {
                     _.each(value, function (obj) {
                         var params = processObject(statement, obj);
                         statement = firstProp ?
-                            (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                                statement.where(params[0])) :
-                            (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
-                                statement.andWhere(params[0]));
+                          (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
+                            statement.where(params[0])) :
+                          (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
+                            statement.andWhere(params[0]));
                         firstProp = false;
                     });
                 } else if (prop.toLowerCase() == '$or') {
@@ -751,10 +754,10 @@ module.exports = function (PersistObjectTemplate) {
                     _.each(value, function (obj) {
                         var params = processObject(statement, obj);
                         statement = firstProp ?
-                            (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                                statement.where(params[0])) :
-                            (params.length > 1 ? statement.orWhere(params[0], params[1], params[2]) :
-                                statement.andWhere(params[0]));
+                          (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
+                            statement.where(params[0])) :
+                          (params.length > 1 ? statement.orWhere(params[0], params[1], params[2]) :
+                            statement.andWhere(params[0]));
                         firstProp = false
                     });
                 } else if (prop.toLowerCase() == '$in')
