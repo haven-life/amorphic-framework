@@ -1,3 +1,5 @@
+## 1.0.0-beta-6
+* Fixed serious bug where one-to-one relationships would get nulled out on refresh if the refresh made them point to a different object
 ## 1.0.0-beta-5
 * Fixed issue converting types on filtered consolidation
 ## 1.0.0-beta.4
