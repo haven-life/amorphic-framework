@@ -1047,7 +1047,7 @@ Bindster.prototype.getBindErrorReference = function(bind)
     if (bind.match(/(.*?)\.([^.]+)$/))
         return RegExp.$1 + "." + this.bindster_error_prefix + RegExp.$2;
     else
-        return "this.data." + this.bindster_error_prefix + bind;
+        return "this.data" + this.bindster_error_prefix + bind;
 }
 Bindster.prototype.getBindErrorReferenceParts = function(bind)
 {

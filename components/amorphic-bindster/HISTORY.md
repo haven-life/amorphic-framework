@@ -1,3 +1,5 @@
+## 1.0.0-beta.2
+* Fixed accidental typo
 ## 1.0.0-beta.1
 * Going to semver convention
 ## 0.1.58
