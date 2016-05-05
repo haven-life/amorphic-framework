@@ -1,4 +1,4 @@
-## 1.0.0-beta.2
+## 1.0.0-beta.3
 * Fix in toServer, toClient handling
 ## 1.0.0-beta.1
 * Garbage collection and template level toServer toClient attributes
