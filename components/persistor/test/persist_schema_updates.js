@@ -182,8 +182,8 @@ describe('index synchronization checks', function () {
                 connection: {
                     host: '127.0.0.1',
                     database: 'persistor_banking',
-                    user: 'nodejs',
-                    password: 'nodejs'
+                    user: 'postgres',
+                    password: 'postgres'
 
                 }
             });
@@ -220,8 +220,8 @@ describe('index synchronization checks', function () {
             connection: {
                 host: '127.0.0.1',
                 database: 'persistor_banking',
-                user: 'nodejs',
-                password: 'nodejs'
+                user: 'postgres',
+                password: 'postgres'
 
             }
         });
@@ -265,8 +265,8 @@ describe('index synchronization checks', function () {
         connection: {
             host: '127.0.0.1',
             database: 'persistor_banking',
-            user: 'nodejs',
-            password: 'nodejs'
+            user: 'postgres',
+            password: 'postgres'
         }
     });
 

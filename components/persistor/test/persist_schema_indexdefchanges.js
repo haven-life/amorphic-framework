@@ -208,8 +208,8 @@ describe('index synchronization checks', function () {
         connection: {
             host: '127.0.0.1',
             database: 'persistor_banking',
-            user: 'nodejs',
-            password: 'nodejs'
+            user: 'postgres',
+            password: 'postgres'
         }
     });
     var schemaTable = 'haven_schema1';
@@ -242,8 +242,8 @@ describe('index synchronization checks', function () {
                 connection: {
                     host: '127.0.0.1',
                     database: 'persistor_banking',
-                    user: 'nodejs',
-                    password: 'nodejs'
+                    user: 'postgres',
+                    password: 'postgres'
 
                 }
             });
