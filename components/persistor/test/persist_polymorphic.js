@@ -553,19 +553,8 @@ describe('type mapping tests for parent/child relations', function () {
             PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Knex, 'pg');
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-            var resetdata = (function () {
-                return knex('haven_schema1')
-                    .select('sequence_id')
-                    .orderBy('sequence_id', 'desc')
-                    .limit(1)
-                    .then(function (v) {
-                        var sc = JSON.parse(JSON.stringify(schema));
-                        return knex('haven_schema1').insert({
-                            sequence_id: ++v[0].sequence_id,
-                            schema: JSON.stringify(sc)
-                        })
-                    })
-            })();
+
+
         })();
 
         return Q.all([PersistObjectTemplate.dropKnexTable(Parent),
@@ -577,7 +566,8 @@ describe('type mapping tests for parent/child relations', function () {
             PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevel),
             PersistObjectTemplate.dropKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel),
             PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes),
-            PersistObjectTemplate.dropKnexTable(parentSynchronize)
+            PersistObjectTemplate.dropKnexTable(parentSynchronize),
+            knex('haven_schema1').del()
         ]).should.notify(done);;
     })
 
@@ -586,7 +576,7 @@ describe('type mapping tests for parent/child relations', function () {
             return PersistObjectTemplate.checkForKnexTable(Parent).should.eventually.equal(true);
         }).should.notify(done);
     });
-
+    
     it("Both parent and child index definitions are added to the parent table", function () {
         return PersistObjectTemplate.createKnexTable(Parent_Idx).then(function (status) {
             return knex.schema.table('Parent_Idx', function (table) {
@@ -594,7 +584,7 @@ describe('type mapping tests for parent/child relations', function () {
                     }).should.eventually.have.property("command")
         });
     });
-
+    
     it("When trying to create child table, system should create the parent table", function () {
         return PersistObjectTemplate.createKnexTable(ChildToCreate).then(function (status) {
             return Q.all([PersistObjectTemplate.checkForKnexTable(ChildCreatesThisParent, 'ChildCreatesThisParent').should.eventually.equal(true),
@@ -631,32 +621,14 @@ describe('type mapping tests for parent/child relations', function () {
             return PersistObjectTemplate.checkForKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel).should.eventually.equal(true);
         })
     });
-
+    
     it("Multilevel inheritance with multiple children at the multiple levels", function () {
         return PersistObjectTemplate.createKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).then(function (status) {
             return PersistObjectTemplate.checkForKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).should.eventually.equal(true);
         })
     });
-
-    it("Adding a child to a parent and synchronize.", function () {
-        childSynchronize = parentSynchronize.extend("childSynchronize", {
-            init: function() {
-                this.id = 12312;
-                this.name = "Child";
-                Parent.call(this);
-            },
-            dob: {type: Date}
-        })
-
-        schema.childSynchronize = {};
-        PersistObjectTemplate._verifySchema();
-        return  PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize).then(function (status) {
-                return PersistObjectTemplate.checkForKnexTable(parentSynchronize).should.eventually.equal(true);
-            })
-        })
-
-    });
+    
+    
 
     it("Adding a child with index to a parent and synchronize.", function () {
         childSynchronize = parentSynchronize.extend("childSynchronize", {
@@ -669,19 +641,16 @@ describe('type mapping tests for parent/child relations', function () {
         })
 
         schema.childSynchronize = {};
+
         schema.childSynchronize.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["dob"],"type": "unique"}}]');
 
         PersistObjectTemplate._verifySchema();
 
-        return PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize).then(function (status) {
-                return PersistObjectTemplate.checkForKnexTable(parentSynchronize).should.eventually.equal(true).then(function(){
-                    schema.childSynchronize.indexes = JSON.parse('[{"name": "scd_index","def": {"columns": ["name"],"type": "unique"}}]');
-                    return PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
-                        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize);
-                        //return Q();
-                    })
-                })
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize).then(function (status) {
+            return PersistObjectTemplate.checkForKnexTable(parentSynchronize).should.eventually.equal(true).then(function(){
+                schema.childSynchronize.indexes = JSON.parse('[{"name": "scd_index","def": {"columns": ["name"],"type": "unique"}}]');
+                   return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize);
+                   // return Q();
             })
         })
 
