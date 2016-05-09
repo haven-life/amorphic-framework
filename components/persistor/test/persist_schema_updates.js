@@ -105,10 +105,17 @@ var Q = require('Q');
 var db;
 var schema = {
     Employee: {
-        documentOf: "pg/Employee"
+        documentOf: "pg/employee"
     },
     Manager: {
-        documentOf: "pg/Manager"
+        documentOf: "pg/Manager",
+        indexes: [{
+            name: "single_index",
+            def: {
+                columns: ["dob", "name"],
+                type: "unique"
+            }
+        }]
     },
     Parent: {
         documentOf:"pg/ParentExtendTest"
@@ -159,49 +166,13 @@ var schema = {
                     columns: ["name"],
                     type: "index"
                 }
-            },
-            {
-                name: "Scd_Index",
-                def: {
-                    columns: ["name"],
-                    type: "index"
-                }
-            },
-            {
-                name: "third_index",
-                def: {
-                    columns: ["name"],
-                    type: "index"
-                }
             }
         ]
     }
 }
 
 
-function clearCollection(template) {
-    var collectionName = template.__collection__.match(/\//) ? template.__collection__ : 'mongo/' + template.__collection__;
-    console.log("Clearing " + collectionName);
-    if (collectionName.match(/mongo\/(.*)/)) {
-        collectionName = RegExp.$1;
-        return Q.ninvoke(db, "collection", collectionName).then(function (collection) {
-            return Q.ninvoke(collection, "remove", {}, {w: 1}).then(function () {
-                return Q.ninvoke(collection, "count")
-            });
-        });
-    }
-    else if (collectionName.match(/pg\/(.*)/)) {
-        collectionName = RegExp.$1;
-        return PersistObjectTemplate.dropKnexTable(template)
-            .then(function () {
-                return PersistObjectTemplate.createKnexTable(template).then(function () {
-                    return 0
-                });
-            });
-    } else
-        throw "Invalid collection name " + collectionName;
 
-}
 
 describe('index synchronization checks', function () {
     before('arrange', function (done) {
@@ -211,8 +182,8 @@ describe('index synchronization checks', function () {
                 connection: {
                     host: '127.0.0.1',
                     database: 'persistor_banking',
-                    user: 'postgres',
-                    password: 'postgres'
+                    user: 'nodejs',
+                    password: 'nodejs'
 
                 }
             });
@@ -221,13 +192,16 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
         })();
         return Q.all([
+            knex.schema.dropTableIfExists('NewTable'),
             PersistObjectTemplate.dropKnexTable(Employee),
             PersistObjectTemplate.dropKnexTable(Manager),
             PersistObjectTemplate.dropKnexTable(BoolTable),
             PersistObjectTemplate.dropKnexTable(DateTable),
             PersistObjectTemplate.dropKnexTable(SingleIndexTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
-            PersistObjectTemplate.dropKnexTable(Parent)
+            PersistObjectTemplate.dropKnexTable(Parent),
+            knex('haven_schema1').del(),
+
         ]).should.notify(done);
     });
 
@@ -246,8 +220,8 @@ describe('index synchronization checks', function () {
             connection: {
                 host: '127.0.0.1',
                 database: 'persistor_banking',
-                user: 'postgres',
-                password: 'postgres'
+                user: 'nodejs',
+                password: 'nodejs'
 
             }
         });
@@ -280,7 +254,7 @@ describe('index synchronization checks', function () {
     });
 
     it("create a table with an index", function () {
-        return PersistObjectTemplate.createKnexTable(SingleIndexTable).then(function () {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(SingleIndexTable).then(function () {
             return PersistObjectTemplate.checkForKnexTable(SingleIndexTable).should.eventually.equal(true);
         })
     });
@@ -291,8 +265,8 @@ describe('index synchronization checks', function () {
         connection: {
             host: '127.0.0.1',
             database: 'persistor_banking',
-            user: 'postgres',
-            password: 'postgres'
+            user: 'nodejs',
+            password: 'nodejs'
         }
     });
 
@@ -306,25 +280,10 @@ describe('index synchronization checks', function () {
              Step3: set the schema version table without any indexes...
              */
 
-            var resetdata = (function () {
 
-                return knex('haven_schema1')
-                    .select('sequence_id')
-                    .orderBy('sequence_id', 'desc')
-                    .limit(1)
-                    .then(function (v) {
-                        var sc = JSON.parse(JSON.stringify(schema));
-                        if (sc.IndexSyncTable && sc.IndexSyncTable.indexes)
-                            delete sc.IndexSyncTable.indexes;
-
-                        return knex('haven_schema1').insert({
-                            sequence_id: ++v[0].sequence_id,
-                            schema: JSON.stringify(sc)
-                        })
-                    })
-            })();
             return Q.all(
-                [knex.schema.dropTableIfExists('BoolTable'),
+                [   knex.schema.dropTableIfExists('employee'),
+                    knex.schema.dropTableIfExists('BoolTable'),
                     knex.schema.dropTableIfExists('ChangeFieldTypeTable'),
                     knex.schema.dropTableIfExists('DateTable'),
                     knex.schema.dropTableIfExists('CreatingTable'),
@@ -335,14 +294,10 @@ describe('index synchronization checks', function () {
                             table.text('name')
                         })
                     }),
-                  resetdata
+                    knex('haven_schema1').del()
                 ]).should.notify(done);
         });
 
-
-        it('identify schema changes and update the schema version table', function () {
-            return PersistObjectTemplate.saveSchema('pg').should.eventually.have.property("command");
-        });
 
 
         it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
@@ -373,11 +328,9 @@ describe('index synchronization checks', function () {
             schema.Employee.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["name"],"type": "unique"}}]');
             schema.Manager.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["name"],"type": "unique"}}]');
 
-            return PersistObjectTemplate.saveSchema('pg').should.eventually.have.property('command').then(function() {
                 return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function (status) {
                     return PersistObjectTemplate.checkForKnexTable(Employee).should.eventually.equal(true);
                 })
-            })
 
         })
 
@@ -401,24 +354,6 @@ describe('index synchronization checks', function () {
                 })
             })
         })
-
-
-
-        it('remove an index from the schema and synchronize the schema definitions', function () {
-            delete schema.CreatingTable
-            return Q(PersistObjectTemplate._verifySchema()).then(function() {
-                return PersistObjectTemplate.saveSchema('pg').then(function () {
-                    return knex('haven_schema1')
-                        .select('schema')
-                        .orderBy('sequence_id', 'desc')
-                        .limit(1)
-                        .then(function (records) {
-                            return Q(records[0].schema).should.eventually.not.contain('CreatingTable');
-                        });
-                });
-            })
-
-        });
     });
 
     it('Add a new index and call createKnexTable to create the table and the corresponding indexes', function () {
@@ -435,14 +370,23 @@ describe('index synchronization checks', function () {
         schema.newTable.indexes = (JSON.parse('[{"name": "scd_index","def": {"columns": ["id"],"type": "primary"}}]'));
 
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.createKnexTable(newTable).should.eventually.be.rejectedWith(Error, 'index type can be only \"unique\" or \"index\"');
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).should.eventually.be.rejectedWith(Error, 'index type can be only \"unique\" or \"index\"');
     });
 
     it('add a new table definition to the schema and try to synchronize', function () {
         schema.newTable = {};
         schema.newTable.documentOf = "pg/NewTable";
+        var newTable = PersistObjectTemplate.create("newTable", {
+            id: {type: String},
+            name: {type: String, value: "PrimaryIndex"},
+            init: function (id, name) {
+                this.id = id;
+                this.name = name;
+            }
+        })
         schema.newTable.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["id", "name"],"type": "unique"}}]');
-        return PersistObjectTemplate.saveSchema('pg').then(function () {
+        PersistObjectTemplate._verifySchema();
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).then(function () {
             return knex('haven_schema1')
                 .select('schema')
                 .orderBy('sequence_id', 'desc')
@@ -478,16 +422,16 @@ describe('index synchronization checks', function () {
 
     });
 
-    //it('save bool type and check the return value and type', function () {
-    //    var boolData = new BoolTable(true);
-    //    return boolData.persistSave().should.eventually.equal(boolData._id).then(function () {
-    //        var fetchbool = new Boolean();
-    //        //return BoolTable.getFromPersistWithQuery({'boolField': true}).then(function(record){
-    //        //   // console.dir(record);
-    //        //})
-    //    })
-    //})
-    //
+    it('save bool type and check the return value and type', function () {
+       var boolData = new BoolTable(true);
+       return boolData.persistSave().should.eventually.equal(boolData._id).then(function () {
+           var fetchbool = new Boolean();
+           //return BoolTable.getFromPersistWithQuery({'boolField': true}).then(function(record){
+           //   // console.dir(record);
+           //})
+       })
+    })
+
     it("save employee individually...", function (done) {
         var validEmployee = new Employee('1111', 'New Employee');
         try {
@@ -508,15 +452,6 @@ describe('index synchronization checks', function () {
         return invalidEmployee.persistSave().should.be.rejectedWith(Error, 'insert into');
     });
 
-    it("load the POJO from DB", function() {
 
-      //  var emp = PersistObjectTemplate.getPOJOsFromKnexQuery(Employee, "{id: 100}")
-        //console.dir(emp);
-       // var emp1;
-       // return Employee.getFromPersistWithQuery({id: 100}).then (function (emp) {
-       //     console.dir(emp);
-       // });
-
-    })
 })
 

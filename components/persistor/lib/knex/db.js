@@ -6,104 +6,6 @@ module.exports = function (PersistObjectTemplate) {
     var _ = require('underscore');
 
     /**
-     * Save the schema so we can keep track of indexes. Must be called before tables are synchronized
-     * Should maybe be incorporated in setSchema as a trackIndexes option.
-     * @param alias
-     * @returns {*}
-     */
-    PersistObjectTemplate.saveSchema = function (alias) {
-
-        var knex = this.getDB(alias).connection;
-        var maxdbversion;
-        var schemaTable = 'haven_schema1';
-        var schemaField = 'schema';
-        var latestVersion = 1;
-        this._schematracker = this._schematracker || {};
-        this._schemacache = {};
-
-        var isSchemaUpdated = function(){
-            return _.keys(this._schematracker.adds).length > 0 ||
-              _.keys(this._schematracker.changes).length > 0 ||
-              _.keys(this._schematracker.dels).length > 0
-        }.bind(this)
-
-        var updateSchema = (function () {
-            if (isSchemaUpdated) {
-                return knex(schemaTable).insert({
-                    sequence_id: ++latestVersion,
-                    schema: JSON.stringify(this._schema)
-                })
-            }
-            return Promise.resolve();
-        }).bind(this);
-
-        var diff = (function (memSchema, dbSchema) {
-            var track = {add: {}, change: {}, delete: {}};
-            _diff(dbSchema, memSchema, 'delete', true, function (dbIdx, memIdx) {
-                return !memIdx;
-            }, _diff(memSchema, dbSchema, 'change', false, function (memIdx, dbIdx) {
-                return memIdx && dbIdx && !_.isEqual(memIdx, dbIdx);
-            }, _diff(memSchema, dbSchema, 'add', true, function (memIdx, dbIdx) {
-                return !dbIdx;
-            }, track)));
-
-            this._schematracker.dels = track.delete;
-            this._schematracker.changes = track.change;
-            this._schematracker.adds = track.add;
-
-            function _diff(masterSchema, shadowSchema, opr, addMissingTable, addPredicate, diffs) {
-                return Object.keys(masterSchema).reduce(function (diffs, table) {
-                    if (shadowSchema[table]) {
-                        (masterSchema[table].indexes || []).forEach(function (mstIdx) {
-                            var shdIdx = _.findWhere(shadowSchema[table].indexes, {name: mstIdx.name});
-
-                            if (addPredicate(mstIdx, shdIdx)) {
-                                diffs[opr][table] = diffs[opr][table] || [];
-                                diffs[opr][table].push(mstIdx);
-                            }
-                        });
-                    } else {
-                        diffs[opr][table] = diffs[opr][table] || [];
-                        diffs[opr][table].push.apply(diffs[opr][table], masterSchema[table].indexes);
-                    }
-                    return diffs;
-                }, diffs);
-            }
-        }).bind(this);
-
-        var processDataAndUpdate = (function (dbSchema) {
-            var currentschema = this._schema;
-            var prevschema = {};
-            if (dbSchema && dbSchema.schema)
-                prevschema = JSON.parse(dbSchema.schema);
-            diff(currentschema, prevschema);
-        }).bind(this);
-
-
-        function storeSchemaAndExtractChanges(alias) {
-            var cx = this;
-            return knex.schema.createTableIfNotExists(schemaTable, function (table) {
-                table.increments('sequence_id').primary();
-                table.text(schemaField);
-                table.timestamps();
-            }).then(function () {
-                return knex(schemaTable)
-                  .orderBy('sequence_id', 'desc')
-                  .limit(1)
-            }).then(function (record) {
-                if (record[0] !== undefined)
-                    latestVersion = record[0].sequence_id;
-                return Promise.resolve().then(processDataAndUpdate(record[0]));
-            }).then(updateSchema).catch(function (error) {
-                throw error;
-            });
-        }
-
-        return storeSchemaAndExtractChanges.call(this, alias);
-    }
-
-
-    /**
      * Get a POJO by reading a table, optionally joining it to other tables
      *
      * @param template
@@ -421,13 +323,13 @@ module.exports = function (PersistObjectTemplate) {
      * @param template
      * @returns {*}
      */
-    PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template) {
+    PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback) {
         var aliasedTableName = template.__table__;
         var tableName = this.dealias(aliasedTableName);
-        (function (){
-            while(template.__parent__)
-                template =  template.__parent__;
-        })();
+
+        while(template.__parent__)
+            template =  template.__parent__;
+
         if(!template.__table__)
             throw new Error(template.__name__ + " is missing a schema entry");
 
@@ -435,54 +337,31 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection
         var schema = template.__schema__;
         var _newFields = {};
-        return Promise.resolve().then(function(){
-            return knex.schema.hasTable(tableName).then(function (exists) {
-                if (!exists) {
-                    return PersistObjectTemplate.createKnexTable(template, aliasedTableName);
-                }
-                else {
-                    return discoverColumns(tableName).then(function () {
-                        return knex.schema.table(tableName, columnMapper.bind(this))
-                    }.bind(this));
-                }
-            }.bind(this))}.bind(this));
 
-        function synchronizeIndexes(table) {
-            _.each(Object.getOwnPropertyNames(this._schematracker), function (key) {
-                var templateClone = _.clone(template);
-                syncIndexesForHierarchy.call(this, key, templateClone);
-            }.bind(this));
-
-            function syncIndexesForHierarchy (operation, templateClone) {
-                var tn = templateClone.__name__;
-                _.map(this._schematracker[operation][tn], (function (object, key) {
-                    var type = object.def.type;
-                    var columns = object.def.columns;
-                    var name = _.reduce(object.def.columns, function (name, col) {
-                        return name + '_' + col;
-                    }, 'idx_' + tableName);
-
-                    //var name = 'idx_' + tableName + '_' + object.name;
-                    if (!this._schemacache[name]) {
-                        this._schemacache[name] = true;
-                        if (operation === 'add')
-                            return table[type](columns, name);
-                        else if (operation === 'dels') {
-                            type= type.replace(/index/, 'Index');
-                            type = type.replace(/unique/, 'Unique')
-                            return table['drop' + type]([], name);
-                        }
-                        else
-                            return table[type](columns, name);
+        return Promise.resolve().then(function () {
+                return knex.schema.hasTable(tableName).then(function (exists) {
+                    if (!exists) {
+                        if (!!changeNotificationCallback) changeNotificationCallback('A new table, ' + tableName + ', has been added\n');
+                        return PersistObjectTemplate._createKnexTable(template, aliasedTableName);
                     }
-
-                }).bind(this));
-                templateClone.__children__.forEach(function (o) {
-                    syncIndexesForHierarchy.call(this, operation, o);
+                    else {
+                        return discoverColumns(tableName).then(function () {
+                            fieldChangeNotify(changeNotificationCallback, tableName);
+                            return knex.schema.table(tableName, columnMapper.bind(this))
+                        }.bind(this));
+                    }
                 }.bind(this))
-            };
-        };
+            }.bind(this))
+            .then(synchronizeIndexes.bind(this, tableName, template));
 
+        function fieldChangeNotify(callBack, table) {
+            if (!callBack) return;
+            if (typeof callBack !== 'function')
+                throw new Error('persistor can only notify the field changes through a callback');
+            var fieldsChanged = _.keys(_newFields).join();
+
+            callBack('Following fields are being added to ' + table + ' table: \n    ' + fieldsChanged);
+        }
         function columnMapper(table) {
 
             for (var prop in _newFields) {
@@ -507,7 +386,6 @@ module.exports = function (PersistObjectTemplate) {
                 } else
                     table.text(prop);
             }
-            synchronizeIndexes.call(this, table);
         }
 
 
@@ -538,35 +416,246 @@ module.exports = function (PersistObjectTemplate) {
                 return prop;
             }
         }
+    }
 
-        function iscompatible(persistortype, pgtype) {
-            switch (persistortype) {
-                case 'String':
-                case 'Object':
-                case 'Array':
-                    return pgtype.indexOf('text') > -1;
-                case 'Number':
-                    return pgtype.indexOf('double precision') > -1;
-                case 'Boolean':
-                    return pgtype.indexOf('bool') > -1;
-                case 'Date':
-                    return pgtype.indexOf('timestamp') > -1;
-                default:
-                    return pgtype.indexOf('text') > -1; // Typed objects have no name
+    function synchronizeIndexes(tableName, template) {
+
+        var aliasedTableName = template.__table__;
+        var tableName = this.dealias(aliasedTableName);
+
+        while(template.__parent__)
+            template =  template.__parent__;
+
+        if(!template.__table__)
+            throw new Error(template.__name__ + " is missing a schema entry");
+
+        var props = getPropsRecursive(template);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection
+        var schema = template.__schema__;
+        var _newFields = {};
+
+        var _dbschema, _templateSchema = {};
+        var _changes =  {};
+        var schemaTable = 'haven_schema1';
+        var schemaField = 'schema';
+
+
+        var loadSchema = function (tableName) {
+
+            if (!!_dbschema) return(_dbschema, tableName);
+
+            return  knex.schema.createTableIfNotExists(schemaTable, function (table) {
+                table.increments('sequence_id').primary();
+                table.text(schemaField);
+                table.timestamps();
+            }).then(function () {
+                return knex(schemaTable)
+                    .orderBy('sequence_id', 'desc')
+                    .limit(1);
+            }).then(function (record) {
+                var response;
+                if (!record[0]) {
+                    response = {};
+                }
+                else {
+                    latestVersion = record[0].sequence_id;
+                    response = JSON.parse(record[0][schemaField]);
+                }
+                _dbschema = response;
+                return [response, schema, template.__name__];
+            })
+        }
+
+        var loadTableDef = function(dbschema, schema, tableName) {
+            _templateSchema[tableName] = schema;
+            if (!dbschema[tableName])
+                dbschema[tableName] = {};
+            return [dbschema[tableName], schema, tableName];
+        }
+
+        var diffTable = function(dbTableDef, memTableDef, tableName){
+            var track = {add: [], change: [], delete: []};
+            _diff(dbTableDef, memTableDef, 'delete', false, function (dbIdx, memIdx) {
+                return !memIdx;
+            }, _diff(memTableDef, dbTableDef, 'change', false, function (memIdx, dbIdx) {
+                return memIdx && dbIdx && !_.isEqual(memIdx, dbIdx);
+            }, _diff(memTableDef, dbTableDef, 'add', true, function (memIdx, dbIdx) {
+                return !dbIdx;
+            }, track)));
+            _changes[tableName] = _changes[tableName] || {};
+
+            _.map(_.keys(track), function(key){
+                _changes[tableName][key] = _changes[tableName][key] || [];
+                _changes[tableName][key].push.apply(_changes[tableName][key], track[key]);
+            });
+
+            function _diff(masterTblSchema, shadowTblSchema, opr, addMissingTable, addPredicate, diffs) {
+
+                if (!!masterTblSchema && !!masterTblSchema.indexes && masterTblSchema.indexes instanceof Array && !!shadowTblSchema) {
+                    (masterTblSchema.indexes || []).forEach(function (mstIdx) {
+                        var shdIdx = _.findWhere(shadowTblSchema.indexes, {name: mstIdx.name});
+
+                        if (addPredicate(mstIdx, shdIdx)) {
+                            diffs[opr] = diffs[opr] || [];
+                            diffs[opr].push(mstIdx);
+                        }
+                    });
+                } else if (addMissingTable) {
+                    diffs[opr] = diffs[opr] || [];
+                    diffs[opr].push.apply(diffs[opr], masterTblSchema.indexes);
+                }
+                return diffs;
             }
         }
 
-        function getPropsRecursive(template, map) {
-            map = map || {};
-            _.map(template.getProperties(), function (val, prop) {
-                map[prop] = val
-            });
-            template = template.__children__;
-            template.forEach(function (template) {
-                getPropsRecursive(template, map);
-            });
-            return map;
+        var generateChanges = function (localtemplate, value) {
+            return _.reduce(localtemplate.__children__, function (curr, o) {
+                return Promise.resolve()
+                    .then(loadTableDef.bind(this, _dbschema, o.__schema__, o.__name__))
+                    .spread(diffTable)
+                    .then(generateChanges.bind(this, o))
+                    .catch(function (e) {
+                        throw e;
+                    })
+            }, {});
         }
+
+        var getFilteredTarget = function(src, target){
+            return _.filter(target, function(o, filterkey){
+                var currName = _.reduce(o.def.columns, function (name, col) {
+                    return name + '_' + col;
+                }, 'idx_' + tableName);
+                return !_.find(src, function(cached){
+                    var cachedName = _.reduce(cached.def.columns, function (name, col) {
+                        return name + '_' + col;
+                    }, 'idx_' + tableName);
+                    return (cachedName === currName)
+                })
+            });
+        }
+
+        var mergeChanges = function() {
+            var dbChanges =   {add: [], change: [], delete: []};
+            _.map(dbChanges, function(object, key){
+                _.each(_changes, function(change){
+                    var filtered = getFilteredTarget(dbChanges[key], change[key])
+                    dbChanges[key].push.apply(dbChanges[key], filtered);
+                })
+            })
+
+            return dbChanges;
+        }
+
+        var applyTableChanges = function(dbChanges) {
+            function syncIndexesForHierarchy (operation, diffs, table) {
+                _.map(diffs[operation], (function (object, key) {
+                    var type = object.def.type;
+                    var columns = object.def.columns;
+                    if (type !== 'unique' && type !== 'index')
+                        throw new Error('index type can be only "unique" or "index"');
+
+                    var name = _.reduce(object.def.columns, function (name, col) {
+                        return name + '_' + col;
+                    }, 'idx_' + tableName);
+
+                    //var name = 'idx_' + tableName + '_' + object.name;
+                    if (operation === 'add') {
+                        table[type](columns, name);
+                    }
+                    else if (operation === 'delete') {
+                        type= type.replace(/index/, 'Index');
+                        type = type.replace(/unique/, 'Unique')
+                        table['drop' + type]([], name);
+                    }
+                    else
+                        table[type](columns, name);
+
+                }).bind(this));
+            };
+
+
+            return knex.transaction(function (trx) {
+                return trx.schema.table(tableName, function (table) {
+                    _.map(Object.getOwnPropertyNames(dbChanges), function (key) {
+                        return syncIndexesForHierarchy.call(this, key, dbChanges, table);
+                    }.bind(this));
+                })
+            })
+        }
+
+        var isSchemaChanged = function(object) {
+            return (object.add.length || object.change.length || object.delete.length)
+        }
+
+        var makeSchemaUpdates = function () {
+            var chgFound = _.reduce(_changes, function (curr, change) {
+                return curr || !!isSchemaChanged(change);
+            }, false);
+
+            if (!chgFound) return;
+            return knex(schemaTable)
+                .orderBy('sequence_id', 'desc')
+                .limit(1).then(function (record) {
+                    if (!record[0]) {
+                        return knex(schemaTable).insert({
+                            sequence_id: 1,
+                            schema: JSON.stringify(_templateSchema)
+                        });
+                    }
+                    else {
+                        _.map(_templateSchema, function (o, key) {
+                            _dbschema[key] = o;
+                        });
+                        return knex(schemaTable).insert({
+                            sequence_id: ++record[0].sequence_id,
+                            schema: JSON.stringify(_dbschema)
+                        });
+                    }
+                })
+        }
+
+        return Promise.resolve()
+            .then(loadSchema.bind(this, tableName))
+            .spread(loadTableDef)
+            .spread(diffTable)
+            .then(generateChanges.bind(this, template))
+            .then(mergeChanges)
+            .then(applyTableChanges)
+            .then(makeSchemaUpdates)
+            .catch(function(e) {
+                throw e;
+            })
+    };
+
+
+
+    function iscompatible(persistortype, pgtype) {
+        switch (persistortype) {
+            case 'String':
+            case 'Object':
+            case 'Array':
+                return pgtype.indexOf('text') > -1;
+            case 'Number':
+                return pgtype.indexOf('double precision') > -1;
+            case 'Boolean':
+                return pgtype.indexOf('bool') > -1;
+            case 'Date':
+                return pgtype.indexOf('timestamp') > -1;
+            default:
+                return pgtype.indexOf('text') > -1; // Typed objects have no name
+        }
+    }
+
+    function getPropsRecursive(template, map) {
+        map = map || {};
+        _.map(template.getProperties(), function (val, prop) {
+            map[prop] = val
+        });
+        template = template.__children__;
+        template.forEach(function (template) {
+            getPropsRecursive(template, map);
+        });
+        return map;
     }
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn) {
@@ -583,12 +672,18 @@ module.exports = function (PersistObjectTemplate) {
           }.bind(this))
     }
 
+    PersistObjectTemplate.createKnexTable = function (template, collection) {
+        var collection = collection || template.__table__;
+        var tableName = this.dealias(collection);
+        return PersistObjectTemplate._createKnexTable(template, collection)
+            .then(synchronizeIndexes.bind(this, tableName, template))
+    }
     /**
      * Create a table based on the schema definitions, will consider even indexes creation.
      * @param template
      * @returns {*}
      */
-    PersistObjectTemplate.createKnexTable = function (template, collection) {
+    PersistObjectTemplate._createKnexTable = function (template, collection) {
         var collection = collection || template.__table__;
         (function (){
             while(template.__parent__)
@@ -600,30 +695,6 @@ module.exports = function (PersistObjectTemplate) {
         var tableName = this.dealias(collection);
         var _cacheIndex = [];
         return knex.schema.createTable(tableName, createColumns.bind(this));
-        function setIndex(table, index) {
-            if (index.def) {
-                if (index.def.type !== 'unique' && index.def.type !== 'index')
-                    throw new Error('index type can be only "unique" or "index"');
-                var name = _.reduce(index.def.columns, function (name, col) {
-                    return name + '_' + col;
-                }, 'idx_' + tableName);
-                if (!_.contains(_cacheIndex, name)) {
-                    if (this._schemacache)
-                        this._schemacache[name] = true;
-                    _cacheIndex.push(name);
-                    table[index.def.type](index.def.columns, name);
-                }
-            }
-        }
-        function createIndexes(table, schema) {
-            if (!schema) return;
-            if (schema.indexes) {
-                schema.indexes.forEach(function (index) {
-                      setIndex.call(this, table, index);
-                  }.bind(this)
-                )
-            }
-        }
 
         function createColumns(table) {
             table.string('_id').primary();
@@ -658,7 +729,6 @@ module.exports = function (PersistObjectTemplate) {
                         columnMap[prop] = true;
                     }
                 }
-                createIndexes.call(this, table, schema);
             }
 
             function recursiveColumnMap(childTemplate) {
