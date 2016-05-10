@@ -15,7 +15,6 @@ var Q = require("q");
 var _ = require("underscore");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
-var knex = require("knex");
 
 
 var Parent = PersistObjectTemplate.create("Parent", {
@@ -28,7 +27,7 @@ var Parent = PersistObjectTemplate.create("Parent", {
 })
 
 
-Child = Parent.extend("Child", {
+var Child = Parent.extend("Child", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -47,7 +46,7 @@ var Parent_Idx = PersistObjectTemplate.create("Parent_Idx", {
 })
 
 
-Child_Idx = Parent_Idx.extend("Child_Idx", {
+var Child_Idx = Parent_Idx.extend("Child_Idx", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -66,7 +65,7 @@ var ChildCreatesThisParent = PersistObjectTemplate.create("ChildCreatesThisParen
 })
 
 
-ChildToCreate = ChildCreatesThisParent.extend("ChildToCreate", {
+var ChildToCreate = ChildCreatesThisParent.extend("ChildToCreate", {
     init: function () {
         this.id = 12312;
         this.name = "ChildToCreate";
@@ -85,7 +84,7 @@ var ChildCreatesThisParent1 = PersistObjectTemplate.create("ChildCreatesThisPare
 })
 
 
-ChildToCreate1 = ChildCreatesThisParent1.extend("ChildToCreate1", {
+var ChildToCreate1 = ChildCreatesThisParent1.extend("ChildToCreate1", {
     init: function () {
         this.id = 12312;
         this.name = "ChildToCreate";
@@ -105,7 +104,7 @@ var ParentMulteLevel1 = PersistObjectTemplate.create("ParentMulteLevel1", {
 })
 
 
-ChildLevel1 = ParentMulteLevel1.extend("ChildLevel1", {
+var ChildLevel1 = ParentMulteLevel1.extend("ChildLevel1", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -115,7 +114,7 @@ ChildLevel1 = ParentMulteLevel1.extend("ChildLevel1", {
 });
 
 
-ChildLevel2 = ChildLevel1.extend("ChildLevel2", {
+var ChildLevel2 = ChildLevel1.extend("ChildLevel2", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -134,7 +133,7 @@ var ParentMulteLevel1 = PersistObjectTemplate.create("ParentMulteLevel1", {
 })
 
 
-ChildLevel1 = ParentMulteLevel1.extend("ChildLevel1", {
+var ChildLevel1 = ParentMulteLevel1.extend("ChildLevel1", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -143,7 +142,7 @@ ChildLevel1 = ParentMulteLevel1.extend("ChildLevel1", {
     ScdLevel: {type: Boolean}
 });
 
-ChildLevel2 = ParentMulteLevel1.extend("ChildLevel2", {
+var ChildLevel2 = ParentMulteLevel1.extend("ChildLevel2", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -153,7 +152,7 @@ ChildLevel2 = ParentMulteLevel1.extend("ChildLevel2", {
 });
 
 
-ChildLevel12 = ChildLevel1.extend("ChildLevel12", {
+var ChildLevel12 = ChildLevel1.extend("ChildLevel12", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -172,7 +171,7 @@ var ParentMulteLevelIndx1 = PersistObjectTemplate.create("ParentMulteLevelIndx1"
 })
 
 
-ChildLevelIndx1 = ParentMulteLevelIndx1.extend("ChildLevelIndx1", {
+var ChildLevelIndx1 = ParentMulteLevelIndx1.extend("ChildLevelIndx1", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -182,7 +181,7 @@ ChildLevelIndx1 = ParentMulteLevelIndx1.extend("ChildLevelIndx1", {
 });
 
 
-ChildLevel2Indx1 = ChildLevelIndx1.extend("ChildLevel2Indx1", {
+var ChildLevel2Indx1 = ChildLevelIndx1.extend("ChildLevel2Indx1", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -200,7 +199,7 @@ var ParentWithMultiChildAttheSameLevel = PersistObjectTemplate.create("ParentWit
     }
 })
 
-ChildLevel11MultiChildAttheSameLevel = ParentWithMultiChildAttheSameLevel.extend("ChildLevel1MultiChildAttheSameLevel", {
+var ChildLevel11MultiChildAttheSameLevel = ParentWithMultiChildAttheSameLevel.extend("ChildLevel1MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -209,7 +208,7 @@ ChildLevel11MultiChildAttheSameLevel = ParentWithMultiChildAttheSameLevel.extend
     Level11: {type: Date, value: new Date()}
 });
 
-ChildLevel12MultiChildAttheSameLevel = ParentWithMultiChildAttheSameLevel.extend("ChildLevel12MultiChildAttheSameLevel", {
+var ChildLevel12MultiChildAttheSameLevel = ParentWithMultiChildAttheSameLevel.extend("ChildLevel12MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -227,7 +226,7 @@ var Scenario_2_ParentWithMultiChildAttheSameLevel = PersistObjectTemplate.create
     }
 })
 
-Scenario_2_ChildLevel11MultiChildAttheSameLevel = Scenario_2_ParentWithMultiChildAttheSameLevel.extend("Scenario_2_ChildLevel11MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel11MultiChildAttheSameLevel = Scenario_2_ParentWithMultiChildAttheSameLevel.extend("Scenario_2_ChildLevel11MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -236,7 +235,7 @@ Scenario_2_ChildLevel11MultiChildAttheSameLevel = Scenario_2_ParentWithMultiChil
     Level11: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel12MultiChildAttheSameLevel = Scenario_2_ParentWithMultiChildAttheSameLevel.extend("Scenario_2_ChildLevel12MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel12MultiChildAttheSameLevel = Scenario_2_ParentWithMultiChildAttheSameLevel.extend("Scenario_2_ChildLevel12MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -245,7 +244,7 @@ Scenario_2_ChildLevel12MultiChildAttheSameLevel = Scenario_2_ParentWithMultiChil
     Level12: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel21MultiChildAttheSameLevel = Scenario_2_ChildLevel11MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel21MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel21MultiChildAttheSameLevel = Scenario_2_ChildLevel11MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel21MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -254,7 +253,7 @@ Scenario_2_ChildLevel21MultiChildAttheSameLevel = Scenario_2_ChildLevel11MultiCh
     Level21: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel22MultiChildAttheSameLevel = Scenario_2_ChildLevel11MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel22MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel22MultiChildAttheSameLevel = Scenario_2_ChildLevel11MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel22MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -263,7 +262,7 @@ Scenario_2_ChildLevel22MultiChildAttheSameLevel = Scenario_2_ChildLevel11MultiCh
     Level22: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel211MultiChildAttheSameLevel = Scenario_2_ChildLevel12MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel211MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel211MultiChildAttheSameLevel = Scenario_2_ChildLevel12MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel211MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -272,7 +271,7 @@ Scenario_2_ChildLevel211MultiChildAttheSameLevel = Scenario_2_ChildLevel12MultiC
     Level211: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel212MultiChildAttheSameLevel = Scenario_2_ChildLevel12MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel212MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel212MultiChildAttheSameLevel = Scenario_2_ChildLevel12MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel212MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -281,7 +280,7 @@ Scenario_2_ChildLevel212MultiChildAttheSameLevel = Scenario_2_ChildLevel12MultiC
     Level212: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel221MultiChildAttheSameLevel = Scenario_2_ChildLevel22MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel221MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel221MultiChildAttheSameLevel = Scenario_2_ChildLevel22MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel221MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -290,7 +289,7 @@ Scenario_2_ChildLevel221MultiChildAttheSameLevel = Scenario_2_ChildLevel22MultiC
     Level221: {type: Date, value: new Date()}
 });
 
-Scenario_2_ChildLevel222MultiChildAttheSameLevel = Scenario_2_ChildLevel22MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel222MultiChildAttheSameLevel", {
+var Scenario_2_ChildLevel222MultiChildAttheSameLevel = Scenario_2_ChildLevel22MultiChildAttheSameLevel.extend("Scenario_2_ChildLevel222MultiChildAttheSameLevel", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -308,7 +307,7 @@ var ParentWithMultiChildAttheSameLevelWithIndexes = PersistObjectTemplate.create
     }
 })
 
-ChildLevel11MultiChildAttheSameLevelWithIndexes = ParentWithMultiChildAttheSameLevelWithIndexes.extend("ChildLevel11MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel11MultiChildAttheSameLevelWithIndexes = ParentWithMultiChildAttheSameLevelWithIndexes.extend("ChildLevel11MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -317,7 +316,7 @@ ChildLevel11MultiChildAttheSameLevelWithIndexes = ParentWithMultiChildAttheSameL
     Level11: {type: Date, value: new Date()}
 });
 
-ChildLevel12MultiChildAttheSameLevelWithIndexes = ParentWithMultiChildAttheSameLevelWithIndexes.extend("ChildLevel12MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel12MultiChildAttheSameLevelWithIndexes = ParentWithMultiChildAttheSameLevelWithIndexes.extend("ChildLevel12MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -326,7 +325,7 @@ ChildLevel12MultiChildAttheSameLevelWithIndexes = ParentWithMultiChildAttheSameL
     Level12: {type: Date, value: new Date()}
 });
 
-ChildLevel21MultiChildAttheSameLevelWithIndexes = ChildLevel11MultiChildAttheSameLevelWithIndexes.extend("ChildLevel21MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel21MultiChildAttheSameLevelWithIndexes = ChildLevel11MultiChildAttheSameLevelWithIndexes.extend("ChildLevel21MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -335,7 +334,7 @@ ChildLevel21MultiChildAttheSameLevelWithIndexes = ChildLevel11MultiChildAttheSam
     Level21: {type: Date, value: new Date()}
 });
 
-ChildLevel22MultiChildAttheSameLevelWithIndexes = ChildLevel11MultiChildAttheSameLevelWithIndexes.extend("ChildLevel22MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel22MultiChildAttheSameLevelWithIndexes = ChildLevel11MultiChildAttheSameLevelWithIndexes.extend("ChildLevel22MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -344,7 +343,7 @@ ChildLevel22MultiChildAttheSameLevelWithIndexes = ChildLevel11MultiChildAttheSam
     Level22: {type: Date, value: new Date()}
 });
 
-ChildLevel211MultiChildAttheSameLevelWithIndexes = ChildLevel21MultiChildAttheSameLevelWithIndexes.extend("ChildLevel211MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel211MultiChildAttheSameLevelWithIndexes = ChildLevel21MultiChildAttheSameLevelWithIndexes.extend("ChildLevel211MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -352,7 +351,7 @@ ChildLevel211MultiChildAttheSameLevelWithIndexes = ChildLevel21MultiChildAttheSa
     },
     Level211: {type: Date, value: new Date()}
 });
-ChildLevel212MultiChildAttheSameLevelWithIndexes = ChildLevel21MultiChildAttheSameLevelWithIndexes.extend("ChildLevel212MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel212MultiChildAttheSameLevelWithIndexes = ChildLevel21MultiChildAttheSameLevelWithIndexes.extend("ChildLevel212MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -361,7 +360,7 @@ ChildLevel212MultiChildAttheSameLevelWithIndexes = ChildLevel21MultiChildAttheSa
     Level212: {type: Date, value: new Date()}
 });
 
-ChildLevel221MultiChildAttheSameLevelWithIndexes = ChildLevel12MultiChildAttheSameLevelWithIndexes.extend("ChildLevel221MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel221MultiChildAttheSameLevelWithIndexes = ChildLevel12MultiChildAttheSameLevelWithIndexes.extend("ChildLevel221MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -370,7 +369,7 @@ ChildLevel221MultiChildAttheSameLevelWithIndexes = ChildLevel12MultiChildAttheSa
     Level221: {type: Date, value: new Date()}
 });
 
-ChildLevel222MultiChildAttheSameLevelWithIndexes = ChildLevel12MultiChildAttheSameLevelWithIndexes.extend("ChildLevel222MultiChildAttheSameLevelWithIndexes", {
+var ChildLevel222MultiChildAttheSameLevelWithIndexes = ChildLevel12MultiChildAttheSameLevelWithIndexes.extend("ChildLevel222MultiChildAttheSameLevelWithIndexes", {
     init: function () {
         this.id = 12312;
         this.name = "Child";
@@ -526,7 +525,10 @@ var schema = {
     }
 }
 
-var knex = require('knex')({
+
+
+describe('type mapping tests for parent/child relations', function () {
+    var knex = require('knex')({
         client: 'pg',
         connection: {
             host: '127.0.0.1',
@@ -537,20 +539,10 @@ var knex = require('knex')({
         }
     });
 
-describe('type mapping tests for parent/child relations', function () {
     before('arrange', function (done) {
         (function () {
-            var db = require('knex')({
-                client: 'pg',
-                connection: {
-                    host: '127.0.0.1',
-                    database: 'persistor_banking',
-                    user: 'postgres',
-                    password: 'postgres'
-
-                }
-            });
-            PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Knex, 'pg');
+            
+            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
 
@@ -576,7 +568,7 @@ describe('type mapping tests for parent/child relations', function () {
             return PersistObjectTemplate.checkForKnexTable(Parent).should.eventually.equal(true);
         }).should.notify(done);
     });
-    
+
     it("Both parent and child index definitions are added to the parent table", function () {
         return PersistObjectTemplate.createKnexTable(Parent_Idx).then(function (status) {
             return knex.schema.table('Parent_Idx', function (table) {
@@ -584,7 +576,7 @@ describe('type mapping tests for parent/child relations', function () {
                     }).should.eventually.have.property("command")
         });
     });
-    
+
     it("When trying to create child table, system should create the parent table", function () {
         return PersistObjectTemplate.createKnexTable(ChildToCreate).then(function (status) {
             return Q.all([PersistObjectTemplate.checkForKnexTable(ChildCreatesThisParent, 'ChildCreatesThisParent').should.eventually.equal(true),
@@ -621,14 +613,14 @@ describe('type mapping tests for parent/child relations', function () {
             return PersistObjectTemplate.checkForKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel).should.eventually.equal(true);
         })
     });
-    
+
     it("Multilevel inheritance with multiple children at the multiple levels", function () {
         return PersistObjectTemplate.createKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).then(function (status) {
             return PersistObjectTemplate.checkForKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).should.eventually.equal(true);
         })
     });
-    
-    
+
+
 
     it("Adding a child with index to a parent and synchronize.", function () {
         childSynchronize = parentSynchronize.extend("childSynchronize", {

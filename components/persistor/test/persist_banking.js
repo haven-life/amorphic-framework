@@ -45,6 +45,7 @@ var Address = PersistObjectTemplate.create("Address", {
 	postalCode: {type: String, value: "", length: 20},
 	country:    {type: String, value: "US", length: 3}
 });
+
 Customer.mixin({
     referredBy: {type: Customer, fetch: true},
     referrers:  {type: Array, of: Customer, value: [], fetch: true},

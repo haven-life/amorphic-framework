@@ -12,7 +12,6 @@ var Q = require("q");
 var _ = require("underscore");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
-var knex = require("knex");
 
 
 var Employee = PersistObjectTemplate.create("Employee", {
@@ -26,7 +25,7 @@ var Employee = PersistObjectTemplate.create("Employee", {
 })
 
 
-Manager = Employee.extend("Manager", {
+var Manager = Employee.extend("Manager", {
     init: function () {
         this.id = 12312;
         this.name = "Manager";
@@ -36,7 +35,7 @@ Manager = Employee.extend("Manager", {
 });
 
 
-Executive = Manager.extend("Executive", {
+var Executive = Manager.extend("Executive", {
     init: function () {
         this.id = 12312;
         this.name = "Manager";
@@ -45,11 +44,11 @@ Executive = Manager.extend("Executive", {
     execRole: {type: String, value: ''}
 });
 
-BoolTable = PersistObjectTemplate.create("BoolTable", {
+var  BoolTable = PersistObjectTemplate.create("BoolTable", {
     boolField: {type: Boolean}
 });
 
-DateTable = PersistObjectTemplate.create("DateTable", {
+var DateTable = PersistObjectTemplate.create("DateTable", {
     dateField: {type: Date}
 });
 
@@ -236,26 +235,17 @@ describe('index synchronization checks', function () {
     };
 
     before('arrange', function (done) {
-        (function () {
-            var db = require('knex')({
-                client: 'pg',
-                connection: {
-                    host: '127.0.0.1',
-                    database: 'persistor_banking',
-                    user: 'postgres',
-                    password: 'postgres'
 
-                }
-            });
-            PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Knex, 'pg');
+        (function () {
+            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-
         })();
+
         return Q.all([
             knex.schema.dropTableIfExists('notificationCheck'),
             PersistObjectTemplate.dropKnexTable(Employee),
-           // PersistObjectTemplate.dropKnexTable(Manager),
+            //PersistObjectTemplate.dropKnexTable(Manager),
             PersistObjectTemplate.dropKnexTable(BoolTable),
             PersistObjectTemplate.dropKnexTable(DateTable),
             PersistObjectTemplate.dropKnexTable(SingleIndexTable),
@@ -374,13 +364,13 @@ describe('index synchronization checks', function () {
             });
         });
     });
-
+    
     it("creating parent and child and synchronize the parent to check the child table indexes", function (done) {
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function (result) {
             return Q.all([getIndexes('Employee').should.eventually.have.length(2),
                 getIndexes('Manager').should.eventually.have.length(1),
                 getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
-
+    
         });
     });
 

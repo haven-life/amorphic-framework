@@ -10,7 +10,7 @@ var _ = require("underscore");
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
-var knex;
+
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read';//'api;io';
 
@@ -290,7 +290,7 @@ function clearCollection(template) {
 }
 
 describe("Banking from pgsql Example", function () {
-
+    var knex;
     it ("opens the database Postgres", function (done) {
         console.log("starting banking");
         return Q()
