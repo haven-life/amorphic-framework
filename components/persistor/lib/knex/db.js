@@ -529,7 +529,7 @@ module.exports = function (PersistObjectTemplate) {
                     var cachedName = _.reduce(cached.def.columns, function (name, col) {
                         return name + '_' + col;
                     }, 'idx_' + tableName);
-                    return (cachedName === currName)
+                    return (cachedName.toLowerCase() === currName.toLowerCase())
                 })
             });
         }
@@ -558,7 +558,7 @@ module.exports = function (PersistObjectTemplate) {
                         return name + '_' + col;
                     }, 'idx_' + tableName);
 
-                    //var name = 'idx_' + tableName + '_' + object.name;
+                    name = name.toLowerCase();
                     if (operation === 'add') {
                         table[type](columns, name);
                     }

@@ -266,21 +266,21 @@ describe('index synchronization checks', function () {
             return checkKeyExistsInSchema('ExtendParent').should.eventually.equal(false);
         })
     });
-    
+   
     it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).should.eventually.have.property('command').that.match(/INSERT/);
     });
-    
+   
     it('calling synchronizeKnexTableFromTemplate without any changes to the schema definitions..', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).should.eventually.be.fulfilled;
     })
-    
+   
     it('synchronize the index definition for a new table and leave it in the schema table..', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(MultipleIndexTable).then(function(){
             return checkKeyExistsInSchema('MultipleIndexTable').should.eventually.equal(true);
         })
     });
-    
+   
     it('remove the existing index definition, system should delete the index', function () {
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function (result) {
             schema.IndexSyncTable.indexes = [];
@@ -289,7 +289,7 @@ describe('index synchronization checks', function () {
             })
         });
     });
-    
+   
     it('adding an index should upddate the table again..', function () {
         schema.IndexSyncTable.indexes = [
             {
@@ -300,13 +300,13 @@ describe('index synchronization checks', function () {
                 }
             }
         ];
-    
+   
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function (result) {
             return getIndexes('IndexSyncTable').should.eventually.have.length(1);
         });
     });
-    
-    
+   
+   
     it('adding an index should upddate the table again..', function () {
         schema.IndexSyncTable.indexes = [
             {
@@ -324,18 +324,18 @@ describe('index synchronization checks', function () {
                 }
             }
         ];
-    
+   
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function (result) {
             return getIndexes('IndexSyncTable').should.eventually.have.length(2);
         });
     });
-    
+   
     it('adding a new field and verifying the notification', function () {
         function fieldsNotify(fields){
             console.log(fields);
         };
-    
-    
+   
+   
         schema.notificationCheck = {};
         schema.notificationCheck.documentOf = "pg/notificationCheck";
         var notificationCheck = PersistObjectTemplate.create("notificationCheck", {
@@ -357,23 +357,23 @@ describe('index synchronization checks', function () {
                     this.name = name;
                 }
             });
-    
+   
             PersistObjectTemplate._verifySchema();
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(notificationCheck, fieldsNotify).then(function () {
-    
+   
             });
         });
     });
-    
+   
     it("creating parent and child and synchronize the parent to check the child table indexes", function (done) {
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function (result) {
             return Q.all([getIndexes('Employee').should.eventually.have.length(2),
                 getIndexes('Manager').should.eventually.have.length(1),
                 getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
-    
+   
         });
     });
 
-    
+   
 
 })

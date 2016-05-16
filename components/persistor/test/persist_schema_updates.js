@@ -215,7 +215,6 @@ describe('index synchronization checks', function () {
 
 
     it("change to incompatible type and check for exception", function () {
-    
         return knex.schema.createTableIfNotExists('ChangeFieldTypeTable', function (table) {
             table.integer('id');
             table.text('name')
@@ -223,27 +222,27 @@ describe('index synchronization checks', function () {
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ChangeFieldTypeTable).should.eventually.be.rejectedWith(Error);
         });
     });
-    
-    
+
+
     it("create a table for extended object", function () {
     return PersistObjectTemplate.createKnexTable(ExtendParent).then(function() {
             return PersistObjectTemplate.checkForKnexTable(Parent).should.eventually.equal(true);
         })
     });
-    
-    
+
+
     it("create a table with a boolean field", function () {
         return PersistObjectTemplate.createKnexTable(BoolTable).then(function (status) {
             return PersistObjectTemplate.checkForKnexColumnType(BoolTable, 'boolField').should.eventually.equal('boolean');
         })
     });
-    
+
     it("create a table with a date field", function () {
         return PersistObjectTemplate.createKnexTable(DateTable).then(function () {
             return PersistObjectTemplate.checkForKnexColumnType(DateTable, 'dateField').should.eventually.contains('timestamp');
         })
     });
-    
+
     it("create a table with an index", function () {
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(SingleIndexTable).then(function () {
             return PersistObjectTemplate.checkForKnexTable(SingleIndexTable).should.eventually.equal(true);
@@ -254,16 +253,12 @@ describe('index synchronization checks', function () {
 
 
     describe('synchronize the table with schema changes', function () {
-    
+
         before('arrange', function (done) {
-        
-        
             /*Step1: Drop if index test table exists..
              Step2: Create the table without indexes..
              Step3: set the schema version table without any indexes...
              */
-        
-        
             return Q.all(
                 [   knex.schema.dropTableIfExists('employee'),
                     knex.schema.dropTableIfExists('BoolTable'),
@@ -280,44 +275,43 @@ describe('index synchronization checks', function () {
                     knex('haven_schema1').del()
                 ]).should.notify(done);
         });
-        
-        
-        
+
+
+
         it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
-        
            return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
                     return knex.schema.table('IndexSyncTable', function (table) {
-                        table.dropIndex([], 'Idx_IndexSyncTable_name');
+                        table.dropIndex([], 'idx_indexsynctable_name');
                     }).should.eventually.have.property("command")
                 }
             );
         });
-        
+
         it("create a new type and synchronize the table.. ", function () {
             schema.CreateNewType = {};
             schema.CreateNewType.documentOf = "pg/CreateNewType";
             var CreateNewType = PersistObjectTemplate.create("CreateNewType", {
                 id: {type: String}
             })
-        
+
             PersistObjectTemplate._verifySchema();
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(CreateNewType).then(function (status) {
                 return PersistObjectTemplate.checkForKnexTable(CreateNewType).should.eventually.equal(true);
             })
         });
-        
-        
+
+
         it("use the same index names on multiple tables and create index to check the name generation process", function () {
             schema.Employee.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["name"],"type": "unique"}}]');
             schema.Manager.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["name"],"type": "unique"}}]');
-        
+
                 return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function (status) {
                     return PersistObjectTemplate.checkForKnexTable(Employee).should.eventually.equal(true);
                 })
-        
+
         })
-        
-        
+
+
         it('add a new type and check if the table creation is adding the index definition...', function(){
             schema.CreatingTable = {};
             schema.CreatingTable.documentOf = "pg/CreatingTable";
@@ -330,7 +324,7 @@ describe('index synchronization checks', function () {
                     this.name = name;
                 }
             })
-        
+
             return Q(PersistObjectTemplate._verifySchema()).then(function () {
                 return PersistObjectTemplate.createKnexTable(CreatingTable).then(function () {
                     return PersistObjectTemplate.checkForKnexTable(CreatingTable).should.eventually.equal(true);
@@ -351,11 +345,11 @@ describe('index synchronization checks', function () {
             }
         })
         schema.newTable.indexes = (JSON.parse('[{"name": "scd_index","def": {"columns": ["id"],"type": "primary"}}]'));
-    
+
         PersistObjectTemplate._verifySchema();
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).should.eventually.be.rejectedWith(Error, 'index type can be only \"unique\" or \"index\"');
     });
-    
+
     it('add a new table definition to the schema and try to synchronize', function () {
         schema.newTable = {};
         schema.newTable.documentOf = "pg/NewTable";
@@ -378,18 +372,18 @@ describe('index synchronization checks', function () {
                     return Q(records[0].schema);
                 })
         }).should.eventually.contain('NewTable');
-    
+
     });
-    
-    
+
+
     it("drop an index if exits", function () {
         return PersistObjectTemplate.DropIfKnexIndexExists(SingleIndexTable, "idx_singleindextable_id_name").should.eventually.have.property("command").that.match(/DROP|ALTER/);
     });
-    
+
     it("drop an index which does not exists to check the exception", function () {
         return PersistObjectTemplate.DropIfKnexIndexExists(SingleIndexTable, "notavailable").should.be.rejectedWith(Error);
     });
-    
+
     it("create a table with multiple indexes", function () {
         //don't like to check the result this way.. but I felt that using knex in the test cases is equally bad
         //and the knex responses are not clean, will check with Sam and make necessary changes..
@@ -397,24 +391,21 @@ describe('index synchronization checks', function () {
             return PersistObjectTemplate.checkForKnexTable(MultipleIndexTable).should.eventually.equal(true);
         })
     });
-    
-    
+
+
     it("save all employees in the cache...", function (done) {
         var ravi = new Employee(2, 'kumar');
         return PersistObjectTemplate.saveAll().should.eventually.equal(true).should.notify(done);
-    
+
     });
-    
+
     it('save bool type and check the return value and type', function () {
        var boolData = new BoolTable(true);
        return boolData.persistSave().should.eventually.equal(boolData._id).then(function () {
            var fetchbool = new Boolean();
-           //return BoolTable.getFromPersistWithQuery({'boolField': true}).then(function(record){
-           //   // console.dir(record);
-           //})
        })
     })
-    
+
     it("save employee individually...", function (done) {
         var validEmployee = new Employee('1111', 'New Employee');
         try {
@@ -429,7 +420,7 @@ describe('index synchronization checks', function () {
             done(e);
         }
     });
-    
+
     it("should throw exception for non numeric ids", function () {
         var invalidEmployee = new Employee('AAAA', 'Failed Employee');
         return invalidEmployee.persistSave().should.be.rejectedWith(Error, 'insert into');

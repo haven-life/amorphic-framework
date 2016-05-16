@@ -572,7 +572,7 @@ describe('type mapping tests for parent/child relations', function () {
     it("Both parent and child index definitions are added to the parent table", function () {
         return PersistObjectTemplate.createKnexTable(Parent_Idx).then(function (status) {
             return knex.schema.table('Parent_Idx', function (table) {
-                        table.dropIndex([], 'Idx_parent_Idx_id_name');
+                        table.dropIndex([], 'idx_parent_idx_id_name');
                     }).should.eventually.have.property("command")
         });
     });
@@ -587,7 +587,7 @@ describe('type mapping tests for parent/child relations', function () {
     it("When trying to create child table, system should create the parent table and the corresonding indexes in the object graph must be added to the table", function () {
         return PersistObjectTemplate.createKnexTable(ChildToCreate1).then(function (status) {
             return knex.schema.table('ChildCreatesThisParent1', function (table) {
-                table.dropIndex([], 'Idx_ChildCreatesThisParent1_dob');
+                table.dropIndex([], 'idx_childcreatesthisparent1_dob');
             }).should.eventually.have.property("command")
         })
     });
@@ -599,7 +599,7 @@ describe('type mapping tests for parent/child relations', function () {
     it("Multilevel inheritance with indexes defined at different levels", function () {
         return PersistObjectTemplate.createKnexTable(ParentMulteLevelIndx1).then(function (status) {
             return knex.schema.table('ParentMulteLevelIndx1', function (table) {
-                table.dropIndex([], 'Idx_ParentMulteLevelIndx1_dob');
+                table.dropIndex([], 'idx_parentmultelevelindx1_dob');
             }).should.eventually.have.property("command")
         })
     });
@@ -613,15 +613,15 @@ describe('type mapping tests for parent/child relations', function () {
             return PersistObjectTemplate.checkForKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel).should.eventually.equal(true);
         })
     });
-
+    
     it("Multilevel inheritance with multiple children at the multiple levels", function () {
         return PersistObjectTemplate.createKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).then(function (status) {
             return PersistObjectTemplate.checkForKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes).should.eventually.equal(true);
         })
     });
-
-
-
+    
+    
+    
     it("Adding a child with index to a parent and synchronize.", function () {
         childSynchronize = parentSynchronize.extend("childSynchronize", {
             init: function() {
@@ -631,13 +631,13 @@ describe('type mapping tests for parent/child relations', function () {
             },
             dob: {type: Date}
         })
-
+    
         schema.childSynchronize = {};
-
+    
         schema.childSynchronize.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["dob"],"type": "unique"}}]');
-
+    
         PersistObjectTemplate._verifySchema();
-
+    
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(childSynchronize).then(function (status) {
             return PersistObjectTemplate.checkForKnexTable(parentSynchronize).should.eventually.equal(true).then(function(){
                 schema.childSynchronize.indexes = JSON.parse('[{"name": "scd_index","def": {"columns": ["name"],"type": "unique"}}]');
@@ -645,7 +645,7 @@ describe('type mapping tests for parent/child relations', function () {
                    // return Q();
             })
         })
-
+    
     });
 })
 
