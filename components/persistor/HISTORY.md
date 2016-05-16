@@ -1,3 +1,8 @@
+## 1.0.0-rc.1
+* (srksag pr) index synchronization happens at the table level
+* (srksag pr) DDL changes are part of transaction 
+* Refreshing while passing in a map ignored processing if object being refreshed was in the map
+* Added nojoin as a parameter at the same level as fetch: in cascade fetch specs 
 ## 1.0.0-beta-6
 * Fixed serious bug where one-to-one relationships would get nulled out on refresh if the refresh made them point to a different object
 ## 1.0.0-beta-5

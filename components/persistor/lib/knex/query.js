@@ -66,7 +66,9 @@ module.exports = function (PersistObjectTemplate) {
                     throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");
                 var foreignKey = schema.parents[prop].id;
                 var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
-                if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch == true) && cascadeFetch != false)
+                if (((defineProperty['fetch'] && !defineProperty['nojoin']) || cascadeFetch ||
+                    (schema.parents[prop].fetch == true  && !schema.parents[prop].nojoin)) &&
+                    cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin))
                     joins.push({
                         prop: prop,
                         template: props[prop].type,
@@ -165,6 +167,10 @@ module.exports = function (PersistObjectTemplate) {
             var topLevel = !requests;
             requests = requests || [];
 
+            // In some cases the object we were expecting to populate has changed (refresh case)
+            if (pojo && pojo[prefix + '_id'] && establishedObj && establishedObj._id && pojo[prefix + '_id'] != establishedObj._id)
+                establishedObj = null;
+
             // We also get arrays of established objects
             if (establishedObj && establishedObj instanceof Array)
                 establishedObj = _.find(establishedObj, function (o) {
@@ -181,7 +187,6 @@ module.exports = function (PersistObjectTemplate) {
                 this._createEmptyObject(this.__dictionary__[pojo[prefix + '_template']] || template,
                     this.getObjectId(template, pojo, prefix), defineProperty, isTransient);
 
-
             // Once we find an object already fetched that is not transient query as normal for the rest
             if (!obj.__transient__  && !establishedObj && !isTransient)
                 isTransient = false;
@@ -189,7 +194,7 @@ module.exports = function (PersistObjectTemplate) {
             var schema = obj.__template__.__schema__;
             obj._id = pojo[prefix + '_id'];
 
-            if (idMap[obj._id])
+            if (!establishedObj && idMap[obj._id])
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
@@ -320,16 +325,16 @@ module.exports = function (PersistObjectTemplate) {
 
                 } else if (type.isObjectTemplate && (schema || obj[prop] && obj[prop]._id))
                 {
-                    var foreignId = (establishedObj && obj[prop]) ? obj[prop]._id : null;
+                    //var foreignId = (establishedObj && obj[prop]) ? obj[prop]._id : null;
                     if (!obj[prop])
                         obj[prop] = null;
                     // Determine the id needed
-                    if (!foreignId) {
+                    //if (!foreignId) {
                         if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                             throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
                         var foreignKey = schema.parents[prop].id;
                         var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
-                    }
+                    //}
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
                     if (cachedObject) {
