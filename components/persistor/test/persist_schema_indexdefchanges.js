@@ -200,7 +200,7 @@ var schema = {
     }
 }
 
-
+var schemaTable = 'index_schema_history';
 describe('index synchronization checks', function () {
     var knex = require('knex')({
         client: 'pg',
@@ -211,9 +211,9 @@ describe('index synchronization checks', function () {
             password: 'postgres'
         }
     });
-    var schemaTable = 'haven_schema1';
+   
     var checkKeyExistsInSchema = function(key){
-        return knex('haven_schema1')
+        return knex(schemaTable)
             .select('schema')
             .orderBy('sequence_id', 'desc')
             .limit(1)
@@ -224,7 +224,7 @@ describe('index synchronization checks', function () {
             })
     };
     var getIndexes = function(key){
-        return knex('haven_schema1')
+        return knex(schemaTable)
             .select('schema')
             .orderBy('sequence_id', 'desc')
             .limit(1)
@@ -252,7 +252,7 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.dropKnexTable(IndexSyncTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
-            knex('haven_schema1').del(),
+            knex(schemaTable).del(),
             knex.schema.hasTable('IndexSyncTable').then(function(exists){
                 if (exists) knex.schema.dropTable('IndexSyncTable');
             })

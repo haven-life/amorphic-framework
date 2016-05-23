@@ -171,7 +171,7 @@ var schema = {
 }
 
 
-
+var schemaTable = 'index_schema_history';
 
 describe('index synchronization checks', function () {
     var knex = require('knex')({
@@ -200,7 +200,7 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.dropKnexTable(SingleIndexTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
-            knex('haven_schema1').del(),
+            knex(schemaTable).del(),
 
         ]).should.notify(done);
     });
@@ -272,7 +272,7 @@ describe('index synchronization checks', function () {
                             table.text('name')
                         })
                     }),
-                    knex('haven_schema1').del()
+                    knex(schemaTable).del()
                 ]).should.notify(done);
         });
 
@@ -364,7 +364,7 @@ describe('index synchronization checks', function () {
         schema.newTable.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["id", "name"],"type": "unique"}}]');
         PersistObjectTemplate._verifySchema();
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).then(function () {
-            return knex('haven_schema1')
+            return knex(schemaTable)
                 .select('schema')
                 .orderBy('sequence_id', 'desc')
                 .limit(1)

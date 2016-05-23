@@ -559,7 +559,7 @@ describe('type mapping tests for parent/child relations', function () {
             PersistObjectTemplate.dropKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel),
             PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes),
             PersistObjectTemplate.dropKnexTable(parentSynchronize),
-            knex('haven_schema1').del()
+            knex('index_schema_history').del()
         ]).should.notify(done);;
     })
 

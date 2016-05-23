@@ -431,12 +431,12 @@ module.exports = function (PersistObjectTemplate) {
 
         var props = getPropsRecursive(template);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection
-        var schema = template.__schema__;
+        var schema = this._schema;
         var _newFields = {};
 
-        var _dbschema, _templateSchema = {};
+        var _dbschema;
         var _changes =  {};
-        var schemaTable = 'haven_schema1';
+        var schemaTable = 'index_schema_history';
         var schemaField = 'schema';
 
 
@@ -462,18 +462,19 @@ module.exports = function (PersistObjectTemplate) {
                     response = JSON.parse(record[0][schemaField]);
                 }
                 _dbschema = response;
-                return [response, schema, template.__name__];
+                return [response, template.__name__];
             })
         }
 
-        var loadTableDef = function(dbschema, schema, tableName) {
-            _templateSchema[tableName] = schema;
+        var loadTableDef = function(dbschema, tableName) {
             if (!dbschema[tableName])
                 dbschema[tableName] = {};
-            return [dbschema[tableName], schema, tableName];
+            return [dbschema, schema, tableName];
         }
 
-        var diffTable = function(dbTableDef, memTableDef, tableName){
+        var diffTable = function(dbschema, schema, tableName){
+            var dbTableDef = dbschema[tableName];
+            var memTableDef = schema[tableName]
             var track = {add: [], change: [], delete: []};
             _diff(dbTableDef, memTableDef, 'delete', false, function (dbIdx, memIdx) {
                 return !memIdx;
@@ -500,9 +501,9 @@ module.exports = function (PersistObjectTemplate) {
                             diffs[opr].push(mstIdx);
                         }
                     });
-                } else if (addMissingTable) {
+                } else if (addMissingTable && !!masterTblSchema && !!masterTblSchema.indexes) {
                     diffs[opr] = diffs[opr] || [];
-                    diffs[opr].push.apply(diffs[opr], masterTblSchema.indexes);
+                   diffs[opr].push.apply(diffs[opr], masterTblSchema.indexes);
                 }
                 return diffs;
             }
@@ -511,7 +512,7 @@ module.exports = function (PersistObjectTemplate) {
         var generateChanges = function (localtemplate, value) {
             return _.reduce(localtemplate.__children__, function (curr, o) {
                 return Promise.resolve()
-                    .then(loadTableDef.bind(this, _dbschema, o.__schema__, o.__name__))
+                    .then(loadTableDef.bind(this, _dbschema, o.__name__))
                     .spread(diffTable)
                     .then(generateChanges.bind(this, o))
                     .catch(function (e) {
@@ -593,25 +594,27 @@ module.exports = function (PersistObjectTemplate) {
             }, false);
 
             if (!chgFound) return;
+
             return knex(schemaTable)
                 .orderBy('sequence_id', 'desc')
                 .limit(1).then(function (record) {
+                    var response = {}, sequence_id;
                     if (!record[0]) {
-                        return knex(schemaTable).insert({
-                            sequence_id: 1,
-                            schema: JSON.stringify(_templateSchema)
-                        });
+                        sequence_id = 1;
                     }
                     else {
-                        _.map(_templateSchema, function (o, key) {
-                            _dbschema[key] = o;
-                        });
-                        return knex(schemaTable).insert({
-                            sequence_id: ++record[0].sequence_id,
-                            schema: JSON.stringify(_dbschema)
-                        });
+                        response = JSON.parse(record[0][schemaField]);
+                        sequence_id = ++record[0].sequence_id;
                     }
-                })
+                    _.each(_changes, function (o, chgKey) {
+                         response[chgKey] = schema[chgKey];
+                    });
+
+                    return knex(schemaTable).insert({
+                        sequence_id: sequence_id,
+                        schema: JSON.stringify(response)
+                    });
+            })
         }
 
         return Promise.resolve()
