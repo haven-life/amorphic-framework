@@ -1,3 +1,7 @@
+## 1.0.2
+* Eliminate duplicate indexing of schema
+## 1.0.1
+* (srksag pr) corrections to table sync
 ## 1.0.0-rc.1
 * (srksag pr) index synchronization happens at the table level
 * (srksag pr) DDL changes are part of transaction 

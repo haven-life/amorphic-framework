@@ -86,7 +86,7 @@ module.exports = function (PersistObjectTemplate) {
             }
         }
         // Add indexes for one-to-many foreign key relationships, primary keys automatically added by syncTable
-        if (!PersistObjectTemplate.noAutoIndex) {
+        if (!PersistObjectTemplate.noAutoIndex && !this._schema.__indexed__) {
             var indexes = {}
             for (var templateName in this._schema) {
                 var template = PersistObjectTemplate.__dictionary__[templateName];
@@ -119,6 +119,7 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
         }
+        this._schema.__indexed__ = true;
     }
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {
