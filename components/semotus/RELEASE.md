@@ -1,3 +1,5 @@
+## 1.0.2
+* underscore missing
 ## 1.0.1
 * No change
 ## 1.0.0-beta.3

@@ -24,6 +24,7 @@
  */
 if (typeof(require) != 'undefined') {
     var Q = require('q');
+    _ = require("underscore");
     /** type {ObjectTemplate} */
     var ObjectTemplate = require('supertype');
 }
