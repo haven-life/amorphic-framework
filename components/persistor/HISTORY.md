@@ -1,3 +1,5 @@
+## 1.0.4
+* Tweaks for no database case
 ## 1.0.3
 * Don't process schema when there is not one
 ## 1.0.2
