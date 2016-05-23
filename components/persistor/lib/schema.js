@@ -17,6 +17,8 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate._verifySchema = function ()
     {
         var schema = this._schema;
+        if (!schema)
+            return;
 
         // Helper to get the base class walking the __parent__ chain
         function getBaseClass(template) {
