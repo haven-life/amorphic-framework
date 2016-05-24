@@ -1,3 +1,6 @@
+## 1.0.5
+* Put change tracking reset in .finally()
+* Don't using _template to drive class for subSetOf templates
 ## 1.0.4
 * Tweaks for no database case
 ## 1.0.3

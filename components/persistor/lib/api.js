@@ -113,8 +113,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient) :
                 self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties))
                 .then(function (res) {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;
+                })
+                .finally(function () {
+                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                 });
 
 
@@ -203,9 +205,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap) :
                 PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh))
                 .then( function(res) {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;
-                }.bind(this));
+                }.bind(this))
+                .finally(function () {
+                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
+                });
         };
 
         /**
@@ -222,9 +226,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, cascade, start, limit, isTransient, idMap, options) :
                 PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, cascade, start, limit, isTransient, idMap, options))
                 .then( function(res) {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;
-                }.bind(this));
+                }.bind(this))
+                .finally(function () {
+                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
+                });
         };
 
         /**
@@ -252,9 +258,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 PersistObjectTemplate.deleteFromPersistWithMongoId(template, id) :
                 PersistObjectTemplate.deleteFromPersistWithKnexId(template, id, txn))
                 .then( function(res) {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;
-                }.bind(this));
+                }.bind(this))
+                .finally(function () {
+                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
+                });
         };
 
         /**
@@ -271,9 +279,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 PersistObjectTemplate.countFromMongoQuery(template, query) :
                 PersistObjectTemplate.countFromKnexQuery(template, query))
                 .then( function(res) {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
                     return res;
-                }.bind(this));
+                }.bind(this))
+                .finally(function () {
+                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
+                });
         };
         /**
          * Determine whether we are using knex on this table

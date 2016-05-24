@@ -183,9 +183,11 @@ module.exports = function (PersistObjectTemplate) {
             // Create the new object with correct constructor using embedded ID if ObjectTemplate
             if (!establishedObj &&!pojo[prefix + '_template'])
                 throw new Error("Missing _template on " + template.__name__ + " row " + pojo[prefix + '_id']);
+            var persistTemplate = (template.__schema__ && template.__schema__.subsetOf) ?
+              null : this.__dictionary__[pojo[prefix + '_template']]
             var obj = establishedObj || idMap[pojo[prefix + '_id']] ||
-                this._createEmptyObject(this.__dictionary__[pojo[prefix + '_template']] || template,
-                    this.getObjectId(template, pojo, prefix), defineProperty, isTransient);
+              this._createEmptyObject(persistTemplate || template,
+                this.getObjectId(template, pojo, prefix), defineProperty, isTransient);
 
             // Once we find an object already fetched that is not transient query as normal for the rest
             if (!obj.__transient__  && !establishedObj && !isTransient)
