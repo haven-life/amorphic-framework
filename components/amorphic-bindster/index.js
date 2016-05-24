@@ -551,7 +551,8 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         kill_node.parentNode.removeChild(kill_node);
                         kill_node = next;
                     }
-                    tags.events = {};
+                    if (!nothing_rendered)
+                        tags.events = {};
                 }
                 if (!bypass)
                 {
@@ -1037,7 +1038,8 @@ Bindster.prototype.getBindErrorData = function(node, bind_data, xtra_bind_data)
     }
     if (temp_bind_data.message || temp_bind_data.code) {
         if (this.messages[bind_data.code || bind_data.message]) {
-            expression = this.messages[bind_data.message].replace(/{(.*?)}/g, function (all, js) {
+            expression = (this.messages[bind_data.code || bind_data.message] || (bind_data.code || bind_data.message))
+              .replace(/{(.*?)}/g, function (all, js) {
                 js = "(" + js + ")";
                 return '" + ' + js + ' + "';
             });

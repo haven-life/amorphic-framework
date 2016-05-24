@@ -1,3 +1,6 @@
+## 1.0.2
+* PR for sort order
+* fixed problem with not putting events on empty iterates
 ## 1.0.1
 * No change
 ## 1.0.0-beta.2
