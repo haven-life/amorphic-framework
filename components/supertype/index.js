@@ -122,6 +122,8 @@ ObjectTemplate.create = function (name, properties) {
     if (typeof(properties) != 'object')
         throw new Error("missing template property definitions");
     var createProps = this.getTemplateProperties(props);
+    if (typeof(this.templateInterceptor) == 'function')
+        this.templateInterceptor("create", name, properties);
     var template = this._createTemplate(null, Object, properties ? properties : name, createProps);
     this.setTemplateProperties(template, name, createProps);
     return template;
@@ -143,6 +145,8 @@ ObjectTemplate.extend = function (parentTemplate, name, properties)
         throw new Error("incorrect template name");
     if (typeof(properties) != 'object')
         throw new Error("missing template property definitions");
+    if (typeof(this.templateInterceptor) == 'function')
+      this.templateInterceptor("extend", name, properties);
     var template = this._createTemplate(null, parentTemplate, properties ? properties : name, parentTemplate);
     this.setTemplateProperties(template, name, parentTemplate);
 
@@ -161,6 +165,8 @@ ObjectTemplate.extend = function (parentTemplate, name, properties)
  */
 ObjectTemplate.mixin = function (template, properties)
 {
+    if (typeof(this.templateInterceptor) == 'function')
+        this.templateInterceptor("create", template.__name__, properties);
     return this._createTemplate(template, null, properties, template);
 };
 

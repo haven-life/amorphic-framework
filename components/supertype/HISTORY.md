@@ -1,3 +1,5 @@
+## 1.0.2
+* Added objectTemplate.templateInterceptor("extend"/"create"/"mixin", name, properties);
 ## 1.0.1
 * No change
 ## 1.0.0-beta.1
