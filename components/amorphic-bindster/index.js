@@ -623,8 +623,18 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                                 }
                                             }
                                         }
-                                        if (do_sort)
-                                            keys.sort(function(a, b) {return values[a] == values[b] ? 0 : values[a] > values[b] ? 1 : -1})
+                                        if (do_sort && tags.sort !== 'none') {
+                                            var sortorder = tags.sortorder === 'desc' ? -1 : 1;
+                                            if (tags.sort === 'key') { //sort by key, not value
+                                                keys.sort(function(a, b) {return (a > b) ? sortorder : -sortorder});
+                                            }
+                                            else if (tags.sort === 'keynumber') { //sort by key, assuming keys are numbers and not strings
+                                                keys.sort(function(a, b) {return Number(a) > Number(b) ? sortorder : -sortorder});
+                                            }
+                                            else { //default - sort by value
+                                                keys.sort(function(a, b) {return values[a] > values[b] ? sortorder : -sortorder});
+                                            }
+                                        }
                                         if (tags.nullselect) {
                                             keys.splice(0, 0, "null");
                                             values["null"] = tags.nullselect;
@@ -1579,6 +1589,8 @@ Bindster.prototype.getTags = function (node, mapAttrs, finger_print)
             case "includeifloaded":
             case "includeurl":
             case "proptype":
+            case "sort":
+            case "sortorder":
                 tags[attr] = value;
                 break;
 
