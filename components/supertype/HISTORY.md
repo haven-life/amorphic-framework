@@ -1,3 +1,5 @@
+## 1.0.3
+* __toClient__ __toServer__ now setup correctly on browser as well
 ## 1.0.2
 * Added objectTemplate.templateInterceptor("extend"/"create"/"mixin", name, properties);
 ## 1.0.1

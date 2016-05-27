@@ -53,12 +53,12 @@ ObjectTemplate.getTemplateProperties = function(props)
     if (ObjectTemplate.__toClient__ == false)
         props.toClient = false;
 
-    if (processProp(props.isLocal,'isLocalRuleSet')) {
+    if (processProp(props.isLocal, this.isLocalRuleSet)) {
         props.toServer = false;
         props.toClient = false;
     }
-    templateProperties.__toClient__ = processProp(props.toClient, 'toClientRuleSet') == false ?  false : true;
-    templateProperties.__toServer__ = processProp(props.toServer, 'toServerRuleSet') == false ?  false : true;
+    templateProperties.__toClient__ = processProp(props.toClient, this.toClientRuleSet) == false ?  false : true;
+    templateProperties.__toServer__ = processProp(props.toServer, this.toServerRuleSet) == false ?  false : true;
 
     return templateProperties;
     /**
@@ -73,8 +73,8 @@ ObjectTemplate.getTemplateProperties = function(props)
             ret = prop.call(ObjectTemplate);
         else if (typeof(prop) == 'string') {
             ret = false;
-            if (ObjectTemplate[ruleSet])
-                ObjectTemplate[ruleSet].map(function (rule) {ret = ret ? ret : rule == prop});
+            if (ruleSet)
+                ruleSet.map(function (rule) {ret = ret ? ret : rule == prop});
         } else if (prop instanceof Array) {
             prop.forEach(function (prop) {
                 ret = ret  == null ? ret : processProp(prop, ruleSet)
