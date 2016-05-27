@@ -1,3 +1,5 @@
+## 1.0.6
+* Filtering on the _template property was failing
 ## 1.0.5
 * Put change tracking reset in .finally()
 * Don't using _template to drive class for subSetOf templates

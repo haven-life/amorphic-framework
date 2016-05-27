@@ -195,7 +195,8 @@ module.exports = function (PersistObjectTemplate) {
 
             var schema = obj.__template__.__schema__;
             obj._id = pojo[prefix + '_id'];
-
+            obj._template = pojo[prefix + '_template'];
+            
             if (!establishedObj && idMap[obj._id])
                 return Promise.resolve(idMap[obj._id]);
 
