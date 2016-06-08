@@ -1,3 +1,5 @@
+## 1.0.7
+* Fixed problem where we were not always waiting for nested results
 ## 1.0.6
 * Filtering on the _template property was failing
 ## 1.0.5

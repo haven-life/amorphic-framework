@@ -84,19 +84,22 @@ module.exports = function (PersistObjectTemplate) {
         if (limit)
             options.limit = limit;
 
-        var promise = new Promise(function (resolve) {
-            requests.push(function () {
-                return Promise.resolve(true)
-                    .then(getPOJOsFromQuery)
-                    .then(getTemplatesFromPOJOS.bind(this))
-                    .then(resolvePromises.bind(this))
-                    .then(function () {resolve(results)})
-            }.bind(this));
-        }.bind(this))
-        if (topLevel)
+        // Request to do entire processing to be executed right now or as part of a request queue
+        var request = function () {
+            return Promise.resolve(true)
+              .then(getPOJOsFromQuery)
+              .then(getTemplatesFromPOJOS.bind(this))
+              .then(resolvePromises.bind(this))
+        }
+
+        // If at the top level we want to execute this requests and any that are appended during processing
+        // Otherwise we are called from within the query results processor and this entire call is already
+        // in a request so we just execute it.
+        if (topLevel) {
+            requests.push(request.bind(this));
             return this.resolveRecursiveRequests(requests, results)
-        else
-            return promise;
+        } else
+            return request.call(this);
 
         function getPOJOsFromQuery () {
             return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver']);
@@ -121,7 +124,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function resolvePromises () {
-            return this.resolveRecursivePromises(promises, results);
+            return Promise.all(promises).then(function () {return Promise.resolve(results)});
         }
     }
 
@@ -297,28 +300,25 @@ module.exports = function (PersistObjectTemplate) {
 
                             // Fetch sub-ordinate entities and convert to objects
                             obj[persistorPropertyName].isFetching = true;
+
                             requests.push(function () {
-                                var promise = new Promise(function (resolve) {
-                                    promises.push(promise);
-                                    return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
-                                        limit, isTransient, idMap, options, obj[closureProp], isRefresh)
-                                        .then( function(objs) {
-                                            if (foreignFilterKey) {
-                                                obj[closureProp] =  _.filter(objs, function (obj) {
-                                                    return obj[foreignFilterKey] == foreignFilterValue;
-                                                });
-                                                if (alternateProps)
-                                                    _.each(alternateProps, function(alternateProp, alternatePropKey) {
-                                                        obj[alternatePropKey] = _.filter(objs, function (obj) {
-                                                            return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
-                                                        })
-                                                    })
-                                            } else
-                                                obj[closureProp] = objs;
-                                            var start = options ? options.start || 0 : 0;
-                                            updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
-                                            resolve();
-                                        }.bind(this))
+                                return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
+                                    limit, isTransient, idMap, options, obj[closureProp], isRefresh)
+                                .then( function(objs) {
+                                    if (foreignFilterKey) {
+                                        obj[closureProp] =  _.filter(objs, function (obj) {
+                                            return obj[foreignFilterKey] == foreignFilterValue;
+                                        });
+                                        if (alternateProps)
+                                            _.each(alternateProps, function(alternateProp, alternatePropKey) {
+                                                obj[alternatePropKey] = _.filter(objs, function (obj) {
+                                                    return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
+                                                })
+                                            })
+                                    } else
+                                        obj[closureProp] = objs;
+                                    var start = options ? options.start || 0 : 0;
+                                    updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
                                 }.bind(this))
                             }.bind(this));
 
@@ -363,26 +363,22 @@ module.exports = function (PersistObjectTemplate) {
                                     var join = _.find(joins, function (j) {return j.prop == prop});
 
                                     requests.push(function () {
-                                        var promise = new Promise(function (resolve) {
-                                            promises.push(promise);
-                                            var fetcher = join ?
-                                                (pojo[join.alias + "____id"] ?
-                                                    this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
-                                                        closureCascade, isTransient, closureDefineProperty,
-                                                        obj[closureProp], null, join.alias + "___", null, isRefresh)
-                                                    : Promise.resolve(true)) :
-                                                this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
-                                                    null, null, isTransient, idMap, {}, obj[closureProp], isRefresh);
-                                            obj[closurePersistorProp].isFetching = true;
-                                            return fetcher.then(function() {
-                                                obj[closureProp] = idMap[closureForeignId];
-                                                if (obj[closurePersistorProp]) {
-                                                    updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
-                                                }
-                                                resolve();
-                                            }.bind(this))
+                                        var fetcher = join ?
+                                            (pojo[join.alias + "____id"] ?
+                                                this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
+                                                    closureCascade, isTransient, closureDefineProperty,
+                                                    obj[closureProp], null, join.alias + "___", null, isRefresh)
+                                                : Promise.resolve(true)) :
+                                            this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
+                                                null, null, isTransient, idMap, {}, obj[closureProp], isRefresh);
+                                        obj[closurePersistorProp].isFetching = true;
+                                        return fetcher.then(function() {
+                                            obj[closureProp] = idMap[closureForeignId];
+                                            if (obj[closurePersistorProp]) {
+                                                updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
+                                            }
                                         }.bind(this))
-                                    }.bind(this));
+                                    }.bind(this))
                                 }.bind(this))();
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
@@ -430,7 +426,7 @@ module.exports = function (PersistObjectTemplate) {
             if (topLevel)
                 return this.resolveRecursiveRequests(requests, obj)
             else
-                return this.resolveRecursivePromises(promises, obj);
+                return Promise.resolve(obj);
         };
 
 }
