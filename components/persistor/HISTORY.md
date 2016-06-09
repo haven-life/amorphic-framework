@@ -1,3 +1,5 @@
+## 1.0.8
+* Added data logging
 ## 1.0.7
 * Fixed problem where we were not always waiting for nested results
 ## 1.0.6

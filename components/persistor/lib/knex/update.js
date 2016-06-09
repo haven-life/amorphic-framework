@@ -29,6 +29,7 @@ module.exports = function (PersistObjectTemplate) {
         var isDocumentUpdate = obj.__version__ ? true : false;
         var props = template.getProperties();
         var promises = [];
+        var dataStr = '';
 
         obj._id = obj._id || this.createPrimaryKey(obj);
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
@@ -133,23 +134,36 @@ module.exports = function (PersistObjectTemplate) {
                     value._id = this.createPrimaryKey(value);
                     value.setDirty(txn);
                 }
-
+            
                 pojo[foreignKey] =  value ? value._id : null
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value ? value._id : null, isFetched: true})
 
+                dataStr += foreignKey + "=" + (pojo[foreignKey] || 'null') + "; ";
+
+
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
                 pojo[prop] = obj[prop] ? JSON.stringify(obj[prop]) : null;
+                log(defineProperty, pojo, prop);
             } else if (defineProperty.type == Date) {
                 pojo[prop] = obj[prop] ? obj[prop] : null;
+                log(defineProperty, pojo, prop);
             } else if (defineProperty.type == Boolean) {
                 pojo[prop] = obj[prop] == null ? null : (obj[prop] ? true : false);
-            }  else
+                log(defineProperty, pojo, prop);
+            }  else {
                 pojo[prop] = obj[prop];
+                log(defineProperty, pojo, prop);
+            }
         }
+        this.debug('saving ' + obj.__template__.__name__ + "[" + pojo._id + "] data=" + dataStr, "data");
+        
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn))
         return Promise.all(promises)
             .then (function (){return obj});
-
+        function log(defineProperty, pojo, prop) {
+            if (defineProperty.logChanges)
+                dataStr += prop + "=" + pojo[prop] + "; ";
+        }
         function copyProps(obj) {
             var newObj = {};
             for (var prop in obj)

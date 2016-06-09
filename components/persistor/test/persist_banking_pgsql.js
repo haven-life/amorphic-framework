@@ -12,7 +12,8 @@ var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectT
 var writing = true;
 
 
-PersistObjectTemplate.debugInfo = 'api;conflict;write;read';//'api;io';
+PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
+PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
 
 /*
 PersistObjectTemplate.debug = function(m, t) {
@@ -30,10 +31,10 @@ var Customer = PersistObjectTemplate.create("Customer", {
         expect(writing).equal(true);
         this.setDirty();
 	},
-	email:		{type: String, value: "", length: 50, rule: ["text", "email", "required"]},
+	email:		{type: String, value: "", length: 50, rule: ["text", "email", "required"], logChanges: true},
 	firstName:  {type: String, value: "", length: 40, rule: ["name", "required"]},
 	middleName: {type: String, value: "", length: 40, rule: "name"},
-	lastName:	{type: String, value: "", length: 40, rule: ["name", "required"]},
+	lastName:	{type: String, value: "", length: 40, rule: ["name", "required"], logChanges: true},
 	local1:      {type: String, persist: false, value: "local1"},
 	local2:      {type: String, isLocal: true, value: "local2"},
     nullNumber:  {type: Number, value: null},
@@ -48,7 +49,7 @@ var Address = PersistObjectTemplate.create("Address", {
 	lines:      {type: Array, of: String, value: [], max: 3},
 	city:       {type: String, value: "", length: 20},
 	state:      {type: String, value: "", length: 20},
-	postalCode: {type: String, value: "", length: 20},
+	postalCode: {type: String, value: "", length: 20, logChanges: true},
 	country:    {type: String, value: "US", length: 3}
 });
 Customer.mixin({
@@ -92,7 +93,7 @@ var Role = PersistObjectTemplate.create("Role", {
 			this.relationship = relationship;
         this.setDirty();
 	},
-	relationship: {type: String, value: "primary"},
+	relationship: {type: String, value: "primary", logChanges: true},
 	customer:     {type: Customer}
 });
 
@@ -113,7 +114,7 @@ var Account = PersistObjectTemplate.create("Account", {
 		this.roles.push(role);
 		customer.roles.push(role);
 	},
-	number:     {type: Number},
+	number:     {type: Number, logChanges: true},
 	title:      {type: Array, of: String, max: 4},
 	roles:      {type: Array, of: Role, value: [], fetch: true},
     address:    {type: Address},
@@ -161,8 +162,8 @@ var Transaction = PersistObjectTemplate.create("Transaction", {
         if (account)
             account.transactions.push(this);
     },
-    amount:     {type: Number},
-    type:       {type: String},
+    amount:     {type: Number, logChanges: true},
+    type:       {type: String, logChanges: true},
     account:    {type: Account},
 });
 var Debit = Transaction.extend("Debit", {
@@ -595,7 +596,7 @@ describe("Banking from pgsql Example", function () {
             .then(processResults)
 
         function processResults(res) {
-            console.log(JSON.stringify(res))
+            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -611,7 +612,7 @@ describe("Banking from pgsql Example", function () {
             .then(processResults)
 
         function processResults(res) {
-            console.log(JSON.stringify(res))
+            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -625,7 +626,7 @@ describe("Banking from pgsql Example", function () {
             .then(processResults)
 
         function processResults(res) {
-            console.log(JSON.stringify(res))
+            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -639,7 +640,7 @@ describe("Banking from pgsql Example", function () {
             .then(processResults)
 
         function processResults(res) {
-            console.log(JSON.stringify(res))
+            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
