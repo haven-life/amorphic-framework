@@ -158,6 +158,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getTemplateFromKnexPOJO =
         function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh)
         {
+            var self = this;
             prefix = prefix || "";
             var promises = [];
 
@@ -197,16 +198,19 @@ module.exports = function (PersistObjectTemplate) {
                 isTransient = false;
 
             var schema = obj.__template__.__schema__;
-            obj._id = pojo[prefix + '_id'];
-            obj._template = pojo[prefix + '_template'];
-            
+            this.withoutChangeTracking(function () {
+                obj._id = pojo[prefix + '_id'];
+                obj._template = pojo[prefix + '_template'];
+            }.bind(this));
             if (!establishedObj && idMap[obj._id])
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
             //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
             if (pojo[prefix + '__version__'])
-                obj.__version__ = pojo[prefix + '__version__'];
+                this.withoutChangeTracking(function () {
+                    obj.__version__ = pojo[prefix + '__version__'];
+                }.bind(this));
 
             // Go through all the properties and transfer them to newly created object
             var props = specificProperties || obj.__template__.getProperties();
@@ -233,9 +237,7 @@ module.exports = function (PersistObjectTemplate) {
 
                 if (type == Array && of.__table__)
                 {
-                    if (!obj[prop])
-                        obj[prop];
-                    if(!schema || !schema.children || !schema.children[prop])
+                     if(!schema || !schema.children || !schema.children[prop])
                         throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
                     if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
                         throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
@@ -299,24 +301,27 @@ module.exports = function (PersistObjectTemplate) {
                                 (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
 
                             // Fetch sub-ordinate entities and convert to objects
-                            obj[persistorPropertyName].isFetching = true;
-
+                            this.withoutChangeTracking(function () {
+                                obj[persistorPropertyName].isFetching = true;
+                            }.bind(this));
                             requests.push(function () {
                                 return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
                                     limit, isTransient, idMap, options, obj[closureProp], isRefresh)
                                 .then( function(objs) {
-                                    if (foreignFilterKey) {
-                                        obj[closureProp] =  _.filter(objs, function (obj) {
-                                            return obj[foreignFilterKey] == foreignFilterValue;
-                                        });
-                                        if (alternateProps)
-                                            _.each(alternateProps, function(alternateProp, alternatePropKey) {
-                                                obj[alternatePropKey] = _.filter(objs, function (obj) {
-                                                    return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
+                                    this.withoutChangeTracking(function () {
+                                        if (foreignFilterKey) {
+                                            obj[closureProp] =  _.filter(objs, function (obj) {
+                                                return obj[foreignFilterKey] == foreignFilterValue;
+                                            });
+                                            if (alternateProps)
+                                                _.each(alternateProps, function(alternateProp, alternatePropKey) {
+                                                    obj[alternatePropKey] = _.filter(objs, function (obj) {
+                                                        return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
+                                                    })
                                                 })
-                                            })
-                                    } else
-                                        obj[closureProp] = objs;
+                                        } else
+                                            obj[closureProp] = objs;
+                                    }.bind(this));
                                     var start = options ? options.start || 0 : 0;
                                     updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
                                 }.bind(this))
@@ -330,19 +335,23 @@ module.exports = function (PersistObjectTemplate) {
                 {
                     //var foreignId = (establishedObj && obj[prop]) ? obj[prop]._id : null;
                     if (!obj[prop])
-                        obj[prop] = null;
+                        this.withoutChangeTracking(function () {
+                            obj[prop] = null;
+                        }.bind(this));
+
                     // Determine the id needed
-                    //if (!foreignId) {
-                        if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                            throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
-                        var foreignKey = schema.parents[prop].id;
-                        var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
-                    //}
+                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                        throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                    var foreignKey = schema.parents[prop].id;
+                    var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
+
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
                     if (cachedObject) {
                         if (!obj[prop] || obj[prop].__id__ != cachedObject.__id__) {
-                            obj[prop] = cachedObject;
+                            this.withoutChangeTracking(function () {
+                                obj[prop] = cachedObject;
+                            }.bind(this));
                             updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id:foreignId});
                         }
                     } else {
@@ -371,9 +380,13 @@ module.exports = function (PersistObjectTemplate) {
                                                 : Promise.resolve(true)) :
                                             this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
                                                 null, null, isTransient, idMap, {}, obj[closureProp], isRefresh);
-                                        obj[closurePersistorProp].isFetching = true;
+                                        this.withoutChangeTracking(function () {
+                                            obj[closurePersistorProp].isFetching = true;
+                                        }.bind(this));
                                         return fetcher.then(function() {
-                                            obj[closureProp] = idMap[closureForeignId];
+                                            this.withoutChangeTracking(function () {
+                                                obj[closureProp] = idMap[closureForeignId];
+                                            }.bind(this));
                                             if (obj[closurePersistorProp]) {
                                                 updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
                                             }
@@ -390,37 +403,42 @@ module.exports = function (PersistObjectTemplate) {
                 } else
                 if (typeof(pojo[prefix + prop]) != 'undefined') {
                     var value = pojo[prefix + prop];
-                    if (type == Date)
-                        obj[prop] = value ? new Date(value * 1) : null;
-                    else if (type == Number)
-                        obj[prop] = (!value && value !== 0) ? null : value * 1;
-                    else if (type == Object || type == Array)
-                        try {
-                            obj[prop] = value ? JSON.parse(value) : null;
-                        } catch (e) {
-                            console.log("Error retrieving " + obj.__id__ + "." + prop + " -- " + e.message);
-                            obj[prop] = null;
-                        }
-                    else
-                        obj[prop] = value;
+                    this.withoutChangeTracking(function () {
+                        if (type == Date)
+                            obj[prop] = value ? new Date(value * 1) : null;
+                        else if (type == Number)
+                            obj[prop] = (!value && value !== 0) ? null : value * 1;
+                        else if (type == Object || type == Array)
+                            try {
+                                obj[prop] = value ? JSON.parse(value) : null;
+                            } catch (e) {
+                                console.log("Error retrieving " + obj.__id__ + "." + prop + " -- " + e.message);
+                                obj[prop] = null;
+                            }
+                        else
+                            obj[prop] = value;
+                    }.bind(this));
+
                 }
 
                 function updatePersistorProp(obj, prop, values) {
-                    values['isFetching'] = false;
-                    if (!obj[prop])
-                        obj[prop] = {};
-                    var modified = false;
-                    _.map(values, function(value, key) {
-                        if (obj[prop][key] != value) {
-                            obj[prop][key] = value;
-                            modified = true;
+                    self.withoutChangeTracking(function () {
+                        values['isFetching'] = false;
+                        if (!obj[prop])
+                            obj[prop] = {};
+                        var modified = false;
+                        _.map(values, function(value, key) {
+                            if (obj[prop][key] != value) {
+                                obj[prop][key] = value;
+                                modified = true;
+                            }
+                        });
+                        if (modified) {
+                            var tempProps = obj[prop];
+                            obj[prop] = null;
+                            obj[prop] = tempProps;
                         }
                     });
-                    if (modified) {
-                        var tempProps = obj[prop];
-                        obj[prop] = null;
-                        obj[prop] = tempProps;
-                    }
                 }
             }
             if (topLevel)

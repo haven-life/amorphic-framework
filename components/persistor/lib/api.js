@@ -199,17 +199,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         template.getFromPersistWithId = function(id, cascade, isTransient, idMap, isRefresh) {
             PersistObjectTemplate.debug("getFromPersistWithId " + template.__name__ + " " + id, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-            var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
-            PersistObjectTemplate.__changeTracking__ = false;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap) :
                 PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh))
                 .then( function(res) {
                     return res;
                 }.bind(this))
-                .finally(function () {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
-                });
         };
 
         /**
@@ -220,17 +215,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap, options) {
             PersistObjectTemplate.debug("getFromPersistWithQuery " + template.__name__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-            var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
-            PersistObjectTemplate.__changeTracking__ = false;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, cascade, start, limit, isTransient, idMap, options) :
                 PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, cascade, start, limit, isTransient, idMap, options))
                 .then( function(res) {
                     return res;
                 }.bind(this))
-                .finally(function () {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
-                });
         };
 
         /**
@@ -253,16 +243,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         template.deleteFromPersistWithId = function(id, txn) {
             PersistObjectTemplate.debug("deleteFromPersistWithId " + template.__name__ + " " + id, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-            var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoId(template, id) :
                 PersistObjectTemplate.deleteFromPersistWithKnexId(template, id, txn))
                 .then( function(res) {
                     return res;
                 }.bind(this))
-                .finally(function () {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
-                });
         };
 
         /**
@@ -273,17 +259,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         template.countFromPersistWithQuery = function(query) {
             PersistObjectTemplate.debug("countFromPersistWithQuery " + template.__name__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-            var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
-            PersistObjectTemplate.__changeTracking__ = false;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.countFromMongoQuery(template, query) :
                 PersistObjectTemplate.countFromKnexQuery(template, query))
                 .then( function(res) {
                     return res;
                 }.bind(this))
-                .finally(function () {
-                    PersistObjectTemplate.__changeTracking__ = previousDirtyTracking;
-                });
         };
         /**
          * Determine whether we are using knex on this table
@@ -596,7 +577,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      */
     PersistObjectTemplate.getPOJOFromQuery = function (template, query, options) {
         var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-        var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
         var prefix = PersistObjectTemplate.dealias(template.__collection__)
         return dbType == PersistObjectTemplate.DB_Mongo ?
             PersistObjectTemplate.getPOJOFromMongoQuery(template, query, options) :

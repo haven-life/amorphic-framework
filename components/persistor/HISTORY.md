@@ -1,3 +1,5 @@
+## 1.1.0
+* Changed version tracking pattern
 ## 1.0.8
 * Added data logging
 ## 1.0.7
