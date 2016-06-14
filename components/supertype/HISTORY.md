@@ -1,3 +1,4 @@
+## 1.1.0
 ## 1.0.4
 * Abstract function for semotus
 ## 1.0.3
