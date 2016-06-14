@@ -729,6 +729,17 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
 };
 
 /**
+ * Disable change tracking for duration of synchronous processing callback
+ * @param cb
+ */
+RemoteObjectTemplate.withoutChangeTracking = function (cb) {
+    var prevChangeTracking = this.__changeTracking__;
+    this.__changeTracking__ = false;
+    cb();
+    this.__changeTracking__ = prevChangeTracking;
+}
+
+/**
  * Determine whether changes need to be created for a property
  * @param defineProperty
  * @return {Boolean}
