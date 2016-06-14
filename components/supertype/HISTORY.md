@@ -1,3 +1,5 @@
+## 1.0.4
+* Abstract function for semotus
 ## 1.0.3
 * __toClient__ __toServer__ now setup correctly on browser as well
 ## 1.0.2

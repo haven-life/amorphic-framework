@@ -606,10 +606,15 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
     return obj;
 };
 
-
+/**
+ * Abstract function for benefit of Semotus
+ */
+ObjectTemplate.withoutChangeTracking = function (cb) {
+    cb();
+}
 
 /**
- * Convers and object to JSON, stripping any recursive object references so they can be
+ * Convert an object to JSON, stripping any recursive object references so they can be
  * reconstituted later
  *
  * @param obj
