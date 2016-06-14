@@ -1,3 +1,4 @@
+## 1.1.1
 ## 1.1.0
 * Changed version tracking pattern
 ## 1.0.8
