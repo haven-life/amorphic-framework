@@ -1,3 +1,5 @@
+## 1.2.0
+* Added bunyan style logging
 ## 1.1.0
 ## 1.0.4
 * Abstract function for semotus

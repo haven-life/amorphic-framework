@@ -98,6 +98,21 @@ describe("Freeze Dried Arks", function () {
 		done();
 	});
 
+	it ("can log", function () {
+		ObjectTemplate.logger.startContext({name: 'supertype'})
+		ObjectTemplate.logger.warn({foo: "bar1"}, "Yippie");
+		var context = ObjectTemplate.logger.setContextProps({permFoo: 'permBar1'});
+		ObjectTemplate.logger.warn({foo: "bar2"});
+		ObjectTemplate.logger.clearContextProps(context);
+		ObjectTemplate.logger.warn({foo: "bar3"});
+		var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
+		child.setContextProps({permFoo: 'childFoo'});
+		child.warn({'foo': 'bar4'})
+		ObjectTemplate.logger.warn({foo: "bar5"});
+		ObjectTemplate.logger.startContext({name: 'supertype2'});
+		ObjectTemplate.logger.warn({foo: "bar6", woopie: {yea: true, oh: new Date()}}, "hot dog");
+	});
+
 });
 
 

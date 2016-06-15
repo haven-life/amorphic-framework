@@ -43,6 +43,7 @@ ObjectTemplate.init = function () {
     this.__dictionary__ = {};
     this.__anonymousId__ = 1;
     this.__templatesToInject__ = {};
+    this.logger = this.createLogger(); // create a default logger
 }
 ObjectTemplate.getTemplateByName = function (name) {
     return this.__dictionary__[name];
@@ -766,6 +767,135 @@ ObjectTemplate._createObject = function () {
     newF.init();
     return newF;
 };
+
+
+ObjectTemplate.createLogger = function (context) {
+
+    return createLogger(context);
+
+    // return a new logger object that has our api and a context
+    function createLogger () {
+        var logger = {
+            context: {},
+            log: log,
+            fatal: function () {this.log.apply(this, [60].concat(Array.prototype.slice.call(arguments)))},
+            error: function () {this.log.apply(this, [50].concat(Array.prototype.slice.call(arguments)))},
+            warn: function () {this.log.apply(this, [40].concat(Array.prototype.slice.call(arguments)))},
+            info: function () {this.log.apply(this, [30].concat(Array.prototype.slice.call(arguments)))},
+            debug: function () {this.log.apply(this, [20].concat(Array.prototype.slice.call(arguments)))},
+            trace: function () {this.log.apply(this, [10].concat(Array.prototype.slice.call(arguments)))},
+            sendToLog: sendToLog,
+            formatDateTime: formatDateTime,
+            split: split,
+            startContext: startContext,
+            setContextProps: setContextProps,
+            clearContextProps: clearContextProps,
+            createChildLogger: createChildLogger,
+            prettyPrint: prettyPrint
+        }
+        return logger;
+    }
+
+
+    // log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
+    function log () {
+        var msg = "";
+        var obj = {time: (new Date()).toISOString()};
+        for (var prop in this.context)
+            obj[prop] = this.context[prop];
+        for (var ix = 0; ix < arguments.length; ++ix) {
+            var arg = arguments[ix]
+            if (ix == 0)
+              obj.level = arg;
+            else if (ix == 1 && isObject(arg))
+              for (var prop in arg)
+                obj[prop] = arg[prop];
+            else
+              msg += arg + " ";
+        }
+        if (msg.length)
+          obj.msg = msg;
+        var level = {60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace'};
+        this.sendToLog(level[obj.level], obj);
+        function isObject(obj) {
+            return obj != null && typeof(obj) == 'object' && !(obj instanceof Array) && 
+                   !(obj instanceof Date) && !(obj instanceof Error)
+        }
+    }
+    
+    function startContext (context) {
+        this.context = context;
+    }
+
+    // Save the properties in the context and return a new object that has the properties only so they can ber cleared
+    function setContextProps (context) {
+        reverse = {}
+        for (var prop in context) {
+            reverse[prop] = true;
+            this.context[prop] = context[prop];
+        }
+        return reverse;
+    }
+    
+    // Remove any properties recorded by setContext
+    function clearContextProps(contextToClear) {
+        for (var prop in contextToClear)
+            delete this.context[prop];
+    }
+
+    // Create a new logger and copy over it's context
+    function createChildLogger(context) {
+        var child = {};
+        for (var prop in this)
+            child[prop] = this[prop];
+        child.context = context || {};
+        for (var prop in this.context)
+            child.context[prop] = this.context[prop];
+        return child;
+    }
+
+    function formatDateTime(date) {
+        var str =  f(2, (date.getMonth() + 1), '/') + f(2, date.getDate(), '/') + f(4, date.getFullYear(), " ") +
+          f(2, date.getHours(), ':') + f(2, date.getMinutes(), ':') + f(2, date.getSeconds(), ':') +
+          f(3, date.getMilliseconds()) + ' GMT' + (0 - date.getTimezoneOffset() / 60);
+        return str
+        function f(z, d, s) {
+            while ((d + "").length < z)
+                d = '0' + d;
+            return d + (s || '');
+        }
+    }
+    
+    function sendToLog(level, json) {
+        console.log(this.prettyPrint(level, json));
+    }
+
+    function prettyPrint(level, json) {
+        var split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
+        return this.formatDateTime(new Date(json.time)) + ": " + level.toUpperCase() + ': ' +  o(split[1].name, ': ') + o(split[1].msg, ': ') + xy(split[0]);
+        function o (s, d) {
+            return s ? s + d : ''
+        }
+        function xy(j) {
+            var str = '';
+            var sep = '';
+            for (var prop in j) {
+                str += sep + prop + '=' + JSON.stringify(j[prop]);
+                sep = ' ';
+            }
+            return str.length > 0 ? '(' + str + ')' : '';
+        }
+    }
+
+    function split (json, props) {
+        var a = {};
+        var b = {};
+        for (var prop in json)
+            (props[prop] ? b : a)[prop] = json[prop];
+        return [a, b];
+    }
+
+}
 
 ObjectTemplate.init();
 
