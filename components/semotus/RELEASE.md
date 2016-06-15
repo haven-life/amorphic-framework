@@ -1,3 +1,5 @@
+## 1.2.0
+* Logging
 ## 1.1.0
 ## 1.0.3
 * Added wrapper for disabling change tracking
