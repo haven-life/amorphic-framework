@@ -4,7 +4,7 @@ module.exports = function (PersistObjectTemplate) {
 
     /* Mongo implementation of save */
     PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, txn) {
-        this.debug('saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+        this.logger.debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
         var origVer = obj.__version__;
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
         pojo.__version__ = obj.__version__;
@@ -24,7 +24,7 @@ module.exports = function (PersistObjectTemplate) {
                 } else
                     throw new Error("Update Conflict");
             }
-            this.debug('saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__, 'io');
+            this.logger.debug({component: 'persistor', module: 'db', activity: 'write'}, 'saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
             return true;
         }.bind(this));
     }
@@ -42,7 +42,7 @@ module.exports = function (PersistObjectTemplate) {
     }
 
     PersistObjectTemplate.getPOJOFromMongoQuery = function(template, query, options) {
-        this.debug("db." + template.__collection__ + ".find({" + JSON.stringify(query) + "})", 'io');
+        this.logger.debug({component: 'persistor', module: 'db', activity: 'read'}, "db." + template.__collection__ + ".find({" + JSON.stringify(query) + "})");
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection( this.dealias(template.__collection__));
         options = options || {};

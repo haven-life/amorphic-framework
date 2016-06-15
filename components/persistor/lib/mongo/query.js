@@ -211,7 +211,7 @@ module.exports = function (PersistObjectTemplate) {
                             var foreignKey = schema.children[prop].id;
                             query[foreignKey] = id.toString().match(/:/) ? id.toString() : new this.ObjectID(id.toString());
                         }
-                        //this.debug("fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
+                        this.logger.debug({activity: 'fetching'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
                         var self = this;
                         (function () {
                             var closureProp = prop;
@@ -333,7 +333,7 @@ module.exports = function (PersistObjectTemplate) {
                             if (foreignId) {
                                 var query = {_id: new this.ObjectID(foreignId.replace(/:.*/, ''))};
                                 var options = {};
-                                //this.debug("fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
+                                this.logger.debug({component: 'persistor', module: 'query', activity: 'processing'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
                                 var self = this;
                                 (function () {
                                     var closureProp = prop;
@@ -592,7 +592,7 @@ module.exports = function (PersistObjectTemplate) {
             if (targetQuery) {
                 queryTraverse(newQuery, targetQuery);
                 results.query['$or'].push(newQuery);
-                this.debug("subdocument query for " + targetTemplate.__name__ + '; ' + JSON.stringify(results.query), 'subdoc');
+                this.logger.debug({component: 'persistor', module: 'query', activity: 'processing'}, "subdocument query for " + targetTemplate.__name__ + '; ' + JSON.stringify(results.query));
             }
         }
         return results;

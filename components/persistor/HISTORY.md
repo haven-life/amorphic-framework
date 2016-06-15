@@ -1,3 +1,5 @@
+## 1.2.0
+* New logging
 ## 1.1.1
 ## 1.1.0
 * Changed version tracking pattern

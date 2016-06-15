@@ -20,7 +20,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.persistSaveKnex = function(obj, txn) {
 
-        this.debug("Saving " + obj.__template__.__name__);
+        this.logger.debug({component: 'persistor', module: 'db', activity: 'processing'}, "Saving " + obj.__template__.__name__);
         this.checkObject(obj);
 
         var template = obj.__template__;
@@ -155,7 +155,7 @@ module.exports = function (PersistObjectTemplate) {
                 log(defineProperty, pojo, prop);
             }
         }
-        this.debug('saving ' + obj.__template__.__name__ + "[" + pojo._id + "] data=" + dataStr, "data");
+        this.logger.debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + "[" + pojo._id + "] data=" + dataStr);
         
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn))
         return Promise.all(promises)

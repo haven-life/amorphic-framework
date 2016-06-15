@@ -162,7 +162,8 @@ module.exports = function (PersistObjectTemplate) {
             prefix = prefix || "";
             var promises = [];
 
-            this.debug("getTemplateFromKnexPOJO template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template'], 'query');
+            this.logger.debug({component: 'persistor', module: 'query', activity: 'process'},
+              "processing template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template']);
 
 
             // For recording back refs
