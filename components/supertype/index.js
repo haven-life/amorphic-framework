@@ -771,12 +771,15 @@ ObjectTemplate._createObject = function () {
 
 ObjectTemplate.createLogger = function (context) {
 
+    var levelToStr = {60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace'};
+    var strToLevel = {'fatal':60, 'error':50, 'warn':40, 'info':30, 'debug':20, 'trace':10};
     return createLogger(context);
 
     // return a new logger object that has our api and a context
     function createLogger () {
         var logger = {
             context: {},
+            granularLevels: {},
             level: 'info',
             log: log,
             fatal: function () {this.log.apply(this, [60].concat(Array.prototype.slice.call(arguments)))},
@@ -798,16 +801,33 @@ ObjectTemplate.createLogger = function (context) {
         return logger;
     }
 
+    // Parse log levels such as warn.activity
     function setLevel(level) {
-        var levels = level.split(';')
-        for (var ix = 0; ix < levels.length; ++ix)
-            if (levels[ix].match(/(.*)\.(.*)=(.*)/)) {
-                this.granularLevels[RegExp.$1] = this.granularLevels[RegExp.$1] || {}
-                this.granularLevels[RegExp.$1][RegExp.$2] = RegExp.$3;
+        var levels = level.split(';');
+        for (var ix = 0; ix < levels.length; ++ix) {
+            var level = levels[ix];
+            if (level.match(/:/)) {
+                if (levels[ix].match(/(.*):(.*)/)) {
+                    this.granularLevels[RegExp.$1] = this.granularLevels[RegExp.$1] || {}
+                    this.granularLevels[RegExp.$1] = RegExp.$2;
+                } else
+                    this.level = levels[ix];
             } else
-                this.level = levels[ix];
+                this.level = level;
+        }          
     }
-
+    
+    // Logging is enabled if either the level threshold is met or the granular level matches
+    function isEnabled(level, obj) {
+        level = strToLevel[level];
+        if (level >= strToLevel[this.level])
+            return true;
+        if (this.granularLevels)
+            for (var level in this.granularLevels)
+                if (obj[level] && obj[level] == this.granularLevels[level])
+                    return true;
+    }
+ 
     // log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
     function log () {
         var msg = "";
@@ -826,8 +846,8 @@ ObjectTemplate.createLogger = function (context) {
         }
         if (msg.length)
           obj.msg = msg;
-        var level = {60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace'};
-        this.sendToLog(level[obj.level], obj);
+        if (isEnabled.call(this, levelToStr[obj.level], obj))
+            this.sendToLog(levelToStr[obj.level], obj);
         function isObject(obj) {
             return obj != null && typeof(obj) == 'object' && !(obj instanceof Array) && 
                    !(obj instanceof Date) && !(obj instanceof Error)
