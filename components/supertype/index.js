@@ -777,6 +777,7 @@ ObjectTemplate.createLogger = function (context) {
     function createLogger () {
         var logger = {
             context: {},
+            level: 'info',
             log: log,
             fatal: function () {this.log.apply(this, [60].concat(Array.prototype.slice.call(arguments)))},
             error: function () {this.log.apply(this, [50].concat(Array.prototype.slice.call(arguments)))},
@@ -784,6 +785,7 @@ ObjectTemplate.createLogger = function (context) {
             info: function () {this.log.apply(this, [30].concat(Array.prototype.slice.call(arguments)))},
             debug: function () {this.log.apply(this, [20].concat(Array.prototype.slice.call(arguments)))},
             trace: function () {this.log.apply(this, [10].concat(Array.prototype.slice.call(arguments)))},
+            setLevel: setLevel,
             sendToLog: sendToLog,
             formatDateTime: formatDateTime,
             split: split,
@@ -796,6 +798,15 @@ ObjectTemplate.createLogger = function (context) {
         return logger;
     }
 
+    function setLevel(level) {
+        var levels = level.split(';')
+        for (var ix = 0; ix < levels.length; ++ix)
+            if (levels[ix].match(/(.*)\.(.*)=(.*)/)) {
+                this.granularLevels[RegExp.$1] = this.granularLevels[RegExp.$1] || {}
+                this.granularLevels[RegExp.$1][RegExp.$2] = RegExp.$3;
+            } else
+                this.level = levels[ix];
+    }
 
     // log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
     function log () {
