@@ -147,7 +147,7 @@ ObjectTemplate.extend = function (parentTemplate, name, properties)
     if (typeof(properties) != 'object')
         throw new Error("missing template property definitions");
     if (typeof(this.templateInterceptor) == 'function')
-      this.templateInterceptor("extend", name, properties);
+        this.templateInterceptor("extend", name, properties);
     var template = this._createTemplate(null, parentTemplate, properties ? properties : name, parentTemplate);
     this.setTemplateProperties(template, name, parentTemplate);
 
@@ -814,9 +814,9 @@ ObjectTemplate.createLogger = function (context) {
                     this.level = levels[ix];
             } else
                 this.level = level;
-        }          
+        }
     }
-    
+
     // Logging is enabled if either the level threshold is met or the granular level matches
     function isEnabled(level, obj) {
         level = strToLevel[level];
@@ -827,7 +827,7 @@ ObjectTemplate.createLogger = function (context) {
                 if (obj[level] && obj[level] == this.granularLevels[level])
                     return true;
     }
- 
+
     // log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
     function log () {
         var msg = "";
@@ -837,23 +837,28 @@ ObjectTemplate.createLogger = function (context) {
         for (var ix = 0; ix < arguments.length; ++ix) {
             var arg = arguments[ix]
             if (ix == 0)
-              obj.level = arg;
+                obj.level = arg;
             else if (ix == 1 && isObject(arg))
-              for (var prop in arg)
-                obj[prop] = arg[prop];
+                for (var prop in arg)
+                    obj[prop] = arg[prop];
             else
-              msg += arg + " ";
+                msg += arg + " ";
         }
         if (msg.length)
-          obj.msg = msg;
+            obj.msg = msg;
+        else if (obj.module && obj.activity)
+            obj.msg = obj.module + '[' + obj.activity + ']';
+        else
+            obj.msg = "";
+
         if (isEnabled.call(this, levelToStr[obj.level], obj))
             this.sendToLog(levelToStr[obj.level], obj);
         function isObject(obj) {
-            return obj != null && typeof(obj) == 'object' && !(obj instanceof Array) && 
-                   !(obj instanceof Date) && !(obj instanceof Error)
+            return obj != null && typeof(obj) == 'object' && !(obj instanceof Array) &&
+              !(obj instanceof Date) && !(obj instanceof Error)
         }
     }
-    
+
     function startContext (context) {
         this.context = context;
     }
@@ -867,7 +872,7 @@ ObjectTemplate.createLogger = function (context) {
         }
         return reverse;
     }
-    
+
     // Remove any properties recorded by setContext
     function clearContextProps(contextToClear) {
         for (var prop in contextToClear)
@@ -896,7 +901,7 @@ ObjectTemplate.createLogger = function (context) {
             return d + (s || '');
         }
     }
-    
+
     function sendToLog(level, json) {
         console.log(this.prettyPrint(level, json));
     }
