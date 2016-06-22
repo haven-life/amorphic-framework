@@ -18,9 +18,9 @@ module.exports = function (PersistObjectTemplate) {
      * @param txn
      * @return {*}
      */
-    PersistObjectTemplate.persistSaveKnex = function(obj, txn) {
+    PersistObjectTemplate.persistSaveKnex = function(obj, txn, logger) {
 
-        this.logger.debug({component: 'persistor', module: 'db', activity: 'processing'}, "Saving " + obj.__template__.__name__);
+        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'processing'}, "Saving " + obj.__template__.__name__);
         this.checkObject(obj);
 
         var template = obj.__template__;
@@ -118,7 +118,7 @@ module.exports = function (PersistObjectTemplate) {
                             referencedObj._id = this.createPrimaryKey(referencedObj);
                     }.bind(this));
                     if (schema.children[prop].pruneOrphans)
-                        promises.push(this.knexPruneOrphans(obj, prop, txn, foreignFilterKey, foreignFilterValue));
+                        promises.push(this.knexPruneOrphans(obj, prop, txn, foreignFilterKey, foreignFilterValue, logger));
                 }
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, isFetched: true});
 
@@ -155,9 +155,9 @@ module.exports = function (PersistObjectTemplate) {
                 log(defineProperty, pojo, prop);
             }
         }
-        this.logger.debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + "[" + pojo._id + "] data=" + dataStr);
+        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + "[" + pojo._id + "] data=" + dataStr);
         
-        promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn))
+        promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger))
         return Promise.all(promises)
             .then (function (){return obj});
         function log(defineProperty, pojo, prop) {
@@ -189,9 +189,9 @@ module.exports = function (PersistObjectTemplate) {
      *
      * @param options
      */
-    PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query, txn)
+    PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query, txn, logger)
     {
-        return this.deleteFromKnexQuery(template, query, txn);
+        return this.deleteFromKnexQuery(template, query, txn, logger);
     }
 
     /**
@@ -199,9 +199,9 @@ module.exports = function (PersistObjectTemplate) {
      *
      * @param options
      */
-    PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id, txn)
+    PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id, txn, logger)
     {
-        return this.deleteFromKnexId(template, id, txn);
+        return this.deleteFromKnexId(template, id, txn, logger);
     }
 
 }

@@ -24,18 +24,18 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         baseClassForPersist._injectIntoObject(object);
         var self = this;
 
-        object.persistSave = function (txn)
+        object.persistSave = function (txn, logger)
         {
             PersistObjectTemplate.logger.debug("persistSave " + object.__template__.__name__ + " " + object.__id__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
+                PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn, logger)
                     .then (function (obj) {
                         if (txn)
                             PersistObjectTemplate.saved(obj ,txn);
                         return Promise.resolve(obj._id.toString())
                     })
-                : PersistObjectTemplate.persistSaveKnex(object, txn)
+                : PersistObjectTemplate.persistSaveKnex(object, txn, logger)
                 .then (function (obj) {
                     if (txn)
                         PersistObjectTemplate.saved(obj ,txn);
@@ -43,32 +43,35 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 });
         };
 
-        object.persistTouch = function (txn)
+        object.persistTouch = function (txn, logger)
         {
             PersistObjectTemplate.logger.debug("persistTouch " + object.__template__.__name__ + " " + object.__id__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn)
-                : PersistObjectTemplate.persistTouchKnex(object, txn);
+                PersistObjectTemplate.persistSaveMongo(object, undefined, undefined, undefined, txn, logger)
+                : PersistObjectTemplate.persistTouchKnex(object, txn, logger);
         };
 
-        object.persistDelete = function (txn) {
+        object.persistDelete = function (txn, logger) {
             PersistObjectTemplate.logger.debug("persistTouch " + object.__template__.__name__ + " " + object.__id__, 'api');
             if (txn) {
                 delete txn.dirtyObjects[this.__id__];
             }
-            return this.__template__.deleteFromPersistWithId(this._id, txn)
+            return this.__template__.deleteFromPersistWithId(this._id, txn, logger)
         };
 
-        object.setDirty = function (txn, onlyIfChanged, cascade) {
-            PersistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade);
+        object.setDirty = function (txn, onlyIfChanged, cascade, logger) {
+            PersistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade, logger);
         };
-        object.cascadeSave = function (txn) {
-            PersistObjectTemplate.setDirty(this, txn || PersistObjectTemplate.currentTransaction, true, false);
+        
+        object.cascadeSave = function (txn, logger) {
+            PersistObjectTemplate.setDirty(this, txn || PersistObjectTemplate.currentTransaction, true, false, logger);
         };
+        
         object.isDirty = function () {
             return this['__dirty__'] ? true : false
         };
+        
         object.isStale = function () {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             return this.__template__.countFromPersistWithQuery(
@@ -78,7 +81,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             });
         };
 
-        object.fetchProperty = function (prop, cascade, queryOptions, isTransient, idMap)
+        object.fetchProperty = function (prop, cascade, queryOptions, isTransient, idMap, logger)
         {
             PersistObjectTemplate.logger.debug("fetchProperty " + object.__template__.__name__ + " " + object._id, 'api');
             idMap = idMap || {};
@@ -92,12 +95,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(object.__template__.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
-                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascadeTop, isTransient, null, this, properties);
+                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient, logger) :
+                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascadeTop, isTransient, null, this, properties, undefined, undefined, undefined, logger);
 
         };
 
-        object.fetch = function (cascade, isTransient, idMap)
+        object.fetch = function (cascade, isTransient, idMap, logger)
         {
             PersistObjectTemplate.logger.debug("fetch " + object.__template__.__name__ + " " + object._id, 'api');
             idMap = idMap || {};
@@ -110,8 +113,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var previousDirtyTracking = PersistObjectTemplate.__changeTracking__;
             PersistObjectTemplate.__changeTracking__ = false;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
-                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties))
+                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient, logger) :
+                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties, undefined, undefined, undefined, logger))
                 .then(function (res) {
                     return res;
                 })
@@ -121,10 +124,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
 
         };
-        object.refresh = function ()
+        object.refresh = function (logger)
         {
             PersistObjectTemplate.logger.debug("refresh " + object.__template__.__name__ + " " + object._id, 'api');
-            return this.__template__.getFromPersistWithId(object._id, null, null, null, true)
+            return this.__template__.getFromPersistWithId(object._id, null, null, null, true, logger)
         };
     };
     PersistObjectTemplate.getPersistorProps = function () {
@@ -196,12 +199,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param id
          */
-        template.getFromPersistWithId = function(id, cascade, isTransient, idMap, isRefresh) {
+        template.getFromPersistWithId = function(id, cascade, isTransient, idMap, isRefresh, logger) {
             PersistObjectTemplate.logger.debug("getFromPersistWithId " + template.__name__ + " " + id, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap) :
-                PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh))
+                PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap, logger) :
+                PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh, logger))
                 .then( function(res) {
                     return res;
                 }.bind(this))
@@ -212,12 +215,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param query
          */
-        template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap, options) {
+        template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap, options, logger) {
             PersistObjectTemplate.logger.debug("getFromPersistWithQuery " + template.__name__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, cascade, start, limit, isTransient, idMap, options) :
-                PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, cascade, start, limit, isTransient, idMap, options))
+                PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, cascade, start, limit, isTransient, idMap, options, logger) :
+                PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, cascade, start, limit, isTransient, idMap, options, undefined, undefined, logger))
                 .then( function(res) {
                     return res;
                 }.bind(this))
@@ -228,11 +231,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param query
          */
-        template.deleteFromPersistWithQuery = function(query, txn) {
+        template.deleteFromPersistWithQuery = function(query, txn, logger) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query) :
-                PersistObjectTemplate.deleteFromPersistWithKnexQuery(template, query, txn);
+                PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query, logger) :
+                PersistObjectTemplate.deleteFromPersistWithKnexQuery(template, query, txn, logger);
         };
 
         /**
@@ -240,12 +243,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param id
          */
-        template.deleteFromPersistWithId = function(id, txn) {
+        template.deleteFromPersistWithId = function(id, txn, logger) {
             PersistObjectTemplate.logger.debug("deleteFromPersistWithId " + template.__name__ + " " + id, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.deleteFromPersistWithMongoId(template, id) :
-                PersistObjectTemplate.deleteFromPersistWithKnexId(template, id, txn))
+                PersistObjectTemplate.deleteFromPersistWithMongoId(template, id, logger) :
+                PersistObjectTemplate.deleteFromPersistWithKnexId(template, id, txn, logger))
                 .then( function(res) {
                     return res;
                 }.bind(this))
@@ -256,12 +259,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          *
          * @param query
          */
-        template.countFromPersistWithQuery = function(query) {
+        template.countFromPersistWithQuery = function(query, logger) {
             PersistObjectTemplate.logger.debug("countFromPersistWithQuery " + template.__name__, 'api');
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return (dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.countFromMongoQuery(template, query) :
-                PersistObjectTemplate.countFromKnexQuery(template, query))
+                PersistObjectTemplate.countFromMongoQuery(template, query, logger) :
+                PersistObjectTemplate.countFromKnexQuery(template, query, logger))
                 .then( function(res) {
                     return res;
                 }.bind(this))
@@ -391,8 +394,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     }
 
 
-    PersistObjectTemplate.end = function(persistorTransaction) {
-        this.logger.debug({component: 'persistor', module: 'api', activity: 'end'}, "start of transaction ");
+    PersistObjectTemplate.end = function(persistorTransaction, logger) {
+        (logger || this.logger).debug({component: 'persistor', module: 'api', activity: 'end'}, "start of transaction ");
         persistorTransaction = persistorTransaction || this.currentTransaction;
         var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction ? persistorTransaction.dirtyObjects : this.dirtyObjects;
@@ -415,7 +418,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
                 function processPreSave() {
                     return persistorTransaction.preSave
-                        ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction)
+                        ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction, logger)
                         : true
                 }
 
@@ -424,7 +427,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     return Promise.map(_.toArray(dirtyObjects), function (obj) {
                         delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
                         return (obj.__template__ && obj.__template__.__schema__
-                            ?  obj.persistSave(persistorTransaction)
+                            ?  obj.persistSave(persistorTransaction, logger)
                             : true)
                     }.bind(this),{concurrency: PersistObjectTemplate.concurrency}).then (function () {
                         if(_.toArray(dirtyObjects). length > 0)
@@ -434,7 +437,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }
 
                 function processPostSave() {
-                    return persistorTransaction.postSave ? persistorTransaction.postSave(persistorTransaction)
+                    return persistorTransaction.postSave ? persistorTransaction.postSave(persistorTransaction, logger)
                         : true;
                 }
 
@@ -452,7 +455,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function processTouches() {
                     return Promise.map(_.toArray(touchObjects), function (obj) {
                         return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
-                            ?  obj.persistTouch(persistorTransaction)
+                            ?  obj.persistTouch(persistorTransaction, logger)
                             : true)
                     }.bind(this))
                 }
@@ -462,19 +465,19 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         var deadlock = err.toString().match(/deadlock detected$/i)
                         persistorTransaction.innerError = err;
                         innerError = deadlock ? new Error("Update Conflict") : err;
-                        this.logger.debug({component: 'persistor', module: 'api', activity: 'end'}, "transaction rolled back " +
+                        (logger || this.logger).debug({component: 'persistor', module: 'api', activity: 'end'}, "transaction rolled back " +
                           innerError.message + (deadlock ? " from deadlock" : ""));
                     }.bind(this));
                 }
             }.bind(this))
             .then(function () {
-                this.logger.debug({component: 'persistor', module: 'api'}, "end - transaction completed");
+                (logger || this.logger).debug({component: 'persistor', module: 'api'}, "end - transaction completed");
                 return true;
             }.bind(this))
             .catch(function (e) {
                 var err = e || innerError;
                 if (err && err.message && err.message != 'Update Conflict')
-                    this.logger.error({component: 'persistor', module: 'api', activity: 'end', error: err.message + err.stack}, "transaction ended with error");
+                    (logger || this.logger).error({component: 'persistor', module: 'api', activity: 'end', error: err.message + err.stack}, "transaction ended with error");
                 throw(e || innerError);
             }.bind(this))
 
@@ -484,7 +487,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @param obj
      * @param txn
      */
-    PersistObjectTemplate.setDirty = function (obj, txn, onlyIfChanged, noCascade) {
+    PersistObjectTemplate.setDirty = function (obj, txn, onlyIfChanged, noCascade, logger) {
 
         // Get array references too
         if (onlyIfChanged && this.MarkChangedArrayReferences)
@@ -528,7 +531,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 txn.touchObjects[topObject.__id__] = topObject;
         }
     }
-    PersistObjectTemplate.saveAll = function (txn) {
+    PersistObjectTemplate.saveAll = function (txn, logger) {
         var promises = [];
         var somethingSaved = false;
         var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
@@ -536,7 +539,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             (function () {
                 var obj = dirtyObjects[id];
                 delete dirtyObjects[obj.__id__];
-                promises.push(obj.persistSave(txn).then(function () {
+                promises.push(obj.persistSave(txn, logger).then(function () {
                     PersistObjectTemplate.saved(obj,txn);
                     somethingSaved = true;
                 }));
@@ -545,7 +548,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         return Promise.all(promises)
             .then(function () {
                 if (!somethingSaved && txn && txn.postSave) {
-                    txn.postSave(txn);
+                    txn.postSave(txn, logger);
                     this.dirtyObjects = {};
                     this.savedObjects = {};
                 }
@@ -576,12 +579,12 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @param options
      * @returns {*}
      */
-    PersistObjectTemplate.getPOJOFromQuery = function (template, query, options) {
+    PersistObjectTemplate.getPOJOFromQuery = function (template, query, options, logger) {
         var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
         var prefix = PersistObjectTemplate.dealias(template.__collection__)
         return dbType == PersistObjectTemplate.DB_Mongo ?
-            PersistObjectTemplate.getPOJOFromMongoQuery(template, query, options) :
-            PersistObjectTemplate.getPOJOsFromKnexQuery(template, [], query, options).then(function (pojos) {
+            PersistObjectTemplate.getPOJOFromMongoQuery(template, query, options, logger) :
+            PersistObjectTemplate.getPOJOsFromKnexQuery(template, [], query, options, undefined, logger).then(function (pojos) {
                 pojos.forEach(function (pojo) {
                     _.map(pojo, function(val, prop) {
                         if (prop.match(RegExp("^" + prefix + "___"))) {

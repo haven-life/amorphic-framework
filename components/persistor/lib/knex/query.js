@@ -17,7 +17,7 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.concurrency = 10;
 
-    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh) {
+    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger) {
         return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh)
             .then(function(pojos) { return pojos[0] });
     }
@@ -38,7 +38,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param idMap
      * @param options
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger)
     {
 
         var topLevel = !requests;
@@ -102,7 +102,7 @@ module.exports = function (PersistObjectTemplate) {
             return request.call(this);
 
         function getPOJOsFromQuery () {
-            return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver']);
+            return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver'], logger);
         }
 
         function getTemplatesFromPOJOS(pojos) {
@@ -116,7 +116,7 @@ module.exports = function (PersistObjectTemplate) {
             pojos.forEach(function (pojo, ix) {
                 sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix;
                 promises.push(PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
-                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh)
+                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger)
                     .then(function (obj) {
                         results[sortMap[obj._id]] = obj;
                     }))
@@ -156,13 +156,13 @@ module.exports = function (PersistObjectTemplate) {
      * @return {*} an object via a promise as though it was created with new template()
      */
     PersistObjectTemplate.getTemplateFromKnexPOJO =
-        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh)
+        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger)
         {
             var self = this;
             prefix = prefix || "";
             var promises = [];
 
-            this.logger.debug({component: 'persistor', module: 'query', activity: 'process'},
+            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'process'},
               "processing template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template']);
 
 
@@ -307,7 +307,7 @@ module.exports = function (PersistObjectTemplate) {
                             }.bind(this));
                             requests.push(function () {
                                 return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
-                                    limit, isTransient, idMap, options, obj[closureProp], isRefresh)
+                                    limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger)
                                 .then( function(objs) {
                                     this.withoutChangeTracking(function () {
                                         if (foreignFilterKey) {
@@ -377,10 +377,10 @@ module.exports = function (PersistObjectTemplate) {
                                             (pojo[join.alias + "____id"] ?
                                                 this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
                                                     closureCascade, isTransient, closureDefineProperty,
-                                                    obj[closureProp], null, join.alias + "___", null, isRefresh)
+                                                    obj[closureProp], null, join.alias + "___", null, isRefresh, logger)
                                                 : Promise.resolve(true)) :
                                             this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
-                                                null, null, isTransient, idMap, {}, obj[closureProp], isRefresh);
+                                                null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger);
                                         this.withoutChangeTracking(function () {
                                             obj[closurePersistorProp].isFetching = true;
                                         }.bind(this));

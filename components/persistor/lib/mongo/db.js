@@ -3,8 +3,8 @@ module.exports = function (PersistObjectTemplate) {
     var Promise = require('bluebird');
 
     /* Mongo implementation of save */
-    PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, txn) {
-        this.logger.debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
+    PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, txn, logger) {
+        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
         var origVer = obj.__version__;
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
         pojo.__version__ = obj.__version__;
@@ -24,7 +24,7 @@ module.exports = function (PersistObjectTemplate) {
                 } else
                     throw new Error("Update Conflict");
             }
-            this.logger.debug({component: 'persistor', module: 'db', activity: 'write'}, 'saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
+            (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
             return true;
         }.bind(this));
     }
@@ -35,14 +35,14 @@ module.exports = function (PersistObjectTemplate) {
      * @param query
      * @returns {Promise}
      */
-    PersistObjectTemplate.deleteFromMongoQuery = function(template, query) {
+    PersistObjectTemplate.deleteFromMongoQuery = function(template, query, logger) {
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection( this.dealias(template.__collection__));
         return collection.remove(query, {w:1, fsync:true});
     }
 
-    PersistObjectTemplate.getPOJOFromMongoQuery = function(template, query, options) {
-        this.logger.debug({component: 'persistor', module: 'db', activity: 'read'}, "db." + template.__collection__ + ".find({" + JSON.stringify(query) + "})");
+    PersistObjectTemplate.getPOJOFromMongoQuery = function(template, query, options, logger) {
+        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'read'}, "db." + template.__collection__ + ".find({" + JSON.stringify(query) + "})");
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection( this.dealias(template.__collection__));
         options = options || {};

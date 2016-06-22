@@ -17,7 +17,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param idMap
      * @return {*}
      */
-    PersistObjectTemplate.persistSaveMongo = function(obj, promises, masterId, idMap, txn) {
+    PersistObjectTemplate.persistSaveMongo = function(obj, promises, masterId, idMap, txn, logger) {
         if (!obj.__template__)
             throw new Error("Attempt to save an non-templated Object");
         if (!obj.__template__.__schema__)
@@ -27,13 +27,13 @@ module.exports = function (PersistObjectTemplate) {
         // Trying to save other than top document work your way to the top
         if (!schema.documentOf && !masterId) {
             var originalObj = obj;
-            this.logger.debug({component: 'persistor', module: 'update', activity: 'save'}, "Search for top of " + obj.__template__.__name__);
+            (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'save'}, "Search for top of " + obj.__template__.__name__);
             var obj = this.getTopObject(obj);
             if (!obj)
                 throw new Error("Attempt to save " + originalObj.__template__.__name__ +
                     " which subDocument without necessary parent links to reach top level document");
             schema = obj.__template__.__schema__;
-            this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, "Found top as " + obj.__template__.__name__);
+            (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Found top as " + obj.__template__.__name__);
         }
 
         var collection = obj.__template__.__collection__;
@@ -72,10 +72,10 @@ module.exports = function (PersistObjectTemplate) {
 
         // Eliminate circular references
         if (idMap[id.toString()]) {
-            this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, "Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
+            (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
             return idMap[id.toString()];
         }
-        this.logger.debug({component: 'persistor', module: 'update', activity: 'save'}, "Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
+        (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'save'}, "Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
 
         var pojo = !isDocumentUpdate ? {_id: id, _template: obj.__template__.__name__} :
         {_template: obj.__template__.__name__};   // subsequent levels return pojo copy of object
@@ -128,7 +128,7 @@ module.exports = function (PersistObjectTemplate) {
                             // If so it's foreign key gets updated with our id
                             if (isCrossDocRef) {
 
-                                this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, "Treating " + prop + " as cross-document sub-document");
+                                (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Treating " + prop + " as cross-document sub-document");
 
                                 // Get the foreign key to be updated
                                 if (!schema || !schema.children || !schema.children[prop] || !schema.children[prop].id)
@@ -139,14 +139,14 @@ module.exports = function (PersistObjectTemplate) {
                                 if (!value[ix][foreignKey] || value[ix][foreignKey].toString() != id.toString()) {
                                     value[ix][foreignKey] = id;
                                     value[ix].__dirty__ = true;
-                                    this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, "updated it's foreign key");
+                                    (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "updated it's foreign key");
                                 }
 
                                 // If we were waiting to resolve where this should go let's just put it here
                                 if ((typeof(value[ix]._id) == 'function'))
                                 {   // This will resolve the id and it won't be a function anymore
-                                    this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, prop + " waiting for placement, ebmed as subdocument");
-                                    values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap));
+                                    (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, prop + " waiting for placement, ebmed as subdocument");
+                                    values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap, txn, logger));
                                 }
                                 // If it was this placed another document or another place in our document
                                 // we don't add it as a sub-document
@@ -154,17 +154,17 @@ module.exports = function (PersistObjectTemplate) {
                                     value[ix]._id.replace(/:.*/, '') != masterId))          // or in another doc
                                 {
                                     if (value[ix].__dirty__) // If dirty save it
-                                        promises.push(this.persistSaveMongo(value[ix], promises, null, idMap));
+                                        promises.push(this.persistSaveMongo(value[ix], promises, null, idMap, txn, logger));
                                     continue;  // Skip saving it as a sub-doc
                                 }
                                 // Save as sub-document
-                                this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, "Saving subdocument " + prop);
-                                values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap));
+                                (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Saving subdocument " + prop);
+                                values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap, txn, logger));
                             } else {
                                 if (value[ix]._id && idMap[value[ix]._id.toString()]) // Previously referenced objects just get the id
                                     values.push(value[ix]._id.toString());
                                 else // Otherwise recursively obtain pojo
-                                    values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap));
+                                    values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap, txn, logger));
                             }
 
                         }
@@ -183,8 +183,8 @@ module.exports = function (PersistObjectTemplate) {
                                 value[ix].__dirty__ = true;
                             }
                             if (value[ix].__dirty__) {
-                                this.logger.debug({component: 'persistor', module: 'update', activity: 'processing'}, "Saving " + prop + " as document because we updated it's foreign key");
-                                promises.push(this.persistSaveMongo(value[ix], promises, null, idMap));
+                                (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Saving " + prop + " as document because we updated it's foreign key");
+                                promises.push(this.persistSaveMongo(value[ix], promises, null, idMap, txn, logger));
                             }
                         }
                 }
@@ -205,12 +205,12 @@ module.exports = function (PersistObjectTemplate) {
 
                     // otherwise as long as in same collection just continue saving the sub-document
                     else if (defineProperty.type.__collection__ == collection)
-                        pojo[foreignKey] = this.persistSaveMongo(value, promises, masterId, idMap);
+                        pojo[foreignKey] = this.persistSaveMongo(value, promises, masterId, idMap, txn, logger);
 
                     // If an a different collection we have to get the id generated
                     else {
                         // This should cause an id to be generated eventually
-                        promises.push(this.persistSaveMongo(value, promises, null, idMap));
+                        promises.push(this.persistSaveMongo(value, promises, null, idMap, txn, logger));
                         // If it is not generated then queue up a function to set it when we get 'round to it
                         (function () {
                             var closureId = value._id;
@@ -246,7 +246,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                     pojo[foreignKey] = value ? new this.ObjectID(obj[foreignKey]) : null;
                     if (value && value.__dirty__)
-                        promises.push(this.persistSaveMongo(value, promises, null, idMap));
+                        promises.push(this.persistSaveMongo(value, promises, null, idMap, txn, logger));
                 }
             }
             else if (defineProperty.type == Date)
@@ -256,7 +256,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         if (savePOJO)
-            promises.push(this.savePojoToMongo(obj, pojo, isDocumentUpdate ? new this.ObjectID(obj._id) : null, txn));
+            promises.push(this.savePojoToMongo(obj, pojo, isDocumentUpdate ? new this.ObjectID(obj._id) : null, txn, logger));
         if (resolvePromises)
             return this.resolveRecursivePromises(promises, pojo).then(function (pojo) {
                 pojo._id = obj._id;
@@ -271,9 +271,9 @@ module.exports = function (PersistObjectTemplate) {
      *
      * @param options
      */
-    PersistObjectTemplate.deleteFromPersistWithMongoQuery = function(template, query)
+    PersistObjectTemplate.deleteFromPersistWithMongoQuery = function(template, query, logger)
     {
-        return PersistObjectTemplate.getFromPersistWithMongoQuery(template, query).then (function (objs) {
+        return PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, undefined, undefined, undefined, undefined, undefined, undefined, logger).then (function (objs) {
             var promises = [];
             objs.each(function(obj) {
                 promises.push(obj.persistDelete());
@@ -287,8 +287,8 @@ module.exports = function (PersistObjectTemplate) {
      *
      * @param options
      */
-    PersistObjectTemplate.deleteFromPersistWithMongoId = function(template, id)
+    PersistObjectTemplate.deleteFromPersistWithMongoId = function(template, id, logger)
     {
-        return PersistObjectTemplate.deleteFromMongoQuery(template, {_id: PersistObjectTemplate.ObjectID(id.toString())});
+        return PersistObjectTemplate.deleteFromMongoQuery(template, {_id: PersistObjectTemplate.ObjectID(id.toString())}, logger);
     }
 }

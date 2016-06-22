@@ -2,13 +2,13 @@ module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
 
-    PersistObjectTemplate.getFromPersistWithMongoId = function (template, id, cascade, isTransient, idMap) {
+    PersistObjectTemplate.getFromPersistWithMongoId = function (template, id, cascade, isTransient, idMap, logger) {
         return this.getFromPersistWithMongoQuery(template, {_id: PersistObjectTemplate.ObjectID(id.toString())}, cascade, null, null, isTransient, idMap)
             .then(function(pojos) { return pojos[0] });
     }
 
 
-    PersistObjectTemplate.getFromPersistWithMongoQuery = function (template, query, cascade, skip, limit, isTransient, idMap, options)
+    PersistObjectTemplate.getFromPersistWithMongoQuery = function (template, query, cascade, skip, limit, isTransient, idMap, options, logger)
     {
         idMap = idMap || {};
         options = options || {};
@@ -17,8 +17,8 @@ module.exports = function (PersistObjectTemplate) {
         if (typeof(limit) != 'undefined')
             options.limit = limit * 1;
         if (template.__schema__.subDocumentOf) {
-            var subQuery = this.createSubDocQuery(query, template)
-            return this.getPOJOFromMongoQuery(template, subQuery.query, options, idMap).then(function(pojos) {
+            var subQuery = this.createSubDocQuery(query, template, logger)
+            return this.getPOJOFromMongoQuery(template, subQuery.query, options, logger).then(function(pojos) {
                 var promises = [];
                 var results = [];
                 for (var ix = 0; ix < pojos.length; ++ix) {
@@ -31,7 +31,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                     var subPojos = this.getPOJOSFromPaths(template, subQuery.paths, pojos[ix], query)
                     for (var jx = 0; jx < subPojos.length; ++jx) {
-                        promises.push(this.getTemplateFromMongoPOJO(subPojos[jx], template, null, null, idMap, cascade, null, null, isTransient).then(function (pojo) {
+                        promises.push(this.getTemplateFromMongoPOJO(subPojos[jx], template, null, null, idMap, cascade, null, null, isTransient, logger).then(function (pojo) {
                             results.push(pojo);
                         }));
                     }
@@ -39,14 +39,14 @@ module.exports = function (PersistObjectTemplate) {
                 return this.resolveRecursivePromises(promises, results);
             }.bind(this));
         } else
-            return this.getPOJOFromMongoQuery(template, query, options, idMap).then(function(pojos)
+            return this.getPOJOFromMongoQuery(template, query, options, logger).then(function(pojos)
             {
                 var promises = [];
                 var results = [];
                 for (var ix = 0; ix < pojos.length; ++ix)
                     (function () {
                         var cix = ix;
-                        promises.push(this.getTemplateFromMongoPOJO(pojos[ix], template, null, null, idMap, cascade, null, null, isTransient).then( function (obj) {
+                        promises.push(this.getTemplateFromMongoPOJO(pojos[ix], template, null, null, idMap, cascade, null, null, isTransient, logger).then( function (obj) {
                             results[cix] = obj;
                         }))
                     }.bind(this))();
@@ -64,7 +64,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param template is the template used to create the object
      * @return {*} an object via a promise as though it was created with new template()
      */
-    PersistObjectTemplate.getTemplateFromMongoPOJO = function (pojo, template, promises, defineProperty, idMap, cascade, establishedObj, specificProperties, isTransient)
+    PersistObjectTemplate.getTemplateFromMongoPOJO = function (pojo, template, promises, defineProperty, idMap, cascade, establishedObj, specificProperties, isTransient, logger)
     {
         // For recording back refs
         if (!idMap)
@@ -172,7 +172,7 @@ module.exports = function (PersistObjectTemplate) {
                                 cascadeFetchProp = this.processCascade(query, options, cascadeFetch, null, defineProperty.fetch);
                                 obj[prop][ix] = idMap[pojo[prop][ix]._id.toString()] ||
                                     this.getTemplateFromMongoPOJO(pojo[prop][ix], defineProperty.of, promises, defineProperty, idMap,
-                                        cascadeFetchProp, null, null, isTransient);
+                                        cascadeFetchProp, null, null, isTransient, logger);
                             }
                         } else
                             obj[prop][ix] = null;
@@ -211,7 +211,7 @@ module.exports = function (PersistObjectTemplate) {
                             var foreignKey = schema.children[prop].id;
                             query[foreignKey] = id.toString().match(/:/) ? id.toString() : new this.ObjectID(id.toString());
                         }
-                        this.logger.debug({activity: 'fetching'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
+                        (logger || this.logger).debug({activity: 'fetching'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
                         var self = this;
                         (function () {
                             var closureProp = prop;
@@ -226,11 +226,11 @@ module.exports = function (PersistObjectTemplate) {
                             // For subdocs we have to build up a query to fetch all docs with these little buggers
                             if (closureIsSubDoc) {
                                 var closureOrigQuery = query;
-                                var results = this.createSubDocQuery(query, closureDefineProperty.of);
+                                var results = this.createSubDocQuery(query, closureDefineProperty.of, logger);
                                 query = results.query;
                                 var closurePaths = results.paths;
                             }
-                            promises.push(self.getPOJOFromMongoQuery(defineProperty.of, query, options, idMap).then( function(pojos)
+                            promises.push(self.getPOJOFromMongoQuery(defineProperty.of, query, options, logger).then( function(pojos)
                             {
                                 // For subdocs we have to fish them out of the documents making sure the query matches
                                 if (closureIsSubDoc) {
@@ -241,7 +241,7 @@ module.exports = function (PersistObjectTemplate) {
                                         if (!idMap[pojos[ix]._id.toString()]) {
                                             var topType = self.getTemplateByCollection(closureOf.__collection__);
                                             self.getTemplateFromMongoPOJO(pojos[ix], topType, promises, {type: topType}, idMap, {},
-                                                null, null, isTransient)
+                                                null, null, isTransient, logger)
                                         }
                                         // Grab the actual Pojos since may not be avail from processing parent
                                         var subPojos = self.getPOJOSFromPaths(defineProperty.of, closurePaths, pojos[ix], closureOrigQuery)
@@ -249,7 +249,7 @@ module.exports = function (PersistObjectTemplate) {
                                             // Take them from cache or fetch them
                                             obj[closureProp].push((!closureCascade && idMap[subPojos[jx]._id.toString()]) ||
                                                 self.getTemplateFromMongoPOJO(subPojos[jx], closureDefineProperty.of,
-                                                    promises, closureDefineProperty, idMap, closureCascade, null, null, isTransient));
+                                                    promises, closureDefineProperty, idMap, closureCascade, null, null, isTransient, logger));
                                     }
                                 } else
                                     for(var ix = 0; ix < pojos.length; ++ix)
@@ -257,7 +257,7 @@ module.exports = function (PersistObjectTemplate) {
                                         // Return cached one over freshly read
                                         obj[closureProp][ix] = idMap[pojos[ix]._id.toString()] ||
                                             self.getTemplateFromMongoPOJO(pojos[ix], closureDefineProperty.of,
-                                                promises, closureDefineProperty, idMap, closureCascade, null, null, isTransient)
+                                                promises, closureDefineProperty, idMap, closureCascade, null, null, isTransient, logger)
                                     }
                                 obj[closurePersistorProp].isFetched = true;
                                 obj[closurePersistorProp].start = options ? options.start || 0 : 0;
@@ -298,7 +298,7 @@ module.exports = function (PersistObjectTemplate) {
                             cascadeFetchProp = this.processCascade(query, options, cascadeFetch, null, defineProperty.fetch);
 
                             obj[prop] = idMap[pojo[prop]._id.toString()] || this.getTemplateFromMongoPOJO(pojo[prop], type, promises,
-                                    defineProperty, idMap, cascadeFetchProp, null, null, isTransient);
+                                    defineProperty, idMap, cascadeFetchProp, null, null, isTransient, logger);
                         }
 
                     } else
@@ -333,7 +333,7 @@ module.exports = function (PersistObjectTemplate) {
                             if (foreignId) {
                                 var query = {_id: new this.ObjectID(foreignId.replace(/:.*/, ''))};
                                 var options = {};
-                                this.logger.debug({component: 'persistor', module: 'query', activity: 'processing'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
+                                (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'processing'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
                                 var self = this;
                                 (function () {
                                     var closureProp = prop;
@@ -354,7 +354,7 @@ module.exports = function (PersistObjectTemplate) {
                                     } else
 
                                     // Otherwise fetch top level document (which will contain sub-doc if sub-doc)
-                                        promises.push(self.getPOJOFromMongoQuery(closureType, query, idMap).then(function(pojos) {
+                                        promises.push(self.getPOJOFromMongoQuery(closureType, query, undefined, logger).then(function(pojos) {
 
                                             // Assuming the reference is still there
                                             if (pojos.length > 0) {
@@ -367,21 +367,21 @@ module.exports = function (PersistObjectTemplate) {
                                                     }
                                                     // Get actual sub-doc since it may not yet be available from processing doc
                                                     var subDocPojo = self.getPOJOSFromPaths(
-                                                        closureType, this.createSubDocQuery(null, closureType).paths, pojos[0],
+                                                        closureType, this.createSubDocQuery(null, closureType, logger).paths, pojos[0],
                                                         {_id: closureForeignId}
                                                     )[0];
                                                     // Process actual sub-document to get cascade right and specific sub-doc
                                                     if (subDocPojo && subDocPojo._id) {
                                                         if (!idMap[subDocPojo._id.toString()])
                                                             self.getTemplateFromMongoPOJO(subDocPojo, closureType, promises,
-                                                                closureDefineProperty, idMap, closureCascade, null, null, isTransient);
+                                                                closureDefineProperty, idMap, closureCascade, null, null, isTransient, logger);
                                                     } else
                                                         console.log("Orphaned subdoc on " + obj.__template__.__name__ + "[" + closureProp + ":" + obj._id + "] " +
-                                                            "foreign key: " + closureForeignId + " query: " + JSON.stringify(this.createSubDocQuery(null, closureType)));
+                                                            "foreign key: " + closureForeignId + " query: " + JSON.stringify(this.createSubDocQuery(null, closureType, logger)));
                                                 } else
                                                 if (!idMap[pojos[0]._id.toString()])
                                                     self.getTemplateFromMongoPOJO(pojos[0], closureType, promises,
-                                                        closureDefineProperty, idMap, closureCascade, null, null, isTransient);
+                                                        closureDefineProperty, idMap, closureCascade, null, null, isTransient, logger);
                                             }
                                             obj[closureProp] = idMap[closureForeignId];
                                             obj[closurePersistorProp].isFetched = true;
@@ -535,7 +535,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param targetQuery - the query where this not a sub-document (e.g. key: value)
      * @param targetTemplate - the template to which it applies
      */
-    PersistObjectTemplate.createSubDocQuery = function (targetQuery, targetTemplate)
+    PersistObjectTemplate.createSubDocQuery = function (targetQuery, targetTemplate, logger)
     {
         var topTemplate = targetTemplate.__topTemplate__;
 
@@ -592,7 +592,7 @@ module.exports = function (PersistObjectTemplate) {
             if (targetQuery) {
                 queryTraverse(newQuery, targetQuery);
                 results.query['$or'].push(newQuery);
-                this.logger.debug({component: 'persistor', module: 'query', activity: 'processing'}, "subdocument query for " + targetTemplate.__name__ + '; ' + JSON.stringify(results.query));
+                (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'processing'}, "subdocument query for " + targetTemplate.__name__ + '; ' + JSON.stringify(results.query));
             }
         }
         return results;
