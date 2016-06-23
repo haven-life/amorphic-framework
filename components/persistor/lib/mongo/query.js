@@ -211,7 +211,8 @@ module.exports = function (PersistObjectTemplate) {
                             var foreignKey = schema.children[prop].id;
                             query[foreignKey] = id.toString().match(/:/) ? id.toString() : new this.ObjectID(id.toString());
                         }
-                        (logger || this.logger).debug({activity: 'fetching'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
+                        (logger || this.logger).debug({component: 'persistor', module: 'query.getTemplateFromMongoPOJO', activity: 'pre'},
+                            "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch) + " " + JSON.stringify(query) + " " + JSON.stringify(options));
                         var self = this;
                         (function () {
                             var closureProp = prop;
@@ -333,7 +334,8 @@ module.exports = function (PersistObjectTemplate) {
                             if (foreignId) {
                                 var query = {_id: new this.ObjectID(foreignId.replace(/:.*/, ''))};
                                 var options = {};
-                                (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'processing'}, "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
+                                (logger || this.logger).debug({component: 'persistor', module: 'query.getTemplateFromMongoPOJ', activity: 'processing'}, 
+                                    "fetching " + prop + " cascading " + JSON.stringify(cascadeFetch));
                                 var self = this;
                                 (function () {
                                     var closureProp = prop;

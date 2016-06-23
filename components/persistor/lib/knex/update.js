@@ -20,7 +20,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.persistSaveKnex = function(obj, txn, logger) {
 
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'processing'}, "Saving " + obj.__template__.__name__);
+        (logger || this.logger).debug({component: 'persistor', module: 'db.persistSaveKnex', activity: 'pre', data:{template: obj.__template__.__name__, id: obj.__id__, _id: obj._id}});
         this.checkObject(obj);
 
         var template = obj.__template__;
@@ -29,7 +29,7 @@ module.exports = function (PersistObjectTemplate) {
         var isDocumentUpdate = obj.__version__ ? true : false;
         var props = template.getProperties();
         var promises = [];
-        var dataStr = '';
+        var dataSaved = {};
 
         obj._id = obj._id || this.createPrimaryKey(obj);
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
@@ -117,7 +117,7 @@ module.exports = function (PersistObjectTemplate) {
                         if (!referencedObj._id)
                             referencedObj._id = this.createPrimaryKey(referencedObj);
                     }.bind(this));
-                    if (schema.children[prop].pruneOrphans)
+                    if (schema.children[prop].pruneOrphans && obj[prop + 'Persistor'].isFetched)
                         promises.push(this.knexPruneOrphans(obj, prop, txn, foreignFilterKey, foreignFilterValue, logger));
                 }
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, isFetched: true});
@@ -138,7 +138,7 @@ module.exports = function (PersistObjectTemplate) {
                 pojo[foreignKey] =  value ? value._id : null
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value ? value._id : null, isFetched: true})
 
-                dataStr += foreignKey + "=" + (pojo[foreignKey] || 'null') + "; ";
+                dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
 
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
@@ -155,14 +155,14 @@ module.exports = function (PersistObjectTemplate) {
                 log(defineProperty, pojo, prop);
             }
         }
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + "[" + pojo._id + "] data=" + dataStr);
+        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'dataLogging', data: {template: obj.__template__.__name__, _id: pojo._id, values: dataSaved}});
         
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger))
         return Promise.all(promises)
             .then (function (){return obj});
         function log(defineProperty, pojo, prop) {
             if (defineProperty.logChanges)
-                dataStr += prop + "=" + pojo[prop] + "; ";
+                dataSaved[prop]  = pojo[prop];
         }
         function copyProps(obj) {
             var newObj = {};

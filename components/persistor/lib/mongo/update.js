@@ -27,13 +27,13 @@ module.exports = function (PersistObjectTemplate) {
         // Trying to save other than top document work your way to the top
         if (!schema.documentOf && !masterId) {
             var originalObj = obj;
-            (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'save'}, "Search for top of " + obj.__template__.__name__);
+            (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo', activity: 'save'}, "Search for top of " + obj.__template__.__name__);
             var obj = this.getTopObject(obj);
             if (!obj)
                 throw new Error("Attempt to save " + originalObj.__template__.__name__ +
                     " which subDocument without necessary parent links to reach top level document");
             schema = obj.__template__.__schema__;
-            (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Found top as " + obj.__template__.__name__);
+            (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo', activity: 'processing'}, "Found top as " + obj.__template__.__name__);
         }
 
         var collection = obj.__template__.__collection__;
@@ -72,10 +72,12 @@ module.exports = function (PersistObjectTemplate) {
 
         // Eliminate circular references
         if (idMap[id.toString()]) {
-            (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
+            (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo', activity: 'processing'},
+                "Duplicate processing of " + obj.__template__.__name__ + ":" + id.toString());
             return idMap[id.toString()];
         }
-        (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'save'}, "Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
+        (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo', activity: 'save'},
+            "Saving " + obj.__template__.__name__ + ":" + id.toString() + " master_id=" + masterId);
 
         var pojo = !isDocumentUpdate ? {_id: id, _template: obj.__template__.__name__} :
         {_template: obj.__template__.__name__};   // subsequent levels return pojo copy of object
@@ -128,7 +130,8 @@ module.exports = function (PersistObjectTemplate) {
                             // If so it's foreign key gets updated with our id
                             if (isCrossDocRef) {
 
-                                (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Treating " + prop + " as cross-document sub-document");
+                                (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo',
+                                    activity: 'processing'}, "Treating " + prop + " as cross-document sub-document");
 
                                 // Get the foreign key to be updated
                                 if (!schema || !schema.children || !schema.children[prop] || !schema.children[prop].id)
@@ -139,13 +142,15 @@ module.exports = function (PersistObjectTemplate) {
                                 if (!value[ix][foreignKey] || value[ix][foreignKey].toString() != id.toString()) {
                                     value[ix][foreignKey] = id;
                                     value[ix].__dirty__ = true;
-                                    (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "updated it's foreign key");
+                                    (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo',
+                                        activity: 'processing'}, "updated it's foreign key");
                                 }
 
                                 // If we were waiting to resolve where this should go let's just put it here
                                 if ((typeof(value[ix]._id) == 'function'))
                                 {   // This will resolve the id and it won't be a function anymore
-                                    (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, prop + " waiting for placement, ebmed as subdocument");
+                                    (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo',
+                                        activity: 'processing'}, prop + " waiting for placement, ebmed as subdocument");
                                     values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap, txn, logger));
                                 }
                                 // If it was this placed another document or another place in our document
@@ -158,7 +163,8 @@ module.exports = function (PersistObjectTemplate) {
                                     continue;  // Skip saving it as a sub-doc
                                 }
                                 // Save as sub-document
-                                (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Saving subdocument " + prop);
+                                (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo',
+                                    activity: 'processing'}, "Saving subdocument " + prop);
                                 values.push(this.persistSaveMongo(value[ix], promises, masterId, idMap, txn, logger));
                             } else {
                                 if (value[ix]._id && idMap[value[ix]._id.toString()]) // Previously referenced objects just get the id
@@ -183,7 +189,8 @@ module.exports = function (PersistObjectTemplate) {
                                 value[ix].__dirty__ = true;
                             }
                             if (value[ix].__dirty__) {
-                                (logger || this.logger).debug({component: 'persistor', module: 'update', activity: 'processing'}, "Saving " + prop + " as document because we updated it's foreign key");
+                                (logger || this.logger).debug({component: 'persistor', module: 'update.persistSaveMongo',
+                                    activity: 'processing'}, "Saving " + prop + " as document because we updated it's foreign key");
                                 promises.push(this.persistSaveMongo(value[ix], promises, null, idMap, txn, logger));
                             }
                         }

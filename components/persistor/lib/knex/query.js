@@ -162,8 +162,8 @@ module.exports = function (PersistObjectTemplate) {
             prefix = prefix || "";
             var promises = [];
 
-            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'process'},
-              "processing template=" + template.__name__ + " _id=" + pojo[prefix + '_id']+ " _template=" + pojo[prefix + '_template']);
+            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'process', 
+                data: {template: template.__name__, id: pojo[prefix + '_id'], persistedTemplate: pojo[prefix + '_template']}});
 
 
             // For recording back refs

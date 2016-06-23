@@ -14,6 +14,7 @@ var writing = true;
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
+PersistObjectTemplate.logger.setLevel('debug');
 
 /*
 PersistObjectTemplate.debug = function(m, t) {
@@ -744,6 +745,22 @@ describe("Banking from pgsql Example", function () {
             done(e)
         })
     });
+    it("Customers have addresses after update of customer that does not fetch them", function (done) {
+        Customer.getFromPersistWithQuery(null, {primaryAddresses: false, secondaryAddresses: false})
+        .then (function (customers) {
+            return customers[0].persistSave();
+        }).then(function() {
+            return Customer.getFromPersistWithQuery(null, {primaryAddresses: true, secondaryAddresses: true})
+        }).then (function (customers) {
+                expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
+                    customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
+                    customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
+                done();
+        })
+        .catch(function(e) {
+            done(e)
+        })
+    });
 
     it("Can update addresses", function (done) {
         Customer.getFromPersistWithId(sam._id).then (function (customer) {
@@ -1019,6 +1036,20 @@ describe("Banking from pgsql Example", function () {
             done(e)
         })
     });
+    it("Can prune orphans", function (done) {
+        Customer.getFromPersistWithId(sam._id).then (function (customer) {
+            customer.secondaryAddresses = [];
+            return customer.persistSave();
+        }).then(function () {
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customer) {
+            expect(customer.secondaryAddresses.length).to.equal(0);
+            done();
+        }).catch(function(e) {
+            done(e)
+        });
+    });
+
 
     it("can delete", function (done) {
         Customer.getFromPersistWithQuery({},{roles: {fetch: {account: true}}}).then (function (customers) {

@@ -1,7 +1,5 @@
 module.exports = function (PersistObjectTemplate) {
 
-
-
     var Promise = require('bluebird');
     var _ = require('underscore');
 
@@ -65,11 +63,13 @@ module.exports = function (PersistObjectTemplate) {
         if (map)
             map[selectString] = [];
 
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'read'}, "Fetching " + template.__name__ + ' ' + JSON.stringify(queryOrChains));
+        (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'pre',
+            data: {template: template.__name__, query: queryOrChains}});
         return select.then(processResults.bind(this), processError);
         function processResults(res) {
             var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
-            (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'read'}, "Fetched " + res.length + " " + template.__name__ + ' ' + joinstr +  ' ' + JSON.stringify(queryOrChains));
+            (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
+                data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
                 map[selectString].forEach(function(resolve){
                     //console.log("Consolidated request for " + selectString);
@@ -250,7 +250,8 @@ module.exports = function (PersistObjectTemplate) {
         //console.log(knex.toSQL().sql + " ? = " + (filterValue || "") + " ? = " + obj._id + " ? = " + goodList.join(","))
         knex = knex.delete().then(function (res) {
             if (res)
-                (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'delete'}, res + " " + tableName + " records pruned from " + obj._id);
+                (logger || this.logger).debug({component: 'persistor', module: 'db.knexPruneOrphans', activity: 'post',
+                    data: {count: res, table: tableName, id: obj._id}});
         }.bind(this));
 
         return knex;
@@ -286,7 +287,9 @@ module.exports = function (PersistObjectTemplate) {
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, (txn ? txn.id + " ": '-#- ') + (updateID ? 'updating ' : 'insert ') + obj.__id__ + '[' + obj._id + '] ' + pojo.__version__);
+        (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'pre',
+            data: {txn: (txn ? txn.id + " ": '-#- '), type: (updateID ? 'updating ' : 'insert '),
+            template: obj.__template__.__name__, id: obj.__id__, _id: obj._id, __version__: pojo.__version__}});
         if (updateID)
             return Promise.resolve(knex
               .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
@@ -302,7 +305,8 @@ module.exports = function (PersistObjectTemplate) {
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'conflict'}, (txn ? txn.id : '-#-') + " update conflict on " + obj.__id__ + " looking for " + origVer);
+                (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'updateConflict',
+                    data: {txn: (txn ? txn.id : '-#-'), id: obj.__id__, __version__: origVer}});
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj)
@@ -313,7 +317,8 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function logSuccess() {
-            (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saved ' + obj.__template__.__name__ + " to " + obj.__template__.__table__ + " version " + obj.__version__);
+            (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
+                data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
         }
     }
 
@@ -662,7 +667,8 @@ module.exports = function (PersistObjectTemplate) {
     }
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn, logger) {
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'touch'}, 'touching ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
+        (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'pre',
+            data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;
@@ -671,7 +677,8 @@ module.exports = function (PersistObjectTemplate) {
           .where('_id', '=', obj._id)
           .increment('__version__', 1)
           .then(function () {
-              (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'touch'}, 'touched ' + obj.__template__.__name__ + " to " + obj.__template__.__table__);
+              (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'post',
+                  data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
           }.bind(this))
     }
 
