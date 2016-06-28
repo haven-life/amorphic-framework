@@ -845,7 +845,7 @@ ObjectTemplate.createLogger = function (context) {
                 msg += arg + " ";
         }
         if (msg.length)
-            obj.msg = msg;
+            obj.msg = (obj.module && obj.activity ? obj.module + '[' + obj.activity + '] - ' : '') + msg;
         else if (obj.module && obj.activity)
             obj.msg = obj.module + '[' + obj.activity + ']';
         else
