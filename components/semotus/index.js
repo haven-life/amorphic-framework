@@ -684,7 +684,7 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
         defineProperty.set = (function() {
             // use a closure to record the property name which is not passed to the setter
             var prop = propertyName; return function (value) {
-                if (this.__id__ && createChanges && transform.call(this, this["__" + prop]) !== transform(value)) {
+                if (this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
                     objectTemplate._changedValue(this, prop, value);
                     if (objectTemplate.__changeTracking__)
                         this.__changed__ = true;
@@ -712,7 +712,7 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                     else
                         return JSON.stringify(data);
                 } catch (e) {
-                    this.logger.error({component: 'semotus', module: 'setter', activity: 'stingify', data: {property: prop}},
+                    objectTemplate.logger.error({component: 'semotus', module: 'setter', activity: 'stingify', data: {property: prop}},
                       "caught exception trying to stringify " + prop);
                     return data;
                 }
