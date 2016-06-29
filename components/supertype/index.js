@@ -831,7 +831,7 @@ ObjectTemplate.createLogger = function (context) {
     // log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
     function log () {
         var msg = "";
-        var obj = {time: (new Date()).toISOString()};
+        var obj = {time: (new Date()).toISOString(), msg: ""};
         for (var prop in this.context)
             obj[prop] = this.context[prop];
         for (var ix = 0; ix < arguments.length; ++ix) {
@@ -844,12 +844,12 @@ ObjectTemplate.createLogger = function (context) {
             else
                 msg += arg + " ";
         }
+        obj.msg += obj.msg.length ? " " : "";
         if (msg.length)
-            obj.msg = (obj.module && obj.activity ? obj.module + '[' + obj.activity + '] - ' : '') + msg;
+            obj.msg += (obj.module && obj.activity ? obj.module + '[' + obj.activity + '] - ' : '') + msg;
         else if (obj.module && obj.activity)
-            obj.msg = obj.module + '[' + obj.activity + ']';
-        else
-            obj.msg = "";
+            obj.msg += obj.module + '[' + obj.activity + ']';
+
 
         if (isEnabled.call(this, levelToStr[obj.level], obj))
             this.sendToLog(levelToStr[obj.level], obj);
