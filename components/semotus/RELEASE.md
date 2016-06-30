@@ -1,3 +1,5 @@
+## 1.2.6
+* Support for clearing pending calls
 ## 1.2.0
 * Logging
 ## 1.1.0
