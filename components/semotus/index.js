@@ -317,7 +317,7 @@ RemoteObjectTemplate.processMessage = function(remoteCall, subscriptionId, resto
          */
         function applyChangesAndValidateCall () {
             this.logger.info({component: 'semotus', module: 'processMessage', activity: 'call',
-                data:{call: remoteCall.name, sequence: remoteCall.sequence}}, remoteCall.name);
+                data:{call: remoteCall.name, sequence: remoteCall.sequence, remoteCallId: remoteCall.id}}, remoteCall.name);
             var arguments = this._fromTransport(JSON.parse(remoteCall.arguments));
             if (this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
                 var obj = session.objects[remoteCall.id];
