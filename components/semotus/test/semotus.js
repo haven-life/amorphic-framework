@@ -365,10 +365,9 @@ describe("Banking Example", function () {
                 done(e)
             });
     });
+
     it("change tracking to work with arrays", function (done) {
         serverAssert = function () {
-            expect(serverController.sam.roles[0].account.__changed__).to.equal(false);
-            serverController.__template__.__objectTemplate__.MarkChangedArrayReferences();
             expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
             serverController.sam.roles[0].account.__changed__ = false;
             serverController.sam.roles[0].account.debit(50);
@@ -376,7 +375,7 @@ describe("Banking Example", function () {
             serverController.__template__.__objectTemplate__.MarkChangedArrayReferences();
             expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
         }
-        var balance = serverController.sam.roles[0].account.getBalance();
+        var balance = clientController.sam.roles[0].account.getBalance();
         serverController.sam.roles[0].account.__changed__ = false;
         clientController.sam.roles[0].account.debit(50);
         clientController.mainFunc().then(function () {

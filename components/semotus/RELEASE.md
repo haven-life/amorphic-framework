@@ -1,3 +1,5 @@
+## 1.2.7
+* Force __changed__ on objects when incoming arrays change
 ## 1.2.6
 * Support for clearing pending calls
 ## 1.2.0

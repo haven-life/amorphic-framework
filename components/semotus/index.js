@@ -1339,6 +1339,8 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
                     obj['__' + prop] = [];
                 obj['__' + prop][ix] = newValue;
             }
+            if (this.__changeTracking__)
+                obj.__changed__ = true;
         } else {
             obj[prop] = newValue;
             if (!this._useGettersSetters && this._manageChanges(defineProperty)) {
