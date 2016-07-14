@@ -278,6 +278,23 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
         this.__prop__ = function(prop) {
             return ObjectTemplate._getDefineProperty(prop, this.__template__);
         }
+        
+        this.__values__ = function (prop) {
+            if (!this.__template__.props[prop] || !this.__template__.props[prop].values) {
+                console.log("Cannot fine values for " + this.__template__.__name__ + "[" + prop + "] values");
+                return [];
+            }
+            return (this.__template__.props[prop].values) == 'function' ? this.__template__.props[prop].call(this) : this.__template__.props[prop].values;
+        }
+
+        this.__descriptions__ = function (prop) {
+            if (!this.__template__.props[prop] || !this.__template__.props[prop].descriptions) {
+                console.log("Cannot fine values for " + this.__template__.__name__ + "[" + prop + "] descriptions");
+                return {};
+            }
+            return (this.__template__.props[prop].descriptions) == 'function' ? this.__template__.props[prop].call(this) : this.__template__.props[prop].descriptions;
+        }
+        
         this.toJSONString = function(cb) {
             return ObjectTemplate.toJSONString(this, cb);
         }
@@ -406,6 +423,11 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
     template.isObjectTemplate = true;
     template.createProperty = createProperty;
 
+    template.props = {}
+    var props = ObjectTemplate._getDefineProperties(template);
+    for (var prop in props)
+        template.props[prop] = props[prop];
+
     return template;
 }
 /**
@@ -456,7 +478,7 @@ ObjectTemplate._setupFunction = function(propertyName, propertyValue) {
 };
 
 /**
- * Used by template setup to create an property descriptor for use by the constructor
+ * Used by template setup to create a property descriptor for use by the constructor
  *
  * @param propertyName is the name of the property
  * @param defineProperty is the property descriptor passed to the template

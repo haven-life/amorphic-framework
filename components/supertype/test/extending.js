@@ -13,26 +13,8 @@ describe("Extended Templates", function () {
 				num:        {type: Number, value: 100},
 				str:        {type: String, value: 'Base'},
 				obj:        {type: Object, value: {type: 'Base'}},
-				date:       {type: Date, value: new Date(100)}
-			});
-
-		var BaseTemplate3 = ObjectTemplate.create("BaseTemplate",
-			{
-				boolTrue:   {type: Boolean},
-				boolFalse:  {type: Boolean},
-				num:        {type: Number},
-				str:        {type: String},
-				obj:        {type: Object},
-				date:       {type: Date},
-				init: function () {
-					BaseTemplate1.call(this);
-					this.boolTrue = true;
-					this.boolFalse = false;
-					this.num = 100;
-					this.str = 'Base';
-					this.obj = {type: 'Base'};
-					this.date = new Date(100);
-				},
+				date:       {type: Date, value: new Date(100)},
+				enum:		{type: String, values: ['b1'], descriptions: {'b1': 'BaseTemplate1'}}
 			});
 
 		var ExtendedTemplate1 = BaseTemplate1.extend("ExtendedTemplate1",
@@ -86,6 +68,13 @@ describe("Extended Templates", function () {
 				},
 			});
 
+		var ExtendedTemplate4 = ExtendedTemplate3.extend("ExtendedTemplate4",
+			{
+				enum:		{type: String, 
+					values: function () {return ['b3']},
+					descriptions: function () {return {'b3': this.str}}}
+			});
+
 		expect((new ExtendedTemplate1()).boolTrue).to.equal(false);
 		expect((new ExtendedTemplate1()).boolFalse).to.equal(true);
 		expect((new ExtendedTemplate1()).num).to.equal(200);
@@ -106,6 +95,13 @@ describe("Extended Templates", function () {
 		expect((new ExtendedTemplate3()).str).to.equal('Extended');
 		expect((new ExtendedTemplate3()).obj.type).to.equal('Extended');
 		expect((new ExtendedTemplate3()).date.getTime()).to.equal(200);
+		console.log(JSON.stringify(BaseTemplate1.props.enum));
+		expect(BaseTemplate1.props.enum.values[0]).to.equal('b1');
+		expect((new BaseTemplate1()).__prop__('enum').values[0]).to.equal('b1');
+		expect((new BaseTemplate1()).__prop__('enum').descriptions['b1']).to.equal('BaseTemplate1');
+		expect((new ExtendedTemplate4()).__descriptions__('enum')['b1']).to.equal('Extended');
+		
+		
 	});
 });
 

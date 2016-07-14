@@ -1,3 +1,5 @@
+## 1.3.0
+* Added obj.__descriptions__ obj.__values__ and template.props
 ## 1.2.0
 * Added bunyan style logging
 ## 1.1.0
