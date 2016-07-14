@@ -1348,10 +1348,9 @@ RemoteObjectTemplate._applyPropertyChange = function(changes, rollback, obj, pro
             }
         }
     }
-    if (this.logLevel > 0) {
-        var logValue = objId ? "{"+  objId + "}" : newValue instanceof Array ? "[" + newValue.length + "]" : newValue;
-        this.changeString[obj.__template__.__name__ + (ix >= 0 ? "[" + ix + "]" : "") + "." + prop] = this.cleanPrivateValues(prop, logValue, defineProperty);
-    }
+    
+    var logValue = objId ? "{"+  objId + "}" : newValue instanceof Array ? "[" + newValue.length + "]" : newValue;
+    this.changeString[obj.__template__.__name__ + (ix >= 0 ? "[" + ix + "]" : "") + "." + prop] = this.cleanPrivateValues(prop, logValue, defineProperty);
 
     rollback.push([obj, prop, ix, currentValue]);
     return true;

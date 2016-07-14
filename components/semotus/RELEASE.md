@@ -1,3 +1,5 @@
+## 1.2.8
+* Enable data logging of data transmitted to the server
 ## 1.2.7
 * Force __changed__ on objects when incoming arrays change
 ## 1.2.6
