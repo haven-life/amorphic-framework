@@ -798,6 +798,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                     child.value = bind_data;
                                     child.text = pleaseSelect;
                                     child.selected = true;
+                                    node.selectedIndex = 0;
                                 } else {
                                     child = node.firstChild;
                                     while (child) {
