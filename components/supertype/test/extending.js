@@ -99,7 +99,7 @@ describe("Extended Templates", function () {
 		expect(BaseTemplate1.props.enum.values[0]).to.equal('b1');
 		expect((new BaseTemplate1()).__prop__('enum').values[0]).to.equal('b1');
 		expect((new BaseTemplate1()).__prop__('enum').descriptions['b1']).to.equal('BaseTemplate1');
-		expect((new ExtendedTemplate4()).__descriptions__('enum')['b1']).to.equal('Extended');
+		expect((new ExtendedTemplate4()).__descriptions__('enum')['b3']).to.equal('Extended');
 		
 		
 	});

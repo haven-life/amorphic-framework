@@ -278,23 +278,21 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
         this.__prop__ = function(prop) {
             return ObjectTemplate._getDefineProperty(prop, this.__template__);
         }
-        
+
         this.__values__ = function (prop) {
-            if (!this.__template__.props[prop] || !this.__template__.props[prop].values) {
-                console.log("Cannot fine values for " + this.__template__.__name__ + "[" + prop + "] values");
-                return [];
-            }
-            return (this.__template__.props[prop].values) == 'function' ? this.__template__.props[prop].call(this) : this.__template__.props[prop].values;
+            var defineProperty = this.__prop__(prop);
+            return typeof(defineProperty.values) == 'function' ?
+              defineProperty.values.call(this) :
+              defineProperty.values;
         }
 
         this.__descriptions__ = function (prop) {
-            if (!this.__template__.props[prop] || !this.__template__.props[prop].descriptions) {
-                console.log("Cannot fine values for " + this.__template__.__name__ + "[" + prop + "] descriptions");
-                return {};
-            }
-            return (this.__template__.props[prop].descriptions) == 'function' ? this.__template__.props[prop].call(this) : this.__template__.props[prop].descriptions;
+            var defineProperty = this.__prop__(prop);
+            return typeof(defineProperty.descriptions) == 'function' ?
+              defineProperty.descriptions.call(this) :
+              defineProperty.descriptions;
         }
-        
+
         this.toJSONString = function(cb) {
             return ObjectTemplate.toJSONString(this, cb);
         }
@@ -478,7 +476,7 @@ ObjectTemplate._setupFunction = function(propertyName, propertyValue) {
 };
 
 /**
- * Used by template setup to create a property descriptor for use by the constructor
+ * Used by template setup to create an property descriptor for use by the constructor
  *
  * @param propertyName is the name of the property
  * @param defineProperty is the property descriptor passed to the template
@@ -492,7 +490,7 @@ ObjectTemplate._setupProperty = function(propertyName, defineProperty, objectPro
     //determine whether value needs to be re-initialized in constructor
     var value   = defineProperty.value;
     var byValue = value && typeof(value) != 'number' && typeof(value) != 'string';
-    if (byValue || !Object.defineProperties) {
+    if (byValue || !Object.defineProperties || defineProperty.get || defineProperty.set) {
         objectProperties[propertyName] = {
             init:	 defineProperty.value,
             type:	 defineProperty.type,
@@ -505,6 +503,33 @@ ObjectTemplate._setupProperty = function(propertyName, defineProperty, objectPro
     defineProperty.toServer = false;
     defineProperty.toClient = false;
     defineProperties[propertyName] = defineProperty;
+
+    // Add getters and setters
+    if (defineProperty.get || defineProperty.set) {
+
+        var userSetter = defineProperty.set;
+        defineProperty.set = (function() {
+            // use a closure to record the property name which is not passed to the setter
+            var prop = propertyName;
+            return function (value) {
+                value = userSetter ? userSetter.call(this, value) : value;
+                this["__" + prop] = value;
+            }
+        })();
+
+        var userGetter = defineProperty.get
+        defineProperty.get = (function () {
+            // use closure to record property name which is not passed to the getter
+            var prop = propertyName; return function () {
+                return userGetter ? userGetter.call(this, this["__"+prop]) : this["__"+prop];
+            }
+        })();
+
+        defineProperties['__' + propertyName] = {enumerable: false, writable: true};
+        delete defineProperty.value;
+        delete defineProperty.writable;
+
+    }
 };
 
 /**
