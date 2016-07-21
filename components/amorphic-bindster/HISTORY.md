@@ -1,3 +1,5 @@
+## 1.0.3
+* Make 1.0.2 work with IE 
 ## 1.0.2
 * PR for sort order
 * fixed problem with not putting events on empty iterates
