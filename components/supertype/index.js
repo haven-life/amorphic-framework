@@ -513,7 +513,8 @@ ObjectTemplate._setupProperty = function(propertyName, defineProperty, objectPro
             var prop = propertyName;
             return function (value) {
                 value = userSetter ? userSetter.call(this, value) : value;
-                this["__" + prop] = value;
+                if (!defineProperty.isVirtual)
+                    this["__" + prop] = value;
             }
         })();
 
@@ -521,11 +522,12 @@ ObjectTemplate._setupProperty = function(propertyName, defineProperty, objectPro
         defineProperty.get = (function () {
             // use closure to record property name which is not passed to the getter
             var prop = propertyName; return function () {
-                return userGetter ? userGetter.call(this, this["__"+prop]) : this["__"+prop];
+                return userGetter ? userGetter.call(this, defineProperty.isVirtual ? undefined : this["__"+prop]) : this["__"+prop];
             }
         })();
 
-        defineProperties['__' + propertyName] = {enumerable: false, writable: true};
+        if (!defineProperty.isVirtual)
+            defineProperties['__' + propertyName] = {enumerable: false, writable: true};
         delete defineProperty.value;
         delete defineProperty.writable;
 
