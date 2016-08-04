@@ -398,8 +398,8 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
 
     template.defineProperties = defineProperties;
     template.objectProperties = objectProperties;
-    template.getProperties = function() {
-        return ObjectTemplate._getDefineProperties(template);
+    template.getProperties = function(includeVirtual) {
+        return ObjectTemplate._getDefineProperties(template, includeVirtual);
     }
 
     template.functionProperties = functionProperties;
@@ -422,7 +422,7 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
     template.createProperty = createProperty;
 
     template.props = {}
-    var props = ObjectTemplate._getDefineProperties(template);
+    var props = ObjectTemplate._getDefineProperties(template, true);
     for (var prop in props)
         template.props[prop] = props[prop];
 
@@ -790,16 +790,17 @@ ObjectTemplate._getDefineProperty = function(prop, template)
  * @return {*} an associative array of each "defineProperty" structure for the property
  * @private
  */
-ObjectTemplate._getDefineProperties = function(template, returnValue)
+ObjectTemplate._getDefineProperties = function(template, returnValue, includeVirtual)
 {
     if (!returnValue)
         returnValue = {};
 
     if (template.defineProperties)
         for (var prop in template.defineProperties)
-            returnValue[prop] = template.defineProperties[prop]
+            if (includeVirtual || !template.defineProperties[prop].isVirtual)
+                returnValue[prop] = template.defineProperties[prop]
     if (template.parentTemplate)
-        this._getDefineProperties(template.parentTemplate, returnValue);
+        this._getDefineProperties(template.parentTemplate, returnValue, includeVirtual);
 
     return returnValue;
 };

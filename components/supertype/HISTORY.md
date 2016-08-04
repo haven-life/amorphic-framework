@@ -1,4 +1,4 @@
-## 1.3.1
+## 1.3.2
 * Added isVirtual
 ## 1.3.0
 * Added obj.__descriptions__ obj.__values__ and template.props
