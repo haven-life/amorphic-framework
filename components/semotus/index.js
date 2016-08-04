@@ -669,7 +669,7 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
     //determine whether value needs to be re-initialized in constructor
     var value = typeof(defineProperty.value) == 'undefined' ? null : defineProperty.value;
     objectProperties[propertyName] = {
-        init:	 value,
+        init:	 defineProperty.isVirtual ? undefined : value,
         type:	 defineProperty.type,
         of:		 defineProperty.of,
         byValue: !(typeof(value) == 'boolean' || typeof(value) == 'number' || typeof(value) == 'string' || value == null)
@@ -695,12 +695,13 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
             var prop = propertyName; 
             return function (value) {
                 value = userSetter ? userSetter.call(this, value) : value;
-                if (this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
+                if (!defineProperty.isVirtual && this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
                     objectTemplate._changedValue(this, prop, value);
                     if (objectTemplate.__changeTracking__)
                         this.__changed__ = true;
                 }
-                this["__" + prop] = value;
+                if (!defineProperty.isVirtual)
+                    this["__" + prop] = value;
             }
             function transform(data) {
                 try {
@@ -735,9 +736,9 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
         defineProperty.get = (function () {
             // use closure to record property name which is not passed to the getter
             var prop = propertyName; return function () {
-                if (this["__" + prop] instanceof Array)
+                if (!defineProperty.isVirtual && this["__" + prop] instanceof Array)
                     objectTemplate._referencedArray(this, prop, this["__" + prop]);
-                return userGetter ? userGetter.call(this, this["__"+prop]) : this["__"+prop];
+                return userGetter ? userGetter.call(this, this["__" + prop]) : this["__"+prop];
             }
         })();
     } else
@@ -925,7 +926,7 @@ RemoteObjectTemplate._changedValue = function (obj, prop, value)
  * @param arrayRef the value returned in the reference (previous value)
  * @private
  */
-RemoteObjectTemplate.   _referencedArray = function (obj, prop, arrayRef, sessionId)
+RemoteObjectTemplate._referencedArray = function (obj, prop, arrayRef, sessionId)
 {
     if (obj.__transient__ || this.__transient__ ||
       (this.role == "client" && obj.__template__.__toServer__ == false) ||
