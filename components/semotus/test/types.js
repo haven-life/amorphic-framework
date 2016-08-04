@@ -49,7 +49,18 @@ function createTemplates(objectTemplate) {
             this.myString = s;
             this.myDate = d;
             //this.myArrayObj = a;
-        }
+        },
+        please: {type: String, value: 'init', get: function(v) {return v.match(/please/) ? v : v + ' please'}},
+        prettyPlease: {type: String, value: 'init',
+            get: function(v) {return v.match(/please/) ? v : v + ' please'},
+            set: function(v) {return v.match(/pretty/) ? v : v + ' pretty'}
+        },
+        half1: {type: Number, value: 5},
+        half2: {type: Number, value: 5},
+        whole: {type: Number, isVirtual: true,
+            get: function (x) {return this.half1 + this.half2},
+            set: function (x) {this.half1 = x/2; this.half2 = x/2}}
+
     }),
 
     Controller = objectTemplate.create("Controller",
@@ -158,6 +169,17 @@ describe("Type Tests", function () {
     ServerObjectTemplate.controller = serverController;
 
     var t1 = new MyTemplate(1, "two", new Date("January 15, 2015"));
+    expect(t1.please).to.equal("init please");
+    expect(t1.prettyPlease).to.equal("init pretty please");
+    expect(t1.half1).to.equal(5);
+    expect(t1.half2).to.equal(5);
+    expect(t1.whole).to.equal(10);
+    t1.whole = 20
+    expect(t1.half1).to.equal(10);
+    expect(t1.half2).to.equal(10);
+    expect(t1.whole).to.equal(20);
+    expect(t1.__whole).to.equal(undefined);
+
     var t2;
     var promise1,promise2,promise3;
 

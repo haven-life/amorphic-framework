@@ -689,9 +689,12 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
     {
         var createChanges = this._createChanges(defineProperty);
 
+        var userSetter = defineProperty.set;
         defineProperty.set = (function() {
             // use a closure to record the property name which is not passed to the setter
-            var prop = propertyName; return function (value) {
+            var prop = propertyName; 
+            return function (value) {
+                value = userSetter ? userSetter.call(this, value) : value;
                 if (this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
                     objectTemplate._changedValue(this, prop, value);
                     if (objectTemplate.__changeTracking__)
@@ -728,12 +731,13 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
         })();
 
         // Getter
+        var userGetter = defineProperty.get
         defineProperty.get = (function () {
             // use closure to record property name which is not passed to the getter
             var prop = propertyName; return function () {
                 if (this["__" + prop] instanceof Array)
                     objectTemplate._referencedArray(this, prop, this["__" + prop]);
-                return this["__"+prop];
+                return userGetter ? userGetter.call(this, this["__"+prop]) : this["__"+prop];
             }
         })();
     } else
