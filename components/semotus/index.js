@@ -741,6 +741,30 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                 return userGetter ? userGetter.call(this, this["__" + prop]) : this["__"+prop];
             }
         })();
+    } else if(defineProperty.get || defineProperty.set) {
+        var userSetter = defineProperty.set;
+        defineProperty.set = (function() {
+            // use a closure to record the property name which is not passed to the setter
+            var prop = propertyName;
+            return function (value) {
+                value = userSetter ? userSetter.call(this, value) : value;
+                if (!defineProperty.isVirtual)
+                    this["__" + prop] = value;
+            }
+        })();
+
+        var userGetter = defineProperty.get
+        defineProperty.get = (function () {
+            // use closure to record property name which is not passed to the getter
+            var prop = propertyName; return function () {
+                return userGetter ? userGetter.call(this, defineProperty.isVirtual ? undefined : this["__"+prop]) : this["__"+prop];
+            }
+        })();
+
+        if (!defineProperty.isVirtual)
+            defineProperties['__' + propertyName] = {enumerable: false, writable: true};
+        delete defineProperty.value;
+        delete defineProperty.writable;
     } else
         objectProperties['__' + propertyName] = objectProperties[propertyName];
 
