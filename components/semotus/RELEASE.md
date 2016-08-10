@@ -1,3 +1,5 @@
+## 1.3.2
+* isVirtual Properties
 ## 1.2.8
 * Enable data logging of data transmitted to the server
 ## 1.2.7

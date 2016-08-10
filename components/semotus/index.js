@@ -680,6 +680,19 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
     defineProperties[propertyName] = defineProperty;
     defineProperties['__' + propertyName] = {enumerable: false, writable: true};
 
+    // Move user getters and setters to their own property
+    if (defineProperty.get && !defineProperty.userGet && !defineProperty.definePropertyProcessed) {
+        defineProperty.userGet = defineProperty.get;
+        delete defineProperty.get;
+    }
+    if (defineProperty.set && !defineProperty.userSet && !defineProperty.definePropertyProcessed) {
+        defineProperty.userSet = defineProperty.set;
+        delete defineProperty.set;
+    }
+    defineProperty.definePropertyProcessed = true;
+    var userGetter = defineProperty.userGet
+    var userSetter = defineProperty.userSet;
+
     // In the case where there are now getters and setters, the __prop represents
     // the original value
 
@@ -689,10 +702,9 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
     {
         var createChanges = this._createChanges(defineProperty);
 
-        var userSetter = defineProperty.set;
         defineProperty.set = (function() {
             // use a closure to record the property name which is not passed to the setter
-            var prop = propertyName; 
+            var prop = propertyName;
             return function (value) {
                 value = userSetter ? userSetter.call(this, value) : value;
                 if (!defineProperty.isVirtual && this.__id__ && createChanges && transform(this["__" + prop]) !== transform(value)) {
@@ -725,14 +737,13 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                         return JSON.stringify(data);
                 } catch (e) {
                     objectTemplate.logger.error({component: 'semotus', module: 'setter', activity: 'stingify', data: {property: prop}},
-                      "caught exception trying to stringify " + prop);
+                        "caught exception trying to stringify " + prop);
                     return data;
                 }
             }
         })();
 
         // Getter
-        var userGetter = defineProperty.get
         defineProperty.get = (function () {
             // use closure to record property name which is not passed to the getter
             var prop = propertyName; return function () {
@@ -741,8 +752,7 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
                 return userGetter ? userGetter.call(this, this["__" + prop]) : this["__"+prop];
             }
         })();
-    } else if(defineProperty.get || defineProperty.set) {
-        var userSetter = defineProperty.set;
+    } else if(defineProperty.userGet || defineProperty.userSet) {
         defineProperty.set = (function() {
             // use a closure to record the property name which is not passed to the setter
             var prop = propertyName;
@@ -753,7 +763,6 @@ RemoteObjectTemplate._setupProperty = function(propertyName, defineProperty, obj
             }
         })();
 
-        var userGetter = defineProperty.get
         defineProperty.get = (function () {
             // use closure to record property name which is not passed to the getter
             var prop = propertyName; return function () {
@@ -909,8 +918,8 @@ RemoteObjectTemplate._logChanges = function (obj)
 RemoteObjectTemplate._changedValue = function (obj, prop, value)
 {
     if (obj.__transient__ || this.__transient__ ||
-      (this.role == "client" && obj.__template__.__toServer__ == false) ||
-      (this.role == "server" && obj.__template__.__toClient__ == false))
+        (this.role == "client" && obj.__template__.__toServer__ == false) ||
+        (this.role == "server" && obj.__template__.__toClient__ == false))
         return
 
     var subscriptions = this._getSubscriptions()
