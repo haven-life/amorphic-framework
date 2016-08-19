@@ -251,11 +251,13 @@ module.exports = function (PersistObjectTemplate) {
                             // Collect a structure of similar filters (excluding the first one)
                             var filters = null;
                             var excluded = 0; // Exclude first
-                            for (var definePropertyKey in props) {
-                                var filter = schema.children[definePropertyKey] ? schema.children[definePropertyKey].filter : null;
-                                if (defineProperty.of == thisDefineProperty.of && filter && filter.property == foreignFilterKey && excluded++) {
+                            for (var candidateProp in props) {
+                                var candidateDefineProp = props[candidateProp];
+                                var filter = schema.children[candidateProp] ? schema.children[candidateProp].filter : null;
+                                if (filter && filter.property == foreignFilterKey &&
+                                    candidateDefineProp.of.__table__ == thisDefineProperty.of.__table__ &&  excluded++) {
                                     filters = filters || {};
-                                    filters[definePropertyKey] = {
+                                    filters[candidateProp] = {
                                         foreignFilterKey: filter.property,
                                         foreignFilterValue: filter.value,
                                     }

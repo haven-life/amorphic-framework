@@ -1,3 +1,5 @@
+## 1.2.2
+* Filter queries no longer need unique types for all sub-ordinate objects
 ## 1.2.0
 * New logging
 ## 1.1.1
