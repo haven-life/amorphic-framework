@@ -55,7 +55,9 @@ var Address = PersistObjectTemplate.create("Address", {
 });
 Customer.mixin({
     referredBy: {type: Customer},
+    type: {type: String, value: 'primary'},
     referrers:  {type: Array, of: Customer, value: [], fetch: true},
+    secondaryReferrers:  {type: Array, of: Customer, value: [], fetch: true},
 	addAddress: function(type, lines, city, state, zip) {
 		var address = new Address(this);
 		address.lines = lines;
@@ -206,7 +208,8 @@ var schema = {
         documentOf: "pg/customer",
         children: {
             roles: {id: "customer_id"},
-            referrers: {id: "referred_id"},
+            referrers: {id: "referred_id", filter: {property: 'type', value: 'primary'}},
+            secondaryReferrers: {id: "referred_id", filter: {property: 'type', value: 'secondary'}},
             primaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'primary'}, pruneOrphans: true},
             secondaryAddresses: {id: "customer_id", fetch: true, filter: {property: 'type', value: 'secondary'}, pruneOrphans: true}
         },
