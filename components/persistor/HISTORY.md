@@ -1,3 +1,5 @@
+## 1.3.1
+* Added schema comments for PG
 ## 1.2.2
 * Filter queries no longer need unique types for all sub-ordinate objects
 ## 1.2.0

@@ -22,8 +22,8 @@ module.exports = function (PersistObjectTemplate) {
         var select = knex.select(getColumnNames.bind(this, template)()).from(tableName);
         joins.forEach(function (join) {
             select = select.leftOuterJoin(this.dealias(join.template.__table__) + " as " + join.alias,
-              join.alias + "." + join.parentKey,
-              this.dealias(template.__table__) + "." + join.childKey);
+                join.alias + "." + join.parentKey,
+                this.dealias(template.__table__) + "." + join.childKey);
         }.bind(this));
 
         // execute callback to chain on filter functions or convert mongo style filters
@@ -289,19 +289,19 @@ module.exports = function (PersistObjectTemplate) {
         pojo.__version__ = obj.__version__;
         (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'pre',
             data: {txn: (txn ? txn.id + " ": '-#- '), type: (updateID ? 'updating ' : 'insert '),
-            template: obj.__template__.__name__, id: obj.__id__, _id: obj._id, __version__: pojo.__version__}});
+                template: obj.__template__.__name__, id: obj.__id__, _id: obj._id, __version__: pojo.__version__}});
         if (updateID)
             return Promise.resolve(knex
-              .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
-              .update(pojo)
-              .transacting(txn ? txn.knex : null)
-              .then(checkUpdateResults.bind(this))
-              .then(logSuccess.bind(this)))
+                .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
+                .update(pojo)
+                .transacting(txn ? txn.knex : null)
+                .then(checkUpdateResults.bind(this))
+                .then(logSuccess.bind(this)))
         else
             return Promise.resolve(knex
-              .insert(pojo)
-              .transacting(txn ? txn.knex : null)
-              .then(logSuccess.bind(this)));
+                .insert(pojo)
+                .transacting(txn ? txn.knex : null)
+                .then(logSuccess.bind(this)));
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
@@ -409,6 +409,23 @@ module.exports = function (PersistObjectTemplate) {
                         }
                     }
                 }
+                for (var columnName in info) {
+                    var prop = columnNameToProp(columnName);
+                    if (!prop) {
+                        PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, "Extra column " + columnName + " on " + table);
+                        commentOn(table, columnName, 'now obsolete');
+                    } else {
+                        if (prop == '_id')
+                            commentOn(table, columnName, "primary key");
+                        else if (prop.match(/:/)) {
+                            prop = prop.substr(1);
+                            commentOn(table, columnName, getForeignKeyDescription(props[prop]));
+                        } else if (prop == '_template')
+                            commentOn(table, columnName, getClassNames(prop));
+                        else if (prop != '__version__')
+                            commentOn(table, columnName, getDescription(prop, props[prop]));
+                    }
+                }
             });
 
             function propToColumnName(prop) {
@@ -419,6 +436,62 @@ module.exports = function (PersistObjectTemplate) {
                     else
                         prop = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 return prop;
+            }
+            function columnNameToProp(columnName) {
+                if (columnName  == '_id' || columnName == '__version__' || columnName == '_template')
+                    return columnName;
+                if (props[columnName])
+                    return columnName;
+                if (!schema || !schema.parents)
+                    return false;
+                for (var parent in schema.parents)
+                    if (columnName == schema.parents[parent].id)
+                        return ":" + parent;
+                return null;
+            }
+            function getForeignKeyDescription(defineProperty) {
+                if (!defineProperty.type)
+                    return "";
+                var prop = defineProperty.type.__name__
+                var template = PersistObjectTemplate.__dictionary__[prop]
+                if (!template)
+                    return "";
+                return "foreign key for " + template.__table__;
+            }
+            function getClassNames (prop) {
+                var className = "";
+                getClassName(template);
+                return className;
+                function getClassName(template) {
+                    className += (className.length > 0 ? ", " + template.__name__ : "values: " + template.__name__)
+                    if (template.__children__)
+                        _.each(template.__children__, getClassName);
+                }
+            }
+            function getDescription (prop, defineProperty) {
+                if (!defineProperty)
+                    return "";
+                var values = {};
+                var valStr = "";
+                processValues(template);
+                var comment = defineProperty.comment ? defineProperty.comment + "; " : "";
+                _.each(values, function (val, key) {valStr += (valStr.length == 0 ? "" : ", ") + key});
+                comment = valStr.length > 0 ? comment + "values: " + valStr : comment;
+                return comment;
+                function processValues(template) {
+                    var defineProperty = template.defineProperties[prop];
+                    if (defineProperty && defineProperty.values)
+                        _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)] = true;})
+                    if (template.__children__)
+                        _.each(template.__children__, processValues);
+                }
+            }
+            function commentOn(table, column, comment) {
+                if (knex.client.config.client == 'pg') {
+                    knex.raw("COMMENT ON COLUMN " + table + ".\"" + column + "\" IS '" + comment.replace(/'/g,"''") +"';")
+                        .then(function() {}, function (e) {console.log(e)});
+                }
+                console.log(table + "." + column + '=' + comment);
             }
         }
     }
@@ -508,7 +581,7 @@ module.exports = function (PersistObjectTemplate) {
                     });
                 } else if (addMissingTable && !!masterTblSchema && !!masterTblSchema.indexes) {
                     diffs[opr] = diffs[opr] || [];
-                   diffs[opr].push.apply(diffs[opr], masterTblSchema.indexes);
+                    diffs[opr].push.apply(diffs[opr], masterTblSchema.indexes);
                 }
                 return diffs;
             }
@@ -612,14 +685,14 @@ module.exports = function (PersistObjectTemplate) {
                         sequence_id = ++record[0].sequence_id;
                     }
                     _.each(_changes, function (o, chgKey) {
-                         response[chgKey] = schema[chgKey];
+                        response[chgKey] = schema[chgKey];
                     });
 
                     return knex(schemaTable).insert({
                         sequence_id: sequence_id,
                         schema: JSON.stringify(response)
                     });
-            })
+                })
         }
 
         return Promise.resolve()
@@ -673,13 +746,13 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;
         return knex
-          .transacting(txn ? txn.knex : null)
-          .where('_id', '=', obj._id)
-          .increment('__version__', 1)
-          .then(function () {
-              (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'post',
-                  data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
-          }.bind(this))
+            .transacting(txn ? txn.knex : null)
+            .where('_id', '=', obj._id)
+            .increment('__version__', 1)
+            .then(function () {
+                (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'post',
+                    data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
+            }.bind(this))
     }
 
     PersistObjectTemplate.createKnexTable = function (template, collection) {
@@ -799,10 +872,10 @@ module.exports = function (PersistObjectTemplate) {
             for (var prop in query) {
                 var params = processProp(statement, prop, query[prop]);
                 statement = firstProp ?
-                  (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                    statement.where(params[0])) :
-                  (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
-                    statement.andWhere(params[0]));
+                    (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
+                        statement.where(params[0])) :
+                    (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
+                        statement.andWhere(params[0]));
                 firstProp = false;
             }
             return statement;
@@ -823,10 +896,10 @@ module.exports = function (PersistObjectTemplate) {
                     _.each(value, function (obj) {
                         var params = processObject(statement, obj);
                         statement = firstProp ?
-                          (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                            statement.where(params[0])) :
-                          (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
-                            statement.andWhere(params[0]));
+                            (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
+                                statement.where(params[0])) :
+                            (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
+                                statement.andWhere(params[0]));
                         firstProp = false;
                     });
                 } else if (prop.toLowerCase() == '$or') {
@@ -834,10 +907,10 @@ module.exports = function (PersistObjectTemplate) {
                     _.each(value, function (obj) {
                         var params = processObject(statement, obj);
                         statement = firstProp ?
-                          (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                            statement.where(params[0])) :
-                          (params.length > 1 ? statement.orWhere(params[0], params[1], params[2]) :
-                            statement.andWhere(params[0]));
+                            (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
+                                statement.where(params[0])) :
+                            (params.length > 1 ? statement.orWhere(params[0], params[1], params[2]) :
+                                statement.andWhere(params[0]));
                         firstProp = false
                     });
                 } else if (prop.toLowerCase() == '$in')
