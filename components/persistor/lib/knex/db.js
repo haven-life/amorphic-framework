@@ -491,7 +491,7 @@ module.exports = function (PersistObjectTemplate) {
                     knex.raw("COMMENT ON COLUMN " + table + ".\"" + column + "\" IS '" + comment.replace(/'/g,"''") +"';")
                         .then(function() {}, function (e) {console.log(e)});
                 }
-                console.log(table + "." + column + '=' + comment);
+                //console.log(table + "." + column + '=' + comment);
             }
         }
     }
