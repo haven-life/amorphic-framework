@@ -264,6 +264,23 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
         for (var ix = 0; ix < objectTemplate.__injections__.length; ++ix)
             objectTemplate.__injections__[ix].call(this, this);
 
+        this.__prop__ = function(prop) {
+            return ObjectTemplate._getDefineProperty(prop, this.__template__);
+        }
+
+        this.__values__ = function (prop) {
+            var defineProperty = this.__prop__(prop);
+            return typeof(defineProperty.values) == 'function' ?
+                defineProperty.values.call(this) :
+                defineProperty.values;
+        }
+
+        this.__descriptions__ = function (prop) {
+            var defineProperty = this.__prop__(prop);
+            return typeof(defineProperty.descriptions) == 'function' ?
+                defineProperty.descriptions.call(this) :
+                defineProperty.descriptions;
+        }
         // If we don't have an init function or are a remote creation call parent constructor otherwise call init
         // function who will be responsible for calling parent constructor to allow for parameter passing.
         if (this.fromRemote || !functionProperties.init || objectTemplate.noInit) {
@@ -275,23 +292,6 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
         }
 
         this.__template__ = template;
-        this.__prop__ = function(prop) {
-            return ObjectTemplate._getDefineProperty(prop, this.__template__);
-        }
-
-        this.__values__ = function (prop) {
-            var defineProperty = this.__prop__(prop);
-            return typeof(defineProperty.values) == 'function' ?
-              defineProperty.values.call(this) :
-              defineProperty.values;
-        }
-
-        this.__descriptions__ = function (prop) {
-            var defineProperty = this.__prop__(prop);
-            return typeof(defineProperty.descriptions) == 'function' ?
-              defineProperty.descriptions.call(this) :
-              defineProperty.descriptions;
-        }
 
         this.toJSONString = function(cb) {
             return ObjectTemplate.toJSONString(this, cb);
@@ -340,12 +340,12 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, properties,
             var type = descriptor.get || descriptor.set ? 'getset' : ((properties[propertyName] == null) ? 'null' : typeof(properties[propertyName]));
             switch (type) {
 
-              // Figure out whether this is a defineProperty structure (has a constructor of object)
+                // Figure out whether this is a defineProperty structure (has a constructor of object)
                 case 'object': // or array
                     // Handle remote function calls
                     if (properties[propertyName].body && typeof(properties[propertyName].body) == "function") {
                         templatePrototype[propertyName] =
-                          objectTemplate._setupFunction(propertyName, properties[propertyName].body, properties[propertyName].on, properties[propertyName].validate);
+                            objectTemplate._setupFunction(propertyName, properties[propertyName].body, properties[propertyName].on, properties[propertyName].validate);
                         if (properties[propertyName].type)
                             templatePrototype[propertyName].__returns__ = properties[propertyName].type;
                         if (properties[propertyName].of) {
@@ -624,16 +624,16 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
                 obj[prop] = [];
                 for (var ix = 0; ix < pojo[prop].length; ++ix)
                     obj[prop][ix] = pojo[prop][ix] ?
-                      (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
-                        idMap[getId(pojo[prop][ix].__id__.toString())] :
-                        this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
-                      : null;
+                        (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
+                            idMap[getId(pojo[prop][ix].__id__.toString())] :
+                            this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
+                        : null;
             }
             else if (type.isObjectTemplate) // Templated objects
 
                 obj[prop] =	(pojo[prop].__id__ && idMap[getId(pojo[prop].__id__.toString())] ?
-                  idMap[getId(pojo[prop].__id__.toString())] :
-                  this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier, obj, prop, creator));
+                    idMap[getId(pojo[prop].__id__.toString())] :
+                    this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier, obj, prop, creator));
 
             else if (type == Date)
                 obj[prop] = pojo[prop] ? new Date(pojo[prop]) : null;
@@ -778,10 +778,10 @@ ObjectTemplate._createEmptyObject = function(template, objId, defineProperty)
 ObjectTemplate._getDefineProperty = function(prop, template)
 {
     return	template && (template != Object) && template.defineProperties && template.defineProperties[prop] ?
-      template.defineProperties[prop] :
-      template && template.parentTemplate ?
-        this._getDefineProperty(prop, template.parentTemplate) :
-        null;
+        template.defineProperties[prop] :
+        template && template.parentTemplate ?
+            this._getDefineProperty(prop, template.parentTemplate) :
+            null;
 };
 /**
  * returns a hash of all properties including those inherited
@@ -905,7 +905,7 @@ ObjectTemplate.createLogger = function (context) {
             this.sendToLog(levelToStr[obj.level], obj);
         function isObject(obj) {
             return obj != null && typeof(obj) == 'object' && !(obj instanceof Array) &&
-              !(obj instanceof Date) && !(obj instanceof Error)
+                !(obj instanceof Date) && !(obj instanceof Error)
         }
     }
 
@@ -942,8 +942,8 @@ ObjectTemplate.createLogger = function (context) {
 
     function formatDateTime(date) {
         var str =  f(2, (date.getMonth() + 1), '/') + f(2, date.getDate(), '/') + f(4, date.getFullYear(), " ") +
-          f(2, date.getHours(), ':') + f(2, date.getMinutes(), ':') + f(2, date.getSeconds(), ':') +
-          f(3, date.getMilliseconds()) + ' GMT' + (0 - date.getTimezoneOffset() / 60);
+            f(2, date.getHours(), ':') + f(2, date.getMinutes(), ':') + f(2, date.getSeconds(), ':') +
+            f(3, date.getMilliseconds()) + ' GMT' + (0 - date.getTimezoneOffset() / 60);
         return str
         function f(z, d, s) {
             while ((d + "").length < z)

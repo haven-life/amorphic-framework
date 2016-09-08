@@ -1,3 +1,5 @@
+## 1.3.3
+* Allow __values__ and __descriptions__ to be available in init functions
 ## 1.3.2
 * Added isVirtual
 ## 1.3.0
