@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:b="http://bindster.com/bindster.dtd" lang="en">
+<script src="../index.js"></script>
+<script src="../node_modules/supertype/index.js"></script>
+<script src="../node_modules/q/q.js"></script>
+<style>
+    body {font-family:  Arial, Helvetica, sans-serif;}
+    p {margin-bottom: 0px}
+</style>
+<script>
+    var Controller = ObjectTemplate.create("Controller", {
+        get foo() {return 'foo'},
+        please: {type: String, value: 'init', get: function(v) {return v.match(/please/) ? v : v + ' please'}},
+        prettyPlease: {type: String, value: 'init',
+            get: function(v) {return v.match(/please/) ? v : v + ' please'},
+            set: function(v) {return v.match(/pretty/) ? v : v + ' pretty'}
+        },
+        val1: {type: String, validate: validate1, value: ''},
+        val2: {type: String, validate: validate2, value: ''}
+    })
+    var controller = new Controller();
+    function validate1(val) {
+        if ((val.length + this.val2.length) > 10)
+            throw {message: "Too long"};
+    }
+    function validate2(val) {
+        return Q.delay(1000).then(function () {
+            if ((val.length + this.val1.length) > 10)
+                throw {message: "Too long"};
+        }.bind(this));
+    }
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+foo: <span  b:bind="foo"></span>
+init please: <span  b:bind="please"></span>
+init pretty please: <span  b:bind="prettyPlease"></span>
+<input type="text" b:bind="val1" /><br />
+<span b:binderror="val1"></span>
+<br /><br />
+<input type="text" b:bind="val2" /><br />
+<span b:binderror="val2"></span>
+</body>
+<script>
+    bindster = new Bindster(controller, null, controller, null, true);
+    bindster.start();
+</script>
+</html>

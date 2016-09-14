@@ -1,5 +1,28 @@
+## 1.3.7
+* Don't update selects when they have not changed
+## 1.3.6
+* Prevent __xxx__ props from being suppressed outside of mappers (revised)
+## 1.3.5
+* Parse results were not being fed into trigger
+## 1.3.4
+* Prevent node is not defined error
+## 1.3.3
+* Prevent __xxx__ props from being suppressed outside of mappers
+## 1.3.2
+* Made property lookup not throw errors
+* Made value setting not dependent on controller in event handling
+## 1.3.1
+* Fixed broken event handler
+* Added support for b:pleaseselect to have {} JS expression
+## 1.3.0
+* Asynchronous validation
+* Remove support for xxxGet and xxxSet
+## 1.1.0
+* Added handling for value/descriptions in types plumbing through to selects
+* Added the ability to iterate on scalar with values property in which case it iterates the values
+* Added call-out to material_select to deal with materialize selects
 ## 1.0.3
-* Make 1.0.2 work with IE 
+* Make 1.0.2 work with IE
 ## 1.0.2
 * PR for sort order
 * fixed problem with not putting events on empty iterates

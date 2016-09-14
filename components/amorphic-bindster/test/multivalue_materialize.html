@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:b="http://bindster.com/bindster.dtd" lang="en">
+<script src="../index.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+<script src="../node_modules/supertype/index.js"></script>
+
+<style>
+    body {font-family:  Arial, Helvetica, sans-serif;margin: 2em}
+    p {margin-bottom: 0px}
+</style>
+<script>
+     var Controller = ObjectTemplate.create("Controller", {
+        val1: {type: String, values: {"S":"Sam", "K":"Karen"}, value: null},
+        val2: {type: String, values: function () {return {"S":"Sam", "K":this.karen}}, value: "S"},
+        val3: {type: String, values: ["S", "K"], descriptions: getValues, value: "S"},
+        val4: {type: String, values: function () {return ["S", "K"]}, descriptions: function () {return {"S":"Sam", "K":this.karen}}, value: "S"},
+        val5: {type: String, value: 'not set'},
+        val6: {type: Boolean, values: {"true": 'Yes', "false":'No'}, value: true},
+        sam:   {type: String, value: "Sam"},
+        karen: {type: String, value: "Karen"}
+    })
+
+    function getValues () {
+        return {"S": this.sam, "K": this.karen}
+    }
+
+    var controller = new Controller();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+<h3>Update Select Descriptions Here</h3>
+Description for Sam: <input b:bind="sam" /><br/>
+Description for Karen: <input b:bind="karen" />
+<h3>Iterating directly on a radio button</h3>
+<p>type: String, values: {"S":"Sam", "K":"Karen"}</p>
+<b:iterate on="val1" with="_rbdata_" index="_rbix_">
+    <input b:bind="val1" type="radio" group="foo1" b:truevalue="_rbdata_.value" b:onclick="val5 = _rbdata_.value" b:id="{'val1' + _rbix_}">
+    <label b:bind="_rbdata_.description" b:for="{'val1' + _rbix_}"></label><br />
+</b:iterate>
+
+<p>type: String, values: function () {return {"S":"Sam", "K":this.karen}}</p>
+<b:iterate on="val2" with="_rbdata_" index="_rbix_">
+    <input b:bind="val2" type="radio" group="foo2" b:truevalue="_rbdata_.value" b:onclick="val5 = _rbdata_.value" b:id="{'val2' + _rbix_}">
+    <label b:bind="_rbdata_.description" b:for="{'val2' + _rbix_}"></label><br />
+</b:iterate>
+
+<p>type: String, values: ["S", "K"], descriptions: {"S":"Sam", "K":"Karen"}</p>
+<b:iterate on="val3" with="_rbdata_" index="_rbix_">
+    <input b:bind="val3" type="radio" group="foo3" b:truevalue="_rbdata_.value" b:onclick="val5 = _rbdata_.value" b:id="{'val3' + _rbix_}">
+    <label b:bind="_rbdata_.description" b:for="{'val3' + _rbix_}"></label><br />
+</b:iterate>
+
+<p>type: String, values: function () {return ["S", "K"]}, descriptions: function () {return {"S":"Sam", "K":this.karen}}</p>
+<b:iterate on="val4" with="_rbdata_" index="_rbix_">
+    <input b:bind="val4" type="radio" group="foo4" b:truevalue="_rbdata_.value" b:onclick="val5 = _rbdata_.value" b:id="{'val4' + _rbix_}">
+    <label b:bind="_rbdata_.description" b:for="{'val4' + _rbix_}"></label><br />
+</b:iterate>
+
+<p>type: boolean, values: {"true": 'Yes', "false":'No'}</p>
+<b:iterate on="val6" with="_rbdata_" index="_rbix_">
+    <input b:bind="val6" type="radio" group="foo5" b:truevalue="_rbdata_.value" b:onclick="val5 = _rbdata_.value" b:id="{'val6' + _rbix_}">
+    <label b:bind="_rbdata_.description" b:for="{'val6' + _rbix_}"></label><br />
+</b:iterate>
+
+<h3>Same setup with selects</h3>
+
+<p>type: String, values: {"S":"Sam", "K":"Karen"}</p>
+<div class="input-field">
+    <select b:bind="val1" b:onchange="val5=val1"></select><br />
+</div>
+
+<p>type: String, values: function () {return {"S":"Sam", "K":this.karen}}</p>
+<div class="input-field">
+    <select b:bind="val2" b:onchange="val5=val1"></select><br />
+</div>
+
+    <p>type: String, values: function () {return ["S", "K"]}, descriptions: function () {return {"S":"Sam", "K":this.karen}}</p>
+<div class="input-field">
+    <select b:bind="val3" b:onchange="val5=val1"></select><br />
+</div>
+
+    <p>type: String, values: function () {return ["S", "K"]}, descriptions: function () {return {"S":"Sam", "K":this.karen}}</p>
+<div class="input-field">
+    <select b:bind="val4" b:onchange="val5=val1"></select><br />
+</div>
+
+    <p>type: boolean, values: {"true": 'Yes', "false":'No'}</p>
+<div class="input-field">
+    <input b:bind="val6" type="checkbox" b:truevalue="true" b:falsevalue="false" b:onclick="val5 = val6"><br />
+</div>
+
+<h3>Result of onchange/onclick</h3>
+<span b:bind="val5"></span>(<span b:bind="typeof(val5)"></span>)
+
+</body>
+<script>
+    bindster = new Bindster(controller, null, controller, null, true);
+    bindster.start();
+</script>
+</html>

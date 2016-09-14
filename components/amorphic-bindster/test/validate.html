@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:b="http://bindster.com/bindster.dtd" lang="en">
+<script src="../index.js"></script>
+<script src="../node_modules/supertype/index.js"></script>
+<script src="../node_modules/q/q.js"></script>
+<style>
+    body {font-family:  Arial, Helvetica, sans-serif;}
+    p {margin-bottom: 0px}
+</style>
+<script>
+    var SomeObj = ObjectTemplate.create("SomeObj", {
+            valx: {type: String, value: 'x'}
+    });
+    var Controller = ObjectTemplate.create("Controller", {
+        val1: {type: String, validate: validate1, value: ''},
+        val2: {type: String, validate: validate2, value: ''},
+        val3: {type: String, value: ''},
+        appendV: function ()  {
+            this.val3 = this.val3 + 'v';
+        },
+        lessThan10: function () {
+            if (this.value.length > 10)
+                throw {message: "Too long"};
+        },
+        valx: {type: SomeObj},
+        init: function () {
+            this.valx = new SomeObj();
+        }
+    });
+    var controller = new Controller();
+    function validate1(val) {
+        if ((val.length + this.val2.length) > 10)
+            throw {message: "Too long"};
+    }
+    function validate2(val) {
+        return Q.delay(1000).then(function () {
+            if ((val.length + this.val1.length) > 10)
+                throw {message: "Too long!"};
+        }.bind(this));
+    }
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<span b:bind="valx.valx"></span>
+<h2>Max length 10 -- Data Model</h2>
+<input type="text" b:bind="val1" /><br />
+<span b:binderror="val1"></span>
+<br /><br />
+<input type="text" b:bind="val2" /><br />
+<span b:binderror="val2"></span>
+<h2>Max length 10 -- Inline</h2>
+<input type="text" b:bind="val3" b:validate="lessThan10()" b:trigger="appendV()"/><br />
+<span b:binderror="val3"></span>
+<span b:bind="val3"></span>
+</body>
+<script>
+    bindster = new Bindster(controller, null, controller, null, true);
+    bindster.start();
+</script>
+</html>

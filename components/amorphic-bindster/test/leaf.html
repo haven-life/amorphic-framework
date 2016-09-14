@@ -1,0 +1,9 @@
+<div class="tree" b:bind="node.value"></div>
+<span b:onpaint="nodes.push(node)"></span>
+<div class="leaves">
+    <b:iterate on="node.descendents" with="node">
+        <b:include url="leaf.html"></b:include>
+    </b:iterate>
+</div>
+<span b:onpaint="node = nodes.pop()"></span>
+

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:b="http://bindster.com/bindster.dtd" lang="en">
+<script src="../index.js"></script>
+<script src="../node_modules/supertype/index.js"></script>
+<script src="../node_modules/q/q.js"></script>
+<style>
+    body {font-family:  Arial, Helvetica, sans-serif;}
+    p {margin-bottom: 0px}
+    .leaves{padding-left: 20px}
+</style>
+<script>
+    var Node = ObjectTemplate.create("Node", {
+            value: {type: String, value: ''},
+            descendents: {type: Array, of: Node, value: []},
+            init: function (value) {
+                this.value = value;
+            },
+            addDescendent: function (node) {
+                if (node instanceof Array) {
+                    node.forEach(function (node) {
+                        this.addDescendent(node);
+                    }.bind(this));
+                    return this;
+                }
+                this.descendents.push(node);
+                return this;
+            },
+    });
+    var Controller = ObjectTemplate.create("Controller", {
+        tree: {type: Array, of: Node, value: []},
+        init: function () {
+            this.tree.push((new Node("A")).addDescendent([new Node("A1"), new Node("A2")]));
+            this.tree.push((new Node("B")).addDescendent([new Node("B1"), (new Node("B2")).addDescendent([new Node("B2a"), new Node("B2b")])]));
+        }
+    });
+    var controller = new Controller();
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <b:iterate on="tree" with="node">
+        <b:include url="leaf.html"></b:include>
+    </b:iterate>
+</body>
+<script>
+    bindster = new Bindster(controller, null, controller, null, true);
+    bindster.start();
+</script>
+</html>
