@@ -488,7 +488,7 @@ module.exports = function (PersistObjectTemplate) {
             }
             function commentOn(table, column, comment) {
                 if (knex.client.config.client == 'pg') {
-                    knex.raw("COMMENT ON COLUMN " + table + ".\"" + column + "\" IS '" + comment.replace(/'/g,"''") +"';")
+                    knex.raw("COMMENT ON COLUMN \"" + table + "\".\"" + column + "\" IS '" + comment.replace(/'/g,"''") +"';")
                         .then(function() {}, function (e) {console.log(e)});
                 }
                 //console.log(table + "." + column + '=' + comment);
