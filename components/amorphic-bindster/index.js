@@ -1458,7 +1458,7 @@ Bindster.prototype.isOurNode = function(node)
 Bindster.prototype.isOurAttr = function(str)
 {
     return str.substr(0, this.namespace_prefix.length + 1) == (this.namespace_prefix + ":") ||
-        str.substr(0, 5) == 'data-';
+        str.substr(0, 5) == 'bindster-';
 }
 Bindster.prototype.evalTags = function (tags, node)
 {
@@ -1530,8 +1530,8 @@ Bindster.prototype.getTags = function (node, mapAttrs, finger_print)
         if((our_tag.length > 0 || this.isOurAttr(attrName)) && (!mapAttrs || !attrValue.match(/__[^_]+__/)))
         {
 
-            // clean up an normalize by removing data-, pre-pending our tag name and stripping -
-            var attrName = attrName.replace(/^data-/, '').replace(/^.*:/, "").replace(/-/, '');
+            // clean up an normalize by removing bindster-, pre-pending our tag name and stripping -
+            var attrName = attrName.replace(/^bindster-/, '').replace(/^.*:/, "").replace(/-/, '');
             if (attrValue.match(/\\/))
                 attrValue = attrValue.replace(/\\\\(.)/g, "$1");  // use _\\_xx_\\_ to bypass escape mechanism
 

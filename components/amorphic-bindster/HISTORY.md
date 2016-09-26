@@ -1,3 +1,5 @@
+## 1.3.8
+* Changed data- prefix to bindster-
 ## 1.3.7
 * Don't update selects when they have not changed
 ## 1.3.6
