@@ -241,18 +241,17 @@ function clearCollection(collectionName) {
 
 describe("Banking Example", function () {
 
-    it ("opens the database", function (done) {
+    it ("opens the database", function () {
         console.log("starting banking");
         return MongoClient.connect("mongodb://localhost:27017/testpersist").then(function (dbopen) {
             db = dbopen;
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-            done();
-        }).catch(function(e){done(e)});;
+        }).catch(function(e){throw e;});
     });
 
-    it ("clears the bank", function (done) {
+    it ("clears the bank", function () {
         return clearCollection("role")
             .then(function (count) {
                 expect(count).to.equal(0);
@@ -262,8 +261,7 @@ describe("Banking Example", function () {
                 return clearCollection('customer')
             }).then(function (count) {
                 expect(count).to.equal(0);
-                done();
-            }).catch(function(e){done(e)});
+            }).catch(function(e){throw e;});
     });
 
     // Setup customers and addresses

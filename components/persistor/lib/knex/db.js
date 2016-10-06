@@ -362,10 +362,14 @@ module.exports = function (PersistObjectTemplate) {
         function fieldChangeNotify(callBack, table) {
             if (!callBack) return;
             if (typeof callBack !== 'function')
-                throw new Error('persistor can only notify the field changes through a callback');
-            var fieldsChanged = _.keys(_newFields).join();
+                throw new Error('persistor can only notify the field changes through a callback')
+            var fieldsChanged = _.reduce(_newFields, function(current, field, key){
+                return field.type !== Array ? current + ',' + key: current;
+            }, '');
 
-            callBack('Following fields are being added to ' + table + ' table: \n    ' + fieldsChanged);
+            if (fieldsChanged.length > 0){
+                callBack('Following fields are being added to ' + table + ' table: \n ' + fieldsChanged.slice(1, fieldsChanged.length));
+            }
         }
         function columnMapper(table) {
 

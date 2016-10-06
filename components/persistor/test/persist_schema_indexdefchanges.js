@@ -244,6 +244,7 @@ describe('index synchronization checks', function () {
 
         return Q.all([
             knex.schema.dropTableIfExists('notificationCheck'),
+            knex.schema.dropTableIfExists('caseChangeCheck'),
             PersistObjectTemplate.dropKnexTable(Employee),
             //PersistObjectTemplate.dropKnexTable(Manager),
             PersistObjectTemplate.dropKnexTable(BoolTable),
@@ -253,9 +254,7 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
             knex(schemaTable).del(),
-            knex.schema.hasTable('IndexSyncTable').then(function(exists){
-                if (exists) knex.schema.dropTable('IndexSyncTable');
-            })
+            knex.schema.dropTableIfExists('IndexSyncTable')
         ]).should.notify(done);
     });
 
@@ -273,7 +272,7 @@ describe('index synchronization checks', function () {
    
     it('calling synchronizeKnexTableFromTemplate without any changes to the schema definitions..', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).should.eventually.be.fulfilled;
-    })
+    });
    
     it('synchronize the index definition for a new table and leave it in the schema table..', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(MultipleIndexTable).then(function(){
@@ -331,11 +330,10 @@ describe('index synchronization checks', function () {
     });
    
     it('adding a new field and verifying the notification', function () {
-        function fieldsNotify(fields){
-            console.log(fields);
-        };
-   
-   
+        function fieldsNotify(fields) {
+            expect(fields).to.match(/newField|notificationCheck/);
+        }
+        
         schema.notificationCheck = {};
         schema.notificationCheck.documentOf = "pg/notificationCheck";
         var notificationCheck = PersistObjectTemplate.create("notificationCheck", {
@@ -345,7 +343,7 @@ describe('index synchronization checks', function () {
                 this.id = id;
                 this.name = name;
             }
-        })
+        });
         PersistObjectTemplate._verifySchema();
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(notificationCheck, fieldsNotify).then(function (result) {
             var notificationCheck = PersistObjectTemplate.create("notificationCheck", {
@@ -359,21 +357,16 @@ describe('index synchronization checks', function () {
             });
    
             PersistObjectTemplate._verifySchema();
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(notificationCheck, fieldsNotify).then(function () {
-   
-            });
+            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(notificationCheck, fieldsNotify);
         });
     });
    
     it("creating parent and child and synchronize the parent to check the child table indexes", function (done) {
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function (result) {
-            return Q.all([getIndexes('Employee').should.eventually.have.length(2),
+         PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function (result) {
+             Q.all([getIndexes('Employee').should.eventually.have.length(2),
                 getIndexes('Manager').should.eventually.have.length(1),
                 getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
    
         });
     });
-
-   
-
-})
+});

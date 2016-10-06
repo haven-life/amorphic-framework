@@ -296,7 +296,7 @@ function clearCollection(template) {
 
 describe("Banking from pgsql Example", function () {
     var knex;
-    it ("opens the database Postgres", function (done) {
+    it ("opens the database Postgres", function () {
         console.log("starting banking");
         return Q()
             .then(function () {
@@ -311,22 +311,20 @@ describe("Banking from pgsql Example", function () {
                     }
                 });
                 PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
-                done();
-        }).catch(function(e){done(e)});;
+            }).catch(function(e){throw e;});;
     });
 
-    it ("opens the database Mongo", function (done) {
+    it ("opens the database Mongo", function () {
         console.log("starting banking");
         return MongoClient.connect("mongodb://localhost:27017/testpersist").then(function (dbopen) {
             db = dbopen;
             PersistObjectTemplate.setDB(db, PersistObjectTemplate.DB_Mongo, 'mongo');
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-            done();
-        }).catch(function(e){done(e)});;
+        }).catch(function(e){throw e});
     });
 
-    it ("clears the bank", function (done) {
+    it ("clears the bank", function () {
         return clearCollection(Role)
             .then(function (count) {
                 expect(count).to.equal(0);
@@ -348,8 +346,7 @@ describe("Banking from pgsql Example", function () {
                 return clearCollection(Address)
             }).then(function (count) {
                 expect(count).to.equal(0);
-                done();
-            }).catch(function(e){done(e)});
+            }).catch(function(e){throw e});
     });
     var sam;
     var karen;
@@ -393,7 +390,7 @@ describe("Banking from pgsql Example", function () {
         jointAccount.addCustomer(ashling, "joint");
 
         samsAccount.credit(100);                        // Sam has 100
-        samsAccount.debit(50)                           // Sam has 50
+        samsAccount.debit(50);                          // Sam has 50
         jointAccount.credit(200);                       // Joint has 200
         jointAccount.transferTo(100, samsAccount);      // Joint has 100, Sam has 150
         jointAccount.transferFrom(50, samsAccount);     // Joint has 150, Sam has 100
@@ -780,7 +777,7 @@ describe("Banking from pgsql Example", function () {
         });
     });
 
-    it("Can get update conflicts", function (done) {
+    it("Can get update conflicts", function () {
         var customer;
         var isStale = false;
         return Customer.getFromPersistWithId(sam._id).then (function (sam) {
@@ -800,11 +797,10 @@ describe("Banking from pgsql Example", function () {
         }).catch(function(e) {
             expect(e.message).to.equal("Update Conflict");
             expect(isStale).to.equal(true);
-            done()
         });
     });
 
-    it("Can transact", function (done) {
+    it("Can transact", function () {
         var customer;
         var preSave = false;
         this.dirtyCount = 0;
@@ -829,15 +825,14 @@ describe("Banking from pgsql Example", function () {
             expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
             expect(preSave).to.equal(true);
             expect(this.dirtyCount).to.equal(2);
-            done();
         }).catch(function(e) {
-            done(e)
+            throw e;
         });
     });
     it("Can get update conflicts on txn end and rollback", function (done) {
         var customer;
         var txn;
-        return Customer.getFromPersistWithId(sam._id).then (function (c) {
+        Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
             expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
             expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
@@ -861,7 +856,7 @@ describe("Banking from pgsql Example", function () {
         });
     });
 
-    it("Can get update conflicts on txn end and rollback", function (done) { // Try again with a conflict on 2nd
+    it("Can get update conflicts on txn end and rollback", function () { // Try again with a conflict on 2nd
         var customer;
         var txn;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
@@ -882,9 +877,8 @@ describe("Banking from pgsql Example", function () {
         }).then(function(customer) {
             expect(customer.secondaryAddresses[0].city).to.equal("Rhinebeck");
             expect(customer.primaryAddresses[0].city).to.equal("The Big Apple");
-            done();
         }).catch(function(e) {
-            done(e)
+            throw e;
         });
     });
 
