@@ -598,8 +598,14 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         //console.log ("creator returned " + obj + " on " + template.__name__ + "." + prop);
         if (obj instanceof Array) {
             obj = obj[0];
-            idMap[obj.__id__.toString()] = obj;
-            return obj;
+            if (obj) {
+                idMap[obj.__id__.toString()] = obj;
+                return obj;
+            } else 
+                return [];
+        }
+        if (typeof(obj) == 'undefined') {
+            return null;
         }
         if (!obj) {
             this.noInit = true;
