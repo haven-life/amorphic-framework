@@ -1,4 +1,4 @@
-## 1.3.4
+## 1.3.5
 * Fixed clone to allow not cloning sclars and arrays
 ## 1.3.3
 * Allow __values__ and __descriptions__ to be available in init functions
