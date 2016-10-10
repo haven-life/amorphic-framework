@@ -598,11 +598,8 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         //console.log ("creator returned " + obj + " on " + template.__name__ + "." + prop);
         if (obj instanceof Array) {
             obj = obj[0];
-            if (obj) {
-                idMap[obj.__id__.toString()] = obj;
-                return obj;
-            } else 
-                return [];
+            idMap[obj.__id__.toString()] = obj;
+            return obj;
         }
         if (typeof(obj) == 'undefined') {
             return null;
@@ -627,13 +624,17 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
         else if (type && typeof(pojo[prop]) != 'undefined')
             if (type == Array && defineProperty.of && defineProperty.of.isObjectTemplate) // Array of templated objects
             {
-                obj[prop] = [];
-                for (var ix = 0; ix < pojo[prop].length; ++ix)
-                    obj[prop][ix] = pojo[prop][ix] ?
-                        (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
-                            idMap[getId(pojo[prop][ix].__id__.toString())] :
-                            this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
-                        : null;
+                var arrayDirections = creator ? creator(obj, prop, defineProperty.of, idMap[pojo.__id__.toString()], pojo.__transient__) : null;
+                if (typeof(arrayDirections) != 'undefined') {
+                    obj[prop] = [];
+                    for (var ix = 0; ix < pojo[prop].length; ++ix)
+                        obj[prop][ix] = pojo[prop][ix] ?
+                            (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
+                                idMap[getId(pojo[prop][ix].__id__.toString())] :
+                                this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
+                            : null;
+                } else
+                    obj[prop] = [];
             }
             else if (type.isObjectTemplate) // Templated objects
 

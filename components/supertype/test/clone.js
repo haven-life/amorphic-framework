@@ -54,10 +54,12 @@ it("can clone", function () {
 		}
 		switch(obj.__template__.__name__ + '.' + prop) {
 			case 'Main.subA': return undefined;
-			case 'Main.subsA': return [];
+			case 'Main.subsA':
+				return undefined;
 		}
 		return null;    // normal create process
 	});
+	expect(main2.subA).to.equal(null);
 	expect(main2.subB.name).to.equal("mainOneB");
 	expect(main2.subsB[0].name).to.equal("mainManyB");
 	expect(main2.subsA.length).to.equal(0);
