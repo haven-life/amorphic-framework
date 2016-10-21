@@ -1,5 +1,7 @@
+## 1.4.1
+* Include 1.4 supertype
 ## 1.4.0
-Compatibility change with not having templates available on client
+* Compatibility change with not having templates available on client
 ## 1.3.2
 * isVirtual Properties
 ## 1.2.8
