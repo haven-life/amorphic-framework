@@ -357,6 +357,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }.bind(this))
             }.bind(this))
+            .then(addComments.bind(this, tableName))
             .then(synchronizeIndexes.bind(this, tableName, template));
 
         function fieldChangeNotify(callBack, table) {
@@ -396,23 +397,8 @@ module.exports = function (PersistObjectTemplate) {
                     table.text(prop);
             }
         }
-
-
-        function discoverColumns(table) {
+        function addComments(table){
             return knex(table).columnInfo().then(function (info) {
-                for (var prop in props) {
-                    var defineProperty = props[prop];
-                    if (PersistObjectTemplate._persistProperty(defineProperty)) {
-                        if (!info[propToColumnName(prop)]) {
-                            _newFields[prop] = props[prop];
-                        }
-                        else {
-                            if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
-                                throw new Error("changing types for the fields is not allowed, please use scripts to make these changes");
-                            }
-                        }
-                    }
-                }
                 for (var columnName in info) {
                     var prop = columnNameToProp(columnName);
                     if (!prop) {
@@ -432,15 +418,6 @@ module.exports = function (PersistObjectTemplate) {
                 }
             });
 
-            function propToColumnName(prop) {
-                var defineProperty = props[prop];
-                if (defineProperty.type.__objectTemplate__)
-                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
-                    else
-                        prop = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
-                return prop;
-            }
             function columnNameToProp(columnName) {
                 if (columnName  == '_id' || columnName == '__version__' || columnName == '_template')
                     return columnName;
@@ -497,6 +474,35 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 //console.log(table + "." + column + '=' + comment);
             }
+        }
+
+        function discoverColumns(table) {
+            return knex(table).columnInfo().then(function (info) {
+                for (var prop in props) {
+                    var defineProperty = props[prop];
+                    if (PersistObjectTemplate._persistProperty(defineProperty)) {
+                        if (!info[propToColumnName(prop)]) {
+                            _newFields[prop] = props[prop];
+                        }
+                        else {
+                            if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
+                                throw new Error("changing types for the fields is not allowed, please use scripts to make these changes");
+                            }
+                        }
+                    }
+                }
+            });
+
+            function propToColumnName(prop) {
+                var defineProperty = props[prop];
+                if (defineProperty.type.__objectTemplate__)
+                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                        throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
+                    else
+                        prop = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
+                return prop;
+            }
+
         }
     }
 
