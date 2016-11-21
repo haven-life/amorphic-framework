@@ -208,7 +208,7 @@ describe("Type Tests", function () {
     });
 
     it ("can create a new template", function (done) {
-        return clientController.createMyTemplateOnServer().then(function (t2s) {
+        clientController.createMyTemplateOnServer().then(function (t2s) {
             t2 = t2s;
             done();
         });

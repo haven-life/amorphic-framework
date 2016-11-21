@@ -322,7 +322,7 @@ describe("Banking Example", function () {
         serverAssert = function () {
             throw "get stuffed";
         }
-        return clientController.mainFunc()
+        clientController.mainFunc()
             .then(function () {
                 expect("Should not be here").to.equal(false);
             }, function (e) {
@@ -336,7 +336,7 @@ describe("Banking Example", function () {
         serverAssert = function () {
             throw "get stuffed";
         }
-        return clientController.mainFunc()
+        clientController.mainFunc()
             .then(function () {
                 expect("Should not be here").to.equal(false);
             }, function (e) {

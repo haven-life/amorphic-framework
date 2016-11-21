@@ -8,6 +8,7 @@
         "supertype": "1.4.*"
     },
     "devDependencies" : {
+        "mocha": "*",
         "chai": "3.x",
         "underscore": "1.x"
     },
