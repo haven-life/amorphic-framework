@@ -51,6 +51,8 @@ it("can clone", function () {
 			case 'Main':
 				calledForTopLevel = true;
 				return null; // Clone normally
+			case 'SubManyExtended': // Never enters because we reference the base type
+				return undefined; // Never clone
 		}
 		switch(obj.__template__.__name__ + '.' + prop) {
 			case 'Main.subA': return undefined;
@@ -62,8 +64,8 @@ it("can clone", function () {
 	expect(main2.subA).to.equal(null);
 	expect(main2.subB.name).to.equal("mainOneB");
 	expect(main2.subsB[0].name).to.equal("mainManyB");
-	expect(main2.subsA.length).to.equal(0);
-	expect(main2.subsB.length).to.equal(2); 
+	expect(main2.subsA.length).to.equal(0); // Because we
+	expect(main2.subsB.length).to.equal(2); // Because we
 	expect(main2.subA).to.equal(null);
 });
 

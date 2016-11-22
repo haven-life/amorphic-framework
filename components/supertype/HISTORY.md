@@ -1,3 +1,21 @@
+## 1.4.9
+* Reduced duplicate template names to warning rather than an error
+## 1.4.8
+* For new template scheme mixin duplicate extends or scream if they are different
+* staticMixin capability
+## 1.4.7
+* Leave sourceTemplate on prototype[prop].templateSource and defineProperty[prop].sourceTemplate
+## 1.4.6
+* Support for mixing in templates
+## 1.4.3
+* Handle definitions of naked array values and undefined object types due to template files not being present in the browser (e.g. toClient: false)
+* Bug in handling of toClientRuleSet
+* Record __createProps__ in template for introspection purposes
+* Record creation properties (.e.g. body, on, etc) for function definitions
+## 1.4.2
+* template.props was incorrect
+## 1.4.1
+* Fixed toClient setting which was incorrect
 ## 1.3.5
 * Fixed clone to allow not cloning sclars and arrays
 ## 1.3.3
