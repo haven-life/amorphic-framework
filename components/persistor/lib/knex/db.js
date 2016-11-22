@@ -409,7 +409,8 @@ module.exports = function (PersistObjectTemplate) {
                             commentOn(table, columnName, "primary key");
                         else if (prop.match(/:/)) {
                             prop = prop.substr(1);
-                            commentOn(table, columnName, getForeignKeyDescription(props[prop]));
+                            if (props[prop])
+                                commentOn(table, columnName, getForeignKeyDescription(props[prop]));
                         } else if (prop == '_template')
                             commentOn(table, columnName, getClassNames(prop));
                         else if (prop != '__version__')

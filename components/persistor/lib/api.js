@@ -66,15 +66,15 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         object.setDirty = function (txn, onlyIfChanged, cascade, logger) {
             PersistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade, logger);
         };
-        
+
         object.cascadeSave = function (txn, logger) {
             PersistObjectTemplate.setDirty(this, txn || PersistObjectTemplate.currentTransaction, true, false, logger);
         };
-        
+
         object.isDirty = function () {
             return this['__dirty__'] ? true : false
         };
-        
+
         object.isStale = function () {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             return this.__template__.countFromPersistWithQuery(
@@ -181,6 +181,20 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             if (!mainTemplate)
                 throw new Error("Reference to subsetOf " + template.__schema__.subsetOf + " not found for " + template.__name__);
             template.__subsetOf__ = template.__schema__.subsetOf
+            if (!mainTemplate.__schema__) {
+                var parent = mainTemplate.__parent__;
+                while(!mainTemplate.__schema__ && parent)
+                    if (parent.__schema__) {
+                        mainTemplate.__schema__ = parent.__schema__;
+                        mainTemplate.__collection__ = parent.__collection__;
+                        mainTemplate.__table__ = mainTemplate.__schema__.table ? mainTemplate.__schema__.table :parent.__table__;
+                        mainTemplate.__topTemplate = parent.__topTemplate__;
+                        parent = null;
+                    } else
+                        parent = parent.__parent__;
+                if (!mainTemplate.__schema__)
+                    throw new Error("Missing schema entry for " + template.__schema__.subsetOf);
+            }
             mergeRelationships(template.__schema__, mainTemplate.__schema__);
             template.__collection__ = mainTemplate.__collection__;
             template.__table__ = mainTemplate.__table__;
@@ -476,7 +490,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         persistorTransaction.innerError = err;
                         innerError = deadlock ? new Error("Update Conflict") : err;
                         (logger || this.logger).debug({component: 'persistor', module: 'api', activity: 'end'}, "transaction rolled back " +
-                          innerError.message + (deadlock ? " from deadlock" : ""));
+                            innerError.message + (deadlock ? " from deadlock" : ""));
                     }.bind(this));
                 }
             }.bind(this))
