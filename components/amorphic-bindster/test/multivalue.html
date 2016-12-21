@@ -17,6 +17,10 @@
         karen: {type: String, value: "Karen"},
         getPlease: function () {
             return 'please';
+        },
+        setVal5: function () {
+            this.val5 = this.val6;
+            return false;
         }
     })
     var controller = new Controller();
@@ -67,7 +71,7 @@
 <select b:bind="val4" b:onchange="val5=val1"></select><br />
 
 <p>type: boolean, values: {"true": 'Yes', "false":'No'}</p>
-<input b:bind="val6" type="checkbox" b:truevalue="true" b:falsevalue="false" b:onclick="val5 = val6"><br />
+<input b:bind="val6" type="checkbox" b:truevalue="true" b:falsevalue="false" b:onclick="setVal5();"><br />
 
 <h2>And some edits too</h2>
 <input b:bind="val1" /><br />
