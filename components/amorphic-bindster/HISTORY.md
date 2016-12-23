@@ -1,3 +1,5 @@
+## 1.3.9
+* Temporary fix to deal with IE select bug
 ## 1.3.8
 * Changed data- prefix to bindster-
 ## 1.3.7

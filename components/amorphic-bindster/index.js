@@ -757,6 +757,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                         }
                         else if (node.tagName == 'SELECT')
                         {
+                            node.value;  // This is a fix to keep IE from "losing" the value
                             var resolve_value = "c.bindster.resolveSelectValue(target)";
                             this.addEvent(tags, 'onchange', this.getBindAction(tags, resolve_value));
                             do_render = false;
