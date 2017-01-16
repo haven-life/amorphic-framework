@@ -1,3 +1,6 @@
+## 1.5.0
+* Fixed problem in clone where subtypes not being cloned properly
+* Carry over toClient and toServer in intropected properties
 ## 1.4.9
 * Reduced duplicate template names to warning rather than an error
 ## 1.4.8
