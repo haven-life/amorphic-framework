@@ -447,6 +447,12 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, propertiesO
 
             // If a defineProperty to be added
             if (defineProperty) {
+                if (typeof descriptor.toClient !== 'undefined') {
+                    defineProperty.toClient = descriptor.toClient;
+                }
+                if (typeof descriptor.toServer !== 'undefined') {
+                    defineProperty.toServer = descriptor.toServer;
+                }
                 objectTemplate._setupProperty(propertyName, defineProperty, objectProperties, defineProperties, parentTemplate, createProperties);
                 defineProperty.sourceTemplate = templateName;
             }
@@ -693,22 +699,24 @@ ObjectTemplate.fromPOJO = function (pojo, template, defineProperty, idMap, idQua
                 var arrayDirections = creator ? creator(obj, prop, defineProperty.of, idMap[pojo.__id__.toString()], pojo.__transient__) : null;
                 if (typeof(arrayDirections) != 'undefined') {
                     obj[prop] = [];
-                    for (var ix = 0; ix < pojo[prop].length; ++ix)
+                    for (var ix = 0; ix < pojo[prop].length; ++ix) {
+                        var atype = pojo[prop][ix].__template__ || defineProperty.of;
                         obj[prop][ix] = pojo[prop][ix] ?
                             (pojo[prop][ix].__id__ && idMap[getId(pojo[prop][ix].__id__.toString())] ?
                                 idMap[getId(pojo[prop][ix].__id__.toString())] :
-                                this.fromPOJO(pojo[prop][ix], defineProperty.of, defineProperty, idMap, idQualifier, obj, prop, creator))
+                                this.fromPOJO(pojo[prop][ix], atype, defineProperty, idMap, idQualifier, obj, prop, creator))
                             : null;
+                    }
                 } else
                     obj[prop] = [];
             }
-            else if (type.isObjectTemplate) // Templated objects
-
+            else if (type.isObjectTemplate) { // Templated objects
+                var otype = pojo[prop].__template__ || type;
                 obj[prop] =	(pojo[prop].__id__ && idMap[getId(pojo[prop].__id__.toString())] ?
                     idMap[getId(pojo[prop].__id__.toString())] :
-                    this.fromPOJO(pojo[prop], type,  defineProperty, idMap, idQualifier, obj, prop, creator));
+                    this.fromPOJO(pojo[prop], otype,  defineProperty, idMap, idQualifier, obj, prop, creator));
 
-            else if (type == Date)
+            } else if (type == Date)
                 obj[prop] = pojo[prop] ? new Date(pojo[prop]) : null;
             else
                 obj[prop] = pojo[prop];
