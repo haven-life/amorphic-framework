@@ -6,7 +6,7 @@ var ObjectTemplate = require('../index.js');
 
 describe("Extended Templates", function () {
 	it ("has extended values", function () {
-		var BaseTemplate1 = ObjectTemplate.create("BaseTemplate",
+		var BaseTemplate1 = ObjectTemplate.create("BaseTemplate1",
 			{
 				boolTrue:   {type: Boolean, value: true},
 				boolFalse:  {type: Boolean, value: false},
@@ -74,9 +74,18 @@ describe("Extended Templates", function () {
 					values: function () {return ['b3']},
 					descriptions: function () {return {'b3': this.str}}}
 			});
+        var ExtendedTemplate5 = ExtendedTemplate3.extend("ExtendedTemplate4",
+            {
+                enum:		{type: String,
+                    values: function () {return ['b3']},
+                    descriptions: function () {return {'b3': this.str}}}
+            });
 
+        expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(undefined);
 		expect((new ExtendedTemplate1()).boolTrue).to.equal(false);
-		expect((new ExtendedTemplate1()).boolFalse).to.equal(true);
+        expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(true);
+        expect(ObjectTemplate.__templateUsage__['ExtendedTemplate1']).to.equal(true);
+        expect((new ExtendedTemplate1()).boolFalse).to.equal(true);
 		expect((new ExtendedTemplate1()).num).to.equal(200);
 		expect((new ExtendedTemplate1()).str).to.equal('Extended');
 		expect((new ExtendedTemplate1()).obj.type).to.equal('Extended');

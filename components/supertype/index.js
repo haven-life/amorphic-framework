@@ -39,6 +39,7 @@ ObjectTemplate.performInjections = function ()
     }
 }
 ObjectTemplate.init = function () {
+    this.__templateUsage__ = {}
     this.__injections__ = [];
     this.__dictionary__ = {};
     this.__anonymousId__ = 1;
@@ -268,6 +269,13 @@ ObjectTemplate._createTemplate = function (template, parentTemplate, propertiesO
      * Constructor that will be returned
      */
     var template = function() {
+
+        objectTemplate.__templateUsage__[template.__name__] = true;
+        var parent = template.__parent__;
+        while (parent) {
+            objectTemplate.__templateUsage__[parent.__name__] = true;
+            var parent = parent.__parent__;
+        }
 
         this.__template__ = template;
         if (objectTemplate.__transient__) {
