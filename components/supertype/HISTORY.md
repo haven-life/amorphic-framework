@@ -1,3 +1,5 @@
+## 1.5.1
+* Fixed problem with list of app names for toClient rules
 ## 1.5.0
 * Fixed problem in clone where subtypes not being cloned properly
 * Carry over toClient and toServer in intropected properties

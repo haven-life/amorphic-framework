@@ -78,7 +78,7 @@ ObjectTemplate.getTemplateProperties = function(props)
                 ruleSet.map(function (rule) {ret = ret ? ret : rule == prop});
         } else if (prop instanceof Array) {
             prop.forEach(function (prop) {
-                ret = (ret !== null) ? ret : processProp(prop, ruleSet)
+                ret = ret || processProp(prop, ruleSet)
             });
         }
         else
