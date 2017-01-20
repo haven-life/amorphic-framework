@@ -1,7 +1,7 @@
 /* Copyright 2012-2015 Sam Elsamman
  Permission is hereby granted, free of charge, to any person obtaining
  a copy of this software and associated documentation files (the
- "Software"), to deal in the Software without restriction, including
+ 'Software'), to deal in the Software without restriction, including
  without limitation the rights to use, copy, modify, merge, publish,
  distribute, sublicense, and/or sell copies of the Software, and to
  permit persons to whom the Software is furnished to do so, subject to
@@ -10,7 +10,7 @@
  The above copyright notice and this permission notice shall be
  included in all copies or substantial portions of the Software.
 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
@@ -20,7 +20,7 @@
  */
 
 /**
- *
+ * SUMMARY: persistObjectTemplate is basically a factory for creating persistable objects
  * persistObjectTemplate is a sublclass for remoteObjectTemplate which allows objects to be
  * persisted in some data store.  The key functions which can only be executed on the server are:
  *
@@ -50,28 +50,26 @@
  * @param baseClassForPersist
  */
 var nextId = 1;
-var promiseNumber = 1;
 
-module.exports = function (ObjectTemplate, RemoteObjectTemplate, baseClassForPersist)
-{
+module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();
 
     PersistObjectTemplate.__id__ = nextId++;
-    PersistObjectTemplate._superClass = baseClassForPersist;
-    PersistObjectTemplate.DB_Knex = 'knex';
+    PersistObjectTemplate._superClass = baseClassForPersist; // @TODO: This is not used
+    PersistObjectTemplate.DB_Knex = 'knex'; // @TODO: both of these are going to always be the same thing!!!!
     PersistObjectTemplate.DB_Mongo = 'mongo';
     PersistObjectTemplate.dirtyObjects = {};
     PersistObjectTemplate.savedObjects = {};
 
-    require("./api.js")(PersistObjectTemplate, baseClassForPersist);
-    require("./schema.js")(PersistObjectTemplate);
-    require("./util.js")(PersistObjectTemplate);
-    require("./mongo/query.js")(PersistObjectTemplate);
-    require("./mongo/update.js")(PersistObjectTemplate);
-    require("./mongo/db.js")(PersistObjectTemplate);
-    require("./knex/query.js")(PersistObjectTemplate);
-    require("./knex/update.js")(PersistObjectTemplate);
-    require("./knex/db.js")(PersistObjectTemplate);
+    require('./api.js')(PersistObjectTemplate, baseClassForPersist);
+    require('./schema.js')(PersistObjectTemplate);
+    require('./util.js')(PersistObjectTemplate);
+    require('./mongo/query.js')(PersistObjectTemplate);
+    require('./mongo/update.js')(PersistObjectTemplate);
+    require('./mongo/db.js')(PersistObjectTemplate);
+    require('./knex/query.js')(PersistObjectTemplate);
+    require('./knex/update.js')(PersistObjectTemplate);
+    require('./knex/db.js')(PersistObjectTemplate);
 
     return  PersistObjectTemplate;
 }

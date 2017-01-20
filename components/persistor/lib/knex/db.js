@@ -6,10 +6,12 @@ module.exports = function (PersistObjectTemplate) {
     /**
      * Get a POJO by reading a table, optionally joining it to other tables
      *
-     * @param template
-     * @param joins
-     * @param queryOrChains
-     * @param options
+     * @param {object} template - super type
+     * @param {Array} joins - array of tables that need to be joined at the current level
+     * @param {object/function} queryOrChains conditions to use, can even pass functions to add extra conditions
+     * @param {object} options start, limit, and sort options can be passed..
+     * @param {object} map mapper to cache
+     * @param {object} logger objecttemplate logger
      * @returns {*}
      */
     PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map, logger) {
@@ -21,14 +23,14 @@ module.exports = function (PersistObjectTemplate) {
         // foreign keys pointing to rows that no longer exists
         var select = knex.select(getColumnNames.bind(this, template)()).from(tableName);
         joins.forEach(function (join) {
-            select = select.leftOuterJoin(this.dealias(join.template.__table__) + " as " + join.alias,
-                join.alias + "." + join.parentKey,
-                this.dealias(template.__table__) + "." + join.childKey);
+            select = select.leftOuterJoin(this.dealias(join.template.__table__) + ' as ' + join.alias,
+                join.alias + '.' + join.parentKey,
+                this.dealias(template.__table__) + '.' + join.childKey);
         }.bind(this));
 
         // execute callback to chain on filter functions or convert mongo style filters
         if (queryOrChains)
-            if (typeof(queryOrChains) == "function")
+            if (typeof(queryOrChains) == 'function')
                 queryOrChains(select);
             else if (queryOrChains)
                 select = this.convertMongoQueryToChains(tableName, select, queryOrChains);
@@ -39,9 +41,9 @@ module.exports = function (PersistObjectTemplate) {
             var descending = [];
             _.each(options.sort, function (value, key) {
                 if (value > 0)
-                    ascending.push(tableName + "." + key);
+                    ascending.push(tableName + '.' + key);
                 else
-                    descending.push(tableName + "." + key);
+                    descending.push(tableName + '.' + key);
             });
             if (ascending.length)
                 select = select.orderBy(ascending);
@@ -49,30 +51,31 @@ module.exports = function (PersistObjectTemplate) {
                 select = select.orderBy(descending, 'DESC');
         }
         if (options && options.limit) {
-            select = select.limit(options.limit)
+            select = select.limit(options.limit);
             select = select.offset(0)
         }
-        if (options && options.offset)
-            select = select.offset(options.offset)
+        if (options && options.offset) {
+            select = select.offset(options.offset);
+        }
+
+        (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'pre',
+            data: {template: template.__name__, query: queryOrChains}});
 
         var selectString = select.toString();
         if (map && map[selectString])
             return new Promise(function (resolve) {
                 map[selectString].push(resolve);
-            })
+            });
         if (map)
             map[selectString] = [];
 
-        (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'pre',
-            data: {template: template.__name__, query: queryOrChains}});
-        return select.then(processResults.bind(this), processError);
+        return select.then(processResults.bind(this), processError.bind(this));
         function processResults(res) {
-            var joinstr = joins.reduce(function (prev, curr) {return prev + curr.template.__name__ + " "}, "");
             (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
                 data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
-                map[selectString].forEach(function(resolve){
-                    //console.log("Consolidated request for " + selectString);
+                map[selectString].forEach(function(resolve) {
+                    //console.log('Consolidated request for ' + selectString);
                     resolve(res)
                 });
                 delete map[selectString];
@@ -81,7 +84,8 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function processError(err) {
-            console.log(JSON.stringify(err));
+            (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'select',
+                error: JSON.stringify(err)});
             throw err;
         }
 
@@ -89,7 +93,7 @@ module.exports = function (PersistObjectTemplate) {
             var cols = [];
             var self = this;
 
-            while(template.__parent__)
+            while (template.__parent__)
                 template = template.__parent__;
 
             asStandard(template, this.dealias(template.__table__));
@@ -119,10 +123,10 @@ module.exports = function (PersistObjectTemplate) {
                     return;
                 } else if (type.isObjectTemplate) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  new Error(type.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw  new Error(type.__name__ + '.' + prop + ' is missing a parents schema entry');
                     prop = schema.parents[prop].id;
                 }
-                cols.push(prefix + "." + prop + " as " + (prefix ? prefix + "___" : "") + prop);
+                cols.push(prefix + '.' + prop + ' as ' + (prefix ? prefix + '___' : '') + prop);
             }
 
             function getPropsRecursive(template, map) {
@@ -137,20 +141,21 @@ module.exports = function (PersistObjectTemplate) {
                 return map;
             }
         }
-    }
+    };
     /**
      * Get the count of rows
      *
-     * @param template
-     * @param queryOrChains
+     * @param {object} template super type
+     * @param {object/function} queryOrChains conditions to use, can even pass functions to add extra conditions
+     * @param {object} _logger objecttemplate logger
      * @returns {*}
      */
-    PersistObjectTemplate.countFromKnexQuery = function (template, queryOrChains, logger) {
+    PersistObjectTemplate.countFromKnexQuery = function (template, queryOrChains, _logger) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         // execute callback to chain on filter functions or convert mongo style filters
-        if (typeof(queryOrChains) == "function")
+        if (typeof(queryOrChains) == 'function')
             queryOrChains(knex);
         else if (queryOrChains)
             (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
@@ -158,25 +163,26 @@ module.exports = function (PersistObjectTemplate) {
         return knex.count('_id').then(function (ret) {
             return ret[0].count * 1;
         });
-    }
+    };
 
 
     /**
      *Check for table existence
      *
-     * @param template
-     * @param queryOrChains
+     * @param {object} template super type
+     * @param {string} tableName table to search on the database.
+     * @returns {*}
      */
     PersistObjectTemplate.checkForKnexTable = function (template, tableName) {
-        var tableName = tableName ? tableName : this.dealias(template.__table__);
+        tableName = tableName ? tableName : this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         return knex.schema.hasTable(tableName);
     };
 
     /**
      * Check for column type in the database
-     * @param template
-     * @param column
+     * @param {object} template super type
+     * @param {string} column column to search.
      * @returns {*}
      */
     PersistObjectTemplate.checkForKnexColumnType = function(template, column) {
@@ -185,69 +191,77 @@ module.exports = function (PersistObjectTemplate) {
         return knex(tableName).columnInfo(column).then(function(column) {
             return column.type;
         });
-    }
+    };
 
     /**
      * Drop the index if exists, tries to delete the constrain if the givne name is not an index.
-     * @param template
-     * @param indexName
+     * @param {object} template supertype
+     * @param {string} indexName index name to drop
      * @constructor
      */
     PersistObjectTemplate.DropIfKnexIndexExists = function (template, indexName) {
-        var tableName = this.dealias(template.__table__)
+        var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         if (indexName.indexOf('idx_') === -1)
             indexName = 'idx_' + tableName + '_' + indexName;
 
         return knex.schema.table(tableName, function (table) {
             table.dropIndex([], indexName);
-        }).catch(function (error) {
+        }).catch(function (_error) {
             return knex.schema.table(tableName, function (table) {
                 table.dropUnique([], indexName);
 
             })
         });
-    }
+    };
 
     /**
      * Delete Rows
      *
-     * @param template
-     * @param queryOrChains
-
+     * @param {object} template supertype
+     * @param {object/function} queryOrChains conditions to use, can even pass functions to add extra conditions
+     * @param {object} txn transaction object
+     * @param {object} _logger objecttemplate logger
      * @returns {*}
      */
-    PersistObjectTemplate.deleteFromKnexQuery = function (template, queryOrChains, txn, logger) {
+    PersistObjectTemplate.deleteFromKnexQuery = function (template, queryOrChains, txn, _logger) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         knex.transacting(txn ? txn.knex : null);
 
         // execute callback to chain on filter functions or convert mongo style filters
-        if (typeof(queryOrChains) == "function")
+        if (typeof(queryOrChains) == 'function')
             queryOrChains(knex);
         else if (queryOrChains)
             (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
 
         return knex.delete();
-    }
-    PersistObjectTemplate.knexPruneOrphans = function (obj, property, txn, filterKey, filterValue, logger) {
+    };
 
-        var template= obj.__template__;
-        var defineProperty = template.getProperties()[property]
+    PersistObjectTemplate.deleteFromKnexByQuery = function (template, queryOrChains, txn, _logger) {
+        var deleteQueries = txn ? txn.deleteQueries : this.deleteQueries;
+        var deleteQuery = {name: template.__name__, template: template, queryOrChains: queryOrChains};
+        deleteQueries[template.__name__] = deleteQuery;
+        txn.deleteQueries = deleteQueries;
+    };
+
+    PersistObjectTemplate.knexPruneOrphans = function (obj, property, txn, filterKey, filterValue, logger) {
+        var template = obj.__template__;
+        var defineProperty = template.getProperties()[property];
         var tableName = this.dealias(defineProperty.of.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         knex.transacting(txn ? txn.knex : null);
         var foreignKey = template.__schema__.children[property].id;
-        var goodList = []
+        var goodList = [];
         _.each(obj[property], function(o) {
             if (o._id)
                 goodList.push(o._id);
         });
-        knex = (goodList.length > 0 ? knex.whereNotIn('_id', goodList) : knex)
-        knex = knex.andWhere(foreignKey, obj._id)
+        knex = (goodList.length > 0 ? knex.whereNotIn('_id', goodList) : knex);
+        knex = knex.andWhere(foreignKey, obj._id);
         knex = (filterKey ? knex.andWhere(filterKey, filterValue) : knex);
-        //console.log(knex.toSQL().sql + " ? = " + (filterValue || "") + " ? = " + obj._id + " ? = " + goodList.join(","))
+        //console.log(knex.toSQL().sql + ' ? = ' + (filterValue || '') + ' ? = ' + obj._id + ' ? = ' + goodList.join(','))
         knex = knex.delete().then(function (res) {
             if (res)
                 (logger || this.logger).debug({component: 'persistor', module: 'db.knexPruneOrphans', activity: 'post',
@@ -255,29 +269,32 @@ module.exports = function (PersistObjectTemplate) {
         }.bind(this));
 
         return knex;
-    }
+    };
 
     /**
      * Delete a Row
      *
-     * @param template
-     * @param queryOrChains
-
+     * @param {object} template supertype
+     * @param {string} id primary key
+     * @param {object} txn transaction object
+     * @param {object} _logger objecttemplate logger
      * @returns {*}
      */
-    PersistObjectTemplate.deleteFromKnexId = function (template, id, txn, logger) {
+    PersistObjectTemplate.deleteFromKnexId = function (template, id, txn, _logger) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         knex.transacting(txn ? txn.knex : null);
         return knex.where({_id: id}).delete();
-    }
+    };
 
     /**
      * Save a Plain Old Javascript object given an Id.
-     * @param obj
-     * @param pojo
-     * @param updateID
+     * @param {object} obj supertype
+     * @param {string} pojo primary key
+     * @param {string} updateID primary key if updated..
+     * @param {object} txn transaction object
+     * @param {object} logger objecttemplate logger
      * @returns {*}
      */
     PersistObjectTemplate.saveKnexPojo = function (obj, pojo, updateID, txn, logger) {
@@ -288,20 +305,22 @@ module.exports = function (PersistObjectTemplate) {
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         pojo.__version__ = obj.__version__;
         (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'pre',
-            data: {txn: (txn ? txn.id + " ": '-#- '), type: (updateID ? 'updating ' : 'insert '),
+            data: {txn: (txn ? txn.id + ' ' : '-#- '), type: (updateID ? 'updating ' : 'insert '),
                 template: obj.__template__.__name__, id: obj.__id__, _id: obj._id, __version__: pojo.__version__}});
-        if (updateID)
+        if (updateID) {
             return Promise.resolve(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
                 .transacting(txn ? txn.knex : null)
                 .then(checkUpdateResults.bind(this))
                 .then(logSuccess.bind(this)))
-        else
+        } else {
             return Promise.resolve(knex
                 .insert(pojo)
                 .transacting(txn ? txn.knex : null)
                 .then(logSuccess.bind(this)));
+        }
+
 
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
@@ -309,10 +328,10 @@ module.exports = function (PersistObjectTemplate) {
                     data: {txn: (txn ? txn.id : '-#-'), id: obj.__id__, __version__: origVer}});
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
-                    txn.onUpdateConflict(obj)
+                    txn.onUpdateConflict(obj);
                     txn.updateConflict =  true;
                 } else
-                    throw new Error("Update Conflict");
+                    throw new Error('Update Conflict');
             }
         }
 
@@ -325,50 +344,58 @@ module.exports = function (PersistObjectTemplate) {
     /**
      * tries to synchronize the POJO model updates to the table definition.
      * e.g. adding a new field will add a field to the table.
-     * @param template
+     * @param {object} template supertype
+     * @param {function} changeNotificationCallback callback to get the information on table or fields changes.
      * @returns {*}
      */
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback) {
         var aliasedTableName = template.__table__;
         var tableName = this.dealias(aliasedTableName);
 
-        while(template.__parent__)
+        while (template.__parent__) {
             template =  template.__parent__;
+        }
 
-        if(!template.__table__)
-            throw new Error(template.__name__ + " is missing a schema entry");
+        if (!template.__table__) {
+            throw new Error(template.__name__ + ' is missing a schema entry');
+        }
 
         var props = getPropsRecursive(template);
-        var knex = this.getDB(this.getDBAlias(template.__table__)).connection
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         var schema = template.__schema__;
         var _newFields = {};
 
         return Promise.resolve().then(function () {
-                return knex.schema.hasTable(tableName).then(function (exists) {
-                    if (!exists) {
-                        if (!!changeNotificationCallback) changeNotificationCallback('A new table, ' + tableName + ', has been added\n');
-                        return PersistObjectTemplate._createKnexTable(template, aliasedTableName);
+            return knex.schema.hasTable(tableName).then(function (exists) {
+                if (!exists) {
+                    if (!!changeNotificationCallback) {
+                        if (typeof changeNotificationCallback !== 'function')
+                            throw new Error('persistor can only notify the table changes through a callback');
+                        changeNotificationCallback('A new table, ' + tableName + ', has been added\n');
                     }
-                    else {
-                        return discoverColumns(tableName).then(function () {
-                            fieldChangeNotify(changeNotificationCallback, tableName);
-                            return knex.schema.table(tableName, columnMapper.bind(this))
-                        }.bind(this));
-                    }
-                }.bind(this))
+                    return PersistObjectTemplate._createKnexTable(template, aliasedTableName);
+                }
+                else {
+                    return discoverColumns(tableName).then(function () {
+                        fieldChangeNotify(changeNotificationCallback, tableName);
+                        return knex.schema.table(tableName, columnMapper.bind(this))
+                    }.bind(this));
+                }
             }.bind(this))
+        }.bind(this))
+
             .then(addComments.bind(this, tableName))
             .then(synchronizeIndexes.bind(this, tableName, template));
 
         function fieldChangeNotify(callBack, table) {
             if (!callBack) return;
             if (typeof callBack !== 'function')
-                throw new Error('persistor can only notify the field changes through a callback')
-            var fieldsChanged = _.reduce(_newFields, function(current, field, key){
-                return field.type !== Array ? current + ',' + key: current;
+                throw new Error('persistor can only notify the field changes through a callback');
+            var fieldsChanged = _.reduce(_newFields, function(current, field, key) {
+                return field.type !== Array ? current + ',' + key : current;
             }, '');
 
-            if (fieldsChanged.length > 0){
+            if (fieldsChanged.length > 0) {
                 callBack('Following fields are being added to ' + table + ' table: \n ' + fieldsChanged.slice(1, fieldsChanged.length));
             }
         }
@@ -384,7 +411,7 @@ module.exports = function (PersistObjectTemplate) {
                         table.text(prop);
                 } else if (defineProperty.type.__objectTemplate__) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw   new Error(defineProperty.type.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw   new Error(defineProperty.type.__name__ + '.' + prop + ' is missing a parents schema entry');
                     var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                     table.text(foreignKey);
                 } else if (defineProperty.type === Number) {
@@ -402,15 +429,17 @@ module.exports = function (PersistObjectTemplate) {
                 for (var columnName in info) {
                     var prop = columnNameToProp(columnName);
                     if (!prop) {
-                        PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, "Extra column " + columnName + " on " + table);
+                        PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, 'Extra column ' + columnName + ' on ' + table);
                         commentOn(table, columnName, 'now obsolete');
                     } else {
                         if (prop == '_id')
-                            commentOn(table, columnName, "primary key");
+                            commentOn(table, columnName, 'primary key');
                         else if (prop.match(/:/)) {
                             prop = prop.substr(1);
-                            if (props[prop])
-                                commentOn(table, columnName, getForeignKeyDescription(props[prop]));
+                            var fkComment = getForeignKeyDescription(props[prop]);
+                            var commentField = getDescription(prop, props[prop])
+                            var comment = (commentField === '') ?  fkComment : fkComment + ', ' + commentField;
+                            commentOn(table, columnName, comment);
                         } else if (prop == '_template')
                             commentOn(table, columnName, getClassNames(prop));
                         else if (prop != '__version__')
@@ -426,54 +455,64 @@ module.exports = function (PersistObjectTemplate) {
                     return columnName;
                 if (!schema || !schema.parents)
                     return false;
-                for (var parent in schema.parents)
-                    if (columnName == schema.parents[parent].id)
-                        return ":" + parent;
+                for (var parent in schema.parents) {
+                    if (columnName == schema.parents[parent].id && !props[parent]) {
+                        PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'},
+                            'schema out-of-sync: schema contains ' + columnName + ' on ' + table + ', which is not defined in the template');
+                        return false;
+                    }
+                    else if (columnName == schema.parents[parent].id)
+                        return ':' + parent;
+                }
                 return null;
             }
             function getForeignKeyDescription(defineProperty) {
                 if (!defineProperty.type)
-                    return "";
-                var prop = defineProperty.type.__name__
-                var template = PersistObjectTemplate.__dictionary__[prop]
+                    return '';
+                var prop = defineProperty.type.__name__;
+                var template = PersistObjectTemplate.__dictionary__[prop];
                 if (!template)
-                    return "";
-                return "foreign key for " + template.__table__;
+                    return '';
+                return 'foreign key for ' + template.__table__;
             }
-            function getClassNames (prop) {
-                var className = "";
+            function getClassNames (_prop) {
+                var className = '';
                 getClassName(template);
                 return className;
                 function getClassName(template) {
-                    className += (className.length > 0 ? ", " + template.__name__ : "values: " + template.__name__)
+                    className += (className.length > 0 ? ', ' + template.__name__ : 'values: ' + template.__name__);
                     if (template.__children__)
                         _.each(template.__children__, getClassName);
                 }
             }
             function getDescription (prop, defineProperty) {
                 if (!defineProperty)
-                    return "";
+                    return '';
                 var values = {};
-                var valStr = "";
+                var valStr = '';
                 processValues(template);
-                var comment = defineProperty.comment ? defineProperty.comment + "; " : "";
-                _.each(values, function (val, key) {valStr += (valStr.length == 0 ? "" : ", ") + key});
-                comment = valStr.length > 0 ? comment + "values: " + valStr : comment;
+                var comment = defineProperty.comment ? defineProperty.comment + '; ' : '';
+                _.each(values, function (_val, key) {valStr += (valStr.length == 0 ? '' : ', ') + key});
+                comment = valStr.length > 0 ? comment + 'values: ' + valStr : comment;
                 return comment;
+
                 function processValues(template) {
                     var defineProperty = template.defineProperties[prop];
                     if (defineProperty && defineProperty.values)
-                        _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)] = true;})
+                        _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)] = true;});
                     if (template.__children__)
                         _.each(template.__children__, processValues);
                 }
             }
             function commentOn(table, column, comment) {
                 if (knex.client.config.client == 'pg') {
-                    knex.raw("COMMENT ON COLUMN \"" + table + "\".\"" + column + "\" IS '" + comment.replace(/'/g,"''") +"';")
-                        .then(function() {}, function (e) {console.log(e)});
+                    knex.raw('COMMENT ON COLUMN "' + table + '"."' + column + '" IS \'' + comment.replace(/'/g, '\'\'') + '\';')
+                        .then(function() {}, function (e) {
+                            /*eslint-disable no-console*/
+                            console.log(e)
+                            /*eslint-enable no-console*/
+                        });
                 }
-                //console.log(table + "." + column + '=' + comment);
             }
         }
 
@@ -487,7 +526,7 @@ module.exports = function (PersistObjectTemplate) {
                         }
                         else {
                             if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
-                                throw new Error("changing types for the fields is not allowed, please use scripts to make these changes");
+                                throw new Error('changing types for the fields is not allowed, please use scripts to make these changes');
                             }
                         }
                     }
@@ -498,7 +537,7 @@ module.exports = function (PersistObjectTemplate) {
                 var defineProperty = props[prop];
                 if (defineProperty.type.__objectTemplate__)
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw   new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
                     else
                         prop = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 return prop;
@@ -510,18 +549,18 @@ module.exports = function (PersistObjectTemplate) {
     function synchronizeIndexes(tableName, template) {
 
         var aliasedTableName = template.__table__;
-        var tableName = this.dealias(aliasedTableName);
+        tableName = this.dealias(aliasedTableName);
 
-        while(template.__parent__)
+        while (template.__parent__) {
             template =  template.__parent__;
+        }
 
-        if(!template.__table__)
-            throw new Error(template.__name__ + " is missing a schema entry");
+        if (!template.__table__) {
+            throw new Error(template.__name__ + ' is missing a schema entry');
+        }
 
-        var props = getPropsRecursive(template);
-        var knex = this.getDB(this.getDBAlias(template.__table__)).connection
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         var schema = this._schema;
-        var _newFields = {};
 
         var _dbschema;
         var _changes =  {};
@@ -531,7 +570,9 @@ module.exports = function (PersistObjectTemplate) {
 
         var loadSchema = function (tableName) {
 
-            if (!!_dbschema) return(_dbschema, tableName);
+            if (!!_dbschema) {
+                return (_dbschema, tableName);
+            }
 
             return  knex.schema.createTableIfNotExists(schemaTable, function (table) {
                 table.increments('sequence_id').primary();
@@ -547,34 +588,33 @@ module.exports = function (PersistObjectTemplate) {
                     response = {};
                 }
                 else {
-                    latestVersion = record[0].sequence_id;
                     response = JSON.parse(record[0][schemaField]);
                 }
                 _dbschema = response;
                 return [response, template.__name__];
             })
-        }
+        };
 
         var loadTableDef = function(dbschema, tableName) {
             if (!dbschema[tableName])
                 dbschema[tableName] = {};
             return [dbschema, schema, tableName];
-        }
+        };
 
-        var diffTable = function(dbschema, schema, tableName){
+        var diffTable = function(dbschema, schema, tableName) {
             var dbTableDef = dbschema[tableName];
-            var memTableDef = schema[tableName]
+            var memTableDef = schema[tableName];
             var track = {add: [], change: [], delete: []};
-            _diff(dbTableDef, memTableDef, 'delete', false, function (dbIdx, memIdx) {
+            _diff(dbTableDef, memTableDef, 'delete', false, function (_dbIdx, memIdx) {
                 return !memIdx;
             }, _diff(memTableDef, dbTableDef, 'change', false, function (memIdx, dbIdx) {
                 return memIdx && dbIdx && !_.isEqual(memIdx, dbIdx);
-            }, _diff(memTableDef, dbTableDef, 'add', true, function (memIdx, dbIdx) {
+            }, _diff(memTableDef, dbTableDef, 'add', true, function (_memIdx, dbIdx) {
                 return !dbIdx;
             }, track)));
             _changes[tableName] = _changes[tableName] || {};
 
-            _.map(_.keys(track), function(key){
+            _.map(_.keys(track), function(key) {
                 _changes[tableName][key] = _changes[tableName][key] || [];
                 _changes[tableName][key].push.apply(_changes[tableName][key], track[key]);
             });
@@ -596,49 +636,46 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 return diffs;
             }
-        }
+        };
 
-        var generateChanges = function (localtemplate, value) {
-            return _.reduce(localtemplate.__children__, function (curr, o) {
+        var generateChanges = function (localtemplate, _value) {
+            return _.reduce(localtemplate.__children__, function (_curr, o) {
                 return Promise.resolve()
                     .then(loadTableDef.bind(this, _dbschema, o.__name__))
                     .spread(diffTable)
-                    .then(generateChanges.bind(this, o))
-                    .catch(function (e) {
-                        throw e;
-                    })
+                    .then(generateChanges.bind(this, o));
             }, {});
-        }
+        };
 
-        var getFilteredTarget = function(src, target){
-            return _.filter(target, function(o, filterkey){
+        var getFilteredTarget = function(src, target) {
+            return _.filter(target, function(o, _filterkey) {
                 var currName = _.reduce(o.def.columns, function (name, col) {
                     return name + '_' + col;
                 }, 'idx_' + tableName);
-                return !_.find(src, function(cached){
+                return !_.find(src, function(cached) {
                     var cachedName = _.reduce(cached.def.columns, function (name, col) {
                         return name + '_' + col;
                     }, 'idx_' + tableName);
                     return (cachedName.toLowerCase() === currName.toLowerCase())
                 })
             });
-        }
+        };
 
         var mergeChanges = function() {
             var dbChanges =   {add: [], change: [], delete: []};
-            _.map(dbChanges, function(object, key){
-                _.each(_changes, function(change){
-                    var filtered = getFilteredTarget(dbChanges[key], change[key])
+            _.map(dbChanges, function(_object, key) {
+                _.each(_changes, function(change) {
+                    var filtered = getFilteredTarget(dbChanges[key], change[key]);
                     dbChanges[key].push.apply(dbChanges[key], filtered);
                 })
-            })
+            });
 
             return dbChanges;
-        }
+        };
 
         var applyTableChanges = function(dbChanges) {
             function syncIndexesForHierarchy (operation, diffs, table) {
-                _.map(diffs[operation], (function (object, key) {
+                _.map(diffs[operation], (function (object, _key) {
                     var type = object.def.type;
                     var columns = object.def.columns;
                     if (type !== 'unique' && type !== 'index')
@@ -653,15 +690,15 @@ module.exports = function (PersistObjectTemplate) {
                         table[type](columns, name);
                     }
                     else if (operation === 'delete') {
-                        type= type.replace(/index/, 'Index');
-                        type = type.replace(/unique/, 'Unique')
+                        type = type.replace(/index/, 'Index');
+                        type = type.replace(/unique/, 'Unique');
                         table['drop' + type]([], name);
                     }
                     else
                         table[type](columns, name);
 
                 }).bind(this));
-            };
+            }
 
 
             return knex.transaction(function (trx) {
@@ -671,11 +708,11 @@ module.exports = function (PersistObjectTemplate) {
                     }.bind(this));
                 })
             })
-        }
+        };
 
         var isSchemaChanged = function(object) {
             return (object.add.length || object.change.length || object.delete.length)
-        }
+        };
 
         var makeSchemaUpdates = function () {
             var chgFound = _.reduce(_changes, function (curr, change) {
@@ -695,7 +732,7 @@ module.exports = function (PersistObjectTemplate) {
                         response = JSON.parse(record[0][schemaField]);
                         sequence_id = ++record[0].sequence_id;
                     }
-                    _.each(_changes, function (o, chgKey) {
+                    _.each(_changes, function (_o, chgKey) {
                         response[chgKey] = schema[chgKey];
                     });
 
@@ -704,7 +741,7 @@ module.exports = function (PersistObjectTemplate) {
                         schema: JSON.stringify(response)
                     });
                 })
-        }
+        };
 
         return Promise.resolve()
             .then(loadSchema.bind(this, tableName))
@@ -717,24 +754,24 @@ module.exports = function (PersistObjectTemplate) {
             .catch(function(e) {
                 throw e;
             })
-    };
+    }
 
 
 
     function iscompatible(persistortype, pgtype) {
         switch (persistortype) {
-            case 'String':
-            case 'Object':
-            case 'Array':
-                return pgtype.indexOf('text') > -1;
-            case 'Number':
-                return pgtype.indexOf('double precision') > -1;
-            case 'Boolean':
-                return pgtype.indexOf('bool') > -1;
-            case 'Date':
-                return pgtype.indexOf('timestamp') > -1;
-            default:
-                return pgtype.indexOf('text') > -1; // Typed objects have no name
+        case 'String':
+        case 'Object':
+        case 'Array':
+            return pgtype.indexOf('text') > -1;
+        case 'Number':
+            return pgtype.indexOf('double precision') > -1;
+        case 'Boolean':
+            return pgtype.indexOf('bool') > -1;
+        case 'Date':
+            return pgtype.indexOf('timestamp') > -1;
+        default:
+            return pgtype.indexOf('text') > -1; // Typed objects have no name
         }
     }
 
@@ -764,30 +801,31 @@ module.exports = function (PersistObjectTemplate) {
                 (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'post',
                     data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
             }.bind(this))
-    }
+    };
 
     PersistObjectTemplate.createKnexTable = function (template, collection) {
-        var collection = collection || template.__table__;
+        collection = collection || template.__table__;
         var tableName = this.dealias(collection);
         return PersistObjectTemplate._createKnexTable(template, collection)
             .then(synchronizeIndexes.bind(this, tableName, template))
-    }
+    };
+
     /**
      * Create a table based on the schema definitions, will consider even indexes creation.
-     * @param template
+     * @param {object} template super type
+     * @param {string} collection collection/table name
      * @returns {*}
      */
     PersistObjectTemplate._createKnexTable = function (template, collection) {
-        var collection = collection || template.__table__;
-        (function (){
-            while(template.__parent__)
+        collection = collection || template.__table__;
+        (function () {
+            while (template.__parent__) {
                 template =  template.__parent__;
+            }
         })();
 
-        var props = template.getProperties();
-        var knex = this.getDB(this.getDBAlias(collection)).connection
+        var knex = this.getDB(this.getDBAlias(collection)).connection;
         var tableName = this.dealias(collection);
-        var _cacheIndex = [];
         return knex.schema.createTable(tableName, createColumns.bind(this));
 
         function createColumns(table) {
@@ -809,7 +847,7 @@ module.exports = function (PersistObjectTemplate) {
                                 table.text(prop);
                         } else if (defineProperty.type.__objectTemplate__) {
                             if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                                throw   new Error(template.__name__ + "." + prop + " is missing a parents schema entry");
+                                throw   new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
                             var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                             table.text(foreignKey);
                         } else if (defineProperty.type === Number) {
@@ -826,31 +864,29 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             function recursiveColumnMap(childTemplate) {
-                if(childTemplate) {
+                if (childTemplate) {
                     mapTableAndIndexes.call(this, table, childTemplate.defineProperties, childTemplate.__schema__);
                     childTemplate = childTemplate.__children__;
-                    childTemplate.forEach(function(o){
+                    childTemplate.forEach(function(o) {
                         recursiveColumnMap.call(this, o);
                     }.bind(this));
                 }
             }
         }
-    }
+    };
 
     /**
      * Drop table if exists, just a wrapper method on Knex library.
-     * @param template
+     * @param {object} template super type
+     * @param {string} tableName table to drop
      * @returns {*}
      */
     PersistObjectTemplate.dropKnexTable = function (template, tableName) {
-
-        var props = template.getProperties();
-        var knex = this.getDB(this.getDBAlias(template.__table__)).connection
-        var tableName = tableName ? tableName : this.dealias(template.__table__);
-        var schema = template.__schema__;
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
+        tableName = tableName ? tableName : this.dealias(template.__table__);
 
         return knex.schema.dropTableIfExists(tableName);
-    }
+    };
 
     /**
      * Take a query object like {$or: [{type: 'foo'}, {x: {$gt: 4}, y: {$lte: 6}}]}
@@ -866,16 +902,17 @@ module.exports = function (PersistObjectTemplate) {
      *      this.where(x, '>', 4).orWhere(x, '=' 9)
      *    }).andWhere(y, '<=', 6)
      * });     *
-     * @param statement
-     * @param query
+     * @param {string} alias db alias name used when setting the database client object
+     * @param {string} statement knex query
+     * @param {object} query mongo style query object
      * @returns {*}
      */
     PersistObjectTemplate.convertMongoQueryToChains = function (alias, statement, query) {
 
         /**
          * Traverse an object and produce a promise chain of where and andWhere
-         * @param statement
-         * @param query
+         * @param {object} statement knex query
+         * @param {object} query mongo style query object
          * @returns {*}
          */
         function traverse(statement, query) {
@@ -892,7 +929,7 @@ module.exports = function (PersistObjectTemplate) {
             return statement;
         }
 
-        function processProp(statement, prop, value) {
+        function processProp(_statement, prop, value) {
             if (value instanceof Array)
                 return processArrayProp(prop, value);
             else
@@ -901,9 +938,10 @@ module.exports = function (PersistObjectTemplate) {
 
         function processArrayProp(prop, value) {
             return [function () {
+                var firstProp;
                 var statement = this;
                 if (prop.toLowerCase() == '$and') {
-                    var firstProp = true;
+                    firstProp = true;
                     _.each(value, function (obj) {
                         var params = processObject(statement, obj);
                         statement = firstProp ?
@@ -914,7 +952,7 @@ module.exports = function (PersistObjectTemplate) {
                         firstProp = false;
                     });
                 } else if (prop.toLowerCase() == '$or') {
-                    var firstProp = true;
+                    firstProp = true;
                     _.each(value, function (obj) {
                         var params = processObject(statement, obj);
                         statement = firstProp ?
@@ -929,7 +967,7 @@ module.exports = function (PersistObjectTemplate) {
                 else if (prop.toLowerCase() == '$nin')
                     statement = statement.whereNotIn(value);
                 else
-                    throw "Don't support " + prop + ":" + JSON.stringify(value)
+                    throw 'Don\'t support ' + prop + ':' + JSON.stringify(value)
             }];
         }
 
@@ -937,8 +975,8 @@ module.exports = function (PersistObjectTemplate) {
          * Process an array element of a $or or $and.  This will result in either three parameters in
          * the form of prop, compare operator, value or a single parameter which is a function that
          * will chain together a nested expression.
-         * @param statment
-         * @param obj
+         * @param {object} statement knex query object
+         * @param {object} obj object of supertype
          * @returns {Function}
          */
         function processObject(statement, obj) {
@@ -950,7 +988,6 @@ module.exports = function (PersistObjectTemplate) {
                 singleProp = prop;
                 ++propCount;
             }
-            var value = obj[singleProp];
 
             // If so fetch the 3 parameters for a where, orWhere or andWhere chain
             // Otherwise return a function that will chain sub-ordinate clauses
@@ -965,12 +1002,12 @@ module.exports = function (PersistObjectTemplate) {
         function processNonArrayProp(prop, value) {
             var params = [];
             if (value instanceof Date || typeof(value) == 'string' || typeof(value) == 'number') {
-                params[0] = alias + "." + prop;
+                params[0] = alias + '.' + prop;
                 params[1] = '=';
                 params[2] = value;
             } else
-                for (subProp in value) {
-                    params[0] = alias + "." + prop;
+                for (var subProp in value) {
+                    params[0] = alias + '.' + prop;
                     params[2] = value[subProp];
                     if (subProp.toLowerCase() == '$eq')
                         params[1] = '=';
@@ -984,7 +1021,7 @@ module.exports = function (PersistObjectTemplate) {
                         params[1] = '<=';
                     else if (subProp.toLowerCase() == '$ne')
                         params[1] = '!=';
-                    else if (subProp.toLowerCase() == '$in')
+                    else if (subProp.toLowerCase() == '$in') {
                         (function () {
                             var attr = params[0];
                             var values = params[2];
@@ -992,6 +1029,7 @@ module.exports = function (PersistObjectTemplate) {
                                 this.whereIn(attr, values)
                             }];
                         })()
+                    }
                     else if (subProp.toLowerCase() == '$nin')
                         (function () {
                             var attr = params[0];
@@ -1006,7 +1044,7 @@ module.exports = function (PersistObjectTemplate) {
                         if (params[2] && params[2].source)
                             params[2] = params[2].source;
                     } else
-                        throw "Can't handle " + prop + ":" + JSON.stringify((value));
+                        throw 'Can\'t handle ' + prop + ':' + JSON.stringify((value));
                 }
             return params;
         }
@@ -1015,4 +1053,125 @@ module.exports = function (PersistObjectTemplate) {
     }
 
 
-}
+    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger) {
+        logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
+        var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
+        var dirtyObjects = persistorTransaction.dirtyObjects;
+        var touchObjects = persistorTransaction.touchObjects;
+        var savedObjects = persistorTransaction.savedObjects;
+        var deletedObjects = persistorTransaction.deletedObjects;
+        var deleteQueries = persistorTransaction.deleteQueries;
+        var innerError;
+
+        // Start the knext transaction
+        return knex.transaction(function(knexTransaction) {
+
+            persistorTransaction.knex = knexTransaction;
+
+            Promise.resolve(true)
+                .then(processPreSave.bind(this))
+                .then(processSaves.bind(this))
+                .then(processDeletes.bind(this))
+                .then(processDeleteQueries.bind(this))
+                .then(processTouches.bind(this))
+                .then(processPostSave.bind(this))
+                .then(processCommit.bind(this))
+                .catch(rollback.bind(this));
+
+            function processPreSave() {
+                return persistorTransaction.preSave
+                    ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction, logger)
+                    : true
+            }
+
+            // Walk through the dirty objects
+            function processSaves() {
+                return Promise.map(_.toArray(dirtyObjects), function (obj) {
+                    delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
+                    return (obj.__template__ && obj.__template__.__schema__
+                        ?  obj.persistSave(persistorTransaction, logger)
+                        : true)
+                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
+                    if (_.toArray(dirtyObjects). length > 0) {
+                        return processSaves.call(this);
+                    }
+                });
+
+            }
+
+
+            function processDeletes() {
+                return Promise.map(_.toArray(deletedObjects), function (obj) {
+                    delete deletedObjects[obj.__id__];  // Once scheduled for update remove it.
+                    return (obj.__template__ && obj.__template__.__schema__
+                        ?  obj.persistDelete(persistorTransaction, logger)
+                        : true)
+                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
+                    if (_.toArray(deletedObjects). length > 0) {
+                        return processDeletes.call(this);
+                    }
+                });
+
+            }
+
+            function processDeleteQueries() {
+                return Promise.map(_.toArray(deleteQueries), function (obj) {
+                    delete deleteQueries[obj.name];  // Once scheduled for update remove it.
+                    return (obj.template && obj.template.__schema__
+                        ?  PersistObjectTemplate.deleteFromKnexQuery(obj.template, obj.queryOrChains, persistorTransaction, logger)
+                        : true)
+                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
+                    if (_.toArray(deleteQueries). length > 0) {
+                        return processDeleteQueries.call(this);
+                    }
+                });
+            }
+
+
+            function processPostSave() {
+                return persistorTransaction.postSave ? persistorTransaction.postSave(persistorTransaction, logger)
+                    : true;
+            }
+
+            // And we are done with everything
+            function processCommit() {
+
+                this.dirtyObjects = {};
+                this.savedObjects = {};
+                if (persistorTransaction.updateConflict) {
+                    throw 'Update Conflict';
+                }
+                return knexTransaction.commit();
+            }
+
+            // Walk through the touched objects
+            function processTouches() {
+                return Promise.map(_.toArray(touchObjects), function (obj) {
+                    return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
+                        ?  obj.persistTouch(persistorTransaction, logger)
+                        : true)
+                }.bind(this))
+            }
+
+            function rollback (err) {
+                return knexTransaction.rollback().then (function () {
+                    var deadlock = err.toString().match(/deadlock detected$/i)
+                    persistorTransaction.innerError = err;
+                    innerError = deadlock ? new Error('Update Conflict') : err;
+                    (logger || this.logger).debug({component: 'persistor', module: 'api', activity: 'end'}, 'transaction rolled back ' +
+                        innerError.message + (deadlock ? ' from deadlock' : ''));
+                }.bind(this));
+            }
+        }.bind(this)).then(function () {
+            (logger || this.logger).debug({component: 'persistor', module: 'api'}, 'end - transaction completed');
+            return true;
+        }.bind(this)).catch(function (e) {
+            var err = e || innerError;
+            if (err && err.message && err.message != 'Update Conflict') {
+                (logger || this.logger).error({component: 'persistor', module: 'api', activity: 'end', error: err.message + err.stack}, 'transaction ended with error');
+            } //@TODO: Why throw error in all cases but log only in some cases
+            throw (e || innerError);
+        }.bind(this))
+    }
+
+};

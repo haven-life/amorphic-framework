@@ -16,6 +16,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate._verifySchema = function ()
     {
+        var templateName, template, key, defaultTable;
         var schema = this._schema;
         if (!schema)
             return;
@@ -29,28 +30,28 @@ module.exports = function (PersistObjectTemplate) {
 
         // Establish a hash of collections keyed by collection name that has the main template for the collection
         var collections = {};
-        for (var templateName in schema) {
-            var template = this.getTemplateByName(templateName);
+        for (templateName in schema) {
+            template = this.getTemplateByName(templateName);
             if (template && schema[templateName].documentOf) {
 
                 if (collections[schema[templateName].documentOf] &&
                     collections[schema[templateName].documentOf] != getBaseClass(template))
-                    throw new Error(templateName + " and " + collections[schema[templateName].documentOf]._name +
-                        " are both defined to be top documents of " + schema[templateName].documentOf);
+                    throw new Error(templateName + ' and ' + collections[schema[templateName].documentOf]._name +
+                        ' are both defined to be top documents of ' + schema[templateName].documentOf);
                 collections[schema[templateName].documentOf] = getBaseClass(template);
             }
         }
 
         // For any templates with subdocuments fill in the __topTemplate__
-        for (var templateName in schema) {
-            var template = this.getTemplateByName(templateName)
+        for (templateName in schema) {
+            template = this.getTemplateByName(templateName)
             if (template && schema[templateName].subDocumentOf)
                 template.__topTemplate__ = collections[schema[templateName].subDocumentOf];
         }
 
         // Fill in the __schema__ and __collection properties
-        for (var templateName in this._schema) {
-            var template = this.__dictionary__[templateName];
+        for (templateName in this._schema) {
+            template = this.__dictionary__[templateName];
             if (template) {
                 template.__schema__ = this._schema[template.__name__];
                 template.__collection__ = template.__schema__ ?
@@ -59,17 +60,17 @@ module.exports = function (PersistObjectTemplate) {
                     template.__table__ = template.__schema__.table;
                 var parentTemplate = template.__parent__;
 
-                var defaultTable = template.__schema__ ? template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                defaultTable = template.__schema__ ? template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
 
                 // Inherit foreign keys and tables from your parents
                 while (parentTemplate) {
-                    var schema = parentTemplate.__schema__;
+                    schema = parentTemplate.__schema__;
                     if (schema && schema.children) {
                         if (!template.__schema__)
                             template.__schema__ = {};
                         if (!template.__schema__.children)
                             template.__schema__.children = [];
-                        for (var key in schema.children)
+                        for (key in schema.children)
                             template.__schema__.children[key] = schema.children[key];
                     }
                     if (schema && schema.parents) {
@@ -77,11 +78,11 @@ module.exports = function (PersistObjectTemplate) {
                             template.__schema__ = {};
                         if (!template.__schema__.parents)
                             template.__schema__.parents = [];
-                        for (var key in schema.parents)
+                        for (key in schema.parents)
                             template.__schema__.parents[key] = schema.parents[key];
                     }
 
-                    var defaultTable = schema ? schema.documentOf || schema.subDocumentOf || parentTemplate.__name__ : defaultTable;
+                    defaultTable = schema ? schema.documentOf || schema.subDocumentOf || parentTemplate.__name__ : defaultTable;
                     parentTemplate = parentTemplate.__parent__;
                 }
                 template.__table__ = template.__schema__ ? template.__schema__.table || defaultTable : defaultTable;
@@ -90,39 +91,42 @@ module.exports = function (PersistObjectTemplate) {
         // Add indexes for one-to-many foreign key relationships, primary keys automatically added by syncTable
         if (!PersistObjectTemplate.noAutoIndex && !this._schema.__indexed__) {
             var indexes = {}
-            for (var templateName in this._schema) {
-                var template = PersistObjectTemplate.__dictionary__[templateName];
+            for (templateName in this._schema) {
+                template = PersistObjectTemplate.__dictionary__[templateName];
                 if (template) {
                     addFKIndexes.call(this, this._schema[templateName], template, templateName)
-                }
-                function addFKIndexes(schema, template, templateName) {
-
-                    // Some folks may not want this
-                    if (!schema.noAutoIndex)
-                        _.map(schema.parents, addIndex.bind(this));
-
-                    // For a given parent relationship in the schema decide if an index should be added
-                    function addIndex(val, prop) {
-
-                        // To get only one-to-many keys find the corresponding children entry and look up by id
-                        var parentTemplate = template ? template.getProperties()[prop] : null;
-                        var parentSchema = (parentTemplate && parentTemplate.type) ? this._schema[parentTemplate.type.__name__] : null;
-                        var isOTM = (parentSchema && parentSchema.children) ?
-                            !!_.find(parentSchema.children, function(child) { return child.id == val.id}) : false;
-
-                        // Add the entry mindful of avoiding duplicates
-                        schema.indexes = schema.indexes || [];
-                        var keyName = "idx_" + schema.table + "_fk_" + val.id;
-                        if (isOTM && !indexes[keyName]) {
-                            indexes[keyName] = true;
-                            schema.indexes.push({name: keyName, def: {columns: [val.id], type: "index"}});
-                        }
-                    }
                 }
             }
         }
         this._schema.__indexed__ = true;
-    }
+
+
+        function addFKIndexes(schema, template, _templateName) {
+
+            // Some folks may not want this
+            if (!schema.noAutoIndex)
+                _.map(schema.parents, addIndex.bind(this));
+
+            // For a given parent relationship in the schema decide if an index should be added
+            function addIndex(val, prop) {
+
+                // To get only one-to-many keys find the corresponding children entry and look up by id
+                var parentTemplate = template ? template.getProperties()[prop] : null;
+                var parentSchema = (parentTemplate && parentTemplate.type) ? this._schema[parentTemplate.type.__name__] : null;
+                var isOTM = (parentSchema && parentSchema.children) ?
+                    !!_.find(parentSchema.children, function(child) { return child.id == val.id}) : false;
+
+                // Add the entry mindful of avoiding duplicates
+                schema.indexes = schema.indexes || [];
+                var keyName = 'idx_' + schema.table + '_fk_' + val.id;
+                if (isOTM && !indexes[keyName]) {
+                    indexes[keyName] = true;
+                    schema.indexes.push({name: keyName, def: {columns: [val.id], type: 'index'}});
+                }
+            }
+        }
+    };
+
     PersistObjectTemplate.isCrossDocRef = function (template, prop, defineProperty)
     {
         var schema = getSchema(template);

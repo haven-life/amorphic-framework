@@ -12,11 +12,10 @@ module.exports = function (PersistObjectTemplate) {
      * are adjusted such that their foreign keys point back to this object.
      * Any related objects stored in other documents are also saved.
      *
-     * @param obj  Only required parameter - the object to be saved
-     * @param promises
-     * @param masterId - if we are here to save sub-documents this is the top level id
-     * @param txn
-     * @return {*}
+     * @param {object} obj  Only required parameter - the object to be saved
+     * @param {object} txn transaction object -- can be used only in the end trasaction callback.
+     * @param {object} logger object template logger
+     * @returns {*}
      */
     PersistObjectTemplate.persistSaveKnex = function(obj, txn, logger) {
 
@@ -46,7 +45,7 @@ module.exports = function (PersistObjectTemplate) {
             var value = obj[prop];
 
             // Deal with properties we don't plan to save
-            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == "undefined" || value == null) {
+            if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == 'undefined' || value == null) {
 
                 // Make sure we don't wipe out foreign keys of non-cascaded object references
                 if (defineProperty.type != Array &&
@@ -58,16 +57,13 @@ module.exports = function (PersistObjectTemplate) {
                     continue;
                 }
 
-                if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == "undefined")
+                if (!this._persistProperty(defineProperty) || !defineProperty.enumerable || typeof(value) == 'undefined')
                     continue;
             }
 
             // Handle Arrays
             if (defineProperty.type == Array && defineProperty.of.isObjectTemplate)
             {
-                if (!defineProperty.of)
-                    throw  new Error(templateName + "." + prop + " is an Array with no 'of' declaration");
-
                 // Arrays of Pojos just get saved
                 if (!defineProperty.of.__table__) {
                     pojo[prop] = value;
@@ -75,21 +71,21 @@ module.exports = function (PersistObjectTemplate) {
                     // Templated arrays we need to make sure their foreign keys are up-to-date
                 } else if (value instanceof Array) {
                     if (!schema.children[prop])
-                        throw new Error("Missing children entry for " + prop + " in " + templateName);
+                        throw new Error('Missing children entry for ' + prop + ' in ' + templateName);
                     var childForeignKey = schema.children[prop].id;
                     if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
-                        throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
+                        throw new Error('Incorrect filter properties on ' + prop + ' in ' + templateName);
                     var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                     var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                     value.forEach(function (referencedObj, ix) {
 
                         if (!referencedObj) {
-                            console.log(obj.__id__ + "." + prop + "[" + ix + "] is null");
+                            (logger || this.logger).debug({component: 'persistor', module: 'db.persistSaveKnex'}, obj.__id__ + '.' + prop + '[' + ix + '] is null');
                             return;
                         }
 
                         if (!defineProperty.of.__schema__.parents)
-                            throw new Error("Missing parent entry in " + defineProperty.of.__name__ + " for " + templateName);
+                            throw new Error('Missing parent entry in ' + defineProperty.of.__name__ + ' for ' + templateName);
 
                         // Go through each of the parents in the schema to find the one matching this reference
                         _.each(defineProperty.of.__schema__.parents, function(parentSchemaEntry, parentProp) {
@@ -98,7 +94,7 @@ module.exports = function (PersistObjectTemplate) {
 
                                 // If anything is missing in the child such as the persistor property not having been
                                 // setup or the filter property not being setup, fill in and set it dirty
-                                if(!referencedObj[parentProp + 'Persistor'] || !referencedObj[parentProp + 'Persistor'].id ||
+                                if (!referencedObj[parentProp + 'Persistor'] || !referencedObj[parentProp + 'Persistor'].id ||
                                     referencedObj[parentProp + 'Persistor'].id != obj._id ||
                                     (foreignFilterKey ? referencedObj[foreignFilterKey] != foreignFilterValue : false))
                                 {
@@ -127,14 +123,14 @@ module.exports = function (PersistObjectTemplate) {
             {
                 // Make sure schema is in order
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                    throw   new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                    throw   new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
 
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 if (value && !value._id) {
                     value._id = this.createPrimaryKey(value);
                     value.setDirty(txn);
                 }
-            
+
                 pojo[foreignKey] =  value ? value._id : null
                 updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value ? value._id : null, isFetched: true})
 
@@ -156,10 +152,12 @@ module.exports = function (PersistObjectTemplate) {
             }
         }
         (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'dataLogging', data: {template: obj.__template__.__name__, _id: pojo._id, values: dataSaved}});
-        
+
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger))
         return Promise.all(promises)
-            .then (function (){return obj});
+            .then (function () {
+                return obj
+            });
         function log(defineProperty, pojo, prop) {
             if (defineProperty.logChanges)
                 dataSaved[prop]  = pojo[prop];
@@ -184,24 +182,27 @@ module.exports = function (PersistObjectTemplate) {
                 obj[prop] = copyProps(obj[prop]);
         }
     }
-    /**
-     * Remove objects from a collection/table
-     *
-     * @param options
-     */
-    PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query, txn, logger)
-    {
-        return this.deleteFromKnexQuery(template, query, txn, logger);
-    }
-
-    /**
-     * Remove object from a collection/table
-     *
-     * @param options
-     */
-    PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id, txn, logger)
-    {
-        return this.deleteFromKnexId(template, id, txn, logger);
-    }
+    // /**
+    //  * Remove objects from a collection/table
+    //  *
+    //  * @param {object} template supertype
+    //  * @param {object/function} query conditions to use, can even pass functions to add extra conditions
+    //  * @param {object} txn transaction object
+    //  * @param {object} _logger objecttemplate logger
+    //  */
+    // PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query, txn, logger)
+    // {
+    //     return this.deleteFromKnexQuery(template, query, txn, logger);
+    // }
+    //
+    // /**
+    //  * Remove object from a collection/table
+    //  *
+    //  * @param options
+    //  */
+    // PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id, txn, logger)
+    // {
+    //     return this.deleteFromKnexId(template, id, txn, logger);
+    // }
 
 }

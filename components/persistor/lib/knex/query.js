@@ -1,23 +1,11 @@
 module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
-    function defer() {
-        var resolve, reject;
-        var promise = new Promise(function() {
-            resolve = arguments[0];
-            reject = arguments[1];
-        });
-        return {
-            resolve: resolve,
-            reject: reject,
-            promise: promise
-        };
-    }
     var _ = require('underscore');
 
     PersistObjectTemplate.concurrency = 10;
 
-    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger) {
+    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, _logger) {
         return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh)
             .then(function(pojos) { return pojos[0] });
     }
@@ -29,14 +17,19 @@ module.exports = function (PersistObjectTemplate) {
      * entities to be fetched.  All fetches result in promises which ultimately must be resolved on a recursive
      * basis (e.g. keep resolving until there are no more newly added ones).
      *
-     * @param template
-     * @param queryOrChains
-     * @param cascade
-     * @param skip
-     * @param limit
-     * @param isTransient
-     * @param idMap
-     * @param options
+     * @param {object} requests Array of pending requests
+     * @param {object} template super type
+     * @param {object/function} queryOrChains mongo style query or function callback
+     * @param {object} cascade fetch spec.
+     * @param {number} skip offset for the resultset
+     * @param {number} limit number of records to return
+     * @param {bool} isTransient unknown.
+     * @param {object} idMap object mapper for cache
+     * @param {object} options sort, limit, and skip options
+     * @param {object} establishedObject {need to review, used for amorphic}
+     * @param {bool} isRefresh {need to review}
+     * @param {object} logger object template logger
+     * @returns {*}
      */
     PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger)
     {
@@ -49,7 +42,6 @@ module.exports = function (PersistObjectTemplate) {
             idMap['resolver'] = {};
 
         var promises = [];
-        var returnedObj;
         var schema = template.__schema__;
         var results = [];
 
@@ -63,7 +55,7 @@ module.exports = function (PersistObjectTemplate) {
             if (this._persistProperty(props[prop]) && props[prop].type && props[prop].type.__objectTemplate__ && props[prop].type.__table__) {
                 // Create the join spec with two keys
                 if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                    throw  new Error(props[prop].type.__name__ + "." + prop + " is missing a parents schema entry");
+                    throw  new Error(props[prop].type.__name__ + '.' + prop + ' is missing a parents schema entry');
                 var foreignKey = schema.parents[prop].id;
                 var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
                 if (((defineProperty['fetch'] && !defineProperty['nojoin']) || cascadeFetch ||
@@ -133,9 +125,9 @@ module.exports = function (PersistObjectTemplate) {
         function processRequests() {
             var segLength = requests.length;
             //console.log("Processing " + segLength + " promises " + PersistObjectTemplate.concurrency);
-            return Promise.map(requests, function (request, ix) {
-                    return request();
-                }, {concurrency: PersistObjectTemplate.concurrency})
+            return Promise.map(requests, function (request, _ix) {
+                return request();
+            }, {concurrency: PersistObjectTemplate.concurrency})
                 .then(function () {
                     requests.splice(0, segLength);
                     if (requests.length > 0)
@@ -151,24 +143,34 @@ module.exports = function (PersistObjectTemplate) {
      * so that all prototype information such as functions are created. It will reconstruct
      * references one-to-one and one-two-many by reading them from the database
      *  *
-     * @param pojo is the unadorned object
-     * @param template is the template used to create the object
-     * @return {*} an object via a promise as though it was created with new template()
+     * @param {object} pojo is the unadorned object
+     * @param {obejct} template is the template used to create the object
+     * @param {object} requests Array of pending requests
+     * @param {object} idMap object mapper for cache
+     * @param {object} cascade fetch spec.
+     * @param {bool} isTransient unknown.
+     * @param {object} defineProperty {@TODO need to check}
+     * @param {object} establishedObj {@TODO need to review, used for amorphic}
+     * @param {unknown} specificProperties {@TODO need to review}
+     * @param {unknown} prefix {@TODO need to review}
+     * @param {unknown} joins {@TODO need to review}
+     * @param {bool} isRefresh {need to review}
+     * @param {object} logger object template logger
+     * @returns {*} an object via a promise as though it was created with new template()
      */
     PersistObjectTemplate.getTemplateFromKnexPOJO =
         function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger)
         {
             var self = this;
-            prefix = prefix || "";
-            var promises = [];
+            prefix = prefix || '';
 
-            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'process', 
+            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'process',
                 data: {template: template.__name__, id: pojo[prefix + '_id'], persistedTemplate: pojo[prefix + '_template']}});
 
 
             // For recording back refs
             if (!idMap)
-                throw "missing idMap on fromDBPOJO";
+                throw 'missing idMap on fromDBPOJO';
             var topLevel = !requests;
             requests = requests || [];
 
@@ -181,13 +183,15 @@ module.exports = function (PersistObjectTemplate) {
                 establishedObj = _.find(establishedObj, function (o) {
                     if (o)
                         return o._id == pojo[prefix + '_id']
-                    else
-                        console.log("getTemplateFromKnexPOJO found an empty establishedObj " + template.__name__);
+                    else {
+                        (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
+                            data: 'getTemplateFromKnexPOJO found an empty establishedObj ' + template.__name__});
+                    }
                 });
 
             // Create the new object with correct constructor using embedded ID if ObjectTemplate
-            if (!establishedObj &&!pojo[prefix + '_template'])
-                throw new Error("Missing _template on " + template.__name__ + " row " + pojo[prefix + '_id']);
+            if (!establishedObj && !pojo[prefix + '_template'])
+                throw new Error('Missing _template on ' + template.__name__ + ' row ' + pojo[prefix + '_id']);
             var persistTemplate = (template.__schema__ && template.__schema__.subsetOf) ?
               null : this.__dictionary__[pojo[prefix + '_template']]
             var obj = establishedObj || idMap[pojo[prefix + '_id']] ||
@@ -215,18 +219,17 @@ module.exports = function (PersistObjectTemplate) {
 
             // Go through all the properties and transfer them to newly created object
             var props = specificProperties || obj.__template__.getProperties();
+            var value;
             for (var prop in props)
             {
-
-                var value = pojo[prefix + prop];
-                var defineProperty = props[prop];
+                value = pojo[prefix + prop];
+                defineProperty = props[prop];
                 var type = defineProperty.type;
                 var of = defineProperty.of;
-                var actualType = of || type;
                 var cascadeFetch = (cascade && typeof(cascade[prop] != 'undefined')) ? cascade[prop] : null;
 
                 // Create a persistor if not already there
-                var persistorPropertyName = prop + "Persistor";
+                var persistorPropertyName = prop + 'Persistor';
 
                 // Make sure this is property is persistent and that it has a value.  We have to skip
                 // undefined values in case a new property is added so it can retain it's default value
@@ -234,103 +237,19 @@ module.exports = function (PersistObjectTemplate) {
                     continue;
 
                 if (!type)
-                    throw new Error(obj.__template__.__name__ + "." + prop + " has no type decleration");
+                    throw new Error(obj.__template__.__name__ + '.' + prop + ' has no type decleration');
 
                 if (type == Array && of.__table__)
                 {
-                     if(!schema || !schema.children || !schema.children[prop])
-                        throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a children schema entry");
+                    if (!schema || !schema.children || !schema.children[prop])
+                        throw  new Error(obj.__template__.__name__ + '.' + prop + ' is missing a children schema entry');
                     if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
-                        throw new Error("Incorrect filter properties on " + prop + " in " + templateName);
+                        throw new Error('Incorrect filter properties on ' + prop + ' in ' + obj.__template__.__name__);
 
                     if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
                         cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
-                        function collectLikeFilters (prop, query, thisDefineProperty, foreignFilterKey) {
-
-                            // Collect a structure of similar filters (excluding the first one)
-                            var filters = null;
-                            var excluded = 0; // Exclude first
-                            for (var candidateProp in props) {
-                                var candidateDefineProp = props[candidateProp];
-                                var filter = schema.children[candidateProp] ? schema.children[candidateProp].filter : null;
-                                if (filter && filter.property == foreignFilterKey &&
-                                    candidateDefineProp.of.__table__ == thisDefineProperty.of.__table__ &&  excluded++) {
-                                    filters = filters || {};
-                                    filters[candidateProp] = {
-                                        foreignFilterKey: filter.property,
-                                        foreignFilterValue: filter.value,
-                                    }
-                                }
-                            }
-                            return filters;
-                        }
-                        function buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps) {
-                            if (alternateProps) {
-                                query['$or'] = _.map(alternateProps, function(prop) {
-                                    var condition = {}
-                                    condition[prop.foreignFilterKey] = prop.foreignFilterValue;
-                                    return condition;
-                                })
-                                var condition = {}
-                                condition[foreignFilterKey] =  foreignFilterValue;
-                                query['$or'].push(condition);
-                            } else
-                                query[foreignFilterKey] =  foreignFilterValue;
-                        }
-                        (function () {
-
-                            var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
-                            var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
-                            // Construct foreign key query
-                            var query = {};
-                            var options = defineProperty.queryOptions || {sort: {_id: 1}};
-                            var limit = options.limit || null;
-                            query[schema.children[prop].id] = obj._id;
-                            if (foreignFilterKey) {
-                                // accumulate hash of all like properties (except the first one)
-                                var alternateProps = collectLikeFilters(prop, query, defineProperty, foreignFilterKey);
-                                // If other than the first one just leave it for the original to take care of
-                                if (alternateProps && alternateProps[prop])
-                                    return;
-                                else
-                                    buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps);
-                            }
-                            // Handle
-                            var closureOf = defineProperty.of;
-                            var closureProp = prop;
-                            var closurePersistorProp = persistorPropertyName
-                            var closureCascade = this.processCascade(query, options, cascadeFetch,
-                                (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
-
-                            // Fetch sub-ordinate entities and convert to objects
-                            this.withoutChangeTracking(function () {
-                                obj[persistorPropertyName].isFetching = true;
-                            }.bind(this));
-                            requests.push(function () {
-                                return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
-                                    limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger)
-                                .then( function(objs) {
-                                    this.withoutChangeTracking(function () {
-                                        if (foreignFilterKey) {
-                                            obj[closureProp] =  _.filter(objs, function (obj) {
-                                                return obj[foreignFilterKey] == foreignFilterValue;
-                                            });
-                                            if (alternateProps)
-                                                _.each(alternateProps, function(alternateProp, alternatePropKey) {
-                                                    obj[alternatePropKey] = _.filter(objs, function (obj) {
-                                                        return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
-                                                    })
-                                                })
-                                        } else
-                                            obj[closureProp] = objs;
-                                    }.bind(this));
-                                    var start = options ? options.start || 0 : 0;
-                                    updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
-                                }.bind(this))
-                            }.bind(this));
-
-                        }.bind(this))();
+                        queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty);
                     } else
                         updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
 
@@ -344,9 +263,9 @@ module.exports = function (PersistObjectTemplate) {
 
                     // Determine the id needed
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  new Error(obj.__template__.__name__ + "." + prop + " is missing a parents schema entry");
+                        throw  new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
                     var foreignKey = schema.parents[prop].id;
-                    var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : "") || "";
+                    var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : '') || '';
 
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
@@ -361,41 +280,7 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                (function () {
-                                    var query = {_id: foreignId};
-                                    var options = {};
-                                    var closureProp = prop;
-                                    var closurePersistorProp = persistorPropertyName;
-                                    var closureCascade = this.processCascade(query, options, cascadeFetch,
-                                        (schema && schema.parents) ? schema.parents[prop].fetch : null, defineProperty.fetch);
-                                    var closureForeignId = foreignId;
-                                    var closureType = defineProperty.type;
-                                    var closureDefineProperty = defineProperty;
-
-                                    var join = _.find(joins, function (j) {return j.prop == prop});
-
-                                    requests.push(function () {
-                                        var fetcher = join ?
-                                            (pojo[join.alias + "____id"] ?
-                                                this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
-                                                    closureCascade, isTransient, closureDefineProperty,
-                                                    obj[closureProp], null, join.alias + "___", null, isRefresh, logger)
-                                                : Promise.resolve(true)) :
-                                            this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
-                                                null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger);
-                                        this.withoutChangeTracking(function () {
-                                            obj[closurePersistorProp].isFetching = true;
-                                        }.bind(this));
-                                        return fetcher.then(function() {
-                                            this.withoutChangeTracking(function () {
-                                                obj[closureProp] = idMap[closureForeignId];
-                                            }.bind(this));
-                                            if (obj[closurePersistorProp]) {
-                                                updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
-                                            }
-                                        }.bind(this))
-                                    }.bind(this))
-                                }.bind(this))();
+                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId);
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
                             }
@@ -405,7 +290,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 } else
                 if (typeof(pojo[prefix + prop]) != 'undefined') {
-                    var value = pojo[prefix + prop];
+                    value = pojo[prefix + prop];
                     this.withoutChangeTracking(function () {
                         if (type == Date)
                             obj[prop] = value ? new Date(value * 1) : null;
@@ -415,39 +300,167 @@ module.exports = function (PersistObjectTemplate) {
                             try {
                                 obj[prop] = value ? JSON.parse(value) : null;
                             } catch (e) {
-                                console.log("Error retrieving " + obj.__id__ + "." + prop + " -- " + e.message);
+                                (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
+                                    data: 'Error retrieving ' + obj.__id__ + '.' + prop + ' -- ' + e.message});
                                 obj[prop] = null;
                             }
                         else
                             obj[prop] = value;
                     }.bind(this));
-
-                }
-
-                function updatePersistorProp(obj, prop, values) {
-                    self.withoutChangeTracking(function () {
-                        values['isFetching'] = false;
-                        if (!obj[prop])
-                            obj[prop] = {};
-                        var modified = false;
-                        _.map(values, function(value, key) {
-                            if (obj[prop][key] != value) {
-                                obj[prop][key] = value;
-                                modified = true;
-                            }
-                        });
-                        if (modified) {
-                            var tempProps = obj[prop];
-                            obj[prop] = null;
-                            obj[prop] = tempProps;
-                        }
-                    });
                 }
             }
             if (topLevel)
                 return this.resolveRecursiveRequests(requests, obj)
             else
                 return Promise.resolve(obj);
+
+
+
+            function collectLikeFilters (_prop, _query, thisDefineProperty, foreignFilterKey) {
+
+                // Collect a structure of similar filters (excluding the first one)
+                var filters = null;
+                var excluded = 0; // Exclude first
+                for (var candidateProp in props) {
+                    var candidateDefineProp = props[candidateProp];
+                    var filter = schema.children[candidateProp] ? schema.children[candidateProp].filter : null;
+                    if (filter && filter.property == foreignFilterKey &&
+                        candidateDefineProp.of.__table__ == thisDefineProperty.of.__table__ &&  excluded++) {
+                        filters = filters || {};
+                        filters[candidateProp] = {
+                            foreignFilterKey: filter.property,
+                            foreignFilterValue: filter.value,
+                        }
+                    }
+                }
+                return filters;
+            }
+            function buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps) {
+                if (alternateProps) {
+                    query['$or'] = _.map(alternateProps, function(prop) {
+                        var condition = {}
+                        condition[prop.foreignFilterKey] = prop.foreignFilterValue;
+                        return condition;
+                    })
+                    var condition = {}
+                    condition[foreignFilterKey] =  foreignFilterValue;
+                    query['$or'].push(condition);
+                } else
+                    query[foreignFilterKey] =  foreignFilterValue;
+            }
+            function updatePersistorProp(obj, prop, values) {
+                self.withoutChangeTracking(function () {
+                    values['isFetching'] = false;
+                    if (!obj[prop])
+                        obj[prop] = {};
+                    var modified = false;
+                    _.map(values, function(value, key) {
+                        if (obj[prop][key] != value) {
+                            obj[prop][key] = value;
+                            modified = true;
+                        }
+                    });
+                    if (modified) {
+                        var tempProps = obj[prop];
+                        obj[prop] = null;
+                        obj[prop] = tempProps;
+                    }
+                });
+            }
+
+            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId) {
+                var query = {_id: foreignId};
+                var options = {};
+                var closureProp = prop;
+                var closurePersistorProp = persistorPropertyName;
+                var closureCascade = this.processCascade(query, options, cascadeFetch,
+                    (schema && schema.parents) ? schema.parents[prop].fetch : null, defineProperty.fetch);
+                var closureForeignId = foreignId;
+                var closureType = defineProperty.type;
+                var closureDefineProperty = defineProperty;
+
+                var join = _.find(joins, function (j) {return j.prop == prop});
+
+                requests.push(generateQueryRequest.bind(this, join, query, closureProp,
+                    closurePersistorProp, closureCascade, closureForeignId, closureType, closureDefineProperty));
+
+                function generateQueryRequest() {
+                    var fetcher = join ?
+                        (pojo[join.alias + '____id'] ?
+                            this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
+                                closureCascade, isTransient, closureDefineProperty,
+                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger)
+                            : Promise.resolve(true)) :
+                        this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
+                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger);
+                    this.withoutChangeTracking(function () {
+                        obj[closurePersistorProp].isFetching = true;
+                    }.bind(this));
+                    return fetcher.then(function() {
+                        this.withoutChangeTracking(function () {
+                            obj[closureProp] = idMap[closureForeignId];
+                        }.bind(this));
+                        if (obj[closurePersistorProp]) {
+                            updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
+                        }
+                    }.bind(this))
+                }
+
+            }
+
+            function queueChildrenLoadRequest(obj, prop, schema, defineProperty) {
+
+                var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
+                var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
+                // Construct foreign key query
+                var query = {};
+                var options = defineProperty.queryOptions || {sort: {_id: 1}};
+                var limit = options.limit || null;
+                query[schema.children[prop].id] = obj._id;
+                if (foreignFilterKey) {
+                    // accumulate hash of all like properties (except the first one)
+                    var alternateProps = collectLikeFilters(prop, query, defineProperty, foreignFilterKey);
+                    // If other than the first one just leave it for the original to take care of
+                    if (alternateProps && alternateProps[prop])
+                        return;
+                    else
+                        buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps);
+                }
+                // Handle
+                var closureOf = defineProperty.of;
+                var closureProp = prop;
+                var closurePersistorProp = persistorPropertyName
+                var closureCascade = this.processCascade(query, options, cascadeFetch,
+                    (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
+
+                // Fetch sub-ordinate entities and convert to objects
+                this.withoutChangeTracking(function () {
+                    obj[persistorPropertyName].isFetching = true;
+                }.bind(this));
+                requests.push(function () {
+                    return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
+                        limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger)
+                        .then(function(objs) {
+                            this.withoutChangeTracking(function () {
+                                if (foreignFilterKey) {
+                                    obj[closureProp] =  _.filter(objs, function (obj) {
+                                        return obj[foreignFilterKey] == foreignFilterValue;
+                                    });
+                                    if (alternateProps)
+                                        _.each(alternateProps, function(alternateProp, alternatePropKey) {
+                                            obj[alternatePropKey] = _.filter(objs, function (obj) {
+                                                return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
+                                            })
+                                        })
+                                } else
+                                    obj[closureProp] = objs;
+                            }.bind(this));
+                            var start = options ? options.start || 0 : 0;
+                            updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: start, next: start + objs.length})
+                        }.bind(this))
+                }.bind(this));
+
+            }
         };
 
 }

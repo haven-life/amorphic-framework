@@ -2,28 +2,33 @@ module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
     var _ = require('underscore');
+    var schemaValidator = require('tv4');
 
     PersistObjectTemplate.ObjectID = require('mongodb-bluebird').mongodb.ObjectID;
 
     PersistObjectTemplate.createTransientObject = function (cb) {
+        var currentState = this.__transient__;
         this.__transient__ = true;
-        var obj = cb();
-        this.__transient__ = false;
+        var obj = null;
+        if (typeof(cb) === 'function') {
+            obj = cb();
+        }
+        this.__transient__ = currentState || false;
         return obj;
-    }
+    };
 
     PersistObjectTemplate.saved = function (obj, txn) {
         delete obj['__dirty__'];
         delete obj['__changed__'];
-        var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
         var savedObjects = txn ? txn.savedObjects : this.savedObjects;
         if (savedObjects)
             savedObjects[obj.__id__] = obj;
-    }
+    };
 
     /**
      * Walk one-to-one links to arrive at the top level document
-     * @param obj - subdocument object to start at
+     * @param {Supertype} obj - subdocument object to start at
+     * @returns {Supertype}
      */
     PersistObjectTemplate.getTopObject = function(obj) {
         var idMap = {};
@@ -44,26 +49,28 @@ module.exports = function (PersistObjectTemplate) {
             return false;
         }
         return traverse(obj);
-    }
+    };
 
     /**
      * Walk through all objects in a document from the top
-     * @param obj - subdocument object to start at
+     * @param {Supertype} obj - subdocument object to start at
+     * @param {function} callback - to add any custom behavior
+     * @returns {Supertype}
      */
     PersistObjectTemplate.enumerateDocumentObjects = function(obj, callback) {
 
         var idMap = {};
         return traverse(obj);
 
-        function traverse(obj, parentObj, prop) {
+        function traverse(obj) {
             if (!obj)
                 return;
-            callback.call(null, obj)
+            callback.call(null, obj);
             var props = obj.__template__.getProperties();
             _.map(props, function (defineProperty, prop) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
-                    if (!idMap[obj.__id__ + "-" + prop]) {
-                        idMap[obj.__id__ + "-" + prop] = true;
+                    if (!idMap[obj.__id__ + '-' + prop]) {
+                        idMap[obj.__id__ + '-' + prop] = true;
                         _.map(obj[prop], function (value) {
                             traverse(value, obj, prop);
                         })
@@ -71,64 +78,64 @@ module.exports = function (PersistObjectTemplate) {
 
                 if (defineProperty.type && defineProperty.type.isObjectTemplate) {
                     if (obj[prop]) {
-                        if (!idMap[obj.__id__ + "-" + prop]) {
-                            idMap[obj.__id__ + "-" + prop] = true;
+                        if (!idMap[obj.__id__ + '-' + prop]) {
+                            idMap[obj.__id__ + '-' + prop] = true;
                             traverse(obj[prop], obj, prop);
                         }
                     }
                 }
             });
         }
-    }
+    };
 
     PersistObjectTemplate.getTemplateByCollection = function (collection) {
         for (var prop in this._schema)
             if (this._schema[prop].documentOf == collection)
                 return this.getTemplateByName(prop);
-        throw new Error("Cannot find template for " + collection);
-    }
+        throw new Error('Cannot find template for ' + collection);
+    };
 
     PersistObjectTemplate.checkObject = function (obj) {
         if (!obj.__template__)
-            throw new Error("Attempt to save an non-templated Object");
+            throw new Error('Attempt to save an non-templated Object');
         if (!obj.__template__.__schema__)
-            throw  new Error("Schema entry missing for " + obj.__template__.__name__);
-        var schema = obj.__template__.__schema__;
-    }
+            throw  new Error('Schema entry missing for ' + obj.__template__.__name__);
+    };
 
     PersistObjectTemplate.createPrimaryKey = function (obj) {
         var key = (new PersistObjectTemplate.ObjectID).toString();
         if (PersistObjectTemplate.objectMap && !obj.__transient__)
             PersistObjectTemplate.objectMap[key] = obj.__id__;
         return key;
-    }
+    };
 
-    PersistObjectTemplate.getObjectId = function (template, pojo, prefix) {
+    PersistObjectTemplate.getObjectId = function (_template, pojo, prefix) {
         if (PersistObjectTemplate.objectMap && PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()])
             return PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()];
         else
-            return 'persist' + '-' + pojo[prefix + '_template'].replace(/.*:/,'') + "-" + pojo[prefix + '_id'].toString()
-    }
+            return 'persist' + '-' + pojo[prefix + '_template'].replace(/.*:/, '') + '-' + pojo[prefix + '_id'].toString()
+    };
 
     PersistObjectTemplate._persistProperty = function(defineProperty) {
         if (defineProperty.persist == false || defineProperty.isLocal == true)
-            return false
+            return false;
         else
             return true;
-    }
+    };
 
     /* Mongo implementation of open */
     PersistObjectTemplate.getDB = function(alias)
     {
         if (!this._db)
-            throw  new Error("You must do PersistObjectTempate.setDB()");
+            throw  new Error('You must do PersistObjectTempate.setDB()');
         if (!this._db[alias || '__default__'])
-            throw  new Error("DB Alias " + alias + " not set with corresponding PersistObjectTempate.setDB(db, type, alias)");
+            throw  new Error('DB Alias ' + alias + ' not set with corresponding PersistObjectTempate.setDB(db, type, alias)');
+
         return this._db[alias || '__default__'];
-    }
+    };
 
     PersistObjectTemplate.dealias = function (collection) {
-        return collection.replace(/\:.*/, '').replace(/.*\//,'')
+        return collection.replace(/\:.*/, '').replace(/.*\//, '')
     };
 
     PersistObjectTemplate.getDBAlias = function (collection) {
@@ -142,9 +149,9 @@ module.exports = function (PersistObjectTemplate) {
         if (!masterId)
             return new this.ObjectID();
         else
-            return masterId.toString() + ":" + new this.ObjectID().toString();
+            return masterId.toString() + ':' + new this.ObjectID().toString();
 
-    }
+    };
 
     PersistObjectTemplate.resolveRecursivePromises = function(promises, returnValue) {
         var promisesToResolve = promises.length;
@@ -154,4 +161,111 @@ module.exports = function (PersistObjectTemplate) {
                 : Promise.resolve(returnValue);
         });
     }
-}
+
+    PersistObjectTemplate.getCurrentOrDefaultTransaction = function getCurrentOrDefault(current) {
+        var txn;
+        if (current !== null) {
+            txn = current || PersistObjectTemplate.__defaultTransaction__;
+        }
+        return txn;
+    }
+
+    PersistObjectTemplate._validateParams = function validateParams(options, schema, template) {
+        if (!options) {
+            return;
+        }
+        var schemas = {
+            'persistSchema': {
+                'type': 'object',
+                'additionalProperties': false,
+                'properties': {
+                    'transaction': {
+                        type: ['null', 'object']
+                    },
+                    'cascade': {
+                        type: 'boolean'
+                    },
+                    'logger': {
+                        type: ['null', 'object']
+                    }
+                }
+            },
+            'fetchSchema': {
+                'type': 'object',
+                'additionalProperties': false,
+                'properties': {
+                    'fetch': {
+                        type: ['null', 'object']
+                    },
+                    'start': {
+                        type: 'number'
+                    },
+                    'limit': {
+                        type: 'number'
+                    },
+                    'order': {
+                        type: ['null', 'object']
+                    },
+                    'transient': {
+                        type: 'boolean'
+                    },
+                    'logger': {
+                        type: ['null', 'object']
+                    }
+                }
+            },
+            'commitSchema': {
+                'type': 'object',
+                'additionalProperties': false,
+                'properties': {
+                    'transaction': {
+                        type: ['null', 'object']
+                    },
+                    'logger': {
+                        type: ['null', 'object']
+                    }
+                }
+            },
+            'fetchSpec': {}
+        };
+        var valid = schemaValidator.validate(options, schemas[schema]);
+        if (!valid) {
+            throw new Error('Parameter validation failed, ' + (schemaValidator.error.dataPath !== '' ? 'Field: '
+                    + schemaValidator.error.dataPath + ', ' : '')
+                    + 'Validation error: ' + schemaValidator.error.message);
+        }
+
+        if (schema === 'fetchSchema') {
+            validateFetchSpec(template);
+        }
+
+        function validateFetchSpec(template) {
+            var validSpecs = PersistObjectTemplate._validFetchSpecs || {};
+            //if the fetch spec currently used for the same template is already used, no need to valid again..
+            if (!validSpecs[template.__name__] || !validSpecs[template.__name__][JSON.stringify(options.fetch).replace(/\"|\{|\}/g, '')]) {
+                fetchPropChecks(options.fetch, template, template.__name__);
+                validSpecs[template.__name__] = validSpecs[template.__name__] || {};
+                validSpecs[template.__name__][JSON.stringify(options.fetch).replace(/\"|\{|\}/g, '')] = {};
+                PersistObjectTemplate._validFetchSpecs = validSpecs;
+            }
+
+            function fetchPropChecks(fetch, template, name) {
+                Object.keys(fetch).map(function(key) {
+                    if (key in template.defineProperties && isObjectTemplateProperty(template.props[key])) {
+                        if (!fetch[key].fetch) return;
+                        fetchPropChecks(fetch[key].fetch, template.props[key].type, template.props[key].type.__name__)
+                    }
+                    else {
+                        throw new Error('key used ' + key + ' is not a valid fetch key for the template ' + name);
+                    }
+                });
+            }
+
+            function isObjectTemplateProperty(template) {
+                return ((template.type && template.type.isObjectTemplate) ||
+                    (template.of && template.type === Array && template.of.isObjectTemplate))
+            }
+        }
+
+    }
+};
