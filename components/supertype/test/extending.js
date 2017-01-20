@@ -1,5 +1,4 @@
 var expect = require('chai').expect;
-var Q = require("q");
 var ObjectTemplate = require('../index.js');
 
 
@@ -81,11 +80,11 @@ describe("Extended Templates", function () {
                     descriptions: function () {return {'b3': this.str}}}
             });
 
-        expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(undefined);
+    expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(undefined);
 		expect((new ExtendedTemplate1()).boolTrue).to.equal(false);
-        expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(true);
-        expect(ObjectTemplate.__templateUsage__['ExtendedTemplate1']).to.equal(true);
-        expect((new ExtendedTemplate1()).boolFalse).to.equal(true);
+    expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(true);
+    expect(ObjectTemplate.__templateUsage__['ExtendedTemplate1']).to.equal(true);
+    expect((new ExtendedTemplate1()).boolFalse).to.equal(true);
 		expect((new ExtendedTemplate1()).num).to.equal(200);
 		expect((new ExtendedTemplate1()).str).to.equal('Extended');
 		expect((new ExtendedTemplate1()).obj.type).to.equal('Extended');
@@ -113,10 +112,3 @@ describe("Extended Templates", function () {
 		
 	});
 });
-
-
-
-
-
-
-

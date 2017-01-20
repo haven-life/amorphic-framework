@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var Q = require("q");
+var Q = require('q');
 var ObjectTemplate = require('../index.js');
 
 var Main = ObjectTemplate.create("Main", {
@@ -9,9 +9,9 @@ var Main = ObjectTemplate.create("Main", {
 	}
 });
 
-var SubOne = ObjectTemplate.create("SubOne", {
-	name: {type: String, value: ""},
-	init: function (name) {this.name = name}
+var SubOne = ObjectTemplate.create('SubOne', {
+    name: {type: String, value: ''},
+    init: function (name) {this.name = name;}
 });
 
 var SubOneExtended = SubOne.extend("SubOneExtended", {
@@ -33,18 +33,18 @@ var SubManyExtended = SubMany.extend("SubManyExtended", {
 });
 
 Main.mixin({
-	subA: {type: SubOne},
-	subB: {type: SubOne},
-	subsA: {type: Array, of: SubMany, value: []},
-	subsB: {type: Array, of: SubMany, value: []},
-	addSubManyA: function (subMany) {
-		subMany.main = this;
-		this.subsA.push(subMany);
-	},
-	addSubManyB: function (subMany) {
-		subMany.main = this;
-		this.subsB.push(subMany);
-	}
+    subA: {type: SubOne},
+    subB: {type: SubOne},
+    subsA: {type: Array, of: SubMany, value: []},
+    subsB: {type: Array, of: SubMany, value: []},
+    addSubManyA: function (subMany) {
+        subMany.main = this;
+        this.subsA.push(subMany);
+    },
+    addSubManyB: function (subMany) {
+        subMany.main = this;
+        this.subsB.push(subMany);
+    }
 });
 
 var main = new Main("main");
@@ -83,13 +83,3 @@ it("can clone", function () {
 	expect(main2.subsB.length).to.equal(2);
 	expect(main2.subA).to.equal(null);
 });
-
-	
-
-
-
-
-
-
-
-
