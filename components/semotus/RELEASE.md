@@ -1,3 +1,5 @@
+## 2.0.0
+* Noop refactor
 ## 1.4.1
 * Include 1.4 supertype
 ## 1.4.0
