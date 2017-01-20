@@ -1,3 +1,5 @@
+## 2.0.0
+* Noop refactor
 ## 1.5.1
 * Fixed problem with list of app names for toClient rules
 * Added objectTemplate.__usageMap__ for list of instantiated templates
