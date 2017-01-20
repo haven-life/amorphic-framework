@@ -1,3 +1,6 @@
+## 2.0.0
+* Added new API
+* Refactor
 ## 1.4.3
 * Create table comments in Postgres on new tables as well as modifications
 ## 1.4.2
