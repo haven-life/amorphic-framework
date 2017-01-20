@@ -122,7 +122,7 @@ ObjectTemplate.getTemplateProperties = function getTemplateProperties(props) {
                 if (ret == null) {
                     ret = processProp(prop, ruleSet);
                 }
-            
+            })
         }
         else {
             ret = prop;
@@ -996,12 +996,13 @@ ObjectTemplate.fromPOJO = function fromPOJO(pojo, template, defineProperty, idMa
                     obj[propb] = [];
 
                     for (var ix = 0; ix < pojo[propb].length; ++ix) {
+                        var atype = pojo[propb][ix].__template__ || defineProp.of;
                         if (pojo[propb][ix]) {
                             if (pojo[propb][ix].__id__ && idMap[getId(pojo[propb][ix].__id__.toString())]) {
                                 obj[propb][ix] = idMap[getId(pojo[propb][ix].__id__.toString())];
                             }
                             else {
-                                obj[propb][ix] = this.fromPOJO(pojo[propb][ix], defineProp.of, defineProp, idMap, idQualifier, obj, propb, creator);
+                                obj[propb][ix] = this.fromPOJO(pojo[propb][ix], atype, defineProp, idMap, idQualifier, obj, propb, creator);
                             }
                         }
                         else {
@@ -1014,11 +1015,12 @@ ObjectTemplate.fromPOJO = function fromPOJO(pojo, template, defineProperty, idMa
                 }
             }
             else if (type.isObjectTemplate) { // Templated objects
+                var otype = pojo[propb].__template__ || type;
                 if (pojo[propb].__id__ && idMap[getId(pojo[propb].__id__.toString())]) {
                     obj[propb] = idMap[getId(pojo[propb].__id__.toString())];
                 }
                 else {
-                    obj[propb] = this.fromPOJO(pojo[propb], type, defineProp, idMap, idQualifier, obj, propb, creator);
+                    obj[propb] = this.fromPOJO(pojo[propb], otype, defineProp, idMap, idQualifier, obj, propb, creator);
                 }
             }
             else if (type == Date) {
@@ -1033,7 +1035,7 @@ ObjectTemplate.fromPOJO = function fromPOJO(pojo, template, defineProperty, idMa
                 obj[propb] = pojo[propb];
             }
         }
-
+    }
 
     // For the benefit of persistObjectTemplate
     if (!creator && pojo._id) {
