@@ -779,7 +779,9 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 // Add a please select ... item if no value matches and remove it if something selected
                                 if (!selected) {
                                     var child = node.insertBefore(document.createElement('OPTION'), node.firstChild);
-                                    child.value = bind_data;
+                                    child.value = bind_data ? bind_data : ''; // Instead of setting a potential null value
+                                    // which becomes the literal "null" when one uses node.value, use the empty string instead
+                                    // which is a falsy
                                     child.text = pleaseSelect;
                                     child.selected = true;
                                     node.selectedIndex = 0;
@@ -793,7 +795,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 }
                                 this.sendToController(node.bindster);
                             }
-                            this.validateValue(tags, (node.value == 'null' && bind_data === null) ? null : node.value, node);  // before validate would not see Please select ...
+                            this.validateValue(tags, (!node.value && bind_data === null) ? null : node.value, node);  // before validate would not see Please select ...
                         }
                         else {
                             if (!bind_error && (typeof(last_value) =='undefined') || (last_value != bind_data)) {
