@@ -1,3 +1,5 @@
+## 1.3.10
+* Firefox selects which can end up with "null" as value
 ## 1.3.9
 * Temporary fix to deal with IE select bug
 ## 1.3.8

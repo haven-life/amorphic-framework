@@ -779,7 +779,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 // Add a please select ... item if no value matches and remove it if something selected
                                 if (!selected) {
                                     var child = node.insertBefore(document.createElement('OPTION'), node.firstChild);
-                                    child.value = bind_data ? bind_data : ''; // Instead of setting a potential null value
+                                    child.value = bind_data !== null ? bind_data : ''; // Instead of setting a potential null value
                                     // which becomes the literal "null" when one uses node.value, use the empty string instead
                                     // which is a falsy
                                     child.text = pleaseSelect;
