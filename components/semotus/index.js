@@ -128,7 +128,7 @@ RemoteObjectTemplate.createSession = function createSession(role, sendMessage, s
 };
 
 /**
- * Purpose unknown
+ * Remove the session from the sessions map, rejecting any outstanding promises
  *
  * @param {unknown} sessionId unknown
  */
@@ -145,7 +145,8 @@ RemoteObjectTemplate.deleteSession = function deleteSession(sessionId) {
 };
 
 /**
- * Purpose unknown
+ * After resynchronizing sessions we need to set a new sequence number to be used in
+ * new objects to avoid conflicts with any existing ones the remote session may have
  *
  * @param {unknown} nextObjId unknown
  */
@@ -182,7 +183,7 @@ RemoteObjectTemplate.saveSession = function saveSession(sessionId) {
 };
 
 /**
- * Purpose unknown
+ * A public function to determine whether there are remote calls in progress
  *
  * @param {unknown} sessionId unknown
  *
@@ -280,7 +281,8 @@ RemoteObjectTemplate.subscribe = function subscribe(role) {
         role: role,
         log: {
             array: {},
-            change: {}
+            change: {},
+            arrayDirty: {}
         }
     };
 
@@ -306,97 +308,97 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
     var remoteCallId = remoteCall.remoteCallId;
 
     switch (remoteCall.type) {
-    case 'ping':
+        case 'ping':
 
-        this.logger.info({component: 'semotus', module: 'processMessage', activity: 'ping'});
-        session.sendMessage({type: 'pinged', sync: true, value: null, name: null, changes: null});
-        break;
+            this.logger.info({component: 'semotus', module: 'processMessage', activity: 'ping'});
+            session.sendMessage({type: 'pinged', sync: true, value: null, name: null, changes: null});
+            break;
 
-    case 'sync':
+        case 'sync':
 
-        this.logger.info({component: 'semotus', module: 'processMessage', activity: 'sync'});
+            this.logger.info({component: 'semotus', module: 'processMessage', activity: 'sync'});
 
-        // Apply any pending changes passed along as part of the call and then either
-        // Call the method, sending back the result in a response message
-        // or return an error response so the caller will roll back
-        if (!this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
-            this.logger.error({component: 'semotus', module: 'processMessage', activity: 'syncError'}, 'Could not apply changes on sync message');
-            this._convertArrayReferencesToChanges();
-            this._deleteChanges();
-            this._processQueue();
-        }
-
-        break;
-
-    case 'call':
-        if (this.reqSession && this.reqSession.semotus)  {
-            if (!this.reqSession.semotus.callStartTime) {
-                this.reqSession.semotus.callStartTime = (new Date()).getTime();
+            // Apply any pending changes passed along as part of the call and then either
+            // Call the method, sending back the result in a response message
+            // or return an error response so the caller will roll back
+            if (!this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
+                this.logger.error({component: 'semotus', module: 'processMessage', activity: 'syncError'}, 'Could not apply changes on sync message');
+                this._convertArrayReferencesToChanges();
+                this._deleteChanges();
+                this._processQueue();
             }
-            else { //TODO: Why is this not an else if clause?
-                if ((this.reqSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
-                    Q.delay(5000).then(function a() {
-                        this.logger.warn({component: 'semotus', module: 'processMessage', activity: 'blockingCall',
-                                data: {call: remoteCall.name, sequence: remoteCall.sequence}}, remoteCall.name);
-                        session.sendMessage({type: 'response', sync: false, changes: '', remoteCallId: remoteCallId});
-                        this._deleteChanges();
-                        this._processQueue();
-                    }.bind(this));
 
-                    break;
+            break;
+
+        case 'call':
+            if (this.reqSession && this.reqSession.semotus)  {
+                if (!this.reqSession.semotus.callStartTime) {
+                    this.reqSession.semotus.callStartTime = (new Date()).getTime();
+                }
+                else { //TODO: Why is this not an else if clause?
+                    if ((this.reqSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
+                        Q.delay(5000).then(function a() {
+                            this.logger.warn({component: 'semotus', module: 'processMessage', activity: 'blockingCall',
+                                data: {call: remoteCall.name, sequence: remoteCall.sequence}}, remoteCall.name);
+                            session.sendMessage({type: 'response', sync: false, changes: '', remoteCallId: remoteCallId});
+                            this._deleteChanges();
+                            this._processQueue();
+                        }.bind(this));
+
+                        break;
+                    }
                 }
             }
-        }
 
-        var callContext = {retries: 0, startTime: new Date()};
+            var callContext = {retries: 0, startTime: new Date()};
 
-        return processCall.call(this);
+            return processCall.call(this);
 
-    case 'response':
-    case 'error':
-        var doProcessQueue = true;
+        case 'response':
+        case 'error':
+            var doProcessQueue = true;
 
-        this.logger.info({component: 'semotus', module: 'processMessage', activity: remoteCall.type,
+            this.logger.info({component: 'semotus', module: 'processMessage', activity: remoteCall.type,
                 data: {call: remoteCall.name, sequence: remoteCall.sequence}});
 
-        // If we are out of sync queue up a set Root if on server.  This could occur
-        // if a session is restored but their are pending calls
-        if (!session.pendingRemoteCalls[remoteCallId]) {
-            this.logger.error({component: 'semotus', module: 'processMessage', activity: remoteCall.type,
+            // If we are out of sync queue up a set Root if on server.  This could occur
+            // if a session is restored but their are pending calls
+            if (!session.pendingRemoteCalls[remoteCallId]) {
+                this.logger.error({component: 'semotus', module: 'processMessage', activity: remoteCall.type,
                     data: {call: remoteCall.name, sequence: remoteCall.sequence}},  'No remote call pending');
-        }
-        else {
-            if (typeof(remoteCall.sync) != 'undefined') {
-                if (remoteCall.sync) {
-                    if (session.pendingRemoteCalls[remoteCallId].deferred.resolve) {
-                        hadChanges = this._applyChanges(JSON.parse(remoteCall.changes), true, subscriptionId);
+            }
+            else {
+                if (typeof(remoteCall.sync) != 'undefined') {
+                    if (remoteCall.sync) {
+                        if (session.pendingRemoteCalls[remoteCallId].deferred.resolve) {
+                            hadChanges = this._applyChanges(JSON.parse(remoteCall.changes), true, subscriptionId);
 
-                        if (remoteCall.type == 'error') {
-                            session.pendingRemoteCalls[remoteCallId].deferred.reject(remoteCall.value);
+                            if (remoteCall.type == 'error') {
+                                session.pendingRemoteCalls[remoteCallId].deferred.reject(remoteCall.value);
+                            }
+                            else {
+                                session.pendingRemoteCalls[remoteCallId].deferred.resolve(this._fromTransport(JSON.parse(remoteCall.value)));
+                            }
                         }
-                        else {
-                            session.pendingRemoteCalls[remoteCallId].deferred.resolve(this._fromTransport(JSON.parse(remoteCall.value)));
+                    }
+                    else {
+                        this._rollbackChanges();
+                        session.pendingRemoteCalls[remoteCallId].deferred.reject({code: 'internal_error_rollback', text:'An internal error occured'});
+
+                        if (this.role == 'client') {// client.js in amorphic will take care of this
+                            doProcessQueue = false;
                         }
                     }
                 }
-                else {
-                    this._rollbackChanges();
-                    session.pendingRemoteCalls[remoteCallId].deferred.reject({code: 'internal_error_rollback', text:'An internal error occured'});
 
-                    if (this.role == 'client') {// client.js in amorphic will take care of this
-                        doProcessQueue = false;
-                    }
-                }
+                delete session.pendingRemoteCalls[remoteCallId];
             }
 
-            delete session.pendingRemoteCalls[remoteCallId];
-        }
+            if (doProcessQueue) {
+                this._processQueue();
+            }
 
-        if (doProcessQueue) {
-            this._processQueue();
-        }
-
-        return hadChanges == 2;
+            return hadChanges == 2;
     }
 
 
@@ -747,7 +749,7 @@ RemoteObjectTemplate.getChangeGroup = function getChangeGroup(type, subscription
 };
 
 /**
- * Purpose unknown
+ * Remove a change group from a subscription
  *
  * @param {unknown} type unknown
  * @param {unknown} subscriptionId unknown
@@ -757,7 +759,7 @@ RemoteObjectTemplate.deleteChangeGroup = function deleteChangeGroup(type, subscr
 };
 
 /**
- * Purpose unknown
+ * Retrieve a change group from a subscription
  *
  * @param {unknown} subscriptionId unknown
  *
@@ -775,7 +777,7 @@ RemoteObjectTemplate.getChanges = function getChanges(subscriptionId) {
 };
 
 /**
- * Purpose unknown
+ * Diagnostic function to return summary of changes (lengths of change groups)
  *
  * @returns {unknown} unknown
  */
@@ -1301,36 +1303,44 @@ RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arra
         return;
     }
 
+
     // Track this for each subscription
     var subscriptions = this._getSubscriptions(sessionId);
 
-    for (var subscription in subscriptions) {
-        var changeGroup = this.getChangeGroup('array', subscription);
+    processSubscriptions.call(this, 'array');
+    if (this.__changeTracking__) {
+        processSubscriptions.call(this, 'arrayDirty');
+    }
 
-        if (subscriptions[subscription] != this.processingSubscription) {
-            var key = obj.__id__ + '/' + prop;
+    function processSubscriptions(changeType) {
+        for (var subscription in subscriptions) {
+            var changeGroup = this.getChangeGroup(changeType, subscription);
 
-            // Only record the value on the first reference
-            if (!changeGroup[key]) {
-                var old = [];
+            if (subscriptions[subscription] != this.processingSubscription) {
+                var key = obj.__id__ + '/' + prop;
 
-                // Walk through the array and grab the reference
-                if (arrayRef) {
-                    for (var ix = 0; ix < arrayRef.length; ++ix) {
-                        var elem = arrayRef[ix];
+                // Only record the value on the first reference
+                if (!changeGroup[key]) {
+                    var old = [];
 
-                        if (typeof(elem) != 'undefined' && elem != null) {
-                            if (elem != null && elem.__id__) {
-                                old[ix] = elem.__id__;
-                            }
-                            else { // values start with an = to distinguish from ids
-                                old[ix] = '=' + JSON.stringify(elem);
+                    // Walk through the array and grab the reference
+                    if (arrayRef) {
+                        for (var ix = 0; ix < arrayRef.length; ++ix) {
+                            var elem = arrayRef[ix];
+
+                            if (typeof(elem) != 'undefined' && elem != null) {
+                                if (elem != null && elem.__id__) {
+                                    old[ix] = elem.__id__;
+                                }
+                                else { // values start with an = to distinguish from ids
+                                    old[ix] = '=' + JSON.stringify(elem);
+                                }
                             }
                         }
                     }
-                }
 
-                changeGroup[key] = old;
+                    changeGroup[key] = old;
+                }
             }
         }
     }
@@ -1431,7 +1441,7 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function convertArrayRef
                     }
                 }
             }
-
+            this.deleteChangeGroup('arrayDirty', subscription);
             this.deleteChangeGroup('array', subscription);
         }
     }
@@ -1447,7 +1457,7 @@ RemoteObjectTemplate.MarkChangedArrayReferences = function MarkChangedArrayRefer
 
     for (var subscription in subscriptions) {
         if (subscriptions[subscription] != this.processingSubscription) {
-            var refChangeGroup = this.getChangeGroup('array', subscription);
+            var refChangeGroup = this.getChangeGroup('arrayDirty', subscription);
 
             // Look at every array reference
             for (var key in refChangeGroup) {
@@ -2219,48 +2229,48 @@ RemoteObjectTemplate._fromTransport = function clone(obj) {
     var session = this._getSession();
 
     switch (obj.type) {
-    case 'date':
-        obj = new Date(obj.value);
-        break;
+        case 'date':
+            obj = new Date(obj.value);
+            break;
 
-    case 'string':
-        obj = obj.value;
-        break;
+        case 'string':
+            obj = obj.value;
+            break;
 
-    case 'number':
-        obj = new Number(obj.value);
-        break;
+        case 'number':
+            obj = new Number(obj.value);
+            break;
 
-    case 'boolean':
-        obj = obj.value;
-        break;
+        case 'boolean':
+            obj = obj.value;
+            break;
 
-    case 'array':
-        var obja = [];
+        case 'array':
+            var obja = [];
 
-        for (var ix = 0; ix < obj.value.length; ++ix) {
-            obja[ix] = this._fromTransport(obj.value[ix]);
-        }
+            for (var ix = 0; ix < obj.value.length; ++ix) {
+                obja[ix] = this._fromTransport(obj.value[ix]);
+            }
 
-        obj = obja;
-        break;
+            obj = obja;
+            break;
 
-    case 'id':
-        obj = session.objects[obj.value];
-        break;
+        case 'id':
+            obj = session.objects[obj.value];
+            break;
 
-    case 'object':
-        var objo = {};
+        case 'object':
+            var objo = {};
 
-        for (var prop in obj.value) {
-            objo[prop] = this._fromTransport(obj.value[prop]);
-        }
+            for (var prop in obj.value) {
+                objo[prop] = this._fromTransport(obj.value[prop]);
+            }
 
-        obj = objo;
-        break;
+            obj = objo;
+            break;
 
-    case null:
-        obj = null;
+        case null:
+            obj = null;
     }
 
     return obj;
@@ -2330,6 +2340,7 @@ RemoteObjectTemplate._getSubscriptions = function getSubscriptions(sessionId) {
  */
 RemoteObjectTemplate._deleteChanges = function deleteChanges() {
     this._deleteChangeGroups('array');
+    this._deleteChangeGroups('arrayDirty');
     this._deleteChangeGroups('change');
 };
 
