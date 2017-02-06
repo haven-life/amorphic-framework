@@ -2,7 +2,7 @@
   "name": "amorphic-bindster",
   "description": "bindster support for amorphic",
   "homepage": "https://github.com/selsamman/amorphic-bindster",
-  "version": "1.3.10",
+  "version": "2.0.0",
   "dependencies": {
       "q": "1.x"
   },

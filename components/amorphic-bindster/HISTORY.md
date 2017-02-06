@@ -1,3 +1,5 @@
+## 2.0.0
+* Updaed dependency on supertype and other lint-related changes.
 ## 1.3.10
 * Firefox selects which can end up with "null" as value
 ## 1.3.9
