@@ -119,9 +119,7 @@ ObjectTemplate.getTemplateProperties = function getTemplateProperties(props) {
         }
         else if (prop instanceof Array) {
             prop.forEach(function h(prop) {
-                if (ret == null) {
-                    ret = processProp(prop, ruleSet);
-                }
+                ret = ret || processProp(prop, ruleSet);
             })
         }
         else {

@@ -1,3 +1,5 @@
+## 2.0.1
+* Fixed problem with multiple applications on toClient
 ## 2.0.0
 * Noop refactor
 ## 1.5.1
