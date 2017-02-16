@@ -1298,7 +1298,7 @@ Bindster.prototype.processEvents = function(node, tags, context, cloned, finger_
             if (tags.events[event_name][jx].eval)
                 script = this.eval(script, null, "evaluating evalon" + event_name, node);
             script = script.replace(/\'/g, "\\\'");
-            action +=  (this.instance + ".eval('" + script + "',null,'" + event_name + "',node,ev);");
+            action +=  (this.instance + ".eval('" + script + "',null,'" + event_name + "',node,ev,undefined,this);");
             if (tags.events[event_name][jx].defer)
                 defer = tags.events[event_name][jx].defer;
             if (!script.match(/^addClass\(".*?"\)$/) && !script.match(/^removeClass\(".*?"\)$/))
@@ -1872,7 +1872,7 @@ Bindster.prototype.evalWithValue = function(js, value, error_message, node, ev)
     return this.eval(js, {value: value}, error_message, node, ev);
 
 }
-Bindster.prototype.eval = function(__js__, data, error_message, node, ev, rethrow)
+Bindster.prototype.eval = function(__js__, data, error_message, node, ev, rethrow, bindTarget)
 {
     var srcElement = node;
     var target = node;
