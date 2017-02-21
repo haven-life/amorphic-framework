@@ -1,3 +1,5 @@
+## 2.1.0
+* Include 2.1.0 supertype
 ## 2.0.1
 * Fixed bug where __changed__ would be set for objects modified while __changeTracking__ off
 ## 2.0.0
