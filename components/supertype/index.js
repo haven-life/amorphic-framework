@@ -309,19 +309,42 @@ ObjectTemplate.globalInject = function globalInject(injector) {
 };
 
 /**
+ * Create the template if it needs to be created
+ * @param [unknown} template to be created
+ */
+ObjectTemplate.createIfNeeded = function createTemplate (template, thisObj)
+{
+    if (template.__createParameters__) {
+        var createParameters = template.__createParameters__
+        for (var ix = 0; ix < createParameters.length; ++ix) {
+            var params = createParameters[ix];
+            template.__createParameters__ = undefined;
+            this._createTemplate(params[0], params[1], params[2], params[3], params[4], true);
+        }
+        if (template._injectProperties) {
+            template._injectProperties();
+        }
+        if (thisObj) {
+            //var copy = new template();
+            thisObj.__proto__ = template.prototype;
+        }
+    }
+}
+
+/**
  * General function to create templates used by create, extend and mixin
  *
  * @param {unknown} mixinTemplate - template used for a mixin
  * @param {unknown} parentTemplate - template used for an extend
  * @param {unknown} propertiesOrTemplate - properties to be added/mxied in
  * @param {unknown} createProperties unknown
- * @param {unknown} templateName - unknown
+ * @param {unknown} templateName - the name of the template as it will be stored retrieved from dictionary
  *
  * @returns {Function}
  *
  * @private
  */
-ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentTemplate, propertiesOrTemplate, createProperties, templateName) {
+ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentTemplate, propertiesOrTemplate, createProperties, templateName, createTemplateNow) {
     // We will return a constructor that can be used in a new function
     // that will call an init() function found in properties, define properties using Object.defineProperties
     // and make copies of those that are really objects
@@ -333,72 +356,81 @@ ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentT
 
     function F () {}     // Used in case of extend
 
+    if (!this.lazyTemplateLoad) {
+        createTemplateNow = true;
+    }
     // Setup variables depending on the type of call (create, extend, mixin)
-    if (mixinTemplate) {        // Mixin
-        if (propertiesOrTemplate.isObjectTemplate) {
-            for (var prop in propertiesOrTemplate.defineProperties) {
-                mixinTemplate.defineProperties[prop] = propertiesOrTemplate.defineProperties[prop];
-            }
+    if (createTemplateNow) {
+        if (mixinTemplate) {        // Mixin
+            this.createIfNeeded(mixinTemplate);
+            if (propertiesOrTemplate.isObjectTemplate) {
+                this.createIfNeeded(propertiesOrTemplate);
+                for (var prop in propertiesOrTemplate.defineProperties) {
+                    mixinTemplate.defineProperties[prop] = propertiesOrTemplate.defineProperties[prop];
+                }
 
-            for (var propp in propertiesOrTemplate.objectProperties) {
-                mixinTemplate.objectProperties[propp] = propertiesOrTemplate.objectProperties[propp];
-            }
+                for (var propp in propertiesOrTemplate.objectProperties) {
+                    mixinTemplate.objectProperties[propp] = propertiesOrTemplate.objectProperties[propp];
+                }
 
-            for (var propo in propertiesOrTemplate.functionProperties) {
-                if (propo == 'init') {
-                    mixinTemplate.functionProperties.init = mixinTemplate.functionProperties.init || [];
+                for (var propo in propertiesOrTemplate.functionProperties) {
+                    if (propo == 'init') {
+                        mixinTemplate.functionProperties.init = mixinTemplate.functionProperties.init || [];
 
-                    for (var ix = 0; ix < propertiesOrTemplate.functionProperties.init.length; ++ix) {
-                        mixinTemplate.functionProperties.init.push(propertiesOrTemplate.functionProperties.init[ix]);
+                        for (var ix = 0; ix < propertiesOrTemplate.functionProperties.init.length; ++ix) {
+                            mixinTemplate.functionProperties.init.push(propertiesOrTemplate.functionProperties.init[ix]);
+                        }
+                    }
+                    else {
+                        mixinTemplate.functionProperties[propo] = propertiesOrTemplate.functionProperties[propo];
                     }
                 }
-                else {
-                    mixinTemplate.functionProperties[propo] = propertiesOrTemplate.functionProperties[propo];
-                }
-            }
 
-            for (var propn in propertiesOrTemplate.prototype) {
-                var propDesc = Object.getOwnPropertyDescriptor(propertiesOrTemplate.prototype, propn);
+                for (var propn in propertiesOrTemplate.prototype) {
+                    var propDesc = Object.getOwnPropertyDescriptor(propertiesOrTemplate.prototype, propn);
 
-                if (propDesc) {
-                    Object.defineProperty(mixinTemplate.prototype, propn, propDesc);
+                    if (propDesc) {
+                        Object.defineProperty(mixinTemplate.prototype, propn, propDesc);
 
-                    if (propDesc.get) {
-                        Object.getOwnPropertyDescriptor(mixinTemplate.prototype, propn).get.sourceTemplate = propDesc.get.sourceTemplate;
+                        if (propDesc.get) {
+                            Object.getOwnPropertyDescriptor(mixinTemplate.prototype, propn).get.sourceTemplate = propDesc.get.sourceTemplate;
+                        }
+                    }
+                    else {
+                        mixinTemplate.prototype[propn] = propertiesOrTemplate.prototype[propn];
                     }
                 }
-                else {
-                    mixinTemplate.prototype[propn] = propertiesOrTemplate.prototype[propn];
+
+                mixinTemplate.props = {};
+
+                var props = ObjectTemplate._getDefineProperties(mixinTemplate, undefined, true);
+
+                for (var propm in props) {
+                    mixinTemplate.props[propm] = props[propm];
                 }
+
+                return mixinTemplate;
             }
-
-            mixinTemplate.props = {};
-
-            var props = ObjectTemplate._getDefineProperties(mixinTemplate, undefined, true);
-
-            for (var propm in props) {
-                mixinTemplate.props[propm] = props[propm];
+            else {
+                defineProperties = mixinTemplate.defineProperties;
+                objectProperties = mixinTemplate.objectProperties;
+                functionProperties = mixinTemplate.functionProperties;
+                templatePrototype = mixinTemplate.prototype;
+                parentTemplate = mixinTemplate.parentTemplate;
             }
-
-            return mixinTemplate;
         }
-        else {
-            defineProperties = mixinTemplate.defineProperties;
-            objectProperties = mixinTemplate.objectProperties;
-            functionProperties = mixinTemplate.functionProperties;
-            templatePrototype = mixinTemplate.prototype;
-            parentTemplate = mixinTemplate.parentTemplate;
+        else {        // Extend
+            this.createIfNeeded(parentTemplate);
+            F.prototype = parentTemplate.prototype;
+            templatePrototype = new F();
         }
     }
-    else {        // Extend
-        F.prototype = parentTemplate.prototype;
-        templatePrototype = new F();
-    }
-
     /**
-     * Constructor that will be returned
+     * Constructor that will be returned will only ever be created once
      */
-    var template = function template() {
+    var template = this.__dictionary__[templateName] || function template() {
+
+        objectTemplate.createIfNeeded(template, this);
 
         objectTemplate.__templateUsage__[template.__name__] = true;
         var parent = template.__parent__;
@@ -413,8 +445,8 @@ ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentT
             this.__transient__ = true;
         }
 
-        var prunedObjectProperties = pruneExisting(this, objectProperties);
-        var prunedDefineProperties = pruneExisting(this, defineProperties);
+        var prunedObjectProperties = pruneExisting(this, template.objectProperties);
+        var prunedDefineProperties = pruneExisting(this, template.defineProperties);
 
         try {
             // Create properties either with EMCA 5 defineProperties or by hand
@@ -488,15 +520,15 @@ ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentT
 
         // If we don't have an init function or are a remote creation call parent constructor otherwise call init
         //  function who will be responsible for calling parent constructor to allow for parameter passing.
-        if (this.fromRemote || !functionProperties.init || objectTemplate.noInit) {
+        if (this.fromRemote || !template.functionProperties.init || objectTemplate.noInit) {
             if (parentTemplate && parentTemplate.isObjectTemplate) {
                 parentTemplate.call(this);
             }
         }
         else {
-            if (functionProperties.init) {
-                for (var i = 0; i < functionProperties.init.length; ++i) {
-                    functionProperties.init[i].apply(this, arguments);
+            if (template.functionProperties.init) {
+                for (var i = 0; i < template.functionProperties.init.length; ++i) {
+                    template.functionProperties.init[i].apply(this, arguments);
                 }
             }
         }
@@ -533,6 +565,41 @@ ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentT
             return newProps;
         }
     };
+
+    template.isObjectTemplate = true;
+
+    template.extend = function extend(p1, p2) {
+        return objectTemplate.extend.call(objectTemplate, this, p1, p2);
+    };
+
+    template.mixin = function mixin(p1, p2) {
+        return objectTemplate.mixin.call(objectTemplate, this, p1, p2);
+    };
+
+    template.staticMixin = function staticMixin(p1, p2) {
+        return objectTemplate.staticMixin.call(objectTemplate, this, p1, p2);
+    };
+
+    template.fromPOJO = function fromPOJO(pojo) {
+        objectTemplate.createIfNeeded(template);
+        return objectTemplate.fromPOJO(pojo, template);
+    };
+
+    template.fromJSON = function fromJSON(str, idPrefix) {
+        objectTemplate.createIfNeeded(template);
+        return objectTemplate.fromJSON(str, template, idPrefix);
+    };
+
+    template.getProperties = function getProperties(includeVirtual) {
+        objectTemplate.createIfNeeded(template);
+        return ObjectTemplate._getDefineProperties(template, undefined, includeVirtual);
+    };
+
+    if (!createTemplateNow) {
+        template.__createParameters__ = template.__createParameters__ || [];
+        template.__createParameters__.push([mixinTemplate, parentTemplate, propertiesOrTemplate, createProperties, templateName]);
+        return template;
+    }
 
     template.prototype = templatePrototype;
 
@@ -652,34 +719,10 @@ ObjectTemplate._createTemplate = function createTemplate (mixinTemplate, parentT
     template.defineProperties = defineProperties;
     template.objectProperties = objectProperties;
 
-    template.getProperties = function getProperties(includeVirtual) {
-        return ObjectTemplate._getDefineProperties(template, undefined, includeVirtual);
-    };
-
     template.functionProperties = functionProperties;
     template.parentTemplate = parentTemplate;
 
-    template.extend = function extend(p1, p2) {
-        return objectTemplate.extend.call(objectTemplate, this, p1, p2);
-    };
 
-    template.mixin = function mixin(p1, p2) {
-        return objectTemplate.mixin.call(objectTemplate, this, p1, p2);
-    };
-
-    template.staticMixin = function staticMixin(p1, p2) {
-        return objectTemplate.staticMixin.call(objectTemplate, this, p1, p2);
-    };
-
-    template.fromPOJO = function fromPOJO(pojo) {
-        return objectTemplate.fromPOJO(pojo, template);
-    };
-
-    template.fromJSON = function fromJSON(str, idPrefix) {
-        return objectTemplate.fromJSON(str, template, idPrefix);
-    };
-
-    template.isObjectTemplate = true;
     template.createProperty = createProperty;
 
     template.props = {};
