@@ -1,3 +1,5 @@
+## 2.1.0
+* Add support for Lazy Template Loading
 ## 2.0.0
 * Added new API
 * Refactor
