@@ -1,3 +1,5 @@
+## 2.1.0
+* Support for lazy template loading.
 ## 2.0.1
 * Fixed problem with multiple applications on toClient
 ## 2.0.0
