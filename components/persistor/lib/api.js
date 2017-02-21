@@ -507,45 +507,59 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         template.knexChildJoin = function (targetTemplate, primaryAlias, targetAlias, joinKey) {
             return [template.getTableName() + ' as ' + primaryAlias, targetTemplate.getChildKey(joinKey, primaryAlias), targetTemplate.getPrimaryKey(targetAlias)];
         };
-        // Add persistors to foreign key references
 
-        var props = template.defineProperties;
-        for (var prop in props) {
-            var defineProperty = props[prop];
-            var type = defineProperty.type;
-            var of = defineProperty.of;
-            var refType = of || type;
+        /**
+         * Inject the persitor properties and get/fetch methods need for persistence.  This is either called
+         * as part of _injectTemplate if the template was fully created or when the template is instantiated lazily
+         * @private
+         */
+       template._injectProperties = function () {
+            if (this.__propertiesInjected__)
+                return;
+            var props = this.defineProperties;
+            for (var prop in props) {
+                var defineProperty = props[prop];
+                var type = defineProperty.type;
+                var of = defineProperty.of;
+                var refType = of || type;
 
-            if (refType && refType.isObjectTemplate && PersistObjectTemplate._persistProperty(defineProperty)) {
-                var isCrossDocRef = this.isCrossDocRef(template, prop, defineProperty)
-                if (isCrossDocRef || defineProperty.autoFetch) {
-                    (function () {
-                        var closureProp = prop;
-                        var closureFetch = defineProperty.fetch ? defineProperty.fetch : {};
-                        var closureQueryOptions = defineProperty.queryOptions ? defineProperty.queryOptions : {};
-                        var toClient = !(defineProperty.isLocal || (defineProperty.toClient === false))
-                        if (!props[closureProp + 'Persistor']) {
-                            template.createProperty(closureProp + 'Persistor', {type: Object, toClient: toClient,
-                                toServer: false, persist: false,
-                                value: {isFetched: defineProperty.autoFetch ? false : true, isFetching: false}});
-                        }
-                        if (!template.prototype[closureProp + 'Fetch'])
-                            template.createProperty(closureProp + 'Fetch', {on: 'server', body: function (start, limit) {
-                                if (typeof(start) != 'undefined') {
-                                    closureQueryOptions['skip'] = start;
-                                }
-                                if (typeof(limit) != 'undefined') {
-                                    closureQueryOptions['limit'] = limit;
-                                }
-                                return this.fetchProperty(closureProp, closureFetch, closureQueryOptions);
-                            }});
-                    })();
+                if (refType && refType.isObjectTemplate && PersistObjectTemplate._persistProperty(defineProperty)) {
+                    var isCrossDocRef = PersistObjectTemplate.isCrossDocRef(template, prop, defineProperty)
+                    if (isCrossDocRef || defineProperty.autoFetch) {
+                        (function () {
+                            var closureProp = prop;
+                            var closureFetch = defineProperty.fetch ? defineProperty.fetch : {};
+                            var closureQueryOptions = defineProperty.queryOptions ? defineProperty.queryOptions : {};
+                            var toClient = !(defineProperty.isLocal || (defineProperty.toClient === false))
+                            if (!props[closureProp + 'Persistor']) {
+                                template.createProperty(closureProp + 'Persistor', {type: Object, toClient: toClient,
+                                    toServer: false, persist: false,
+                                    value: {isFetched: defineProperty.autoFetch ? false : true, isFetching: false}});
+                            }
+                            if (!template.prototype[closureProp + 'Fetch'])
+                                template.createProperty(closureProp + 'Fetch', {on: 'server', body: function (start, limit) {
+                                    if (typeof(start) != 'undefined') {
+                                        closureQueryOptions['skip'] = start;
+                                    }
+                                    if (typeof(limit) != 'undefined') {
+                                        closureQueryOptions['limit'] = limit;
+                                    }
+                                    return this.fetchProperty(closureProp, closureFetch, closureQueryOptions);
+                                }});
+                        })();
+                    }
                 }
             }
+            this.__propertiesInjected__ = true;
         }
+
+        // Add persistors to foreign key references
+        if (template.defineProperties)
+            template._injectProperties();
+
     };
     /**
-     * PUBLIC INTERFACE FOR OBJECTTEMPLATE
+     * PUBLIC INTERFACE FOR objectTemplate
      */
 
     /**
