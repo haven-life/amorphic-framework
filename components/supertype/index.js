@@ -326,6 +326,18 @@ ObjectTemplate.createIfNeeded = function createTemplate (template, thisObj)
         }
         if (thisObj) {
             //var copy = new template();
+            var prototypes = [template.prototype];
+            var parent = template.__parent__;
+            while (parent) {
+                prototypes.push(parent.prototype);
+                parent = parent.__parent__;
+            }
+            for (var ix = prototypes.length - 1; ix >= 0; --ix) {
+                var props = Object.getOwnPropertyNames(prototypes[ix])
+                props.forEach(function (val, ix) {
+                    Object.defineProperty(thisObj, props[ix], Object.getOwnPropertyDescriptor(prototypes[ix], props[ix]));
+                });
+            }
             thisObj.__proto__ = template.prototype;
         }
     }

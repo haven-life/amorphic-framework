@@ -13,7 +13,8 @@ describe("Extended Templates", function () {
 				str:        {type: String, value: 'Base'},
 				obj:        {type: Object, value: {type: 'Base'}},
 				date:       {type: Date, value: new Date(100)},
-				enum:		{type: String, values: ['b1'], descriptions: {'b1': 'BaseTemplate1'}}
+				enum:		{type: String, values: ['b1'], descriptions: {'b1': 'BaseTemplate1'}},
+				getNum: function () {return this.num}
 			});
 
 		var ExtendedTemplate1 = BaseTemplate1.extend("ExtendedTemplate1",
@@ -84,11 +85,12 @@ describe("Extended Templates", function () {
 		expect((new ExtendedTemplate1()).boolTrue).to.equal(false);
     expect(ObjectTemplate.__templateUsage__['BaseTemplate1']).to.equal(true);
     expect(ObjectTemplate.__templateUsage__['ExtendedTemplate1']).to.equal(true);
-    expect((new ExtendedTemplate1()).boolFalse).to.equal(true);
-		expect((new ExtendedTemplate1()).num).to.equal(200);
-		expect((new ExtendedTemplate1()).str).to.equal('Extended');
-		expect((new ExtendedTemplate1()).obj.type).to.equal('Extended');
-		expect((new ExtendedTemplate1()).date.getTime()).to.equal(200);
+    var extendedTemplate1 = new ExtendedTemplate1();
+    expect(extendedTemplate1.boolFalse).to.equal(true);
+		expect(extendedTemplate1.num).to.equal(200);
+		expect(extendedTemplate1.str).to.equal('Extended');
+		expect(extendedTemplate1.obj.type).to.equal('Extended');
+		expect(extendedTemplate1.date.getTime()).to.equal(200);
 
 		expect((new ExtendedTemplate2()).boolTrue).to.equal(true);
 		expect((new ExtendedTemplate2()).boolFalse).to.equal(false);

@@ -1,3 +1,5 @@
+## 2.1.1
+* Fix to support IE with lazy template loading
 ## 2.1.0
 * Support for lazy template loading.
 ## 2.0.1
