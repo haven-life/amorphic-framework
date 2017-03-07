@@ -1,3 +1,5 @@
+## 2.1.1
+* Fix for `getPendingCallCount` that was blocking zombie mode from activating.
 ## 2.1.0
 * Include 2.1.0 supertype
 ## 2.0.1
