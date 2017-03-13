@@ -2,7 +2,7 @@
     "name": "supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
     "homepage": "https://github.com/selsamman/supertype",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "devDependencies": {
         "chai": "*",
         "eslint": "3.7.x",
@@ -13,9 +13,8 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "test": "istanbul cover _mocha -- test/* -R spec",
-        "test:config": "mocha test/config",
-        "test:example": "mocha test/example"
+        "test": "./node_modules/mocha/bin/mocha ./test/*.js",
+        "test:coverage": "instanbul cover _mocha -- test/* -R spec"
     },
     "directories": {
     },

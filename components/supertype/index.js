@@ -164,7 +164,7 @@ ObjectTemplate.setTemplateProperties = function setTemplateProperties(template, 
  * @returns {*} the object template
  */
 ObjectTemplate.create = function create(name, properties) {
-    if (typeof(name) != 'undefined' && name.name) {
+    if (name && name.name) {
         var props = name;
         name = props.name;
     }
@@ -205,14 +205,29 @@ ObjectTemplate.create = function create(name, properties) {
  * Extend and existing (parent template)
  *
  * @param {unknown} parentTemplate unknown
- * @param {unknown} name of the template
+ * @param {unknown} name the name of the template or an object with
+ *        name - the name of the class
+ *        toClient - whether the object is to be shipped to the client (with semotus)
+ *        toServer - whether the object is to be shipped to the server (with semotus)
+ *        isLocal - equivalent to setting toClient && toServer to false
  * @param {unknown} properties are the same as for create
  *
  * @returns {*} the object template
  */
 ObjectTemplate.extend = function extend(parentTemplate, name, properties) {
+    var props;
+    var createProps;
+
     if (!parentTemplate.__objectTemplate__) {
         throw new Error('incorrect parent template');
+    }
+
+    if (name && name.name) {
+        props = name;
+        name = props.name;
+    }
+    else {
+        props = parentTemplate.__createProps__;
     }
 
     if (typeof(name) != 'string' || name.match(/[^A-Za-z0-9_]/)) {
@@ -239,6 +254,10 @@ ObjectTemplate.extend = function extend(parentTemplate, name, properties) {
         }
     }
 
+    if (props) {
+        createProps = this.getTemplateProperties(props);
+    }
+
     if (typeof(this.templateInterceptor) == 'function') {
         this.templateInterceptor('extend', name, properties);
     }
@@ -252,7 +271,12 @@ ObjectTemplate.extend = function extend(parentTemplate, name, properties) {
         template = this._createTemplate(null, parentTemplate, name, parentTemplate, name);
     }
 
-    this.setTemplateProperties(template, name, parentTemplate);
+    if (createProps) {
+        this.setTemplateProperties(template, name, createProps);
+    } else {
+        this.setTemplateProperties(template, name, parentTemplate);
+    }
+    template.__createProps__ = props;
 
     // Maintain graph of parent and child templates
     template.__parent__ = parentTemplate;
