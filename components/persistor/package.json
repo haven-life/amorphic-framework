@@ -9,7 +9,7 @@
         "underscore": "1.x",
         "mongodb-bluebird": "x",
         "bluebird": "x",
-        "knex": "*",
+        "knex": "0.11.1",
         "pg":"*",
         "tv4": "^1.2.7"
     },

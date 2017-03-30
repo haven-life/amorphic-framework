@@ -325,9 +325,12 @@ describe('Banking from pgsql Example', function () {
                 PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             }).catch(function(e) {throw e;});
     });
+    var schemaTable = 'index_schema_history';
     it ('clears the bank', function () {
-        return clearCollection(Role)
+        return knex.schema.dropTableIfExists(schemaTable)
             .then(function (count) {
+                return clearCollection(Role);
+            }).then(function (count) {
                 expect(count).to.equal(0);
                 return clearCollection(Account)
             }).then(function (count) {
