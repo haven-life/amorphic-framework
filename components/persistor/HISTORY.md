@@ -1,3 +1,5 @@
+## 2.1.1
+* Pegged knex version because knex latest breaks us.
 ## 2.1.0
 * Add support for Lazy Template Loading
 ## 2.0.0
