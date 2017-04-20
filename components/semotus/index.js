@@ -331,12 +331,12 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
             break;
 
         case 'call':
-            if (this.reqSession && this.reqSession.semotus)  {
-                if (!this.reqSession.semotus.callStartTime) {
-                    this.reqSession.semotus.callStartTime = (new Date()).getTime();
+            if (this.memSession && this.memSession.semotus)  {
+                if (!this.memSession.semotus.callStartTime) {
+                    this.memSession.semotus.callStartTime = (new Date()).getTime();
                 }
                 else { //TODO: Why is this not an else if clause?
-                    if ((this.reqSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
+                    if ((this.memSession.semotus.callStartTime + this.maxCallTime) > (new Date()).getTime()) {
                         Q.delay(5000).then(function a() {
                             this.logger.warn({component: 'semotus', module: 'processMessage', activity: 'blockingCall',
                                 data: {call: remoteCall.name, sequence: remoteCall.sequence}}, remoteCall.name);
@@ -626,8 +626,8 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
         this._convertArrayReferencesToChanges();
         message.changes = JSON.stringify(this.getChanges());
 
-        if (this.reqSession && this.reqSession.semotus && this.reqSession.semotus.callStartTime) {
-            this.reqSession.semotus.callStartTime = 0;
+        if (this.memSession && this.memSession.semotus && this.memSession.semotus.callStartTime) {
+            this.memSession.semotus.callStartTime = 0;
         }
 
         session.sendMessage(message);

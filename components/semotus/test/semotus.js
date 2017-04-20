@@ -43,6 +43,7 @@ ServerObjectTemplate.syncSession();
 ServerObjectTemplate.controller = serverController;
 ServerObjectTemplate.__changeTracking__ = true;
 ServerObjectTemplate.reqSession = {loggingID: "test", semotus: {}};
+ServerObjectTemplate.memSession = {semotus: {}};
 ServerObjectTemplate.logLevel = 1;
 ServerObjectTemplate.logger.setLevel('info;activity:dataLogging');
 

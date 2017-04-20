@@ -427,7 +427,7 @@ describe("Type Tests", function () {
 describe("Extended Templates", function () {
     it ("has extended values", function (done) {
 
-        var BaseTemplate1 = ClientObjectTemplate.create("BaseTemplate",
+        var BaseTemplate1 = ClientObjectTemplate.create("BaseTemplate1",
             {
             	boolTrue:   {type: Boolean, value: true},
                 boolFalse:  {type: Boolean, value: false},
@@ -435,25 +435,6 @@ describe("Extended Templates", function () {
                 str:        {type: String, value: 'Base'},
                 obj:        {type: Object, value: {type: 'Base'}},
                 date:       {type: Date, value: new Date(100)}
-            });
-
-        var BaseTemplate3 = ClientObjectTemplate.create("BaseTemplate",
-            {
-                boolTrue:   {type: Boolean},
-                boolFalse:  {type: Boolean},
-                num:        {type: Number},
-                str:        {type: String},
-                obj:        {type: Object},
-                date:       {type: Date},
-                init: function () {
-                    BaseTemplate1.call(this);
-                    this.boolTrue = true;
-                    this.boolFalse = false;
-                    this.num = 100;
-                    this.str = 'Base';
-                    this.obj = {type: 'Base'};
-                    this.date = new Date(100);
-                },
             });
 
         var ExtendedTemplate1 = BaseTemplate1.extend("ExtendedTemplate1",
@@ -488,7 +469,7 @@ describe("Extended Templates", function () {
                 },
             });
 
-        var ExtendedTemplate3 = BaseTemplate1.extend("ExtendedTemplate1",
+        var ExtendedTemplate3 = BaseTemplate1.extend("ExtendedTemplate3",
             {
                 boolTrue:   {type: Boolean, value: false},
                 boolFalse:  {type: Boolean, value: true},
