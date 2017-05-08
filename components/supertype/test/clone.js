@@ -2,34 +2,38 @@ var expect = require('chai').expect;
 var Q = require('q');
 var ObjectTemplate = require('../index.js');
 
-var Main = ObjectTemplate.create("Main", {
-	name: {type: String, value: ""},
-	init: function (name) {
-		this.name = name
-	}
+var Main = ObjectTemplate.create('Main', {
+    name: {type: String, value: ''},
+    init: function (name) {
+        this.name = name;
+    }
 });
 
 var SubOne = ObjectTemplate.create('SubOne', {
     name: {type: String, value: ''},
-    init: function (name) {this.name = name;}
+    init: function (name) {
+        this.name = name;
+    }
 });
 
-var SubOneExtended = SubOne.extend("SubOneExtended", {
-	init: function (name) {
-		SubOne.call(this, name);
-	}
+var SubOneExtended = SubOne.extend('SubOneExtended', {
+    init: function (name) {
+        SubOne.call(this, name);
+    }
 });
 
-var SubMany = ObjectTemplate.create("SubMany", {
-	main: {type: Main},
-	name: {type: String, value: ""},
-	init: function (name) {this.name = name}
+var SubMany = ObjectTemplate.create('SubMany', {
+    main: {type: Main},
+    name: {type: String, value: ''},
+    init: function (name) {
+        this.name = name;
+    }
 });
 
-var SubManyExtended = SubMany.extend("SubManyExtended", {
-	init: function (name) {
-		SubMany.call(this, name);
-	}
+var SubManyExtended = SubMany.extend('SubManyExtended', {
+    init: function (name) {
+        SubMany.call(this, name);
+    }
 });
 
 Main.mixin({
@@ -47,39 +51,39 @@ Main.mixin({
     }
 });
 
-var main = new Main("main");
-main.subA = new SubOne("mainOneA");
-main.subB = new SubOneExtended("mainOneB");
+var main = new Main('main');
+main.subA = new SubOne('mainOneA');
+main.subB = new SubOneExtended('mainOneB');
 
-main.addSubManyA(new SubMany("mainManyA"));
-main.addSubManyB(new SubMany("mainManyB"));
-main.addSubManyB(new SubManyExtended("mainManyExtendedB"));
+main.addSubManyA(new SubMany('mainManyA'));
+main.addSubManyB(new SubMany('mainManyB'));
+main.addSubManyB(new SubManyExtended('mainManyExtendedB'));
 
-it("can clone", function () {
-	var relationship;
-	var calledForTopLeve = false;
-	var main2 = main.createCopy(function (obj, prop, template) {
-		console.log(template.__name__);
-		switch(template.__name__) {
-			case 'Main':
-				calledForTopLevel = true;
-				return null; // Clone normally
-		}
-		switch(obj.__template__.__name__ + '.' + prop) {
-			case 'Main.subA':
-				return undefined;  // Don't clone
-			case 'Main.subsA':
-				return undefined;	// Don't clone
-		}
-		return null;    // normal create process
-	});
-	expect(main2.subA).to.equal(null);
-	expect(main2.subB.name).to.equal("mainOneB");
-	expect(main2.subB instanceof SubOneExtended).to.equal(true);
-	expect(main2.subsB[0].name).to.equal("mainManyB");
-    expect(main2.subsB[1].name).to.equal("mainManyExtendedB");
+it('can clone', function () {
+    var relationship;
+    var calledForTopLeve = false;
+    var main2 = main.createCopy(function (obj, prop, template) {
+        console.log(template.__name__);
+        switch (template.__name__) {
+        case 'Main':
+            calledForTopLevel = true;
+            return null; // Clone normally
+        }
+        switch (obj.__template__.__name__ + '.' + prop) {
+        case 'Main.subA':
+            return undefined;  // Don't clone
+        case 'Main.subsA':
+            return undefined;	// Don't clone
+        }
+        return null;    // normal create process
+    });
+    expect(main2.subA).to.equal(null);
+    expect(main2.subB.name).to.equal('mainOneB');
+    expect(main2.subB instanceof SubOneExtended).to.equal(true);
+    expect(main2.subsB[0].name).to.equal('mainManyB');
+    expect(main2.subsB[1].name).to.equal('mainManyExtendedB');
     expect(main2.subsB[1] instanceof SubManyExtended);
-	expect(main2.subsA.length).to.equal(0);
-	expect(main2.subsB.length).to.equal(2);
-	expect(main2.subA).to.equal(null);
+    expect(main2.subsA.length).to.equal(0);
+    expect(main2.subsB.length).to.equal(2);
+    expect(main2.subA).to.equal(null);
 });

@@ -7,30 +7,46 @@ var Please = ObjectTemplate.create('Please',
     {
         prop_please: {type: String, value: 'init'},
         prop_prettyPlease: {type: String, value: 'init'},
-        please: {type: String, value: 'init', get: function(v) {return v.match(/please/) ? v : v + ' please';}},
+        please: {type: String, value: 'init', get: function(v) {
+            return v.match(/please/) ? v : v + ' please';
+        }},
         prettyPlease: {type: String, value: 'init',
-      get: function(v) {return v.match(/please/) ? v : v + ' please';},
-      set: function(v) {return v.match(/pretty/) ? v : v + ' pretty';}
-    },
+            get: function(v) {
+                return v.match(/please/) ? v : v + ' please';
+            },
+            set: function(v) {
+                return v.match(/pretty/) ? v : v + ' pretty';
+            }
+        },
         half1: {type: Number, value: 5},
         half2: {type: Number, value: 5},
         whole: {type: Number, isVirtual: true,
-      get: function (x) {return this.half1 + this.half2;},
-      set: function (x) {this.half1 = x / 2; this.half2 = x / 2;}}
+            get: function (x) {
+                return this.half1 + this.half2;
+            },
+            set: function (x) {
+                this.half1 = x / 2; this.half2 = x / 2;
+            }}
 
     });
 
 var ExtendedPlease = Please.extend('ExtendedPlease',
     {
-        prop_please: {type: String, value: 'init', get: function(v) {return v.match(/please/) ? v : v + ' please';}},
+        prop_please: {type: String, value: 'init', get: function(v) {
+            return v.match(/please/) ? v : v + ' please';
+        }},
         prop_prettyPlease: {type: String, value: 'init',
-      get: function(v) {return v.match(/please/) ? v : v + ' please';},
-      set: function(v) {return v.match(/pretty/) ? v : v + ' pretty';}
-    }
+            get: function(v) {
+                return v.match(/please/) ? v : v + ' please';
+            },
+            set: function(v) {
+                return v.match(/pretty/) ? v : v + ' pretty';
+            }
+        }
     });
 
 describe('Getters and setters', function () {
-    
+
     it ('work in base classes', function (done) {
         var t1 = new Please();
         expect(t1.please).to.equal('init please');
@@ -60,5 +76,5 @@ describe('Getters and setters', function () {
         expect(t1.__whole).to.equal(undefined);
         done();
     });
-    
+
 });

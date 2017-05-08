@@ -2,19 +2,29 @@
     "name": "supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
     "homepage": "https://github.com/selsamman/supertype",
-    "version": "2.1.2",
+    "version": "2.2.0",
+    "dependencies": {
+        "reflect-metadata": "^0.1.9"
+    },
     "devDependencies": {
         "chai": "*",
         "eslint": "3.7.x",
         "istanbul": "0.4.5",
         "mocha": "^3.1.2",
         "sinon": "1.15.x",
-        "q": "1.x"
+        "q": "1.x",
+        "@types/chai": "^3.4.34",
+        "@types/mocha": "^2.2.39",
+        "@types/node": "^7.0.5",
+        "typescript": "^2.1.6",
+        "ts-node": "*"
     },
     "scripts": {
         "lint": "eslint .",
-        "test": "./node_modules/mocha/bin/mocha ./test/*.js",
-        "test:coverage": "instanbul cover _mocha -- test/* -R spec"
+        "test": "istanbul cover _mocha -- test/* -R spec",
+        "test:config": "mocha test/config",
+        "test:example": "mocha test/example",
+        "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/typescript/animals.ts"
     },
     "directories": {
     },

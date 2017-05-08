@@ -10,7 +10,9 @@ var BaseTemplate1 = ObjectTemplate.create('BaseTemplate1',
         obj:        {type: Object, value: {type: 'Base'}},
         date:       {type: Date, value: new Date(100)},
         enum:		{type: String, values: ['b1'], descriptions: {'b1': 'BaseTemplate1'}},
-        getNum:     function () {return this.num}
+        getNum:     function () {
+            return this.num;
+        }
     }
 );
 
@@ -24,19 +26,19 @@ var ExtendedTemplate1 = BaseTemplate1.extend('ExtendedTemplate1',
         date:       {type: Date, value: new Date(200)},
         init: function () {
             BaseTemplate1.call(this);
-        },
+        }
     }
 );
 
 var BaseTemplate2 = ObjectTemplate.create('BaseTemplate2', {
-        boolTrue:   {type: Boolean, value: true},
-        boolFalse:  {type: Boolean, value: false},
-        num:        {type: Number, value: 100},
-        str:        {type: String, value: 'Base'},
-        obj:        {type: Object, value: {type: 'Base'}},
-        date:       {type: Date, value: new Date(100)},
-        enum:		{type: String, values: ['b1'], descriptions: {'b1': 'BaseTemplate1'}}
-    }
+    boolTrue:   {type: Boolean, value: true},
+    boolFalse:  {type: Boolean, value: false},
+    num:        {type: Number, value: 100},
+    str:        {type: String, value: 'Base'},
+    obj:        {type: Object, value: {type: 'Base'}},
+    date:       {type: Date, value: new Date(100)},
+    enum:		{type: String, values: ['b1'], descriptions: {'b1': 'BaseTemplate1'}}
+}
 );
 
 var ExtendedTemplate2 = BaseTemplate1.extend('ExtendedTemplate2',
@@ -55,7 +57,7 @@ var ExtendedTemplate2 = BaseTemplate1.extend('ExtendedTemplate2',
             this.str = 'Base';
             this.obj = {type: 'Base'};
             this.date = new Date(100);
-        },
+        }
     }
 );
 
@@ -75,7 +77,7 @@ var ExtendedTemplate3 = BaseTemplate1.extend('ExtendedTemplate1',
             this.str = 'Extended';
             this.obj = {type: 'Extended'};
             this.date = new Date(200);
-        },
+        }
     }
 );
 
@@ -83,8 +85,12 @@ var ExtendedTemplate4 = ExtendedTemplate3.extend('ExtendedTemplate4',
     {
         enum: {
             type: String,
-            values: function () {return ['b3']},
-            descriptions: function () {return {'b3': this.str}}
+            values: function () {
+                return ['b3'];
+            },
+            descriptions: function () {
+                return {'b3': this.str};
+            }
         }
     }
 );
@@ -92,10 +98,14 @@ var ExtendedTemplate4 = ExtendedTemplate3.extend('ExtendedTemplate4',
 var ExtendedTemplate5 = ExtendedTemplate3.extend('ExtendedTemplate4',
     {
         enum: {
-                type: String,
-                values: function () {return ['b3']},
-                descriptions: function () {return {'b3': this.str}}
-              }
+            type: String,
+            values: function () {
+                return ['b3'];
+            },
+            descriptions: function () {
+                return {'b3': this.str};
+            }
+        }
     }
 );
 

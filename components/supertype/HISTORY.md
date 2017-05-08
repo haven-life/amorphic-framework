@@ -1,3 +1,5 @@
+## 2.2.0
+* Support for TypeScript.
 ## 2.1.2
 * Added feature to allow `toClient` and `toServer` properties on an extended template.
 ## 2.1.1
