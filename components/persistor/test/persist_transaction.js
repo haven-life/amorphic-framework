@@ -320,6 +320,7 @@ describe('persistor transaction checks', function () {
 
     it('checking setDirty without setting schema', function () {
         var EmployeeSetDirty = PersistObjectTemplate.create('EmployeeSetDirty', {});
+        PersistObjectTemplate._injectObjectFunctions(EmployeeSetDirty);
         var emp = new EmployeeSetDirty();
         var tx =  PersistObjectTemplate.begin();
         emp.setDirty(tx);

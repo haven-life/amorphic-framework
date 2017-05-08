@@ -1,3 +1,5 @@
+## 2.2.0
+* Support for TypeScript.
 ## 2.1.1
 * Pegged knex version because knex latest breaks us.
 ## 2.1.0

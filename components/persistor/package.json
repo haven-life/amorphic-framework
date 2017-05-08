@@ -2,10 +2,10 @@
     "name": "persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/selsamman/persistor",
-    "version": "2.1.1",
+    "version": "2.2.0",
     "dependencies": {
         "q": "1.x",
-        "supertype": "2.1.*",
+        "supertype": "2.2.0",
         "underscore": "1.x",
         "mongodb-bluebird": "x",
         "bluebird": "x",
@@ -21,7 +21,15 @@
         "sinon": "1.15.x",
         "sinon-chai": "2.8.x",
         "mock-fs": "3.6.x",
-        "eslint": "3.7.x"
+        "eslint": "3.7.x",
+        "@types/chai": "^3.4.34",
+        "@types/mocha": "^2.2.39",
+        "@types/node": "^7.0.5",
+        "@types/q": "*",
+        "@types/underscore": "*",
+        "@types/bluebird": "*",
+        "typescript": "*",
+        "ts-node": "*"
     },
     "directories": {
     },
@@ -36,7 +44,10 @@
         "lint": "eslint .",
         "test": "istanbul cover _mocha -- test/* -R spec",
         "test:config": "mocha test/config",
-        "test:example": "mocha test/example"
+        "test:example": "mocha test/example",
+        "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/supertype/persist_banking_pgsql.ts",
+        "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/supertype/one-to-many-checks.ts"
+
     },
     "bugs": {
         "url": "http://github.com/selsamman/persistor/issues"

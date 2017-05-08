@@ -168,36 +168,36 @@ describe('persistor transaction checks', function () {
             knex.schema.dropTableIfExists(schemaTable)]);
     });
 
-    it('fetchById without fetch spec should not return the records', function () {
-        return Employee.fetchById(empId, {fetch: {homeAddress: false}})
+    it('persistorFetchById without fetch spec should not return the records', function () {
+        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}})
             .then(function(employee) {
                 expect(employee.homeAddress).is.equal(null);
             });
     });
 
-    it('fetchById with fetch spec should return the records', function () {
-        return Employee.fetchById(empId, {fetch: { homeAddress: {fetch: {phone: false}}, roles: true}}).then(function(employee) {
+    it('persistorFetchById with fetch spec should return the records', function () {
+        return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: false}}, roles: true}}).then(function(employee) {
             expect(employee.homeAddress._id).is.equal(addressId);
             expect(employee.homeAddress.phone).is.equal(null);
         });
     });
 
-    it('fetchById with fetch spec should return the records', function () {
-        return Employee.fetchById(empId, {fetch: { homeAddress: {fetch: {phone: false}}, roles: true}}).then(function(employee) {
+    it('persistorFetchById with fetch spec should return the records', function () {
+        return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: false}}, roles: true}}).then(function(employee) {
             expect(employee.homeAddress._id).is.equal(addressId);
             expect(employee.homeAddress.phone).is.equal(null);
         });
     });
 
-    it('fetchById with multiple level fetch spec should return the records', function () {
-        return Employee.fetchById(empId, {fetch: { homeAddress: {fetch: {phone: true}}, roles: true}}).then(function(employee) {
+    it('persistorFetchById with multiple level fetch spec should return the records', function () {
+        return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: true}}, roles: true}}).then(function(employee) {
             expect(employee.homeAddress._id).is.equal(addressId);
             expect(employee.homeAddress.phone._id).is.equal(phoneId);
         });
     });
 
     it('fetch without fetch spec should not return the records', function () {
-        return Employee.fetchByQuery({_id: empId}, {fetch: {homeAddress: false}}).then(function(employee) {
+        return Employee.persistorFetchByQuery({_id: empId}, {fetch: {homeAddress: false}}).then(function(employee) {
             expect(employee[0].homeAddress).is.equal(null);
         }).catch(function(err) {
             expect(err).not.equal(null);
@@ -205,14 +205,20 @@ describe('persistor transaction checks', function () {
     });
 
     it('fetch with fetch spec should return the records', function () {
-        return Employee.fetchByQuery({_id: empId},  {fetch: {homeAddress: true}, logger: PersistObjectTemplate.logger, start: 0, limit: 5, order: {name: 1} }).then(function(employee) {
+        return Employee.persistorFetchByQuery({_id: empId},  {fetch: {homeAddress: true}, logger: PersistObjectTemplate.logger, start: 0, limit: 5, order: {name: 1} }).then(function(employee) {
             expect(employee[0].homeAddress._id).is.equal(addressId);
             expect(employee[0].homeAddress.phone).is.equal(null);
         });
     });
 
-    it('fetchByQuery to check the fetchSpec cache', function () {
-        return Employee.fetchByQuery({_id: empId}, {
+    it('persistorCountByQuery counts records properly', function () {
+        return Employee.persistorCountByQuery({_id: empId},  {fetch: {homeAddress: true}, logger: PersistObjectTemplate.logger, start: 0, limit: 5, order: {name: 1} }).then(function(count) {
+            expect(count).to.equal(1);
+        });
+    });
+
+    it('persistorFetchByQuery to check the fetchSpec cache', function () {
+        return Employee.persistorFetchByQuery({_id: empId}, {
             fetch: {
                 roles: true
             }
@@ -221,7 +227,7 @@ describe('persistor transaction checks', function () {
         })
     });
 
-    it('fetchByQuery without objecttemplate field', function () {
+    it('persistorFetchByQuery without objecttemplate field', function () {
         return Promise.resolve()
             .then(actualTest)
             .catch(function (error) {
@@ -229,7 +235,7 @@ describe('persistor transaction checks', function () {
             })
 
         function actualTest() {
-            return Employee.fetchByQuery({_id: empId}, {
+            return Employee.persistorFetchByQuery({_id: empId}, {
                 fetch: {
                     name: true
                 }
@@ -239,7 +245,7 @@ describe('persistor transaction checks', function () {
     });
 
     it('Multiple fetch calls to check the validFetchSpec cache', function () {
-        return Employee.fetchById(empId, {fetch: {homeAddress: false}})
+        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}})
         .then(function(employee) {
             expect(PersistObjectTemplate._validFetchSpecs).is.not.equal(null);
             return employee.fetchReferences({fetch: { homeAddress: {fetch: {phone: true}}, roles: true}}).then(function() {
@@ -249,17 +255,17 @@ describe('persistor transaction checks', function () {
     });
 
     it('Multiple fetch calls with the same fetch string to check the validFetchSpec cache', function () {
-        return Employee.fetchById(empId, {fetch: {homeAddress: false}})
+        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}})
             .then(function() {
                 expect(PersistObjectTemplate._validFetchSpecs).is.not.equal(null);
-                return Employee.fetchById(empId, {fetch: {homeAddress: false}}).then(function() {
+                return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}}).then(function() {
                     expect(Object.keys(PersistObjectTemplate._validFetchSpecs.Employee).length).is.equal(1);
                 });
             });
     });
 
     it('fetch with fetch with multiple levels should return the records', function () {
-        return Employee.fetchByQuery({_id: empId}, {
+        return Employee.persistorFetchByQuery({_id: empId}, {
             fetch: { homeAddress: {fetch: {phone: false}},
                 roles: true},
             logger: PersistObjectTemplate.logger
@@ -270,15 +276,15 @@ describe('persistor transaction checks', function () {
             });
     });
 
-    it('fetchById with multiple level fetch spec should return the records', function () {
-        return Employee.fetchById(empId, {fetch: { homeAddress: {fetch: {phone: true}}, roles: true}}).then(function(employee) {
+    it('persistorFetchById with multiple level fetch spec should return the records', function () {
+        return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: true}}, roles: true}}).then(function(employee) {
             expect(employee.homeAddress._id).is.equal(addressId);
             expect(employee.homeAddress.phone._id).is.equal(phoneId);
         });
     });
 
-    it('fetchByQuery with fetch spec should return the records and also load the child objects in the calling object', function () {
-        return Employee.fetchById(empId, {fetch: {homeAddress: false}})
+    it('persistorFetchByQuery with fetch spec should return the records and also load the child objects in the calling object', function () {
+        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}})
             .then(function(employee) {
                 return employee.fetchReferences({fetch: { homeAddress: {fetch: {phone: true}}, roles: true}}).then(function(obj) {
                     expect(obj.homeAddress._id).is.equal(addressId);
@@ -361,7 +367,7 @@ describe('persistor transaction checks', function () {
         var tx =  PersistObjectTemplate.beginTransaction();
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
             return PersistObjectTemplate.commit().then(function() {
-                return Employee.fetchByQuery({name: 'RaviNotSaved'}).then(function(employees) {
+                return Employee.persistorFetchByQuery({name: 'RaviNotSaved'}).then(function(employees) {
                     expect(employees.length).to.equal(0);
                 });
             });
@@ -382,7 +388,7 @@ describe('persistor transaction checks', function () {
         var tx =  PersistObjectTemplate.beginTransaction();
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
             return PersistObjectTemplate.commit({transaction: tx}).then(function() {
-                return Employee.fetchByQuery({name: 'RaviNotSaved'}).then(function(employees) {
+                return Employee.persistorFetchByQuery({name: 'RaviNotSaved'}).then(function(employees) {
                     expect(employees.length).to.equal(1);
                 });
             });
@@ -397,7 +403,7 @@ describe('persistor transaction checks', function () {
             .then(realTest.bind(this));
 
         function loadEmployee() {
-            return Employee.fetchById(empId, {fetch: {homeAddress: true}})
+            return Employee.persistorFetchById(empId, {fetch: {homeAddress: true}})
         }
 
         function setTestObjects(employee) {
@@ -422,15 +428,15 @@ describe('persistor transaction checks', function () {
             .then(realTest.bind(this));
 
         function loadEmployee() {
-            return Employee.fetchById(empId, {fetch: {homeAddress: true}})
+            return Employee.persistorFetchById(empId, {fetch: {homeAddress: true}})
         }
 
         function realTest() {
             var tx =  PersistObjectTemplate.beginTransaction();
-            Employee.deleteByQuery({name: 'Ravi'}, {transaction: tx});
-            Address.deleteByQuery({city: 'New York'}, {transaction: tx})
+            Employee.persistorDeleteByQuery({name: 'Ravi'}, {transaction: tx});
+            Address.persistorDeleteByQuery({city: 'New York'}, {transaction: tx})
             return PersistObjectTemplate.commit({transaction: tx}).then(function() {
-                return Employee.fetchByQuery({name: 'Ravi'}).then(function(employees) {
+                return Employee.persistorFetchByQuery({name: 'Ravi'}).then(function(employees) {
                     expect(employees.length).to.equal(0);
                 })
             });

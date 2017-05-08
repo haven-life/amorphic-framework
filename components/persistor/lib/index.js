@@ -50,6 +50,8 @@
  * @param baseClassForPersist
  */
 var nextId = 1;
+var objectTemplate;
+var supertype = require('supertype');
 
 module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();
@@ -71,5 +73,56 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     require('./knex/update.js')(PersistObjectTemplate);
     require('./knex/db.js')(PersistObjectTemplate);
 
+    objectTemplate = PersistObjectTemplate;
+
     return  PersistObjectTemplate;
 }
+
+module.exports.supertypeClass = function (target, props) {
+    if (!objectTemplate) {
+        throw new Error('Please create PersisObjectTemplate before importing templates');
+    }
+    return supertype.supertypeClass(target, props, objectTemplate)
+};
+module.exports.Supertype = function () {
+    if (!objectTemplate) {
+        throw new Error('Please create PersisObjectTemplate before importing templates');
+    }
+    return supertype.Supertype.call(this, objectTemplate);
+};
+module.exports.property = function (props) {
+    if (!objectTemplate) {
+        throw new Error('Please create PersisObjectTemplate before importing templates');
+    }
+    return supertype.property(props, objectTemplate);
+}
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+module.exports.Persistable = function (Base) {
+    return (function (_super) {
+        __extends(class_1, _super);
+        function class_1() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return class_1;
+    }(Base));
+}
+
+module.exports.Persistor = {
+    create: function () {return  module.exports(require('supertype'), null, require('supertype'))}
+}
+
+Object.defineProperty(module.exports.Persistable.prototype, 'persistor', {get: function () {
+    return this.__objectTemplate__
+}});

@@ -424,7 +424,7 @@ module.exports = function (PersistObjectTemplate) {
                     table.text(prop);
             }
         }
-        function addComments(table){
+        function addComments(table) {
             return knex(table).columnInfo().then(function (info) {
                 for (var columnName in info) {
                     var prop = columnNameToProp(columnName);
@@ -840,12 +840,12 @@ module.exports = function (PersistObjectTemplate) {
                 for (var prop in props) {
                     if (!columnMap[prop]) {
                         var defineProperty = props[prop];
-                        if (!this._persistProperty(defineProperty) || !defineProperty.enumerable)
+                        if (!this._persistProperty(defineProperty))
                             continue;
                         if (defineProperty.type === Array) {
                             if (!defineProperty.of.__objectTemplate__)
                                 table.text(prop);
-                        } else if (defineProperty.type.__objectTemplate__) {
+                        } else if (defineProperty.type && defineProperty.type.__objectTemplate__) {
                             if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                                 throw   new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
                             var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;

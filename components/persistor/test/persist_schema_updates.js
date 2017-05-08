@@ -43,15 +43,6 @@ var DateTable = PersistObjectTemplate.create('DateTable', {
     dateField: {type: Date}
 });
 
-// var ChangeFieldTypeTable = PersistObjectTemplate.create('ChangeFieldTypeTable', {
-//     id: {type: Number},
-//     name: {type: String, value: 'Test Employee'},
-//     init: function (id, name) {
-//         this.id = id;
-//         this.name = name;
-//     }
-// })
-
 var SingleIndexTable = PersistObjectTemplate.create('SingleIndexTable', {
     id: {type: Number},
     name: {type: String, value: 'Name'},
@@ -273,18 +264,6 @@ describe('schema update checks', function () {
         })
     });
 
-
-    // it('use the same index names on multiple tables and create index to check the name generation process', function () {
-    //     schema.Employee.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["name"],"type": "unique"}}]');
-    //     schema.Manager.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["name"],"type": "unique"}}]');
-    //
-    //     return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function () {
-    //         return PersistObjectTemplate.checkForKnexTable(Employee).should.eventually.equal(true);
-    //     })
-    //
-    // });
-
-
     it('add a new type and check if the table creation is adding the index definition...', function() {
         schema.CreatingTable = {};
         schema.CreatingTable.documentOf = 'pg/CreatingTable';
@@ -401,14 +380,13 @@ describe('schema update checks', function () {
 
     it('without defining the default db alias', function () {
         var WithOutSchema = PersistObjectTemplate.create('WithOutSchema', {});
+        PersistObjectTemplate._injectObjectFunctions(WithOutSchema);
         var obj = new WithOutSchema();
-        expect(obj.persistSave.bind(this)).to.throw('DB Alias __default__ not set');
+        expect(obj.persistSave.bind(obj)).to.throw('DB Alias __default__ not set');
 
     });
 
     it('checkobject calls', function () {
-        //var WithOutSchema1 = PersistObjectTemplate.create('WithOutSchema1', {});
-        //var obj = new WithOutSchema1();
         var WithOutSchema1 = function() {};
         var obj = new WithOutSchema1();
         expect(PersistObjectTemplate.checkObject.bind(this, obj)).to.throw(Error, 'Attempt to save an non-templated Object');

@@ -56,7 +56,7 @@ describe('persistor transaction checks', function () {
 
         schema.Employee.parents = {
             homeAddress: {id: 'address_id',
-            fetch: false}
+                fetch: false}
         };
         schema.Employee.children = {
             roles: {id: 'employee_id'}

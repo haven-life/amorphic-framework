@@ -105,13 +105,13 @@ var schema = {
                 type: 'unique'
             }
         },
-            {
-                name: 'new_index',
-                def: {
-                    columns: ['id'],
-                    type: 'unique'
-                }
-            }]
+        {
+            name: 'new_index',
+            def: {
+                columns: ['id'],
+                type: 'unique'
+            }
+        }]
     },
     Manager: {
         documentOf: 'pg/Manager',
