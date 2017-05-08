@@ -1,3 +1,5 @@
+## 2.3.0
+* Support for TypeScript.
 ## 2.2.0
 * For use with 2.2.0 of Amorphic that creates memSession in objectTemplate for blocking calls detection
 ## 2.1.1

@@ -22,20 +22,26 @@
  RemoteObjectTemplate extends ObjectTemplate to provide a synchronization mechanism for
  objects created with it's templates.  The synchronization
  */
-if (typeof(require) != 'undefined') {
-    var Q = require('q');
-    var _ = require('underscore');
-    /** type {ObjectTemplate} */
-    var ObjectTemplate = require('supertype');
-}
+
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(['q', 'underscore', 'supertype'], factory);
+    }
+ else if (typeof exports === 'object') {
+        module.exports = factory(require('q'), require('underscore'), require('supertype'));
+    }
+ else {
+        root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);
+    }
+}(this, function (Q, _, ObjectTemplate) {
 
 var RemoteObjectTemplate = ObjectTemplate._createObject();
 
-RemoteObjectTemplate._useGettersSetters = typeof(window) == 'undefined';
+RemoteObjectTemplate._useGettersSetters = typeof(window) === 'undefined';
 
 RemoteObjectTemplate.role = 'client';
 
-if (typeof(window) == 'undefined') {
+if (typeof(window) === 'undefined') {
     RemoteObjectTemplate.role = 'server';
 }
 
@@ -46,6 +52,7 @@ RemoteObjectTemplate.__conflictMode__ = 'hard';
 
 RemoteObjectTemplate.logLevel = 0;
 RemoteObjectTemplate.maxClientSequence = 1;
+RemoteObjectTemplate.nextObjId = 1;
 
 /**
  * Purpose unknown
@@ -191,7 +198,7 @@ RemoteObjectTemplate.saveSession = function saveSession(sessionId) {
  */
 RemoteObjectTemplate.getPendingCallCount = function getPendingCallCount(sessionId) {
     var session = this._getSession(sessionId);
-    
+
     return Object.keys(session.pendingRemoteCalls).length;
 };
 
@@ -368,7 +375,7 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
                     data: {call: remoteCall.name, sequence: remoteCall.sequence}},  'No remote call pending');
             }
             else {
-                if (typeof(remoteCall.sync) != 'undefined') {
+                if (typeof(remoteCall.sync) !== 'undefined') {
                     if (remoteCall.sync) {
                         if (session.pendingRemoteCalls[remoteCallId].deferred.resolve) {
                             hadChanges = this._applyChanges(JSON.parse(remoteCall.changes), true, subscriptionId);
@@ -608,7 +615,7 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
             return {code: 'internal_error', text: 'An internal error occurred'};
         }
         else {
-            if (typeof(err) == 'string') {
+            if (typeof(err) === 'string') {
                 return {message: err};
             }
             else {
@@ -657,7 +664,10 @@ RemoteObjectTemplate.serializeAndGarbageCollect = function serializeAndGarbageCo
 
     function serialize(obj) {
         try {
-            return JSON.stringify(obj, function y(_key, value) {
+            return JSON.stringify(obj, function y(key, value) {
+                if (key === '__objectTemplate__') {
+                    return null;
+                }
                 if (value && value.__template__ && value.__id__) {
                     if (idMap[value.__id__]) {
                         value = {__id__: value.__id__.toString()};
@@ -803,32 +813,78 @@ RemoteObjectTemplate.getChangeStatus = function getChangeStatus() {
 /**
  * Give an object a unique id and stash an object into the global object store
  *
- * @param {unknown} obj unknown
- * @param {unknown} template unknown
+ * @param {unknown} obj to be stashed
+ * @param {unknown} template of object
  *
  * @returns {unknown} unknown
  *
  * @private
  */
 RemoteObjectTemplate._stashObject = function stashObject(obj, template) {
-    var session = this._getSession(obj.__template__.remoteSessionId);
-    var isRemote = !!session.dispenseNextId;
-    var objectId = session.dispenseNextId || (this.role + '-' + template.__name__ + '-' +  session.nextObjId++);
-    session.dispenseNextId = null;
 
-    if (!obj.__id__) {
+
+    var executeInit = !!this.nextDispenseId;  // If coming from createEmptyObject
+
+    if (!obj.__id__) {  // If this comes from a delayed sessionize call don't change the id
+        var objectId = this.nextDispenseId || (this.role + '-' + template.__name__ + '-' +  this.nextObjId++);
         obj.__id__ = objectId;
+    }
+    this.nextDispenseId = null;
 
-        if (!this.__transient__) {
-            session.objects[obj.__id__] = obj;
-        }
+    var session =  this._getSession(undefined, true);  // May not have one if called from new
+    if (!this.__transient__ && session) {
+        session.objects[obj.__id__] = obj;
     }
 
     if (obj.__id__.match(/^client.*?-([0-9]*)$/)) {
         this.maxClientSequence = Math.max(this.maxClientSequence, RegExp.$1);
     }
 
-    return isRemote;
+    return executeInit;
+};
+
+/**
+ * Place an object within the current session by
+ * a) populating  the objects __objectTemplate__ property
+ * b) processing any pending array references
+ * c) processing any pending changes
+ * d) sessionizing any referenced objects
+ * e) injecting amorphicate into the object
+ * @returns {*} returns the object so you can use
+ */
+RemoteObjectTemplate.sessionize = function(obj, referencingObj) {
+    var objectTemplate = referencingObj ? referencingObj.__objectTemplate__ : this;
+    if (obj.__objectTemplate__)        {
+return;
+}
+
+    if (objectTemplate) {
+        obj.__objectTemplate__ = objectTemplate;
+        obj.amorphicate = RemoteObjectTemplate.sessionize.bind(objectTemplate);
+        this._stashObject(obj, obj.__template__, this);
+        if (obj.__pendingArrayReferences__) {
+            this._referencedArray(obj);
+        }
+        if (obj.__pendingChanges__) {
+            obj.__pendingChanges__.forEach(function (params) {
+                objectTemplate._changedValue.apply(objectTemplate, params);
+            });
+            obj.__pendingChanges__ = undefined;
+        }
+        if (obj.__referencedObjects__) {
+            for (var id in obj.__referencedObjects__) {
+                var referencedObj = obj.__referencedObjects__[id];
+                objectTemplate.sessionize(referencedObj, obj);
+            }
+            obj.__referencedObjects__ = undefined;
+        }
+        return obj;
+    }
+ else {
+        referencingObj.__referencedObjects__ = obj.__referencedObjects__ || {};
+        referencingObj.__referencedObjects__[obj.__id__] = obj;
+    }
+    return obj;
 };
 
 RemoteObjectTemplate._injectIntoObject = function injectIntoObject(obj) {
@@ -864,6 +920,11 @@ RemoteObjectTemplate._setupFunction = function setupFunction(propertyName, prope
         // Function wrapper it self will return a promise wrapped to setup the this pointer
         // the function body will queue a remote call to the client/server
         return function b() {
+
+            if (this.__objectTemplate__)                {
+objectTemplate = this.__objectTemplate__;
+}
+
             if (validate && this.controller) { //TODO: make this one if statement
                 if (!validate.call(this.controller)) {
                     return Q.reject('validation failure');
@@ -914,25 +975,27 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
     //determine whether value needs to be re-initialized in constructor
     var value = null;
 
-    if (typeof(defineProperty.value) != 'undefined') {
+    if (typeof(defineProperty.value) !== 'undefined') {
         value = defineProperty.value;
     }
 
-    if (defineProperty.isVirtual) {
-        objectProperties[propertyName] = {
-            init:     undefined,
-            type:     defineProperty.type,
-            of:       defineProperty.of,
-            byValue: !(typeof(value) == 'boolean' || typeof(value) == 'number' || typeof(value) == 'string' || value == null)
-        };
-    }
-    else {
-        objectProperties[propertyName] = {
-            init:     value,
-            type:     defineProperty.type,
-            of:       defineProperty.of,
-            byValue: !(typeof(value) == 'boolean' || typeof(value) == 'number' || typeof(value) == 'string' || value == null)
-        };
+    if (objectProperties) {
+        if (defineProperty.isVirtual) {
+            objectProperties[propertyName] = {
+                init:     undefined,
+                type:     defineProperty.type,
+                of:       defineProperty.of,
+                byValue: !(typeof(value) === 'boolean' || typeof(value) === 'number' || typeof(value) === 'string' || value == null)
+            };
+        }
+        else {
+            objectProperties[propertyName] = {
+                init:     value,
+                type:     defineProperty.type,
+                of:       defineProperty.of,
+                byValue: !(typeof(value) === 'boolean' || typeof(value) === 'number' || typeof(value) === 'string' || value == null)
+            };
+        }
     }
 
     // One property for real name which will have a getter and setter
@@ -965,10 +1028,28 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
         var createChanges = this._createChanges(defineProperty);
 
         defineProperty.set = (function set() {
+
             // use a closure to record the property name which is not passed to the setter
             var prop = propertyName;
 
             return function f(value) {
+
+                if (this.__objectTemplate__)                    {
+objectTemplate = this.__objectTemplate__;
+}
+
+
+                // Sessionize reference if it is missing an __objectTemplate__
+                if (defineProperty.type  && defineProperty.type.isObjectTemplate && value && !value.__objectTemplate__) {
+                    objectTemplate.sessionize(value, this);
+                }
+                if (defineProperty.of  &&  defineProperty.of.isObjectTemplate && value instanceof Array) {
+                    value.forEach(function (value) {
+                        if (!value.__objectTemplate__) {
+                            objectTemplate.sessionize(value, this);
+                        }
+                    }.bind(this));
+                }
 
                 if (userSetter) {
                     value = userSetter.call(this, value);
@@ -1034,6 +1115,11 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
             var prop = propertyName;
 
             return function z() {
+
+                if (this.__objectTemplate__)                    {
+objectTemplate = this.__objectTemplate__;
+}
+
                 if (!defineProperty.isVirtual && this['__' + prop] instanceof Array) {
                     objectTemplate._referencedArray(this, prop, this['__' + prop]);
                 }
@@ -1092,7 +1178,9 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
         delete defineProperty.writable;
     }
     else {
-        objectProperties['__' + propertyName] = objectProperties[propertyName];
+        if (objectProperties) {
+            objectProperties['__' + propertyName] = objectProperties[propertyName];
+        }
     }
 
     // Setters and Getters cannot have value or be writable
@@ -1255,6 +1343,11 @@ RemoteObjectTemplate._changedValue = function changedValue(obj, prop, value) {
     }
 
     var subscriptions = this._getSubscriptions();
+    if (!subscriptions) {
+        obj.__pendingChanges__ = obj.__pendingChanges__ || [];
+        obj.__pendingChanges__.push([obj, prop, value]);
+        return;
+    }
 
     for (var subscription in subscriptions) {
         if (subscriptions[subscription] != this.processingSubscription) {
@@ -1296,6 +1389,8 @@ RemoteObjectTemplate._changedValue = function changedValue(obj, prop, value) {
  *
  * @private
  */
+RemoteObjectTemplate._referencedArrayWithChangeGroup = function (obj) {
+ };
 RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arrayRef, sessionId) {
     if (obj.__transient__ || this.__transient__ ||
         (this.role == 'client' && obj.__template__.__toServer__ == false) ||
@@ -1303,45 +1398,70 @@ RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arra
         return;
     }
 
-
     // Track this for each subscription
     var subscriptions = this._getSubscriptions(sessionId);
-
-    processSubscriptions.call(this, 'array');
-    if (this.__changeTracking__) {
-        processSubscriptions.call(this, 'arrayDirty');
+    if (subscriptions) { // sessionized?
+        // Create the change group for array references and for dirty tracking of array references
+        processSubscriptions.call(this, 'array', obj.__pendingArrayReferences__);
+        if (this.__changeTracking__) {
+            processSubscriptions.call(this, 'arrayDirty', obj.__pendingArrayDirtyReferences__);
+        }
+        obj.__pendingArrayReferences__ = undefined;
+        obj.__pendingArrayDirtyReferences__ = undefined;
+    }
+ else {
+        // Record the change group right in the object
+        obj.__pendingArrayReferences__ = obj.__pendingArrayReferences__ || [];
+        processChangeGroup(obj.__pendingArrayReferences__);
+        obj.__pendingArrayDirtyReferences__ = obj.__pendingArrayReferences__ || [];
+        processChangeGroup(obj.__pendingArrayDirtyReferences__);
     }
 
-    function processSubscriptions(changeType) {
+    // Create a change group entries either from the referenced array or from a previously saved copy of the array
+    function processSubscriptions(changeType, existingChangeGroup) {
         for (var subscription in subscriptions) {
             var changeGroup = this.getChangeGroup(changeType, subscription);
-
             if (subscriptions[subscription] != this.processingSubscription) {
-                var key = obj.__id__ + '/' + prop;
-
-                // Only record the value on the first reference
-                if (!changeGroup[key]) {
-                    var old = [];
-
-                    // Walk through the array and grab the reference
-                    if (arrayRef) {
-                        for (var ix = 0; ix < arrayRef.length; ++ix) {
-                            var elem = arrayRef[ix];
-
-                            if (typeof(elem) != 'undefined' && elem != null) {
-                                if (elem != null && elem.__id__) {
-                                    old[ix] = elem.__id__;
-                                }
-                                else { // values start with an = to distinguish from ids
-                                    old[ix] = '=' + JSON.stringify(elem);
-                                }
-                            }
-                        }
-                    }
-
-                    changeGroup[key] = old;
+                if (existingChangeGroup) {
+                    copyChangeGroup(changeGroup, existingChangeGroup);
+                }
+ else {
+                    processChangeGroup(changeGroup);
                 }
             }
+        }
+    }
+
+    function copyChangeGroup(changeGroup, existingChangeGroup) {
+        for (var key in existingChangeGroup) {
+            changeGroup[key] = existingChangeGroup[key];
+        }
+    }
+
+    function processChangeGroup(changeGroup) {
+        var key = obj.__id__ + '/' + prop;
+
+        // Only record the value on the first reference
+        if (!changeGroup[key]) {
+            var old = [];
+
+            // Walk through the array and grab the reference
+            if (arrayRef) {
+                for (var ix = 0; ix < arrayRef.length; ++ix) {
+                    var elem = arrayRef[ix];
+
+                    if (typeof(elem) !== 'undefined' && elem != null) {
+                        if (elem != null && elem.__id__) {
+                            old[ix] = elem.__id__;
+                        }
+                        else { // values start with an = to distinguish from ids
+                            old[ix] = '=' + JSON.stringify(elem);
+                        }
+                    }
+                }
+            }
+
+            changeGroup[key] = old;
         }
     }
 };
@@ -1403,7 +1523,7 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function convertArrayRef
                     // See if the value has changed
                     var currValue = undefined;
 
-                    if (typeof(curr[ix]) != 'undefined' && curr[ix] != null) {
+                    if (typeof(curr[ix]) !== 'undefined' && curr[ix] != null) {
                         currValue = curr[ix].__id__ || ('=' + JSON.stringify(curr[ix]));
                     }
 
@@ -1428,6 +1548,9 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function convertArrayRef
                             var values = this._convertValue(orig);
                             changeGroup[obj.__id__][prop] = [this.clone(values), this.clone(values)];
                             changeGroup[obj.__id__][prop][1][ix] = currValue;
+                        }
+                        if (curr[ix] && curr[ix].__id__ && !curr[ix].__objectTemplate__) {
+                            this.sessionize(curr[ix], obj);
                         }
                     }
 
@@ -1500,7 +1623,7 @@ RemoteObjectTemplate.MarkChangedArrayReferences = function MarkChangedArrayRefer
                     // See if the value has changed
                     var currValue =  undefined;
 
-                    if (typeof(curr[ix]) != 'undefined' && curr[ix] != null) {
+                    if (typeof(curr[ix]) !== 'undefined' && curr[ix] != null) {
                         currValue = curr[ix].__id__ || ('=' + JSON.stringify(curr[ix]));
                     }
 
@@ -1531,7 +1654,7 @@ RemoteObjectTemplate._convertValue = function convertValue(value) {
 
         for (var ix = 0; ix < value.length; ++ix) {
             if (value[ix]) {
-                if (typeof(value[ix]) == 'object') {
+                if (typeof(value[ix]) === 'object') {
                     newValue[ix] = value[ix].__id__ || JSON.stringify(value[ix]);
                 }
                 else {
@@ -1553,7 +1676,7 @@ RemoteObjectTemplate._convertValue = function convertValue(value) {
     }
     else {
         if (value) {
-            if (typeof(value) == 'object') {
+            if (typeof(value) === 'object') {
                 return JSON.stringify(value);
             }
 
@@ -1896,7 +2019,7 @@ RemoteObjectTemplate._applyPropertyChange = function applyPropertyChange(changes
     }
     else if (type == Object && newValue) {
         try {
-            if (typeof(newValue) == 'string') {
+            if (typeof(newValue) === 'string') {
                 if (newValue && newValue.substr(0, 1) == '=') {
                     newValue = JSON.parse(newValue.substr(1));
                 }
@@ -1907,7 +2030,7 @@ RemoteObjectTemplate._applyPropertyChange = function applyPropertyChange(changes
         }
         catch (e) {} // Just leave it as is
     }
-    else if (newValue && typeof(type) == 'function') {
+    else if (newValue && typeof(type) === 'function') {
         objId = newValue;
 
         if (session.objects[objId]) {
@@ -2052,13 +2175,13 @@ RemoteObjectTemplate._createEmptyObject = function createEmptyObject(template, o
     }
 
     if (!template.__children__) {
-        throw new Error('_createEmptyObject called for incorrectly defined template');
+        throw new Error('_createEmptyObject called for incorrectly defined template ' + objId);
     }
 
     template = this._resolveSubClass(template, objId, defineProperty);
 
     var session = this._getSession();
-    var sessionReference = session.objects[objId];
+    var sessionReference = session ? session.objects[objId] : null;
     var newValue;
 
     if (sessionReference && !isTransient) {
@@ -2071,27 +2194,30 @@ RemoteObjectTemplate._createEmptyObject = function createEmptyObject(template, o
         }
     }
     else {
-        this.dispenseId = objId;
-        session.dispenseNextId = objId;  // stashObject will use this
+        template.__objectTemplate__.nextDispenseId = objId;
         var wasTransient = this.__transient__;
 
         if (isTransient) {
             this.__transient__ = true; // prevent stashObject from adding to sessions.objects
         }
 
-        newValue = new template();
+        newValue = new template();  // _stashObject will assign this.nextDispenseId if present
         this.__transient__ = wasTransient;
 
         if (isTransient) {
             newValue.__transient__ = true;
         }
+
+        if (!newValue.__objectTemplate__ && this.sessions) {  //  Non-TS templates will have __objectTemplate__
+            this.sessionize(newValue, {__objectTemplate__: this});
+        }
     }
 
-    if (this.role == 'client' && typeof(newValue.clientPreInit) == 'function') {
+    if (this.role == 'client' && typeof(newValue.clientPreInit) === 'function') {
         newValue.clientPreInit.call();
     }
 
-    if (this.role == 'server' && typeof(newValue.serverPreInit) == 'function') {
+    if (this.role == 'server' && typeof(newValue.serverPreInit) === 'function') {
         newValue.serverPreInit.call();
     }
 
@@ -2186,13 +2312,13 @@ RemoteObjectTemplate._toTransport = function clone(obj) {
             res.value[ix] = this._toTransport(obj[ix]);
         }
     }
-    else if (typeof(obj) == 'number' || obj instanceof Number) {
+    else if (typeof(obj) === 'number' || obj instanceof Number) {
         res = {type: 'number', value: Number(obj)};
     }
-    else if (typeof(obj) == 'string' || obj instanceof String) {
+    else if (typeof(obj) === 'string' || obj instanceof String) {
         res = {type: 'string', value: obj.toString()};
     }
-    else if (typeof(obj) == 'boolean' || obj instanceof Boolean) {
+    else if (typeof(obj) === 'boolean' || obj instanceof Boolean) {
         res = {type: 'boolean', value: obj};
     }
     else if (obj instanceof Object) {
@@ -2286,7 +2412,7 @@ RemoteObjectTemplate._fromTransport = function clone(obj) {
  * @private
  */
 RemoteObjectTemplate._trimArray = function trimArray(array) {
-    while (array.length > 0 && (typeof(array[array.length - 1]) == 'undefined' || array[array.length - 1] == null)) {
+    while (array.length > 0 && (typeof(array[array.length - 1]) === 'undefined' || array[array.length - 1] == null)) {
         array.splice(array.length - 1, 1);
     }
 };
@@ -2298,12 +2424,10 @@ RemoteObjectTemplate._trimArray = function trimArray(array) {
  *
  * @private
  */
-RemoteObjectTemplate._getSession = function getSession() {
+RemoteObjectTemplate._getSession = function getSession(_sid) {
     if (!this.currentSession) {
-        this.logger.error({component: 'semotus', module: 'getSession', activity: 'processing'}, 'RemoteObjectTemplate: Please create a session first');
-        throw new Error('RemoteObjectTemplate: Please create a session first');
+        return null;
     }
-
     return this.sessions[this.currentSession];
 };
 
@@ -2330,7 +2454,8 @@ RemoteObjectTemplate._deleteChangeGroups = function deleteChangeGroups(type) {
  * @private
  */
 RemoteObjectTemplate._getSubscriptions = function getSubscriptions(sessionId) {
-    return this._getSession(sessionId).subscriptions;
+    var subscriptions = this._getSession(sessionId);
+    return  subscriptions ? subscriptions.subscriptions : null;
 };
 
 /**
@@ -2375,6 +2500,113 @@ RemoteObjectTemplate.cleanPrivateValues = function cleanPrivateValues(prop, logV
     return logValue;
 };
 
-if (typeof(module) != 'undefined') {
-    module.exports = RemoteObjectTemplate;
+RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
+
+    objectTemplate = objectTemplate || this;
+
+    this.supertypeClass = function (target, props) {
+        var ret = ObjectTemplate.supertypeClass(target, props, objectTemplate);
+
+        // Mainly for peristor properties to make sure they get transported
+        target.createProperty = function (propertyName, defineProperty) {
+            if (defineProperty.body) {
+                target.prototype[propertyName] = objectTemplate._setupFunction(propertyName, defineProperty.body,
+                    defineProperty.on, defineProperty.validate);
+            }
+ else {
+                target.prototype.__amorphicprops__[propertyName] = defineProperty;
+                var value = defineProperty.value;
+                // The getter actually initializes the property
+                defineProperty.get = function () {
+                    if (!this['__' + propertyName]) {
+                        this['__' + propertyName] =
+                            ObjectTemplate.clone(value, defineProperty.of || defineProperty.type || null);
+                    }
+                    return this['__' + propertyName];
+                };
+                var defineProperties = {};
+                objectTemplate._setupProperty(propertyName, defineProperty, undefined, defineProperties);
+                Object.defineProperties(target.prototype, defineProperties);
+            }
+        };
+        return ret;
+    };
+
+    this.Supertype = function () {
+        return ObjectTemplate.Supertype.call(this, objectTemplate);
+    };
+
+    this.property = function (props) {
+        props = props || {};
+        var baseDecorator = ObjectTemplate.property(props, objectTemplate);
+        return function (target, targetKey) {
+            baseDecorator(target, targetKey);
+            var defineProperties = {};
+            props.enumerable = true;
+            props.writable = true;
+            objectTemplate._setupProperty(targetKey, props, undefined, defineProperties);
+            Object.defineProperties(target, defineProperties);
+        };
+    };
+
+    this.remote = function (defineProperty) {
+        defineProperty = defineProperty || {};
+        if (!defineProperty.on) {
+            defineProperty.on = 'server';
+        }
+        return function (target, propertyName, descriptor) {
+            descriptor.value  = objectTemplate._setupFunction(propertyName, descriptor.value,
+                defineProperty.on, defineProperty.validate);
+        };
+    };
+};
+
+// These two mixins and extender functions are needed because in the browser we only include supertype
+// and since classes use these in their extends hierarchy they must be defined.
+
+var __extends = (this && this.__extends) || (function () {
+        var extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) {
+ d.__proto__ = b;
+}) ||
+            function (d, b) {
+ for (var p in b) {
+if (b.hasOwnProperty(p)) {
+d[p] = b[p];
 }
+}
+};
+        return function (d, b) {
+            extendStatics(d, b);
+            function __() {
+ this.constructor = d;
+}
+            d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+        };
+    })();
+
+RemoteObjectTemplate.Persistable = function (Base) {
+    return (function (_super) {
+        __extends(class_1, _super);
+        function class_1() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return class_1;
+    }(Base));
+};
+RemoteObjectTemplate.Remoteable = function (Base) {
+    return (function (_super) {
+        __extends(class_1, _super);
+        function class_1() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return class_1;
+    }(Base));
+};
+
+
+RemoteObjectTemplate.bindDecorators(); //Default to binding to yourself
+
+return RemoteObjectTemplate;
+
+}));
