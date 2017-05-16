@@ -1,3 +1,5 @@
+## 2.2.1
+* Support for the most recent version of knex.
 ## 2.2.0
 * Support for TypeScript.
 ## 2.1.1
