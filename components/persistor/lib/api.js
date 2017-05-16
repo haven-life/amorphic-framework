@@ -187,11 +187,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         /**
          * Fetch an object by id
-         * @param id
-         * @param options
+         * @param {string} id mongo style id
+         * @param {json} options @todo
          * @returns {*}
          */
-        template.persistorFetchById = function(id, options) { // Todo: Legacy
+        template.persistorFetchById = function(id, options) { // @TODO: Legacy
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
@@ -207,8 +207,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         /**
          * Delete all objects matching a query
-         * @param query
-         * @param options
+         * @param {JSON} query @TODO
+         * @param {JSON} options @TODO
          * @returns {Object}
          */
         template.persistorDeleteByQuery = function(query, options) {
@@ -223,8 +223,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         /**
          * Fetch all objects matching a query
-         * @param query
-         * @param options
+         * @param {JSON} query @TODO
+         * @param {JSON} options @TODO
          * @returns {*}
          */
         template.persistorFetchByQuery = function(query, options) {
@@ -246,7 +246,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * Return count of objects of this class given a json query
          *
          * @param {json} query mongo style queries
-         * @param {object} logger objecttemplate logger
+         * @param {object} options @TODO
          * @returns {Number}
          */
         template.persistorCountByQuery = function(query, options) {
@@ -837,8 +837,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
     /**
      * Mostly used for unit testing.  Does a knex connect, schema setup and injects templates
-     * @param config
-     * @param schema
+     * @param {object} config knex connection
+     * @param {JSON} schema data model definitions
+     * @returns {*}
      */
     PersistObjectTemplate.connect = function (config, schema) {
         var knex = require('knex');
@@ -870,6 +871,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     }
     /**
      * Mostly used for unit testing.  Synchronize all tables for templates that have a schema
+     * @param {string} action common actions
+     * @param {string} concurrency #parallel
      * @returns {*|Array}
      */
     PersistObjectTemplate.onAllTables = function (action, concurrency) {

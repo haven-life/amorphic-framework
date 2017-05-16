@@ -207,7 +207,7 @@ module.exports = function (PersistObjectTemplate) {
                 obj._id = pojo[prefix + '_id'];
                 obj._template = pojo[prefix + '_template'];
             }.bind(this));
-            if (!establishedObj && idMap[obj._id])
+            if (!establishedObj && idMap[obj._id] && allRequiredChildrenAvailableInCache(idMap[obj._id], cascade))
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
@@ -269,7 +269,7 @@ module.exports = function (PersistObjectTemplate) {
 
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
-                    if (cachedObject) {
+                    if (cachedObject && (!cascadeFetch || allRequiredChildrenAvailableInCache(cachedObject, cascadeFetch.fetch))) {
                         if (!obj[prop] || obj[prop].__id__ != cachedObject.__id__) {
                             this.withoutChangeTracking(function () {
                                 obj[prop] = cachedObject;
@@ -460,6 +460,12 @@ module.exports = function (PersistObjectTemplate) {
                         }.bind(this))
                 }.bind(this));
 
+            }
+
+            function allRequiredChildrenAvailableInCache(cachedObject, fetchSpec) {
+                return Object.keys(fetchSpec).reduce(function(loaded, currentObj) {
+                    return loaded && (!fetchSpec[currentObj] || cachedObject[currentObj + 'Persistor'].isFetched)
+                }, true);
             }
         };
 

@@ -408,7 +408,7 @@ describe('schema update checks', function () {
 
         var newTableWithoutTableDef = PersistObjectTemplate.create('newTableWithoutTableDef', {
             id: {type: String},
-            name: {type: String, value: 'PrimaryIndex'},
+            name: {type: String, value: 'PrimaryIndex', description:'comment name'},
             init: function (id, name) {
                 this.id = id;
                 this.name = name;
@@ -423,7 +423,7 @@ describe('schema update checks', function () {
                     addresses: {type: Array, of: AddressForMissingTableDef, value: []},
                     isMarried: {type: Boolean},
                     numberOfKids: {type: Number},
-                    dob: {type:Date }
+                    dob: {type:Date, description:'comment date' }
                 });
             PersistObjectTemplate._verifySchema();
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTableWithoutTableDef)

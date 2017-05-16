@@ -328,7 +328,7 @@ describe('Banking from pgsql Example', function () {
     var schemaTable = 'index_schema_history';
     it ('clears the bank', function () {
         return knex.schema.dropTableIfExists(schemaTable)
-            .then(function (count) {
+            .then(function () {
                 return clearCollection(Role);
             }).then(function (count) {
                 expect(count).to.equal(0);

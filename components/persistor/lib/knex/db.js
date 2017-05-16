@@ -330,8 +330,9 @@ module.exports = function (PersistObjectTemplate) {
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
                     txn.updateConflict =  true;
-                } else
+                } else {
                     throw new Error('Update Conflict');
+                }
             }
         }
 
@@ -365,7 +366,12 @@ module.exports = function (PersistObjectTemplate) {
         var schema = template.__schema__;
         var _newFields = {};
 
-        return Promise.resolve().then(function () {
+        return Promise.resolve()
+            .then(buildTable.bind(this))
+            .then(addComments.bind(this, tableName))
+            .then(synchronizeIndexes.bind(this, tableName, template));
+
+        function buildTable() {
             return knex.schema.hasTable(tableName).then(function (exists) {
                 if (!exists) {
                     if (!!changeNotificationCallback) {
@@ -382,10 +388,7 @@ module.exports = function (PersistObjectTemplate) {
                     }.bind(this));
                 }
             }.bind(this))
-        }.bind(this))
-
-            .then(addComments.bind(this, tableName))
-            .then(synchronizeIndexes.bind(this, tableName, template));
+        }
 
         function fieldChangeNotify(callBack, table) {
             if (!callBack) return;
@@ -505,8 +508,8 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
             function commentOn(table, column, comment) {
-                if (knex.client.config.client == 'pg') {
-                    knex.raw('COMMENT ON COLUMN "' + table + '"."' + column + '" IS \'' + comment.replace(/'/g, '\'\'') + '\';')
+                if (knex.client.config.client === 'pg' && comment !== '') {
+                    return knex.raw('COMMENT ON COLUMN "' + table + '"."' + column + '" IS \'' + comment.replace(/'/g, '\'\'') + '\';')
                         .then(function() {}, function (e) {
                             /*eslint-disable no-console*/
                             console.log(e)
@@ -1154,10 +1157,10 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             function rollback (err) {
-                return knexTransaction.rollback().then (function () {
-                    var deadlock = err.toString().match(/deadlock detected$/i)
-                    persistorTransaction.innerError = err;
-                    innerError = deadlock ? new Error('Update Conflict') : err;
+                var deadlock = err.toString().match(/deadlock detected$/i);
+                persistorTransaction.innerError = err;
+                innerError = deadlock ? new Error('Update Conflict') : err;
+                return knexTransaction.rollback(innerError).then (function () {
                     (logger || this.logger).debug({component: 'persistor', module: 'api', activity: 'end'}, 'transaction rolled back ' +
                         innerError.message + (deadlock ? ' from deadlock' : ''));
                 }.bind(this));
