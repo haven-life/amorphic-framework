@@ -269,7 +269,7 @@ module.exports = function (PersistObjectTemplate) {
 
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
-                    if (cachedObject && (!cascadeFetch || allRequiredChildrenAvailableInCache(cachedObject, cascadeFetch.fetch))) {
+                    if (cachedObject && (!cascadeFetch  || !cascadeFetch.fetch || allRequiredChildrenAvailableInCache(cachedObject, cascadeFetch.fetch))) {
                         if (!obj[prop] || obj[prop].__id__ != cachedObject.__id__) {
                             this.withoutChangeTracking(function () {
                                 obj[prop] = cachedObject;

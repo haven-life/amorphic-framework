@@ -52,6 +52,9 @@ describe('persistor transaction checks', function () {
             knex.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     });
+    after('closes the database', function () {
+        return knex.destroy();
+    });
 
     it('create a simple table', function () {
         schema.Employee = {};

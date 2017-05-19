@@ -243,6 +243,9 @@ describe('index synchronization checks', function () {
             knex.schema.dropTableIfExists('IndexSyncTable')
         ]).should.notify(done);
     });
+    after('closes the database', function () {
+        return knex.destroy();
+    });
 
 
     it('synchronize the table without defining the indexes and make sure that the process does not make any entries to the schema table', function () {

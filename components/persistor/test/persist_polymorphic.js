@@ -521,6 +521,9 @@ describe('type mapping tests for parent/child relations', function () {
             knex.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     })
+    after('closes the database', function () {
+        return knex.destroy();
+    });
 
     it('Parent type with an associated child will add add the fields from the child tables to the parent table', function (done) {
         return PersistObjectTemplate.createKnexTable(Parent).then(function () {

@@ -46,6 +46,9 @@ describe('persistor transaction checks', function () {
             knex.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     });
+    after('closes the database', function () {
+        return knex.destroy();
+    });
 
     it('Creating multiple levels objects, only parent object can have the schema entry', function () {
         schema.Employee = {};

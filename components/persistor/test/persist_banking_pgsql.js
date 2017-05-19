@@ -1214,11 +1214,8 @@ describe('Banking from pgsql Example', function () {
         }).catch(function(e) {done(e)});
     });
 
-    // it('closes the database', function (done) {
-    //     persist_banking_pgsql.js.close().then(function () {
-    //         console.log('ending banking');
-    //         done()
-    //     });
-    // });
+    after('closes the database', function () {
+        return knex.destroy();
+    });
 
 });

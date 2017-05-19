@@ -51,6 +51,7 @@ describe('IdMap checks', function () {
         });
     });
 
+
     it('checking flags..', function() {
         var cust = new Customer();
         var address1 = new Address();

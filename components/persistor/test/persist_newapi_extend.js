@@ -28,24 +28,37 @@ describe('persistor transaction checks', function () {
         return Promise.all([knex.schema.dropTableIfExists('tx_person'),
             knex.schema.dropTableIfExists(schemaTable)]);
     })
+    after('closes the database', function () {
+        return knex.destroy();
+    });
     beforeEach('arrange', function () {
         ObjectTemplate = require('supertype');
         PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
         schema.Person = {};
         schema.Person.table =  'tx_person';
+        schema.Person.parents = {
+            manager: {
+                id: 'person_id'
+            }
+        };
         //schema.Employee.documentOf = 'tx_person';
         Person = PersistObjectTemplate.create('Person', {
             firstName: {type: String},
             lastName: {type: String}
         });
         Employee = Person.extend('Employee', {
-            salary: {type: Number}
+            salary: {type: Number},
+            manager: {type: Person}
         });
 
         var emp = new Employee();
         emp.firstName = 'test firstName';
         emp.lastName = 'lastName';
         emp.salary = 10000;
+        var manager = new Person();
+        manager.firstName = 'manager';
+        emp.manager = manager;
+
         (function () {
             PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);
@@ -82,7 +95,7 @@ describe('persistor transaction checks', function () {
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {
-        return Employee.persistorFetchById(empId)
+        return Employee.persistorFetchById(empId, {fetch: {manager:true}})
             .then(function(employee) {
                 expect(employee.firstName).is.not.equal(null);
             });

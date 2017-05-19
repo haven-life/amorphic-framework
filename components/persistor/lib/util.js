@@ -232,7 +232,7 @@ module.exports = function (PersistObjectTemplate) {
         if (!valid) {
             throw new Error('Parameter validation failed, ' + (schemaValidator.error.dataPath !== '' ? 'Field: '
                     + schemaValidator.error.dataPath + ', ' : '')
-                    + 'Validation error: ' + schemaValidator.error.message);
+                + 'Validation error: ' + schemaValidator.error.message);
         }
 
         if (schema === 'fetchSchema') {
@@ -251,9 +251,10 @@ module.exports = function (PersistObjectTemplate) {
 
             function fetchPropChecks(fetch, template, name) {
                 Object.keys(fetch).map(function(key) {
-                    if (key in template.defineProperties && isObjectTemplateProperty(template.props[key])) {
+                    var keyTemplate = isFetchKeyInDefineProperties(key, template);
+                    if (keyTemplate) {
                         if (!fetch[key].fetch) return;
-                        fetchPropChecks(fetch[key].fetch, template.props[key].type, template.props[key].type.__name__)
+                        fetchPropChecks(fetch[key].fetch, keyTemplate, keyTemplate.__name__)
                     }
                     else {
                         throw new Error('key used ' + key + ' is not a valid fetch key for the template ' + name);
@@ -261,9 +262,24 @@ module.exports = function (PersistObjectTemplate) {
                 });
             }
 
-            function isObjectTemplateProperty(template) {
-                return ((template.type && template.type.isObjectTemplate) ||
-                    (template.of && template.type === Array && template.of.isObjectTemplate))
+            function getKeyTemplate(template) {
+                if (template.type && template.type.isObjectTemplate) {
+                    return template.type;
+                }
+                else if (template.of && template.type === Array && template.of.isObjectTemplate) {
+                    return template.of;
+                }
+            }
+
+            function isFetchKeyInDefineProperties(key, template) {
+                if (key in template.defineProperties) {
+                    return getKeyTemplate(template.defineProperties[key]);
+                }
+                else {
+                    return template.__children__.reduce(function(keyTemplate, child) {
+                        return keyTemplate || isFetchKeyInDefineProperties(key, child)
+                    }, null);
+                }
             }
         }
 

@@ -200,7 +200,9 @@ describe('schema update checks', function () {
 
         ]).should.notify(done);
     });
-
+    after('closes the database', function () {
+        return knex.destroy();
+    });
 
 
 

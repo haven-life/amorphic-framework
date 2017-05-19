@@ -42,6 +42,9 @@ describe('persistor transaction checks', function () {
                 }),
             knex.schema.dropTableIfExists(schemaTable)]);
     })
+    after('closes the database', function () {
+        return knex.destroy();
+    });
     beforeEach('arrange', function () {
         ObjectTemplate = require('supertype');
         PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
