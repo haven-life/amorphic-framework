@@ -479,7 +479,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         //persistDelete is modified to support both legacy and V2, options this is passed for V2 as the first parameter.
         template.prototype.persistDelete = // Legacy
-        template.prototype.persistorDelete = function (txn, logger) {
+        function (txn, logger) {
             if (!txn || (txn && txn.knex && txn.knex.transacting)) {
                 (logger || PersistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistDelete',
                     data: {template: this.__template__.__name__, id: this.__id__}});
@@ -490,7 +490,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             }
             else {
                 //for V2 options are passed as the first paramter.
-                deleteV2.call(this, txn);
+                this.deleteV2.call(this, txn);
             }
 
         };
@@ -612,8 +612,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             }
         };
 
-        //Will be renamed to persistDelete and injected to object after migrating to V2.
-        function deleteV2(options) {
+        //persistorDelete will only support new API calls.
+        template.prototype.persistorDelete = template.prototype.deleteV2 = function(options) {
             PersistObjectTemplate._validateParams(options, 'persistSchema', this.__template__);
 
             options = options || {};
