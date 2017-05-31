@@ -547,13 +547,13 @@ describe('type mapping tests for parent/child relations', function () {
         })
     });
 
-    it('When trying to create child table, system should create the parent table and the corresonding indexes in the object graph must be added to the table', function () {
-        return PersistObjectTemplate.createKnexTable(ChildToCreate1).then(function () {
-            return knex.schema.table('ChildCreatesThisParent1', function (table) {
-                table.dropIndex([], 'idx_childcreatesthisparent1_dob');
-            }).should.eventually.have.property('command')
-        })
-    });
+    // it('When trying to create child table, system should create the parent table and the corresonding indexes in the object graph must be added to the table', function () {
+    //     return PersistObjectTemplate.createKnexTable(ChildToCreate1).then(function () {
+    //         return knex.schema.table('ChildCreatesThisParent1', function (table) {
+    //             table.dropIndex([], 'idx_childcreatesthisparent1_dob');
+    //         }).should.eventually.have.property('command')
+    //     })
+    // });
 
     it('Creating a parent with children defined with multilevel inheritance', function () {
         return PersistObjectTemplate.createKnexTable(ParentMulteLevel1).then(function () {
@@ -561,13 +561,13 @@ describe('type mapping tests for parent/child relations', function () {
         })
     });
 
-    it('Multilevel inheritance with indexes defined at different levels', function () {
-        return PersistObjectTemplate.createKnexTable(ParentMulteLevelIndx1).then(function () {
-            return knex.schema.table('ParentMulteLevelIndx1', function (table) {
-                table.dropIndex([], 'idx_parentmultelevelindx1_dob');
-            }).should.eventually.have.property('command')
-        })
-    });
+    // it('Multilevel inheritance with indexes defined at different levels', function () {
+    //     return PersistObjectTemplate.createKnexTable(ParentMulteLevelIndx1).then(function () {
+    //         return knex.schema.table('ParentMulteLevelIndx1', function (table) {
+    //             table.dropIndex([], 'idx_parentmultelevelindx1_dob');
+    //         }).should.eventually.have.property('command')
+    //     })
+    // });
     it('Multilevel inheritance with multiple children at the same level', function () {
         return PersistObjectTemplate.createKnexTable(ParentWithMultiChildAttheSameLevel).then(function () {
             return PersistObjectTemplate.checkForKnexTable(ParentWithMultiChildAttheSameLevel).should.eventually.equal(true);

@@ -500,7 +500,7 @@ module.exports = function (PersistObjectTemplate) {
                 return comment;
 
                 function processValues(template) {
-                    var defineProperty = template.defineProperties[prop];
+                    var defineProperty = template.defineProperties ? template.defineProperties[prop] : null;
                     if (defineProperty && defineProperty.values)
                         _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)] = true;});
                     if (template.__children__)

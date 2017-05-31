@@ -345,11 +345,11 @@ describe('index synchronization checks', function () {
         });
     });
 
-    it('creating parent and child and synchronize the parent to check the child table indexes', function (done) {
-        PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function () {
-            Promise.all([getIndexes('Employee').should.eventually.have.length(2),
-                getIndexes('Manager').should.eventually.have.length(1),
-                getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
-        });
-    });
+    // it('creating parent and child and synchronize the parent to check the child table indexes', function (done) {
+    //     PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function () {
+    //         Promise.all([getIndexes('Employee').should.eventually.have.length(2),
+    //             getIndexes('Manager').should.eventually.have.length(1),
+    //             getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
+    //     });
+    // });
 });
