@@ -641,13 +641,14 @@ module.exports = function (PersistObjectTemplate) {
             }
         };
 
-        var generateChanges = function (localtemplate, _value) {
-            return _.reduce(localtemplate.__children__, function (_curr, o) {
-                return Promise.resolve()
-                    .then(loadTableDef.bind(this, _dbschema, o.__name__))
-                    .spread(diffTable)
-                    .then(generateChanges.bind(this, o));
-            }, {});
+        var generateChanges = function (_localtemplate, _value) {
+            return;
+            // return _.reduce(localtemplate.__children__, function (_curr, o) {
+            //     return Promise.resolve()
+            //         .then(loadTableDef.bind(this, _dbschema, o.__name__))
+            //         .spread(diffTable)
+            //         .then(generateChanges.bind(this, o));
+            // }, {});
         };
 
         var getFilteredTarget = function(src, target) {

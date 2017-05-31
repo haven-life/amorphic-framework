@@ -87,8 +87,8 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         cascadeSave(any) : any{}
         isStale () : any{}
         persist (options) : any{}
-        setDirty() : any{}
-        refresh () : any{};
+        setDirty(txn?, onlyIfChanged?, noCascade?, logger?) : any{}
+        refresh (logger?) : any{};
 
     };
 }
