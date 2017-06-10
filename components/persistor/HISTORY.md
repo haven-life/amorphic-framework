@@ -1,3 +1,5 @@
+## 2.2.2
+* Include the latest SuperType.
 ## 2.2.1
 * Support for the most recent version of knex.
 ## 2.2.0

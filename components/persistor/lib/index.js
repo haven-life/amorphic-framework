@@ -78,11 +78,11 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     return  PersistObjectTemplate;
 }
 
-module.exports.supertypeClass = function (target, props) {
+module.exports.supertypeClass = function (target) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.supertypeClass(target, props, objectTemplate)
+    return supertype.supertypeClass(target, objectTemplate)
 };
 module.exports.Supertype = function () {
     if (!objectTemplate) {
@@ -90,6 +90,7 @@ module.exports.Supertype = function () {
     }
     return supertype.Supertype.call(this, objectTemplate);
 };
+module.exports.Supertype.prototype = supertype.Supertype.prototype;
 module.exports.property = function (props) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');

@@ -113,7 +113,12 @@ var schemaTable = 'index_schema_history';
 
 describe('Banking from pgsql Example', function () {
 
-    var knex
+    var knex;
+    
+    it ('gets @supertypeClass({}) parameters passed through', function () {
+        expect(Account['__toClient__']).to.equal(false);
+        expect(Account['__toServer__']).to.equal(true);
+    });
 
     it ('opens the database Postgres', function () {
         knex =  persistor.connect({
@@ -199,6 +204,9 @@ describe('Banking from pgsql Example', function () {
         jointAccount.transferTo(100, samsAccount);      // Joint has 100, Sam has 150
         jointAccount.transferFrom(50, samsAccount);     // Joint has 150, Sam has 100
         jointAccount.debit(25);                         // Joint has 125
+
+        expect(samsAccount.amorphicGetPropertyValues('accountType')[0]).to.equal('B');
+        expect(samsAccount.amorphicGetPropertyDescriptions('accountType').B).to.equal('Business');
     });
 
     it('both accounts have the right balance', function () {
@@ -913,7 +921,7 @@ describe('Banking from pgsql Example', function () {
         var txn = persistor.begin();
         var customerForCascadeSave = new Customer('customerForCascadeSave', 'M', 'Last');
         customerForCascadeSave.cascadeSave(txn);
-        return persistor.end(txn).then (function () {
+        return customerForCascadeSave.amorphic.end(txn).then (function () {
             return Customer.getFromPersistWithId(customerForCascadeSave._id)
         }).then (function (customer) {
             expect(customer.firstName).to.equal('customerForCascadeSave');
@@ -981,6 +989,44 @@ describe('Banking from pgsql Example', function () {
                 done();
             });
         }).catch(function(e) {done(e)});
+    });
+    it ('can log in a closed loop', function () {
+        var date = new Date('11/11/2010');
+        var output = '';
+
+        sam = new Customer('Sam', 'M', 'Elsamman');
+        var oldSendToLog = sam.amorphic.logger;
+
+        sam.amorphic.logger.sendToLog = function sendToLog(level, obj) {
+            var str = sam.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
+            output += str.replace(/[\r\n ]/g, '');
+        };
+
+        sam.amorphic.logger.startContext({name: 'supertype'});
+        sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
+        var context = sam.amorphic.logger.setContextProps({permFoo: 'permBar1'});
+        sam.amorphic.logger.warn({foo: 'bar2'});
+        sam.amorphic.logger.clearContextProps(context);
+        sam.amorphic.logger.warn({foo: 'bar3'});
+        var child = sam.amorphic.logger.createChildLogger({name: 'supertype_child'});
+        child.setContextProps({permFoo: 'childFoo'});
+        child.warn({'foo': 'bar4'});
+        sam.amorphic.logger.warn({foo: 'bar5'});
+        sam.amorphic.logger.startContext({name: 'supertype2'});
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        sam.amorphic.logger.setLevel('error');
+        console.log('setting level to error');
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        sam.amorphic.logger.setLevel('error;foo:bar6');
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        sam.amorphic.logger.setLevel('error;foo:bar7');
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+
+        console.log(output);
+        var result = '(foo="bar1")(permFoo="permBar1"foo="bar2")(foo="bar3")(permFoo="childFoo"foo="bar4")(foo="bar5")(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})';
+
+        expect(output).to.equal(result);
+        sam.amorphic.logger = oldSendToLog;
     });
 
     // it('closes the database', function (done) {

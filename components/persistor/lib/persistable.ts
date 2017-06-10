@@ -1,9 +1,8 @@
+import {SupertypeSession} from "supertype";
 type Constructable<BC> = new (...args: any[]) => BC;
 
-export class Persistor {
-
+export class Persistor extends SupertypeSession {
     static create(): Persistor {return undefined};
-
     beginDefaultTransaction() : any {}
     beginTransaction(nodefault? : boolean) : any {}
     endTransaction(persistorTransaction?, logger?) : any {}
@@ -24,7 +23,6 @@ export class Persistor {
     onAllTables (callback : Function, concurrency? : number) : any {}
 
     debugInfo : any
-    logger : any
     DB_Knex : any;
 
     countFromKnexQuery (template, queryOrChains, _logger?) : any {}
@@ -32,9 +30,16 @@ export class Persistor {
     synchronizeKnexTableFromTemplate (template : string) : any {};
     setSchema(schema : any) {};
     performInjections() {}
+    config: any
+    __transient__ : any
+    objectMap: any
+    static createTransientObject(callback : any) : any {};
+}
 
-
-    
+export function ContainsPersistable<BC extends Constructable<{}>>(Base: BC) {
+    return class extends Base {
+        amorphic : Persistor;
+    }
 }
 
 export function Persistable<BC extends Constructable<{}>>(Base: BC) {
@@ -61,7 +66,8 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         persistorIsStale () : any {}
 
         _id: string;
-        persistor : Persistor;
+        __version__: number;
+        amorphic : Persistor;
 
         // Legacy
         static getFromPersistWithId(id?, cascade?, isTransient?, idMap?, isRefresh?, logger?) : any{}
@@ -90,5 +96,7 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         setDirty(txn?, onlyIfChanged?, noCascade?, logger?) : any{}
         refresh (logger?) : any{};
 
+        getTableName () : any {}
+        getParentKey () : any {}
     };
 }

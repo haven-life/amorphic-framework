@@ -3,7 +3,7 @@ import {Role} from './Role';
 import {Address} from './Address';
 import {Transaction, Debit, Credit, Xfer} from './Transaction';
 
-@supertypeClass
+@supertypeClass({toServer: true, toClient: false})
 export class Account extends Persistable(Supertype) {
 
     constructor (number, title, customer, address) {
@@ -18,6 +18,9 @@ export class Account extends Persistable(Supertype) {
             this.addCustomer(customer);
         this.setDirty();
     };
+
+    @property({values: ['B', 'P'], descriptions: {B: 'Business', P: 'Personal'}})
+    accountType: String = 'P';
 
     @property({type: Transaction, fetch: true})
     transactions: Array<Transaction> = [];
