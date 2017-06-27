@@ -100,21 +100,21 @@ Bindster.prototype.setController = function(controller)
     this.data.c = controller;
     this.data.controller = controller;
     controller.bindster = this;
-    controller.clearErrors = function(data) {
+    controller.bindsterClearErrors = function(data) {
         this.bindster.clearErrors = true;
         this.bindster.render(data);
         this.bindster.clearErrors = true;
     }
-    controller.isError = function (propRef) {
+    controller.bindsterIsError = function (propRef) {
         return this.bindster.isError(propRef)
     }
-    controller.hasErrors = function(data) {
+    controller.bindsterHasErrors = function(data) {
         return this.bindster.hasErrors;
     }
-    controller.isPending = function (propRef) {
+    controller.bindsterIsPending = function (propRef) {
         return this.bindster.isPending(propRef)
     }
-    controller.validate = function(data) {
+    controller.bindsterValidate = function(data) {
         // A re-render can end up calling validate again
         if (!this.bindster.validate) {
             this.bindster.validate = true;
@@ -124,12 +124,12 @@ Bindster.prototype.setController = function(controller)
         }
         return !this.hasErrors();
     }
-    controller.render = function(data){
+    controller.bindsterRender = function(data){
         var node = typeof(data) == 'string' ? document.getElementById(data) : data;
         node = node ? node.firstChild : node;
         this.bindster.render(node);
     }
-    controller.setError = function (objRef, propRef, error) {
+    controller.bindsterSetError = function (objRef, propRef, error) {
         if (!error) {
             error = propRef;
             propRef = objRef;
@@ -137,50 +137,50 @@ Bindster.prototype.setController = function(controller)
         }
         this.bindster.setError(objRef, propRef, error);
     }
-    controller.getErrorMessage = function(message) {
+    controller.bindsterGetErrorMessage = function(message) {
         return this.bindster.getBindErrorData(null, message);
     }
-    controller.clearError = function (objRef, propRef) {
+    controller.bindsterClearError = function (objRef, propRef) {
         this.bindster.clearError(objRef, propRef);
     }
-    controller.refresh = function(defer) {
+    controller.bindsterRefresh = function(defer) {
         this.bindster.scheduleRender(defer);
     }
-    controller.alert =  function(msg) {
+    controller.bindsterAlert =  function(msg) {
         var focus = document.activeElement;
         alert(msg);
         focus.focus();
     }
-    controller.attr = function(selector, attr, value) {
+    controller.bindsterAttr = function(selector, attr, value) {
         this.bindster.setAttr(selector, attr, value);
     }
-    controller.rule = function(rule, value) {
+    controller.bindsterRule = function(rule, value) {
         this.bindster.rules[rule] = value;
     }
-    controller.getRules = function() {
+    controller.bindsterGetRules = function() {
         return this.bindster.rules[rule];
     }
-    controller.set = function(tags, value) {
+    controller.bindsterSet = function(tags, value) {
         this.value = value;
         this.bindster.eval(this.bindster.getBindAction(tags, "bindster.controller.value"), null, "controller.set");
     }
-    controller.bindSet = function(bind, value)
+    controller.bindsterBindSet = function(bind, value)
     {
         this.value = value;
         var tags = this.getTags(bind);
         this.bindster.eval(this.bindster.getBindAction(tags, "bindster.controller.value"), null, "controller.set");
     }
-    controller.bindGet = function(bind)
+    controller.bindsterBindGet = function(bind)
     {
         var tags = this.getTags(bind);
         var bind_data = this.bindster.eval(this.bindster.resolveValue(tags.bind), null, "bind");
         if (typeof(bind_data) == 'undefined')
-            this.bindster.throwError(null, 'bind', tags.bind + ' returned undefined');
+            bind_data = null;
         if (tags.format)
             bind_data = this.bindster.evalWithValue(tags.format, bind_data, 'format');
         return bind_data;
     }
-    controller.getTags = function(bindRef)
+    controller.bindsterGetTags = function(bindRef)
     {
         var pattrs = this.bindster.getPropAttrs(null, bindRef);
         var attrs = {bind: bindRef};
@@ -197,16 +197,39 @@ Bindster.prototype.setController = function(controller)
         }
 
         return attrs;
-    },
-        controller.setIncludeURLSuffix = function (suffix) {
-            this.bindster.urlSuffix = suffix
-        },
-        controller.arrive = function(route) {
-            this.bindster.DOMTestResolve("arrival");
-            if (typeof(bindsterTestFrameworkRoute) == "function")
-                bindsterTestFrameworkRoute(route);
+    }
+    controller.bindsterSetIncludeURLSuffix = function (suffix) {
+        this.bindster.urlSuffix = suffix
+    }
+    controller.bindsterArrive = function(route) {
+        this.bindster.DOMTestResolve("arrival");
+        if (typeof(bindsterTestFrameworkRoute) == "function")
+            bindsterTestFrameworkRoute(route);
 
-        }
+    }
+
+    // Legacy names
+    controller.clearErrors = controller.bindsterClearErrors;
+    controller.isError = controller.bindsterIsError;
+    controller.hasErrors = controller.bindsterHasErrors;
+    controller.isPending = controller.bindsterIsPending;
+    controller.validate = controller.bindsterValidate;
+    controller.render = controller.bindsterRender;
+    controller.setError = controller.bindsterSetError;
+    controller.getErrorMessage = controller.bindsterGetErrorMessage;
+    controller.clearError = controller.bindsterClearError;
+    controller.refresh = controller.bindsterRefresh;
+    controller.alert = controller.bindsterAlert;
+    controller.attr = controller.bindsterAttr;
+    controller.rule = controller.bindsterRule;
+    controller.getRules = controller.bindsterGetRules;
+    controller.set = controller.bindsterSet;
+    controller.bindSet = controller.bindsterBindSet;
+    controller.bindGet = controller.bindsterBindGet;
+    controller.getTags = controller.bindsterGetTags;
+    controller.setIncludeURLSuffix = controller.bindsterSetIncludeURLSuffix;
+    controller.arrive = controller.bindsterArrive;
+
 
 }
 Bindster.prototype.alert = function(msg)
@@ -660,7 +683,7 @@ Bindster.prototype.render = function (node, context, parent_fingerprint, wrapped
                                 }
                                 var bind_data = this.eval(this.resolveValue(tags.bind), null, "bind", node);
                                 if (typeof(bind_data) == 'undefined')
-                                    this.throwError(node, 'bind', tags.bind + ' returned undefined', node);
+                                    bind_data = null;
                                 if (tags.format)
                                     bind_data = this.evalWithValue(tags.format, bind_data, 'format', node);
                             } else

@@ -1,3 +1,5 @@
+## 2.0.1
+* Typescript typings
 ## 2.0.0
 * Updaed dependency on supertype and other lint-related changes.
 ## 1.3.10

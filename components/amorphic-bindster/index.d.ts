@@ -1,0 +1,1 @@
+export {Bindable} from './bindable';
