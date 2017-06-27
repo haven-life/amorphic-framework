@@ -1,7 +1,7 @@
 import {Supertype, supertypeClass, property} from '../../../index';
 import {Ark} from './Arc';
 
-@supertypeClass
+@supertypeClass({toServer: true, toClient: true})
 export class Animal extends Supertype
 {
     name: string;
@@ -16,3 +16,5 @@ export class Animal extends Supertype
     @property({getType: () => {return Ark}})
     ark:    Ark;
 };
+
+

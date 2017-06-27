@@ -1,3 +1,5 @@
+## 2.2.1
+* Added some missing typings like amorphicClass, amorphicClassName
 ## 2.2.0
 * Support for TypeScript.
 ## 2.1.2

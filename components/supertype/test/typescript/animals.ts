@@ -1,9 +1,20 @@
 import {expect} from 'chai';
 import * as mocha from 'mocha';
 import {Ark} from "./model/Arc";
+import {LionContainer} from "./model/Arc";
+import {AnimalContainer} from "./model/Arc";
 import {Lion} from "./model/Lion";
 import {Bear} from "./model/Bear";
 import {Animal} from "./model/Animal";
+import {amorphicStatic} from "../../index";
+
+
+describe('AnimalContainer', function () {
+    it ('has proper types', function () {
+        expect(AnimalContainer.amorphicProperties.containee.type).to.equal(Animal);
+        expect(LionContainer.amorphicProperties.containee.type).to.equal(Lion);
+    });
+});
 
 describe('Freeze Dried Arks', function () {
     var ark1;
@@ -16,18 +27,28 @@ describe('Freeze Dried Arks', function () {
         expect(Bear.amorphicParentClass).to.equal(Animal);
         expect(Lion.amorphicParentClass).to.equal(Animal);
     });
-    it ('has property values', function () {
+    it ('has static property values', function () {
+        expect(Animal['__toClient__']).to.equal(true);
         expect(Lion.amorphicProperties.lionStuff.type).to.equal(String);
         expect(Bear.amorphicProperties.lionStuff).to.equal(undefined);
         expect(Animal.amorphicProperties.lionStuff).to.equal(undefined);
         expect(Bear.amorphicProperties.isMammal).to.equal(undefined);
         expect(Bear.amorphicGetProperties().isMammal.type).to.equal(Boolean);
         expect(Animal.amorphicProperties.isMammal.type).to.equal(Boolean);
+        expect(Animal.amorphicClassName).to.equal('Animal');
+        expect(Bear.amorphicClassName).to.equal('Bear');
+        expect(Bear.amorphicStatic).to.equal(Bear['__objectTemplate__']);
+        expect(amorphicStatic).to.equal(Bear['__objectTemplate__']);
+    });
+    it ('has object property values', function () {
         var ark = new Ark();
         expect(ark.amorphicGetPropertyValues('size').length).to.equal(2);
         expect(ark.amorphicGetPropertyDescriptions('size').s).to.equal('small');
+        expect(ark.__template__.__name__).to.equal('Ark');
+        expect(ark.amorphicClass.__name__).to.equal('Ark');
+        expect(ark.amorphicClass.amorphicClassName).to.equal('Ark');
+        expect(ark.amorphicGetClassName()).to.equal('Ark');
     });
-
     it ('create the arc', function (done) {
         Ark.createProperty('foo', {isLocal: true, type: String, value: 'foo'});
         Ark.createProperty('bar', {isLocal: true, type: String, value: 'bar'});
@@ -83,43 +104,42 @@ describe('Freeze Dried Arks', function () {
 
         done();
     });
-/*
-TODO: Typescript -- figure this out
-
     it ('can log', function () {
-        var date = new Date('11/11/2010');
+        var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
+        
+        var ark : Ark = new Ark();
 
-        ObjectTemplate.logger.sendToLog = function sendToLog(level, obj) {
-            var str = ObjectTemplate.logger.prettyPrint(level, obj).replace(/.*: /, '');
+        ark.amorphic.logger.sendToLog = function sendToLog(level, obj) {
+            var str = ark.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
             console.log(str);
             output += str.replace(/[\r\n ]/g, '');
         };
 
-        ObjectTemplate.logger.startContext({name: 'supertype'});
-        ObjectTemplate.logger.warn({foo: 'bar1'}, 'Yippie');
-        var context = ObjectTemplate.logger.setContextProps({permFoo: 'permBar1'});
-        ObjectTemplate.logger.warn({foo: 'bar2'});
-        ObjectTemplate.logger.clearContextProps(context);
-        ObjectTemplate.logger.warn({foo: 'bar3'});
-        var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
+        ark.amorphic.logger.startContext({name: 'supertype'});
+        ark.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
+        var context = ark.amorphic.logger.setContextProps({permFoo: 'permBar1'});
+        ark.amorphic.logger.warn({foo: 'bar2'});
+        ark.amorphic.logger.clearContextProps(context);
+        ark.amorphic.logger.warn({foo: 'bar3'});
+        var child = ark.amorphic.logger.createChildLogger({name: 'supertype_child'});
         child.setContextProps({permFoo: 'childFoo'});
         child.warn({'foo': 'bar4'});
-        ObjectTemplate.logger.warn({foo: 'bar5'});
-        ObjectTemplate.logger.startContext({name: 'supertype2'});
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error');
+        ark.amorphic.logger.warn({foo: 'bar5'});
+        ark.amorphic.logger.startContext({name: 'supertype2'});
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error');
         console.log('setting level to error');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar6');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar7');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error;foo:bar6');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error;foo:bar7');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(foo="bar1")(permFoo="permBar1"foo="bar2")(foo="bar3")(permFoo="childFoo"foo="bar4")(foo="bar5")(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})';
+        var result = '(foo="bar1")(permFoo="permBar1"foo="bar2")(foo="bar3")(permFoo="childFoo"foo="bar4")(foo="bar5")(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
 
         expect(output).to.equal(result);
     });
-*/
+
 });
