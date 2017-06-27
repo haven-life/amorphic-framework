@@ -1,5 +1,5 @@
 ## 2.3.1
-* included latest supertype
+* Fix several issues with session handling.
 ## 2.3.0
 * Support for TypeScript.
 ## 2.2.0
