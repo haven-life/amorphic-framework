@@ -158,13 +158,17 @@ Address.mixin({
 });
 var FirstLevel = PersistObjectTemplate.create('FirstLevel', {
     dummy: {type: String, value: 'dummy'},
-    address: {type: Array, of: Address},
-    cascadeCheck: {type: CascadeSaveCheck}
+    address: {type: Array, of: Address}
+
 });
 var CascadeSaveCheck = PersistObjectTemplate.create('CascadeSaveCheck', {
     name: {type: String, value: 'initial value'},
     arrayOfFirstLevel: {type: Array, of: FirstLevel}
 });
+
+FirstLevel.mixin({
+    cascadeCheck: {type: CascadeSaveCheck}
+})
 
 var Transaction = PersistObjectTemplate.create('Transaction', {
     init:       function (account, type, amount) {

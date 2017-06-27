@@ -2,7 +2,7 @@ import {SupertypeSession} from "supertype";
 type Constructable<BC> = new (...args: any[]) => BC;
 
 export class Persistor extends SupertypeSession {
-    static create(): Persistor {return undefined};
+    static create(): Persistor | undefined {return undefined};
     beginDefaultTransaction() : any {}
     beginTransaction(nodefault? : boolean) : any {}
     endTransaction(persistorTransaction?, logger?) : any {}

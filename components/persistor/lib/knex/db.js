@@ -350,6 +350,12 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback) {
+        //no need to synchronize Query objects if there is an entry for the corresponding main object in schema.json
+        if (template.name.match(/Query$/) && this._schema[template.name.replace('Query', '')]) {
+            return Promise.resolve();
+        }
+
+
         var aliasedTableName = template.__table__;
         var tableName = this.dealias(aliasedTableName);
 
@@ -641,14 +647,13 @@ module.exports = function (PersistObjectTemplate) {
             }
         };
 
-        var generateChanges = function (_localtemplate, _value) {
-            return;
-            // return _.reduce(localtemplate.__children__, function (_curr, o) {
-            //     return Promise.resolve()
-            //         .then(loadTableDef.bind(this, _dbschema, o.__name__))
-            //         .spread(diffTable)
-            //         .then(generateChanges.bind(this, o));
-            // }, {});
+        var generateChanges = function (localtemplate, _value) {
+            return _.reduce(localtemplate.__children__, function (_curr, o) {
+                return Promise.resolve()
+                    .then(loadTableDef.bind(this, _dbschema, o.__name__))
+                    .spread(diffTable)
+                    .then(generateChanges.bind(this, o));
+            }, {});
         };
 
         var getFilteredTarget = function(src, target) {
@@ -669,7 +674,10 @@ module.exports = function (PersistObjectTemplate) {
             var dbChanges =   {add: [], change: [], delete: []};
             _.map(dbChanges, function(_object, key) {
                 _.each(_changes, function(change) {
-                    var filtered = getFilteredTarget(dbChanges[key], change[key]);
+                    var uniqChanges = _.uniq(change[key], function(o) {
+                        return o.name;
+                    });
+                    var filtered = getFilteredTarget(dbChanges[key], uniqChanges);
                     dbChanges[key].push.apply(dbChanges[key], filtered);
                 })
             });
@@ -764,18 +772,18 @@ module.exports = function (PersistObjectTemplate) {
 
     function iscompatible(persistortype, pgtype) {
         switch (persistortype) {
-        case 'String':
-        case 'Object':
-        case 'Array':
-            return pgtype.indexOf('text') > -1;
-        case 'Number':
-            return pgtype.indexOf('double precision') > -1;
-        case 'Boolean':
-            return pgtype.indexOf('bool') > -1;
-        case 'Date':
-            return pgtype.indexOf('timestamp') > -1;
-        default:
-            return pgtype.indexOf('text') > -1; // Typed objects have no name
+            case 'String':
+            case 'Object':
+            case 'Array':
+                return pgtype.indexOf('text') > -1;
+            case 'Number':
+                return pgtype.indexOf('double precision') > -1;
+            case 'Boolean':
+                return pgtype.indexOf('bool') > -1;
+            case 'Date':
+                return pgtype.indexOf('timestamp') > -1;
+            default:
+                return pgtype.indexOf('text') > -1; // Typed objects have no name
         }
     }
 

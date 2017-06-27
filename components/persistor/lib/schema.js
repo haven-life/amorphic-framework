@@ -55,7 +55,7 @@ module.exports = function (PersistObjectTemplate) {
             if (template) {
                 template.__schema__ = this._schema[template.__name__];
                 template.__collection__ = template.__schema__ ?
-                template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
+                    template.__schema__.documentOf || template.__schema__.subDocumentOf || template.__name__ : null;
                 if (template.__schema__ && template.__schema__.table)
                     template.__table__ = template.__schema__.table;
                 var parentTemplate = template.__parent__;
@@ -112,7 +112,16 @@ module.exports = function (PersistObjectTemplate) {
 
                 // To get only one-to-many keys find the corresponding children entry and look up by id
                 var parentTemplate = template ? template.getProperties()[prop] : null;
-                var parentSchema = (parentTemplate && parentTemplate.type) ? this._schema[parentTemplate.type.__name__] : null;
+                var propType;
+
+                if (parentTemplate && parentTemplate.type) {
+                    var propType = parentTemplate.type === Array ? parentTemplate.of : parentTemplate.type;
+                    if (!propType.__name__) {
+                        throw new Error('getType attribute is missing for ' + prop + ' in ' + template.name);
+                    }
+                }
+                
+                var parentSchema = (parentTemplate && parentTemplate.type && this.__dictionary__[propType.__name__]) ? this.__dictionary__[propType.__name__].__schema__ : null;
                 var isOTM = (parentSchema && parentSchema.children) ?
                     !!_.find(parentSchema.children, function(child) { return child.id == val.id}) : false;
 
