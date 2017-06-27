@@ -1,10 +1,20 @@
 import {Supertype, supertypeClass, property, remote} from '../../index';
+
+@supertypeClass({toClient: false, toServer: true})
+class Dummy {};
+
 import {Customer} from "./Customer";
 import {Account} from "./Account";
 import Promise = require('bluebird');
 import {Address} from "./Address";
 declare function require(name:string);
 var ObjectTemplate  = require('../../index.js');
+
+
+import { expect } from 'chai';
+expect(Dummy['__toClient__']).to.equal(false);
+expect(Dummy['__toServer__']).to.equal(true);
+
 
 @supertypeClass
 export class Controller extends Supertype {
@@ -29,6 +39,12 @@ export class Controller extends Supertype {
 
     @property()
     ashling: Customer;
+
+    @remote({type: Customer})
+    decoratedSingle () {}
+
+    @remote({of: Customer})
+    decoratedMultiple () {}
 
     constructor () {
         super()
@@ -101,3 +117,8 @@ export class Controller extends Supertype {
     serverCallThrowException: Boolean = false;
     canValidateServerCall: Boolean = true;
 };
+
+expect(Controller.prototype.decoratedSingle['__returns__']).to.equal(Customer);
+expect(Controller.prototype.decoratedSingle['__returnsarray__']).to.equal(undefined);
+expect(Controller.prototype.decoratedMultiple['__returns__']).to.equal(Customer);
+expect(Controller.prototype.decoratedMultiple['__returnsarray__']).to.equal(true);

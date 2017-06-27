@@ -1,3 +1,5 @@
+## 2.3.1
+* included latest supertype
 ## 2.3.0
 * Support for TypeScript.
 ## 2.2.0

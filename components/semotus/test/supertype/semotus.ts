@@ -24,6 +24,7 @@ ServerObjectTemplate.role = "server";
 ServerObjectTemplate._useGettersSetters = true;
 ServerObjectTemplate.maxCallTime = 60 * 1000;
 ServerObjectTemplate.__conflictMode__ = 'soft';
+ServerObjectTemplate.memSession = {semotus: {}};
 ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
 import { expect } from 'chai';
@@ -81,11 +82,51 @@ ServerObjectTemplate.logger.setLevel('info;activity:dataLogging');
 
 describe("Typescript Banking Example", function () {
 
+    it ('can log in a closed loop', function () {
+        var date = new Date('2010-11-11T05:00:00.000Z');
+        var output = '';
+
+        var sam = clientController.sam;
+        var oldSendToLog = sam.amorphic.logger;
+
+        sam.amorphic.logger.sendToLog = function sendToLog(level, obj) {
+            var str = sam.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
+            output += str.replace(/[\r\n ]/g, '');
+        };
+
+        sam.amorphic.logger.startContext({name: 'supertype'});
+        sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
+        var context = sam.amorphic.logger.setContextProps({permFoo: 'permBar1'});
+        sam.amorphic.logger.warn({foo: 'bar2'});
+        sam.amorphic.logger.clearContextProps(context);
+        sam.amorphic.logger.warn({foo: 'bar3'});
+        var child = sam.amorphic.logger.createChildLogger({name: 'supertype_child'});
+        child.setContextProps({permFoo: 'childFoo'});
+        child.warn({'foo': 'bar4'});
+        sam.amorphic.logger.warn({foo: 'bar5'});
+        sam.amorphic.logger.startContext({name: 'supertype2'});
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        sam.amorphic.logger.setLevel('error');
+        console.log('setting level to error');
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        sam.amorphic.logger.setLevel('error;foo:bar6');
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        sam.amorphic.logger.setLevel('error;foo:bar7');
+        sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+
+        console.log(output);
+        var result = '(foo="bar1")(permFoo="permBar1"foo="bar2")(foo="bar3")(permFoo="childFoo"foo="bar4")(foo="bar5")(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})';
+
+        expect(output).to.equal(result);
+        sam.amorphic.logger = oldSendToLog;
+    });
+
     it("pass object graph to server and return", function (done) {
        RemoteObjectTemplate.serverAssert = function () {
             expect(serverController.sam.roles[0].account.getBalance()).to.equal(100);
             expect(serverController.sam.roles[1].account.getBalance()).to.equal(125);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
+            serverController.sam.amorphic.logger.warn({}, 'kicking the bucket');
        }
         expect(clientController.sam.roles[0].account.getBalance()).to.equal(100);
         expect(clientController.sam.roles[1].account.getBalance()).to.equal(125);

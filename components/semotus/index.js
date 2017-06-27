@@ -665,7 +665,7 @@ RemoteObjectTemplate.serializeAndGarbageCollect = function serializeAndGarbageCo
     function serialize(obj) {
         try {
             return JSON.stringify(obj, function y(key, value) {
-                if (key === '__objectTemplate__') {
+                if (key === '__objectTemplate__' || key === 'amorphic') {
                     return null;
                 }
                 if (value && value.__template__ && value.__id__) {
@@ -860,6 +860,7 @@ return;
 
     if (objectTemplate) {
         obj.__objectTemplate__ = objectTemplate;
+        obj.amorphic = objectTemplate;
         obj.amorphicate = RemoteObjectTemplate.sessionize.bind(objectTemplate);
         this._stashObject(obj, obj.__template__, this);
         if (obj.__pendingArrayReferences__) {
@@ -881,7 +882,7 @@ return;
         return obj;
     }
  else {
-        referencingObj.__referencedObjects__ = obj.__referencedObjects__ || {};
+        referencingObj.__referencedObjects__ = referencingObj.__referencedObjects__ || {};
         referencingObj.__referencedObjects__[obj.__id__] = obj;
     }
     return obj;
@@ -913,7 +914,7 @@ RemoteObjectTemplate._setupFunction = function setupFunction(propertyName, prope
     var objectTemplate = this;
     var self = this;
 
-    if (role == null || role == this.role) {
+    if (!role || role == this.role) {
         return propertyValue;
     }
     else {
@@ -1034,19 +1035,16 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
 
             return function f(value) {
 
-                if (this.__objectTemplate__)                    {
-objectTemplate = this.__objectTemplate__;
-}
-
+                var currentObjectTemplate = this.__objectTemplate__? this.__objectTemplate__ : objectTemplate;
 
                 // Sessionize reference if it is missing an __objectTemplate__
                 if (defineProperty.type  && defineProperty.type.isObjectTemplate && value && !value.__objectTemplate__) {
-                    objectTemplate.sessionize(value, this);
+                    currentObjectTemplate.sessionize(value, this);
                 }
                 if (defineProperty.of  &&  defineProperty.of.isObjectTemplate && value instanceof Array) {
                     value.forEach(function (value) {
                         if (!value.__objectTemplate__) {
-                            objectTemplate.sessionize(value, this);
+                            currentObjectTemplate.sessionize(value, this);
                         }
                     }.bind(this));
                 }
@@ -1056,9 +1054,9 @@ objectTemplate = this.__objectTemplate__;
                 }
 
                 if (!defineProperty.isVirtual && this.__id__ && createChanges && transform(this['__' + prop]) !== transform(value)) {
-                    objectTemplate._changedValue(this, prop, value);
+                    currentObjectTemplate._changedValue(this, prop, value);
 
-                    if (objectTemplate.__changeTracking__) {
+                    if (currentObjectTemplate.__changeTracking__) {
                         this.__changed__ = true;
                     }
                 }
@@ -1114,14 +1112,12 @@ objectTemplate = this.__objectTemplate__;
             // use closure to record property name which is not passed to the getter
             var prop = propertyName;
 
-            return function z() {
+           return function z() {
 
-                if (this.__objectTemplate__)                    {
-objectTemplate = this.__objectTemplate__;
-}
+                var currentObjectTemplate = this.__objectTemplate__? this.__objectTemplate__ : objectTemplate;
 
                 if (!defineProperty.isVirtual && this['__' + prop] instanceof Array) {
-                    objectTemplate._referencedArray(this, prop, this['__' + prop]);
+                    currentObjectTemplate._referencedArray(this, prop, this['__' + prop]);
                 }
 
                 if (userGetter) {
@@ -1674,7 +1670,9 @@ RemoteObjectTemplate._convertValue = function convertValue(value) {
     else if (value instanceof Date) {
         return value.getTime();
     }
-    else {
+    else if (typeof (value) == 'number' && isNaN(value)) {
+        return null;
+    } else {
         if (value) {
             if (typeof(value) === 'object') {
                 return JSON.stringify(value);
@@ -1751,19 +1749,21 @@ RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subsc
             }
         }
 
-        var validator = obj && (obj['validateServerIncomingObject'] || this.controller['validateServerIncomingObject']);
-
-        var validatorThis;
-
-        if (obj && obj['validateServerIncomingObject']) {
-            validatorThis = obj;
-        }
-        else {
-            validatorThis = this.controller;
-        }
-
-        if (validator) {
-            validator.call(validatorThis, obj);
+        if (this.role === 'server') {
+            var validator = obj && (obj['validateServerIncomingObject'] || this.controller['validateServerIncomingObject']);
+    
+            var validatorThis;
+    
+            if (obj && obj['validateServerIncomingObject']) {
+                validatorThis = obj;
+            }
+            else {
+                validatorThis = this.controller;
+            }
+    
+            if (validator) {
+                validator.call(validatorThis, obj);
+            }
         }
 
         if (!obj || !this._applyObjectChanges(changes, rollback, obj, force)) {
@@ -2034,7 +2034,7 @@ RemoteObjectTemplate._applyPropertyChange = function applyPropertyChange(changes
         objId = newValue;
 
         if (session.objects[objId]) {
-            if (session.objects[objId] instanceof type) {
+            if ((session.objects[objId] instanceof type) || (session.objects[objId].__template__.__name__ === type.__name__)) {
                 newValue = session.objects[objId];
             }
             else {
@@ -2504,37 +2504,57 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 
     objectTemplate = objectTemplate || this;
 
-    this.supertypeClass = function (target, props) {
-        var ret = ObjectTemplate.supertypeClass(target, props, objectTemplate);
+    this.supertypeClass = function (target) {
 
-        // Mainly for peristor properties to make sure they get transported
-        target.createProperty = function (propertyName, defineProperty) {
-            if (defineProperty.body) {
-                target.prototype[propertyName] = objectTemplate._setupFunction(propertyName, defineProperty.body,
-                    defineProperty.on, defineProperty.validate);
-            }
- else {
-                target.prototype.__amorphicprops__[propertyName] = defineProperty;
-                var value = defineProperty.value;
-                // The getter actually initializes the property
-                defineProperty.get = function () {
-                    if (!this['__' + propertyName]) {
-                        this['__' + propertyName] =
-                            ObjectTemplate.clone(value, defineProperty.of || defineProperty.type || null);
-                    }
-                    return this['__' + propertyName];
-                };
-                var defineProperties = {};
-                objectTemplate._setupProperty(propertyName, defineProperty, undefined, defineProperties);
-                Object.defineProperties(target.prototype, defineProperties);
-            }
-        };
-        return ret;
+        var ret;
+
+	    // Called by decorator processor
+	    if (target.prototype) {
+		    return decorator(target);
+	    }
+
+	    // Called first time with parameter rather than target - call supertypes supertypeClass function which will
+        // return a function that must be called on the 2nd pass when we have a target.  It will remember parameter
+	    var ret = ObjectTemplate.supertypeClass(target, objectTemplate);
+	    return decorator; // decorator will be called 2nd time with ret as a closure
+
+        // Decorator workerbee
+        function decorator(target) {
+
+            // second time we must call the function returned the first time because it has the
+            // properties as a closure
+            ret =  ret ? ret(target, objectTemplate) : ObjectTemplate.supertypeClass(target, objectTemplate);
+
+            // Mainly for peristor properties to make sure they get transported
+            target.createProperty = function (propertyName, defineProperty) {
+                if (defineProperty.body) {
+                    target.prototype[propertyName] = objectTemplate._setupFunction(propertyName, defineProperty.body,
+                        defineProperty.on, defineProperty.validate);
+                }
+                else {
+                    target.prototype.__amorphicprops__[propertyName] = defineProperty;
+                    var value = defineProperty.value;
+                    // The getter actually initializes the property
+                    defineProperty.get = function () {
+                        if (!this['__' + propertyName]) {
+                            this['__' + propertyName] =
+                                ObjectTemplate.clone(value, defineProperty.of || defineProperty.type || null);
+                        }
+                        return this['__' + propertyName];
+                    };
+                    var defineProperties = {};
+                    objectTemplate._setupProperty(propertyName, defineProperty, undefined, defineProperties);
+                    Object.defineProperties(target.prototype, defineProperties);
+                }
+            };
+            return ret;
+        }
     };
 
     this.Supertype = function () {
         return ObjectTemplate.Supertype.call(this, objectTemplate);
     };
+    this.Supertype.prototype = ObjectTemplate.Supertype.prototype;
 
     this.property = function (props) {
         props = props || {};
@@ -2557,33 +2577,40 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
         return function (target, propertyName, descriptor) {
             descriptor.value  = objectTemplate._setupFunction(propertyName, descriptor.value,
                 defineProperty.on, defineProperty.validate);
+            if (defineProperty.type) {
+                descriptor.value.__returns__ = defineProperty.type;
+            }
+            if (defineProperty.of) {
+                descriptor.value.__returns__ = defineProperty.of;
+                descriptor.value.__returnsarray__ = true;
+            }
         };
     };
 };
 
-// These two mixins and extender functions are needed because in the browser we only include supertype
+// These two mixins and extender functions are needed because in the browser we only include supertype and semotus
 // and since classes use these in their extends hierarchy they must be defined.
 
 var __extends = (this && this.__extends) || (function () {
-        var extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) {
- d.__proto__ = b;
-}) ||
-            function (d, b) {
- for (var p in b) {
-if (b.hasOwnProperty(p)) {
-d[p] = b[p];
-}
-}
-};
-        return function (d, b) {
-            extendStatics(d, b);
-            function __() {
- this.constructor = d;
-}
-            d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    var extendStatics = Object.setPrototypeOf ||
+        ({__proto__: []} instanceof Array && function (d, b) {
+            d.__proto__ = b;
+        }) ||
+        function (d, b) {
+            for (var p in b) {
+                if (b.hasOwnProperty(p)) {
+                    d[p] = b[p];
+                }
+            }
         };
-    })();
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 
 RemoteObjectTemplate.Persistable = function (Base) {
     return (function (_super) {
@@ -2603,7 +2630,15 @@ RemoteObjectTemplate.Remoteable = function (Base) {
         return class_1;
     }(Base));
 };
-
+RemoteObjectTemplate.Bindable = function (Base) {
+    return (function (_super) {
+        __extends(class_1, _super);
+        function class_1() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return class_1;
+    }(Base));
+};
 
 RemoteObjectTemplate.bindDecorators(); //Default to binding to yourself
 
