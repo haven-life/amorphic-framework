@@ -1066,8 +1066,11 @@
     // Go through all the properties and transfer them to newly created object
         var props = obj.__template__.getProperties();
 
-        for (var propb in props) {
+        for (var propb in pojo) {
+            propb = propb.replace(/^__/, '');
             var defineProp = props[propb];
+            if (!defineProp)
+                continue;
             var type = defineProp.type;
 
         // Because semotus can serialize only the shadow properties we try and restore them
@@ -1825,8 +1828,12 @@
         objectTemplate._injectIntoObject(this);  // This was used for the modules feature in amorphic (depricated)
 
     // Template level injections that the application may use
-        for (var ix = 0; ix < template.__injections__.length; ++ix) {
-            template.__injections__[ix].call(this, this);
+        var targetTemplate = template;
+        while (targetTemplate) {
+            for (var ix = 0; ix < targetTemplate.__injections__.length; ++ix) {
+                targetTemplate.__injections__[ix].call(this, this);
+            }
+            targetTemplate = targetTemplate.__parent__;
         }
 
     // Global injections used by the framework
