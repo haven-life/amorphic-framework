@@ -1332,7 +1332,7 @@ RemoteObjectTemplate._logChanges = function logChanges(obj) {
  * @private
  */
 RemoteObjectTemplate._changedValue = function changedValue(obj, prop, value) {
-    if (obj.__transient__ || this.__transient__ ||
+    if (obj.__transient__ ||
         (this.role == 'client' && obj.__template__.__toServer__ == false) ||
         (this.role == 'server' && obj.__template__.__toClient__ == false)) {
         return;
