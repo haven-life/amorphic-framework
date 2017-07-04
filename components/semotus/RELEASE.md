@@ -1,3 +1,5 @@
+## 2.3.2
+* Fix for transient values.
 ## 2.3.1
 * Fix several issues with session handling.
 ## 2.3.0
