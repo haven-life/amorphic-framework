@@ -652,6 +652,8 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
 RemoteObjectTemplate.serializeAndGarbageCollect = function serializeAndGarbageCollect() {
     var session = this._getSession();
     var idMap = {};
+    var objectKey = '';
+    var propKey = '';
     var itemsBefore = count(session.objects);
     var serial =  serialize.call(this, this.controller);
     session.objects = idMap;
@@ -669,19 +671,23 @@ RemoteObjectTemplate.serializeAndGarbageCollect = function serializeAndGarbageCo
                     return null;
                 }
                 if (value && value.__template__ && value.__id__) {
+                    objectKey = key;
                     if (idMap[value.__id__]) {
                         value = {__id__: value.__id__.toString()};
                     }
                     else {
                         idMap[value.__id__.toString()] = value;
                     }
+                } else {
+                    propKey = key;
                 }
 
                 return value;
             });
         }
         catch (e) {
-            this.logger.error({component: 'semotus', module: 'serializeAndGarbageCollect', activity: 'post'}, 'Error serializing session ' + e.message + e.stack);
+            this.logger.error({component: 'semotus', module: 'serializeAndGarbageCollect', activity: 'post',
+                data: {last_object_ref: objectKey, last_prop_ref: propKey}}, 'Error serializing session ' + e.message + e.stack);
             return null;
         }
     }
@@ -1086,6 +1092,8 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
                                 }
 
                                 return digest;
+                            } else {
+                                return '[]';
                             }
                         }
                         else {
@@ -1405,7 +1413,7 @@ RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arra
         obj.__pendingArrayReferences__ = undefined;
         obj.__pendingArrayDirtyReferences__ = undefined;
     }
- else {
+    else {
         // Record the change group right in the object
         obj.__pendingArrayReferences__ = obj.__pendingArrayReferences__ || [];
         processChangeGroup(obj.__pendingArrayReferences__);
@@ -1421,7 +1429,7 @@ RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arra
                 if (existingChangeGroup) {
                     copyChangeGroup(changeGroup, existingChangeGroup);
                 }
- else {
+            else {
                     processChangeGroup(changeGroup);
                 }
             }

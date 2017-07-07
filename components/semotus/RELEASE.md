@@ -1,3 +1,6 @@
+## 2.3.3
+* Detect changes from undefined -> [] for arrays
+* Logging for serializeAndGarbageCollect
 ## 2.3.2
 * Fix for transient values.
 ## 2.3.1
