@@ -444,24 +444,27 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         }
     }
     PersistObjectTemplate._injectObjectFunctions = function (template) {
-        var self = this;
+
+        var self = this; // this is the objectTemplate for non-TS apps or daemons or other non-sessionized use-cases
+
         template.prototype.persistSave = // Legacy
         function (txn, logger) {
-            (logger || PersistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistSave',
+            var persistObjectTemplate = this.__objectTemplate__ || self;
+            (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistSave',
                 data: {template: this.__template__.__name__, id: this.__id__}});
-            var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
-            return dbType == PersistObjectTemplate.DB_Mongo ?
-                PersistObjectTemplate.persistSaveMongo(this, undefined, undefined, undefined, txn, logger)
+            var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
+            return dbType == persistObjectTemplate.DB_Mongo ?
+                persistObjectTemplate.persistSaveMongo(this, undefined, undefined, undefined, txn, logger)
                     .then (function (obj) {
                         if (txn) {
-                            PersistObjectTemplate.saved(obj, txn);
+                            persistObjectTemplate.saved(obj, txn);
                         }
                         return Promise.resolve(obj._id.toString())
                     })
-                : PersistObjectTemplate.persistSaveKnex(this, txn, logger)
+                : persistObjectTemplate.persistSaveKnex(this, txn, logger)
                     .then (function (obj) {
                         if (txn) {
-                            PersistObjectTemplate.saved(obj, txn);
+                            persistObjectTemplate.saved(obj, txn);
                         }
                         return Promise.resolve(obj._id.toString());
                     });
@@ -469,7 +472,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         template.prototype.persistTouch = // Legacy -- just use persistorSave
         function (txn, logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistTouch',
                 data: {template: this.__template__.__name__, id: this.__id__}});
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
@@ -481,7 +484,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         //persistDelete is modified to support both legacy and V2, options this is passed for V2 as the first parameter.
         template.prototype.persistDelete = // Legacy
         function (txn, logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             if (!txn || (txn && txn.knex && txn.knex.transacting)) {
                 (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistDelete',
                     data: {template: this.__template__.__name__, id: this.__id__}});
@@ -499,19 +502,19 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         // Legacy
         template.prototype.setDirty =  function (txn, onlyIfChanged, cascade, logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade, logger);
         };
 
         // Legacy
         template.prototype.cascadeSave = function (txn, logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate.setDirty(this, txn || persistObjectTemplate.currentTransaction, true, false, logger);
         };
 
         template.prototype.isStale = // Legacy
         template.prototype.persistorIsState = function () {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             return this.__template__.countFromPersistWithQuery(
                 {_id: (dbType == persistObjectTemplate.DB_Mongo) ? persistObjectTemplate.ObjectID(this._id.toString()) : this._id,
@@ -522,7 +525,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         // Legacy
         template.prototype.fetchProperty = function (prop, cascade, queryOptions, isTransient, idMap, logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'fetchProperty',
                 data: {template: this.__template__.__name__, id: this.__id__}});
             idMap = idMap || {};
@@ -537,13 +540,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             return dbType == persistObjectTemplate.DB_Mongo ?
-                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient, logger) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascadeTop, isTransient, null, this, properties, undefined, undefined, undefined, logger);
+                persistObjectTemplate.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascadeTop, this, properties, isTransient, logger) :
+                persistObjectTemplate.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascadeTop, isTransient, null, this, properties, undefined, undefined, undefined, logger);
 
         };
 
         template.prototype.fetch = function (cascade, isTransient, idMap, logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'fetch',
                 data: {template: this.__template__.__name__, id: this.__id__}});
             idMap = idMap || {};
@@ -557,8 +560,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var previousDirtyTracking = persistObjectTemplate.__changeTracking__;
             persistObjectTemplate.__changeTracking__ = false;
             return (dbType == persistObjectTemplate.DB_Mongo ?
-                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient, logger) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties, undefined, undefined, undefined, logger))
+                persistObjectTemplate.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient, logger) :
+                persistObjectTemplate.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties, undefined, undefined, undefined, logger))
                 .then(function (res) {
                     return res;
                 })
@@ -570,7 +573,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         template.prototype.persistorFetchReferences = template.prototype.fetchReferences = function(options) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'fetchSchema', this.__template__);
 
             options = options || {};
@@ -587,22 +590,27 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             }
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             return (dbType == persistObjectTemplate.DB_Mongo ?
-                self.getTemplateFromMongoPOJO(this, this.__template__, null, null, {},
+                persistObjectTemplate.getTemplateFromMongoPOJO(this, this.__template__, null, null, {},
                     options.fetch, this, properties, options.transient, logger) :
-                self.getTemplateFromKnexPOJO(this, this.__template__, null, {},
+                persistObjectTemplate.getTemplateFromKnexPOJO(this, this.__template__, null, {},
                     options.fetch, options.transient, null, this,
                     properties, undefined, undefined, undefined, logger));
         };
 
         template.prototype.persistorRefresh = template.prototype.refresh = function (logger) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'refresh',
                 data: {template: this.__template__.__name__, id: this.__id__}});
-            return this.__template__.getFromPersistWithId(this._id, null, null, null, true, logger)
+            var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
+            //return this.__template__.getFromPersistWithId(this._id, null, null, null, true, logger)
+            return (dbType == PersistObjectTemplate.DB_Mongo ?
+                persistObjectTemplate.getFromPersistWithMongoId(template, this._id, null, null, null, logger) :
+                persistObjectTemplate.getFromPersistWithKnexId(template, this._id, null, null, null, true, logger));
+
         };
 
         template.prototype.persistorSave =  template.prototype.persist = function (options) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'persistSchema', this.__template__);
 
             options = options || {};
@@ -624,7 +632,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         //persistorDelete will only support new API calls.
         template.prototype.persistorDelete = template.prototype.deleteV2 = function(options) {
-            var persistObjectTemplate = this.__objectTemplate__ || PersistObjectTemplate;
+            var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'persistSchema', this.__template__);
 
             options = options || {};
