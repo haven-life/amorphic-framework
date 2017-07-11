@@ -1830,7 +1830,9 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
             if (newValue instanceof Array) {
                 if (!(obj[prop] instanceof Array)) {
                     obj[prop] = [];
-                    obj.__tainted__ = true;
+                }
+                if (!this._useGettersSetters && !(obj['__' + prop] instanceof Array)) {
+                    obj['__' + prop] = [];
                 }
 
                 var length;
@@ -1879,9 +1881,6 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
                 if (!this._useGettersSetters) {
                     obj['__' + prop] = null;
                 }
-
-                obj.__tainted__ = true;
-
             }
         }
         else { //TODO: make this into one elseif
@@ -1984,8 +1983,6 @@ RemoteObjectTemplate._applyPropertyChange = function applyPropertyChange(changes
 
         return false;
     }
-
-    obj.__tainted__ = true; // Can no longer just be persisted (unless untainted)
 
     var type = (defineProperty.of || defineProperty.type);
     var objId = null;

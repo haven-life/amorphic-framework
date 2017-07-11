@@ -1,3 +1,5 @@
+## 2.3.4
+* Fixed issue where changes received in browser inadvertently turned around to server
 ## 2.3.3
 * Detect changes from undefined -> [] for arrays
 * Logging for serializeAndGarbageCollect
