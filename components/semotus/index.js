@@ -859,25 +859,44 @@ RemoteObjectTemplate._stashObject = function stashObject(obj, template) {
  * @returns {*} returns the object so you can use
  */
 RemoteObjectTemplate.sessionize = function(obj, referencingObj) {
-    var objectTemplate = referencingObj ? referencingObj.__objectTemplate__ : this;
-    if (obj.__objectTemplate__)        {
-return;
-}
 
+    // Normally passed a referencingObject from which we can get an objectTemplate
+    // But in the the case where the app calls sessionize the object template is bound to this
+    var objectTemplate = referencingObj ? referencingObj.__objectTemplate__ : this;
+
+    // Nothing to do if object already sessionized or object is transient (meaning no changes accumulated)
+    if (obj.__objectTemplate__ || obj.__transient__) {
+        return;
+    }
+
+    // If the referencing object had an object template we get to work sessionizing this object
+    // and all objects it was referencing
     if (objectTemplate) {
+
+        // Set the object properties (__objectTemplate__ means it is sessionized and
+        // amorphic which was intialized with a static ObjectTemplate gets updated with the sessionized one
+        // For the benefit of the app that may want to manuall sessionize we provide amorphicate
         obj.__objectTemplate__ = objectTemplate;
         obj.amorphic = objectTemplate;
         obj.amorphicate = RemoteObjectTemplate.sessionize.bind(objectTemplate);
+
+        // Here is where the object is stored in the sssion
         this._stashObject(obj, obj.__template__, this);
+
+        // Process any array references by completing the reference processing that was stashed pre-sessionization
         if (obj.__pendingArrayReferences__) {
             this._referencedArray(obj);
         }
+
+        // Process any non-array changes that were stashed
         if (obj.__pendingChanges__) {
             obj.__pendingChanges__.forEach(function (params) {
                 objectTemplate._changedValue.apply(objectTemplate, params);
             });
             obj.__pendingChanges__ = undefined;
         }
+
+        // Spread the love to objects that the object may have referenced
         if (obj.__referencedObjects__) {
             for (var id in obj.__referencedObjects__) {
                 var referencedObj = obj.__referencedObjects__[id];
@@ -887,7 +906,7 @@ return;
         }
         return obj;
     }
- else {
+    else {
         referencingObj.__referencedObjects__ = referencingObj.__referencedObjects__ || {};
         referencingObj.__referencedObjects__[obj.__id__] = obj;
     }
@@ -1047,6 +1066,8 @@ RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defin
                 if (defineProperty.type  && defineProperty.type.isObjectTemplate && value && !value.__objectTemplate__) {
                     currentObjectTemplate.sessionize(value, this);
                 }
+
+                // When we assign an array go through the values and attempt to sessionize
                 if (defineProperty.of  &&  defineProperty.of.isObjectTemplate && value instanceof Array) {
                     value.forEach(function (value) {
                         if (!value.__objectTemplate__) {
@@ -1396,7 +1417,7 @@ RemoteObjectTemplate._changedValue = function changedValue(obj, prop, value) {
 RemoteObjectTemplate._referencedArrayWithChangeGroup = function (obj) {
  };
 RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arrayRef, sessionId) {
-    if (obj.__transient__ || this.__transient__ ||
+    if (obj.__transient__ ||
         (this.role == 'client' && obj.__template__.__toServer__ == false) ||
         (this.role == 'server' && obj.__template__.__toClient__ == false)) {
         return;
