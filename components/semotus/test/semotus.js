@@ -214,6 +214,8 @@ fromAccount.fromAccountTransactions.push(this);
         sam:     {type: Customer},
         karen:   {type: Customer},
         ashling: {type: Customer},
+        modPropString: {type: String},
+        modPropArray: {type: Array, of: String},
         init: function () {
 
             // Setup customers and addresses
@@ -342,19 +344,83 @@ describe('Banking Example', function () {
                 done(e);
             });
     });
-    it('can get a synchronization error', function (done) {
-        serverAssert = function () {
+    it('can get a validateServerIncomingProperty Scalar', function (done) {
+        serverAssert = function () {}
+        serverController.validateServerIncomingProperty = function (obj, prop, defineProperty, val) {
+            expect(obj.__template__.__name__).to.equal('Controller');
+            expect(prop).to.equal('modPropString');
+            expect(defineProperty.type).to.equal(String)
+            expect(val).to.equal('opps');
             throw 'get stuffed';
-        };
+        }
+        clientController.modPropString = 'opps';
         clientController.mainFunc()
             .then(function () {
                 expect('Should not be here').to.equal(false);
             }, function (e) {
                 expect(e.message).to.equal('get stuffed');
-                done();
+                serverController.validateServerIncomingProperty = null;
+                    done();
             }).fail(function(e) {
                 done(e);
             });
+    });
+    it('can get a validateServerIncomingProperty Array', function (done) {
+        serverAssert = function () {}
+        serverController.validateServerIncomingProperty = function (obj, prop, defineProperty, val) {
+            expect(obj.__template__.__name__).to.equal('Controller');
+            expect(prop).to.equal('modPropArray');
+            expect(defineProperty.type).to.equal(Array)
+            expect(val.length).to.equal(0);
+            throw 'get stuffed';
+        }
+        clientController.modPropArray = [];
+        clientController.mainFunc()
+            .then(function () {
+                expect('Should not be here').to.equal(false);
+            }, function (e) {
+                expect(e.message).to.equal('get stuffed');
+                serverController.validateServerIncomingProperty = null;
+                done();
+            }).fail(function(e) {
+            done(e);
+        });
+    });
+    it('can get a validateServerIncomingObject', function (done) {
+        serverAssert = function () {}
+        serverController.validateServerIncomingObject = function (obj) {
+            expect(obj.__template__.__name__).to.equal('Controller');
+            throw 'get stuffed';
+        }
+        clientController.modPropString = 'opps2';
+        clientController.mainFunc()
+            .then(function () {
+                expect('Should not be here').to.equal(false);
+            }, function (e) {
+                expect(e.message).to.equal('get stuffed');
+                serverController.validateServerIncomingObject = null;
+                done();
+            }).fail(function(e) {
+            done(e);
+        });
+    });
+    it('can get a validateServerIncomingObjects', function (done) {
+        serverAssert = function () {}
+        serverController.validateServerIncomingObjects = function (changes) {
+            expect(changes['client-Controller-1'].modPropString[1]).to.equal('opps3');
+            throw 'get stuffed';
+        }
+        clientController.modPropString = 'opps3';
+        clientController.mainFunc()
+            .then(function () {
+                expect('Should not be here').to.equal(false);
+            }, function (e) {
+                expect(e.message).to.equal('get stuffed');
+                serverController.validateServerIncomingObjects = null;
+                done();
+            }).fail(function(e) {
+            done(e);
+        });
     });
     it('can get a synchronization error from overlapping calls', function (done) {
         this.timeout(7000);

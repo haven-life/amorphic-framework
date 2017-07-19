@@ -480,14 +480,16 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
     function applyChangesAndValidateCall() {
         this.logger.info({component: 'semotus', module: 'processMessage', activity: 'call',
             data:{call: remoteCall.name, sequence: remoteCall.sequence, remoteCallId: remoteCall.id}}, remoteCall.name);
-
-        if (this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
+        var changes = JSON.parse(remoteCall.changes);
+        if (this._applyChanges(changes, this.role == 'client', subscriptionId)) {
             var obj = session.objects[remoteCall.id];
 
             if (!obj) {
                 throw new Error('Cannot find object for remote call ' + remoteCall.id);
             }
-
+            if (this.role == 'server' && this.controller['validateServerIncomingObjects']) {
+                this.controller.validateServerIncomingObjects(changes, callContext);
+            }
             if (this.role == 'server' && obj['validateServerCall']) {
                 return obj['validateServerCall'].call(obj, remoteCall.name, callContext);
             }
@@ -1840,14 +1842,14 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
         var defineProperty = this._getDefineProperty(prop, obj.__template__);
 
         if (!defineProperty) {
-            this.logger.error({component: 'semotus', module: 'applyObjectChanges', activity: 'processing', data:{template: obj.__template__.__name__, property: prop}},
+            this.logger.error({component: 'semotus', module: 'applyObjectChanges', activity: 'processing',
+                    data:{template: obj.__template__.__name__, property: prop}},
                 'Could not apply change to ' + obj.__template__.__name__ + '.' + prop + ' property not defined in template');
-
             return false;
-
         }
 
         if (defineProperty.type === Array) {
+            this._validateServerIncomingProperty(obj, prop, defineProperty, newValue)
             if (newValue instanceof Array) {
                 if (!(obj[prop] instanceof Array)) {
                     obj[prop] = [];
@@ -1867,21 +1869,6 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
 
                 for (var ix = 0; ix < length; ++ix) {
                     var unarray_newValue = unarray(newValue[ix]);
-                    var validator = obj && (obj['validateServerIncomingProperty'] || this.controller['validateServerIncomingProperty']);
-
-                    var validatorThis;
-
-                    if (obj && obj['validateServerIncomingProperty']) {
-                        validatorThis = obj;
-                    }
-                    else {
-                        validatorThis = this.controller;
-                    }
-
-                    if (validator) {
-                        validator.call(validatorThis, obj, prop, ix, defineProperty, unarray_newValue);
-                    }
-
                     if (oldValue) {
                         if (!this._applyPropertyChange(changes, rollback, obj, prop, ix, unarray(oldValue[ix]), unarray_newValue, force)) {
                             return false;
@@ -1905,6 +1892,7 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
             }
         }
         else { //TODO: make this into one elseif
+            this._validateServerIncomingProperty(obj, prop, defineProperty, newValue)
             if (!this._applyPropertyChange(changes, rollback, obj, prop, -1, oldValue, newValue, force)) {
                 return false;
             }
@@ -1927,7 +1915,25 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
         }
     }
 };
+RemoteObjectTemplate._validateServerIncomingProperty = function (obj, prop, defineProperty, newValue) {
+    var validator = obj && (obj['validateServerIncomingProperty'] ||
+        this.controller['validateServerIncomingProperty']);
 
+    var validatorThis;
+
+    if (obj && obj['validateServerIncomingProperty']) {
+        validatorThis = obj;
+    }
+    else {
+        validatorThis = this.controller;
+    }
+
+    if (validator) {
+        validator.call(validatorThis, obj, prop, defineProperty, newValue);
+    }
+
+
+}
 /**
  * Apply changes for a specific property, cascading changes in the event
  * that a reference to an object that needs to be created is part of the change
