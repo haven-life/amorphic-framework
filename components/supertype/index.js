@@ -1746,7 +1746,7 @@
         - injections
         */
             function constructorName(constructor) {
-                var namedFunction =  constructor.toString().match(new RegExp(/.*function (.*)\(/));
+                var namedFunction = constructor.toString().match(/function ([^(]*)/);
                 return namedFunction ? namedFunction[1] : null;
             }
         }
@@ -1800,7 +1800,7 @@
         return this.__dictionary__;
 
         function constructorName(constructor) {
-            var namedFunction =  constructor.toString().match(new RegExp(/.*function (.*)\(/));
+            var namedFunction = constructor.toString().match(/function ([^(]*)/);
             return namedFunction ? namedFunction[1] : null;
         }
 
@@ -1846,7 +1846,7 @@
         return this;
 
         function constructorName(constructor) {
-            var namedFunction =  constructor.toString().match(new RegExp(/.*function (.*)\(/));
+            var namedFunction = constructor.toString().match(/function ([^(]*)/);
             return namedFunction ? namedFunction[1] : null;
         }
 
