@@ -1,3 +1,5 @@
+## 2.2.3
+* Fix to controller name lookup to support minification.
 ## 2.2.2
 * Fixed deserialization to preserve order of POJO
 * Fixed injection issue
