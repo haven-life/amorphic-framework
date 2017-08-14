@@ -209,6 +209,9 @@ module.exports = function (PersistObjectTemplate) {
                     'transient': {
                         type: 'boolean'
                     },
+                    'session': {
+                        type: ['null', 'object']
+                    },
                     'logger': {
                         type: ['null', 'object']
                     }
@@ -235,7 +238,7 @@ module.exports = function (PersistObjectTemplate) {
                 + 'Validation error: ' + schemaValidator.error.message);
         }
 
-        if (schema === 'fetchSchema') {
+        if (schema === 'fetchSchema' && !!options.fetch) {
             validateFetchSpec(template);
         }
 

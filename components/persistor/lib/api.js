@@ -195,14 +195,16 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
-            (options.logger || PersistObjectTemplate.logger).debug({
+
+            var persistObjectTemplate = options.session || PersistObjectTemplate;
+            (options.logger || persistObjectTemplate.logger).debug({
                 component: 'persistor', module: 'api', activity: 'persistorFetchById',
                 data: {template: template.__name__, id: id}
             });
-            var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-            return (dbType == PersistObjectTemplate.DB_Mongo ?
-                        PersistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
-                        PersistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger));
+            var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
+            return (dbType == persistObjectTemplate.DB_Mongo ?
+                persistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
+                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger));
         };
 
         /**
@@ -231,14 +233,15 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
-            var logger = options.logger || PersistObjectTemplate.logger;
+            var persistObjectTemplate = options.session || PersistObjectTemplate;
+            var logger = options.logger || persistObjectTemplate.logger;
             logger.debug({component: 'persistor', module: 'api', activity: 'getFromPersistWithQuery',
                 data: {template: template.__name__}});
-            var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
-            return (dbType == PersistObjectTemplate.DB_Mongo ?
-                        PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, options.fetch, options.start,
+            var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
+            return (dbType == persistObjectTemplate.DB_Mongo ?
+                persistObjectTemplate.getFromPersistWithMongoQuery(template, query, options.fetch, options.start,
                             options.limit, options.transient, options.order, options.order, logger) :
-                        PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, options.fetch, options.start,
+                persistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, options.fetch, options.start,
                             options.limit, options.transient, null, options.order,
                             undefined, undefined, logger));
         };
