@@ -275,14 +275,12 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             function isFetchKeyInDefineProperties(key, template) {
-                if (key in template.defineProperties) {
-                    return getKeyTemplate(template.defineProperties[key]);
+                var templateProperties = template.getProperties();
+                if (key in templateProperties) {
+                    return getKeyTemplate(templateProperties[key]);
                 }
-                else {
-                    return template.__children__.reduce(function(keyTemplate, child) {
-                        return keyTemplate || isFetchKeyInDefineProperties(key, child)
-                    }, null);
-                }
+
+                return null;
             }
         }
 

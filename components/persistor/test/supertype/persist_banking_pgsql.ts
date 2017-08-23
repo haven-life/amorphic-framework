@@ -18,6 +18,7 @@ import { expect } from 'chai';
 import * as mocha from 'mocha';
 import * as _ from 'underscore';
 import {Customer} from "./Customer";
+import {ExtendedCustomer} from "./ExtendedCustomer";
 import Promise = require('bluebird');
 import {Role} from "./Role";
 import {Account} from "./Account";
@@ -264,6 +265,17 @@ describe('Banking from pgsql Example', function () {
             expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
             customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
             customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+
+    it('Can use supertype properties in fetch spec', function (done) {
+        ExtendedCustomer.persistorFetchByQuery(null, {fetch: {primaryAddresses: true, secondaryAddresses: true}}).then (function (customers) {
+            expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
+                customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
+                customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
             done();
         }).catch(function(e) {
             done(e)
