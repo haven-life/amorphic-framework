@@ -1,3 +1,6 @@
+## 2.3.6
+* Fix to not set __changed__ flag for the objects when restoring the controller from the session
+* if the controller expired in the cache
 ## 2.3.5
 * Further fix (started in 2.3.2) to ensure array references for existing non-transient objects are recorded
 * Fix to avoid accumulating \__referencedObjects\__ for transient objects to avoid serialization errors. 
