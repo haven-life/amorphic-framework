@@ -1891,6 +1891,11 @@
 		var obj = this;
 		return ObjectTemplate.fromPOJO(obj, obj.__template__, null, null, undefined, null, null, creator);
 	};
+    ObjectTemplate.Supertype.prototype.copyProperties = function copyProperties(obj) {
+        for (var prop in obj) {
+            this[prop] = obj[prop];
+        }
+    };
 
 	ObjectTemplate.property = function (props) {
         require('reflect-metadata');

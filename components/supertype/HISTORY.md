@@ -1,3 +1,5 @@
+## 2.2.4
+* copyProperties function should be available on Supertype.
 ## 2.2.3
 * Fix to controller name lookup to support minification.
 ## 2.2.2
