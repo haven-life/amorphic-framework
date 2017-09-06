@@ -279,6 +279,11 @@ module.exports = function (PersistObjectTemplate) {
                 if (key in templateProperties) {
                     return getKeyTemplate(templateProperties[key]);
                 }
+                else {
+                    return template.__children__.reduce(function(keyTemplate, child) {
+                        return keyTemplate || isFetchKeyInDefineProperties(key, child)
+                    }, null);
+                }
 
                 return null;
             }

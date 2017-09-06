@@ -1,3 +1,5 @@
+## 2.2.6
+* Fixed fetch spec validation.
 ## 2.2.5
 * Fixed fetch spec validation to consider the complete object hierarchy.
 ## 2.2.4

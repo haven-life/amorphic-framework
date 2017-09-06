@@ -40,7 +40,7 @@ export class Customer extends Persistable(Supertype) {
     @property()
     nullString: string = null;
 
-    @property({type: Role})
+    @property({getType: () => Role})
     roles:  Array<Role> = [];
 
     @property()
@@ -49,10 +49,10 @@ export class Customer extends Persistable(Supertype) {
     @property()
     type: string = 'primary';
 
-    @property({fetch: true, type: Customer})
+    @property({fetch: true, getType: () => Customer})
     referrers:  Array<Customer>;
 
-    @property({fetch: true, type: Customer})
+    @property({fetch: true, getType: () => Customer})
     secondaryReferrers:  Array<Customer> = [];
 
     addAddress (type, lines, city, state, zip) {

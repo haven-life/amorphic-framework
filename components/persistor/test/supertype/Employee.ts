@@ -16,6 +16,6 @@ export class Employee extends Persistable(Supertype) {
     @property()
     lastName: string = '';
 
-    @property({type: Responsibility})
+    @property({getType: () => Responsibility})
     responsibilities:  Array<Responsibility> = [];
 }

@@ -34,10 +34,10 @@ export class Address extends Persistable(Supertype) {
     @property()
     type: string;
 
-    @property({type: ReturnedMail})
+    @property({getType: () => ReturnedMail})
     returnedMail: Array<ReturnedMail> = [];
 
-    @property({getType: () => {return Account}})
+    @property({getType: () => Account})
     account: Account;
 
     addReturnedMail (date) {
