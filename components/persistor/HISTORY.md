@@ -1,3 +1,6 @@
+## 2.3.1
+* Fixed error message to include the property name when changing the types.
+* Fixed to check for Persistor property when looking for the status of the object in cache.
 ## 2.3.0
 * Adding change tracking feature.
 ## 2.2.6

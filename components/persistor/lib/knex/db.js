@@ -535,7 +535,8 @@ module.exports = function (PersistObjectTemplate) {
                         }
                         else {
                             if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
-                                throw new Error('changing types for the fields is not allowed, please use scripts to make these changes');
+                                throw new Error('Changing the type of ' + prop + ' on ' + table
+                                    + ', changing types for the fields is not allowed, please use scripts to make these changes');
                             }
                         }
                     }

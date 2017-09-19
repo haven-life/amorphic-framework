@@ -470,7 +470,8 @@ module.exports = function (PersistObjectTemplate) {
 
             function allRequiredChildrenAvailableInCache(cachedObject, fetchSpec) {
                 return Object.keys(fetchSpec).reduce(function(loaded, currentObj) {
-                    return loaded && (!fetchSpec[currentObj] || cachedObject[currentObj + 'Persistor'].isFetched)
+                    return loaded && (!fetchSpec[currentObj] ||
+                        (cachedObject[currentObj + 'Persistor'] && cachedObject[currentObj + 'Persistor'].isFetched))
                 }, true);
             }
         };

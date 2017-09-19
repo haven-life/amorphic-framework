@@ -20,7 +20,7 @@ var knex = require('knex')({
 
 var schema = {};
 var schemaTable = 'index_schema_history';
-var Employee, Person, empId;
+var Employee, Person, Manager, empId, Address;
 var PersistObjectTemplate, ObjectTemplate;
 
 describe('persistor transaction checks', function () {
@@ -36,27 +36,51 @@ describe('persistor transaction checks', function () {
         PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
         schema.Person = {};
         schema.Person.table =  'tx_person';
+        schema.Person.documentOf =  'tx_person';
+        schema.Employee = {};
         schema.Person.parents = {
             manager: {
                 id: 'person_id'
+            },
+            address: {
+                id: 'address_id'
             }
         };
-        //schema.Employee.documentOf = 'tx_person';
         Person = PersistObjectTemplate.create('Person', {
             firstName: {type: String},
             lastName: {type: String}
         });
+
+        Address = PersistObjectTemplate.create('Address', {
+            address1: {type: String},
+            address2: {type: String}
+        });
+
+        schema.Address = {};
+
+
         Employee = Person.extend('Employee', {
             salary: {type: Number},
             manager: {type: Person}
+        });
+
+        Manager = Person.extend('Manager', {
+            salary: {type: Number},
+            address: {type: Address}
         });
 
         var emp = new Employee();
         emp.firstName = 'test firstName';
         emp.lastName = 'lastName';
         emp.salary = 10000;
-        var manager = new Person();
+        var manager = new Manager();
         manager.firstName = 'manager';
+
+        var add = new Address();
+        add.address1 = 'adress 1';
+        add.address2 = 'adress 2';
+        manager.address = add;
+
         emp.manager = manager;
 
         (function () {
@@ -70,6 +94,7 @@ describe('persistor transaction checks', function () {
         function prepareData() {
             PersistObjectTemplate.performInjections();
             return syncTable(Employee)
+                .then(syncTable.bind(this, Address))
                 .then(createRecords.bind(this));
 
 
@@ -106,5 +131,19 @@ describe('persistor transaction checks', function () {
         }).catch(function(err) {
             expect(err).not.equal(null);
         });
+    });
+
+    it('Use supertype to load all properties defined in the subtypes', function() {
+        return loadPersons()
+            .then(checkSubTypes);
+
+        function loadPersons() {
+            return Person.persistorFetchByQuery({}, {fetch: {manager: true, address: true}})
+        }
+
+        function checkSubTypes(persons) {
+            expect(persons[0].manager).not.equal(undefined);
+            expect(persons[1].address).not.equal(undefined);
+        }
     });
 });
