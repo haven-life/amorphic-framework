@@ -214,6 +214,9 @@ module.exports = function (PersistObjectTemplate) {
                     },
                     'logger': {
                         type: ['null', 'object']
+                    },
+                    'enableChangeTracking' : {
+                        type: 'boolean'
                     }
                 }
             },
@@ -226,6 +229,9 @@ module.exports = function (PersistObjectTemplate) {
                     },
                     'logger': {
                         type: ['null', 'object']
+                    },
+                    'notifyChangedProperties': {
+                        type: ['function']
                     }
                 }
             },

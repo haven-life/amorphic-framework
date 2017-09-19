@@ -61,6 +61,9 @@ describe('persistor transaction checks', function () {
         schema.Employee.children = {
             roles: {id: 'employee_id'}
         };
+
+        schema.Employee.enableChangeTracking = true;
+
         schema.Role = {};
         schema.Role.table = 'tx_role';
         schema.Role.parents = {
@@ -145,8 +148,13 @@ describe('persistor transaction checks', function () {
 
             function createRecords() {
                 var tx =  PersistObjectTemplate.beginDefaultTransaction();
+                var notifyPropertyChangedCallback = function(changes) {
+                    if (!changes) {
+                        throw Error('Not notifying changes for the new records..');
+                    }
+                };
                 return emp.persist({transaction: tx, cascade: false}).then(function() {
-                    return PersistObjectTemplate.commit({transaction: tx}).then(function() {
+                    return PersistObjectTemplate.commit({transaction: tx, notifyChangedProperties: notifyPropertyChangedCallback}).then(function() {
                         empId = emp._id;
                         addressId = add._id;
                         phoneId = phone._id;
@@ -172,7 +180,7 @@ describe('persistor transaction checks', function () {
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {
-        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}})
+        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}, enableChangeTracking: true})
             .then(function(employee) {
                 expect(employee.homeAddress).is.equal(null);
             });
@@ -309,7 +317,14 @@ describe('persistor transaction checks', function () {
 
         var tx =  PersistObjectTemplate.beginDefaultTransaction();
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
-            return PersistObjectTemplate.commit().then(function() {
+            var notifyPropertyChangedCallback = function(changes) {
+                expect(Object.keys(changes)).to.contain('Address');
+                expect(Object.keys(changes.Address[0])).to.contain('primaryKey');
+                expect(Object.keys(changes.Address[0])).to.contain('property');
+                expect(Object.keys(changes.Address[0])).to.contain('table');
+            };
+
+            return PersistObjectTemplate.commit({notifyChangedProperties: notifyPropertyChangedCallback}).then(function() {
                 return Address.countFromPersistWithQuery().then(function(count) {
                     expect(count).to.equal(2);
                 });
@@ -449,6 +464,4 @@ describe('persistor transaction checks', function () {
             return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
         }
     });
-
-
 });

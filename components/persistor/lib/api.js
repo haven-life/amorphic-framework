@@ -204,7 +204,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
             return (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
-                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger));
+                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking));
         };
 
         /**
@@ -243,7 +243,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                             options.limit, options.transient, options.order, options.order, logger) :
                 persistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, options.fetch, options.start,
                             options.limit, options.transient, null, options.order,
-                            undefined, undefined, logger));
+                            undefined, undefined, logger, options.enableChangeTracking));
         };
         /**
          * Return count of objects of this class given a json query
@@ -853,7 +853,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         var persistorTransaction = options.transaction || this.__defaultTransaction__;
 
         if (PersistObjectTemplate.DB_Knex) {
-            return PersistObjectTemplate._commitKnex(persistorTransaction, logger);
+            return PersistObjectTemplate._commitKnex(persistorTransaction, logger, options.notifyChangedProperties);
         }
     };
 

@@ -1065,7 +1065,7 @@ module.exports = function (PersistObjectTemplate) {
     }
 
 
-    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger) {
+    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChangedProperties) {
         logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
         var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction.dirtyObjects;
@@ -1074,10 +1074,10 @@ module.exports = function (PersistObjectTemplate) {
         var deletedObjects = persistorTransaction.deletedObjects;
         var deleteQueries = persistorTransaction.deleteQueries;
         var innerError;
+        var changeTracking = {};
 
         // Start the knext transaction
         return knex.transaction(function(knexTransaction) {
-
             persistorTransaction.knex = knexTransaction;
 
             Promise.resolve(true)
@@ -1100,30 +1100,36 @@ module.exports = function (PersistObjectTemplate) {
             function processSaves() {
                 return Promise.map(_.toArray(dirtyObjects), function (obj) {
                     delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
-                    return (obj.__template__ && obj.__template__.__schema__
-                        ?  obj.persistSave(persistorTransaction, logger)
-                        : true)
+                    return callSave(obj).then(generateChanges.bind(this, obj));
                 }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
                     if (_.toArray(dirtyObjects). length > 0) {
                         return processSaves.call(this);
                     }
                 });
 
+                function callSave(obj) {
+                    return (obj.__template__ && obj.__template__.__schema__
+                        ?  obj.persistSave(persistorTransaction, logger)
+                        : true);
+                }
             }
 
 
             function processDeletes() {
                 return Promise.map(_.toArray(deletedObjects), function (obj) {
                     delete deletedObjects[obj.__id__];  // Once scheduled for update remove it.
-                    return (obj.__template__ && obj.__template__.__schema__
-                        ?  obj.persistDelete(persistorTransaction, logger)
-                        : true)
+                    return callDelete(obj).then(generateChanges.bind(this, obj, 'delete'));
                 }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
                     if (_.toArray(deletedObjects). length > 0) {
                         return processDeletes.call(this);
                     }
                 });
 
+                function callDelete(obj) {
+                    return (obj.__template__ && obj.__template__.__schema__
+                        ?  obj.persistDelete(persistorTransaction, logger)
+                        : true)
+                }
             }
 
             function processDeleteQueries() {
@@ -1147,7 +1153,9 @@ module.exports = function (PersistObjectTemplate) {
 
             // And we are done with everything
             function processCommit() {
-
+                if (notifyChangedProperties) {
+                    notifyChangedProperties(changeTracking);
+                }
                 this.dirtyObjects = {};
                 this.savedObjects = {};
                 if (persistorTransaction.updateConflict) {
@@ -1174,6 +1182,58 @@ module.exports = function (PersistObjectTemplate) {
                         innerError.message + (deadlock ? ' from deadlock' : ''));
                 }.bind(this));
             }
+
+            function generateChanges(obj, action) {
+                if (notifyChangedProperties) {
+                    var props = obj.__template__.getProperties();
+                    for (var prop in props) {
+                        var propType = props[prop];
+                        if (isObjectTemplateOrPersistorProperty(prop, propType)) {
+                            continue;
+                        }
+
+                        if ((obj['_ct_enabled_'] && obj['_ct_org_' + prop] !== obj[prop])
+                            || (obj['_ct_enabled_'] === undefined)
+                            && action !== 'delete') {
+                            generateChangesForCreateAndUpdate(prop, obj);
+                        }
+                        else if (action === 'delete') {
+                            generateChangesForDeletes(obj);
+                        }
+                    }
+                }
+
+                function isObjectTemplateOrPersistorProperty(propName, propType) {
+                    return propType.type.isObjectTemplate ||
+                        (propType.type === Array && propType.of.isObjectTemplate) ||
+                        (prop.match(/Persistor$/) && typeof props[propName.replace(/Persistor$/, '')] === 'object');
+                }
+
+                function generateChangesForCreateAndUpdate(prop, obj) {
+                    changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
+
+                    changeTracking[obj.__template__.__name__].push({
+                        table: obj.__template__.__table__,
+                        property: prop,
+                        primaryKey: obj._id,
+                        originalValue: obj['_ct_org_' + prop],
+                        newValue: obj[prop],
+                        action: (!obj['_ct_org_' + prop] ? 'insert' : 'update')
+                    });
+                }
+
+                function generateChangesForDeletes(obj) {
+                    changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
+                    changeTracking[obj.__template__.__table__].push({
+                        table: obj.__template__.__table__,
+                        primaryKey: obj._id,
+                        action: 'delete'
+                    });
+                }
+            }
+
+
+
         }.bind(this)).then(function () {
             (logger || this.logger).debug({component: 'persistor', module: 'api'}, 'end - transaction completed');
             return true;

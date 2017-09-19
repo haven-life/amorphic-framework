@@ -1,3 +1,5 @@
+## 2.3.0
+* Adding change tracking feature.
 ## 2.2.6
 * Fixed fetch spec validation.
 ## 2.2.5

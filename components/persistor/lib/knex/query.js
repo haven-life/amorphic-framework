@@ -5,8 +5,8 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.concurrency = 10;
 
-    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, _logger) {
-        return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh)
+    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger, enableChangeTracking) {
+        return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh, logger, enableChangeTracking )
             .then(function(pojos) { return pojos[0] });
     }
 
@@ -31,7 +31,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} logger object template logger
      * @returns {*}
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking)
     {
 
         var topLevel = !requests;
@@ -46,6 +46,8 @@ module.exports = function (PersistObjectTemplate) {
         var results = [];
 
         var joins = [];
+
+        enableChangeTracking = enableChangeTracking || schema.enableChangeTracking;
 
         // Determine one-to-one relationships and add function chains for where
         var props = template.getProperties();
@@ -108,7 +110,7 @@ module.exports = function (PersistObjectTemplate) {
             pojos.forEach(function (pojo, ix) {
                 sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix;
                 promises.push(PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
-                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger)
+                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking)
                     .then(function (obj) {
                         results[sortMap[obj._id]] = obj;
                     }))
@@ -159,7 +161,7 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*} an object via a promise as though it was created with new template()
      */
     PersistObjectTemplate.getTemplateFromKnexPOJO =
-        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger)
+        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger, enableChangeTracking)
         {
             var self = this;
             prefix = prefix || '';
@@ -306,6 +308,10 @@ module.exports = function (PersistObjectTemplate) {
                             }
                         else
                             obj[prop] = value;
+                        if (enableChangeTracking) {
+                            obj['_ct_enabled_'] = true;
+                            obj['_ct_org_' + prop] = value;
+                        }
                     }.bind(this));
                 }
             }
