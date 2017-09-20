@@ -7,6 +7,13 @@ module.exports = function (PersistObjectTemplate) {
         this._schema = schema;
     }
 
+    PersistObjectTemplate.appendSchema = function (schema) {
+        Object.keys(schema).forEach(function(key) {
+            this._schema[key] = schema[key];
+        })
+        PersistObjectTemplate._verifySchema();
+    }
+
     /**
      * Run through the schema entries and setup these properites on templates
      *  __schema__: the schema for each template

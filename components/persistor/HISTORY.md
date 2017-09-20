@@ -1,3 +1,5 @@
+## 2.3.2
+* New feature to allow private modules to append the schema entries.
 ## 2.3.1
 * Fixed error message to include the property name when changing the types.
 * Fixed to check for Persistor property when looking for the status of the object in cache.
