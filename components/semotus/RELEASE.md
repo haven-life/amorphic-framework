@@ -1,3 +1,5 @@
+## 2.3.7
+* Any validation failure now results in a session resyncronization.
 ## 2.3.6
 * Fix to not set __changed__ flag for the objects when restoring the controller from the session
 * if the controller expired in the cache

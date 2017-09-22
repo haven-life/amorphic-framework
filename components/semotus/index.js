@@ -480,16 +480,16 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
     function applyChangesAndValidateCall() {
         this.logger.info({component: 'semotus', module: 'processMessage', activity: 'call',
             data:{call: remoteCall.name, sequence: remoteCall.sequence, remoteCallId: remoteCall.id}}, remoteCall.name);
+        
         var changes = JSON.parse(remoteCall.changes);
-        if (this._applyChanges(changes, this.role == 'client', subscriptionId)) {
+        
+        if (this._applyChanges(changes, this.role == 'client', subscriptionId, callContext)) {
             var obj = session.objects[remoteCall.id];
 
             if (!obj) {
                 throw new Error('Cannot find object for remote call ' + remoteCall.id);
             }
-            if (this.role == 'server' && this.controller['validateServerIncomingObjects']) {
-                this.controller.validateServerIncomingObjects(changes, callContext);
-            }
+            
             if (this.role == 'server' && obj['validateServerCall']) {
                 return obj['validateServerCall'].call(obj, remoteCall.name, callContext);
             }
@@ -1747,7 +1747,7 @@ RemoteObjectTemplate.getObject = function getObject(objId, template) {
  *                    2 - objects processed
  * @private
  */
-RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subscriptionId) {
+RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subscriptionId, callContext) {
     var session = this._getSession();
     var rollback = [];
 
@@ -1780,6 +1780,9 @@ RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subsc
             }
         }
 
+        var passedObjectValidation = true;
+        var passedPropertyValidation = true;
+        
         if (this.role === 'server') {
             var validator = obj && (obj['validateServerIncomingObject'] || this.controller['validateServerIncomingObject']);
     
@@ -1793,11 +1796,20 @@ RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subsc
             }
     
             if (validator) {
-                validator.call(validatorThis, obj);
+                try {
+                    validator.call(validatorThis, obj);
+                }
+                catch(e) {
+                    passedObjectValidation = false;
+                }
             }
         }
+        
+        if (!this._applyObjectChanges(changes, rollback, obj, force)) {
+            passedPropertyValidation = false;
+        }
 
-        if (!obj || !this._applyObjectChanges(changes, rollback, obj, force)) {
+        if (!obj || !passedObjectValidation || !passedPropertyValidation) {
             this.processingSubscription = false;
             this._rollback(rollback);
             this._deleteChanges();
@@ -1805,6 +1817,26 @@ RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subsc
             this.changeString = {};
             return 0;
         }
+    }
+    
+    var passedObjectsValidation = true;
+    
+    if (this.role === 'server' && this.controller['validateServerIncomingObjects']) {
+        try {
+            this.controller.validateServerIncomingObjects(changes, callContext);
+        }
+        catch(e) {
+            passedObjectsValidation = false;
+        }
+    }
+    
+    if (!passedObjectsValidation) {
+        this.processingSubscription = false;
+        this._rollback(rollback);
+        this._deleteChanges();
+        this.logger.error({component: 'semotus', module: 'applyChanges', activity: 'validateServerIncomingObjects'}, 'Could not apply changes to ' + objId);
+        this.changeString = {};
+        return 0;
     }
 
     /*  We used to delete changes but this means that changes while a message is processed
@@ -1849,7 +1881,11 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
         }
 
         if (defineProperty.type === Array) {
-            this._validateServerIncomingProperty(obj, prop, defineProperty, newValue)
+            
+            if (!this._validateServerIncomingProperty(obj, prop, defineProperty, newValue)) {
+                return false;
+            }
+            
             if (newValue instanceof Array) {
                 if (!(obj[prop] instanceof Array)) {
                     obj[prop] = [];
@@ -1891,8 +1927,11 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
                 }
             }
         }
-        else { //TODO: make this into one elseif
-            this._validateServerIncomingProperty(obj, prop, defineProperty, newValue)
+        else {
+            if (!this._validateServerIncomingProperty(obj, prop, defineProperty, newValue)) {
+                return false;
+            }
+            
             if (!this._applyPropertyChange(changes, rollback, obj, prop, -1, oldValue, newValue, force)) {
                 return false;
             }
@@ -1915,9 +1954,9 @@ RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, 
         }
     }
 };
+
 RemoteObjectTemplate._validateServerIncomingProperty = function (obj, prop, defineProperty, newValue) {
-    var validator = obj && (obj['validateServerIncomingProperty'] ||
-        this.controller['validateServerIncomingProperty']);
+    var validator = obj && (obj['validateServerIncomingProperty'] || this.controller['validateServerIncomingProperty']);
 
     var validatorThis;
 
@@ -1929,11 +1968,17 @@ RemoteObjectTemplate._validateServerIncomingProperty = function (obj, prop, defi
     }
 
     if (validator) {
-        validator.call(validatorThis, obj, prop, defineProperty, newValue);
+        try {
+            validator.call(validatorThis, obj, prop, defineProperty, newValue);
+        }
+        catch(error) {
+            return false;
+        }
     }
 
-
+    return true;
 }
+
 /**
  * Apply changes for a specific property, cascading changes in the event
  * that a reference to an object that needs to be created is part of the change
