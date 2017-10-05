@@ -124,7 +124,6 @@ describe('Banking from pgsql Example', function () {
     it ('opens the database Postgres', function () {
         knex =  persistor.connect({
                     client: 'pg',
-                    debug: true,
                     connection: {
                         host     : '127.0.0.1',
                         database : 'persistor_banking',

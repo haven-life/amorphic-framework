@@ -309,8 +309,8 @@ module.exports = function (PersistObjectTemplate) {
                         else
                             obj[prop] = value;
                         if (enableChangeTracking) {
-                            obj['_ct_enabled_'] = true;
-                            obj['_ct_org_' + prop] = value;
+                            obj.__template__['_ct_enabled_'] = true;
+                            obj['_ct_org_' + prop] = obj[prop];
                         }
                     }.bind(this));
                 }

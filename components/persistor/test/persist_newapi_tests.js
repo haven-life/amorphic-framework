@@ -95,7 +95,9 @@ describe('persistor transaction checks', function () {
         Employee = PersistObjectTemplate.create('Employee', {
             name: {type: String, value: 'Test Employee'},
             homeAddress: {type: Address},
-            roles: {type: Array, of:Role, value: []}
+            roles: {type: Array, of:Role, value: []},
+            dob: {type: Date},
+            customObj: {type: Object}
         });
 
         Role.mixin({
@@ -320,7 +322,7 @@ describe('persistor transaction checks', function () {
             var notifyPropertyChangedCallback = function(changes) {
                 expect(Object.keys(changes)).to.contain('Address');
                 expect(Object.keys(changes.Address[0])).to.contain('primaryKey');
-                expect(Object.keys(changes.Address[0])).to.contain('property');
+                expect(Object.keys(changes.Address[0])).to.contain('properties');
                 expect(Object.keys(changes.Address[0])).to.contain('table');
             };
 
@@ -387,6 +389,44 @@ describe('persistor transaction checks', function () {
             return PersistObjectTemplate.commit().then(function() {
                 return Employee.persistorFetchByQuery({name: 'RaviNotSaved'}).then(function(employees) {
                     expect(employees.length).to.equal(0);
+                });
+            });
+        })
+    });
+
+    it('load the object with change tracking flag and make changes to get notified', function () {
+        var emp1 = new Employee();
+        var add1 = new Address();
+        var phone1 = new Phone();
+        phone1.number = '222222222';
+        add1.city = 'New York1';
+        add1.state = 'New York1';
+        add1.phone = phone1;
+        emp1.name = 'LoadObjectForNotificationCheck';
+        emp1.homeAddress = add1;
+        var dob1 =  new Date('01/01/1975');
+        emp1.customObj = {name: 'testName', dob: JSON.stringify(dob1)};
+        emp1.dob = dob1;
+
+        var tx =  PersistObjectTemplate.beginTransaction();
+        return emp1.persist({transaction: tx, cascade: false}).then(function() {
+            return PersistObjectTemplate.commit({transaction: tx}).then(function() {
+                return Employee.persistorFetchByQuery({name: 'LoadObjectForNotificationCheck'}, {enableChangeTracking: true}).then(function(employees) {
+                    expect(employees.length).to.equal(1);
+                    var emp = employees[0];
+                    emp.dob = new Date('01/01/1976');
+                    emp.customObj = {name: 'testName', dob: JSON.stringify (emp.dob)};
+                    var innerTxn =  PersistObjectTemplate.beginTransaction();
+                    emp.setDirty(innerTxn);
+
+                    var notifyPropertyChangedCallback = function(changes, txn) {
+                        expect(Object.keys(changes)).to.contain('Employee');
+                        expect(Object.keys(changes.Employee[0])).to.contain('primaryKey');
+                        expect(changes.Employee[0].properties[0].name).to.equal('dob');
+                        var empNew = new Employee();
+                        empNew.setDirty(txn);
+                    };
+                    return PersistObjectTemplate.commit({transaction: innerTxn, notifyChangedProperties: notifyPropertyChangedCallback});
                 });
             });
         })

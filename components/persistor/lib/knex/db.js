@@ -1081,15 +1081,20 @@ module.exports = function (PersistObjectTemplate) {
         return knex.transaction(function(knexTransaction) {
             persistorTransaction.knex = knexTransaction;
 
+
             Promise.resolve(true)
                 .then(processPreSave.bind(this))
-                .then(processSaves.bind(this))
-                .then(processDeletes.bind(this))
-                .then(processDeleteQueries.bind(this))
-                .then(processTouches.bind(this))
+                .then(processChanges.bind(this))
                 .then(processPostSave.bind(this))
                 .then(processCommit.bind(this))
                 .catch(rollback.bind(this));
+
+            function processChanges() {
+                return processSaves()
+                    .then(processDeletes.bind(this))
+                    .then(processDeleteQueries.bind(this))
+                    .then(processTouches.bind(this));
+            }
 
             function processPreSave() {
                 return persistorTransaction.preSave
@@ -1101,7 +1106,7 @@ module.exports = function (PersistObjectTemplate) {
             function processSaves() {
                 return Promise.map(_.toArray(dirtyObjects), function (obj) {
                     delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
-                    return callSave(obj).then(generateChanges.bind(this, obj));
+                    return callSave(obj).then(generateChanges.bind(this, obj, obj.__version__ === 1 ? 'insert' : 'update'));
                 }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
                     if (_.toArray(dirtyObjects). length > 0) {
                         return processSaves.call(this);
@@ -1152,17 +1157,38 @@ module.exports = function (PersistObjectTemplate) {
                     : true;
             }
 
+            function processchangesFromChangeTracking() {
+                dirtyObjects = persistorTransaction.dirtyObjects;
+                touchObjects = persistorTransaction.touchObjects;
+                savedObjects = persistorTransaction.savedObjects;
+                deletedObjects = persistorTransaction.deletedObjects;
+                deleteQueries = persistorTransaction.deleteQueries;
+                return processChanges();
+            }
+
+            function processChangeTracking() {
+                if (typeof notifyChangedProperties === 'function') {
+                    return Promise.resolve(true)
+                        .then(notifyChangedProperties.bind(this, changeTracking, persistorTransaction))
+                        .then(function() {
+                            notifyChangedProperties = null;
+                            return processchangesFromChangeTracking();
+                        });
+                }
+            }
+
             // And we are done with everything
             function processCommit() {
-                if (notifyChangedProperties) {
-                    notifyChangedProperties(changeTracking);
-                }
-                this.dirtyObjects = {};
-                this.savedObjects = {};
-                if (persistorTransaction.updateConflict) {
-                    throw 'Update Conflict';
-                }
-                return knexTransaction.commit();
+                return Promise.resolve(true)
+                    .then(processChangeTracking.bind(this))
+                    .then(function() {
+                        this.dirtyObjects = {};
+                        this.savedObjects = {};
+                        if (persistorTransaction.updateConflict) {
+                            throw 'Update Conflict';
+                        }
+                        return knexTransaction.commit();
+                    });
             }
 
             // Walk through the touched objects
@@ -1185,23 +1211,35 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             function generateChanges(obj, action) {
-                if (notifyChangedProperties) {
-                    var props = obj.__template__.getProperties();
-                    for (var prop in props) {
-                        var propType = props[prop];
-                        if (isObjectTemplateOrPersistorProperty(prop, propType)) {
-                            continue;
-                        }
+                var objChanges;
 
-                        if ((obj['_ct_enabled_'] && obj['_ct_org_' + prop] !== obj[prop])
-                            || (obj['_ct_enabled_'] === undefined)
-                            && action !== 'delete') {
-                            generateChangesForCreateAndUpdate(prop, obj);
-                        }
-                        else if (action === 'delete') {
-                            generateChangesForDeletes(obj);
+                if (notifyChangedProperties) {
+                    changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
+                    changeTracking[obj.__template__.__name__].push(objChanges = {
+                        table: obj.__template__.__table__,
+                        primaryKey: obj._id,
+                        action: action,
+                        properties: []
+                    });
+                    if (action === 'update') {
+                        var props = obj.__template__.getProperties();
+                        for (var prop in props) {
+                            var propType = props[prop];
+                            if (isObjectTemplateOrPersistorProperty(prop, propType)) {
+                                continue;
+                            }
+
+                            if ((obj.__template__['_ct_enabled_'] && isChanged('_ct_org_' + prop, prop))
+                                || (obj.__template__['_ct_enabled_'] === undefined)) {
+                                generateChangesForUpdate(prop, obj);
+                            }
                         }
                     }
+                }
+
+                function isChanged(oldKey, newKey) {
+                    return props[prop].type === Date || props[prop].type === Object ?
+                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[newKey]) : obj[oldKey] !== obj[newKey];
                 }
 
                 function isObjectTemplateOrPersistorProperty(propName, propType) {
@@ -1210,31 +1248,14 @@ module.exports = function (PersistObjectTemplate) {
                         (prop.match(/Persistor$/) && typeof props[propName.replace(/Persistor$/, '')] === 'object');
                 }
 
-                function generateChangesForCreateAndUpdate(prop, obj) {
-                    changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
-
-                    changeTracking[obj.__template__.__name__].push({
-                        table: obj.__template__.__table__,
-                        property: prop,
-                        primaryKey: obj._id,
+                function generateChangesForUpdate(prop, obj) {
+                    objChanges.properties.push({
+                        name: prop,
                         originalValue: obj['_ct_org_' + prop],
-                        newValue: obj[prop],
-                        action: (!obj['_ct_org_' + prop] ? 'insert' : 'update')
-                    });
-                }
-
-                function generateChangesForDeletes(obj) {
-                    changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
-                    changeTracking[obj.__template__.__table__].push({
-                        table: obj.__template__.__table__,
-                        primaryKey: obj._id,
-                        action: 'delete'
+                        newValue: obj[prop]
                     });
                 }
             }
-
-
-
         }.bind(this)).then(function () {
             (logger || this.logger).debug({component: 'persistor', module: 'api'}, 'end - transaction completed');
             return true;
@@ -1246,5 +1267,4 @@ module.exports = function (PersistObjectTemplate) {
             throw (e || innerError);
         }.bind(this))
     }
-
 };

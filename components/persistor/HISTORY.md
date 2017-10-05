@@ -1,3 +1,9 @@
+## 2.3.3
+* Modified changing tracking structure
+* change tracking flag has been moved to the template level.
+* Fixed date and object types comparison issues.
+* Any changes to the transaction object from the change tracking 
+*   callback will be reprocessed.
 ## 2.3.2
 * New feature to allow private modules to append the schema entries.
 ## 2.3.1
