@@ -1,3 +1,5 @@
+## 2.3.8
+* Added error handling when the function to be called by callIfValid is not valid.
 ## 2.3.7
 * Any validation failure now results in a session resyncronization.
 ## 2.3.6

@@ -509,12 +509,13 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
      *
      * @returns {unknown} unknown
      */
-    function callIfValid(isValid) {
-        if (!isValid) {
-            throw new Error(remoteCall.name + ' refused');
+    function callIfValid() {
+        var obj = session.objects[remoteCall.id];
+
+        if (!obj[remoteCall.name]){
+            throw new Error(remoteCall.name + ' function does not exist.');
         }
 
-        var obj = session.objects[remoteCall.id];
         var arguments = this._fromTransport(JSON.parse(remoteCall.arguments));
 
         return obj[remoteCall.name].apply(obj, arguments);
