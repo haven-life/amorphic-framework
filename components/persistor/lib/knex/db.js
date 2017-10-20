@@ -1066,7 +1066,7 @@ module.exports = function (PersistObjectTemplate) {
     }
 
 
-    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChangedProperties) {
+    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChanges) {
         logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
         var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction.dirtyObjects;
@@ -1075,7 +1075,7 @@ module.exports = function (PersistObjectTemplate) {
         var deletedObjects = persistorTransaction.deletedObjects;
         var deleteQueries = persistorTransaction.deleteQueries;
         var innerError;
-        var changeTracking = {};
+        var changeTracking;
 
         // Start the knext transaction
         return knex.transaction(function(knexTransaction) {
@@ -1083,18 +1083,14 @@ module.exports = function (PersistObjectTemplate) {
 
 
             Promise.resolve(true)
-                .then(processPreSave.bind(this))
-                .then(processChanges.bind(this))
-                .then(processPostSave.bind(this))
-                .then(processCommit.bind(this))
-                .catch(rollback.bind(this));
-
-            function processChanges() {
-                return processSaves()
-                    .then(processDeletes.bind(this))
-                    .then(processDeleteQueries.bind(this))
-                    .then(processTouches.bind(this));
-            }
+            .then(processPreSave.bind(this))
+            .then(processSaves.bind(this))
+            .then(processDeletes.bind(this))
+            .then(processDeleteQueries.bind(this))
+            .then(processTouches.bind(this))
+            .then(processPostSave.bind(this))
+            .then(processCommit.bind(this))
+            .catch(rollback.bind(this));
 
             function processPreSave() {
                 return persistorTransaction.preSave
@@ -1153,42 +1149,19 @@ module.exports = function (PersistObjectTemplate) {
 
 
             function processPostSave() {
-                return persistorTransaction.postSave ? persistorTransaction.postSave(persistorTransaction, logger)
-                    : true;
-            }
-
-            function processchangesFromChangeTracking() {
-                dirtyObjects = persistorTransaction.dirtyObjects;
-                touchObjects = persistorTransaction.touchObjects;
-                savedObjects = persistorTransaction.savedObjects;
-                deletedObjects = persistorTransaction.deletedObjects;
-                deleteQueries = persistorTransaction.deleteQueries;
-                return processChanges();
-            }
-
-            function processChangeTracking() {
-                if (typeof notifyChangedProperties === 'function') {
-                    return Promise.resolve(true)
-                        .then(notifyChangedProperties.bind(this, changeTracking, persistorTransaction))
-                        .then(function() {
-                            notifyChangedProperties = null;
-                            return processchangesFromChangeTracking();
-                        });
-                }
+                return persistorTransaction.postSave ?
+                    persistorTransaction.postSave(persistorTransaction, logger, changeTracking) :
+                    true;
             }
 
             // And we are done with everything
             function processCommit() {
-                return Promise.resolve(true)
-                    .then(processChangeTracking.bind(this))
-                    .then(function() {
-                        this.dirtyObjects = {};
-                        this.savedObjects = {};
-                        if (persistorTransaction.updateConflict) {
-                            throw 'Update Conflict';
-                        }
-                        return knexTransaction.commit();
-                    });
+                this.dirtyObjects = {};
+                this.savedObjects = {};
+                if (persistorTransaction.updateConflict) {
+                    throw 'Update Conflict';
+                }
+                return knexTransaction.commit();
             }
 
             // Walk through the touched objects
@@ -1213,7 +1186,8 @@ module.exports = function (PersistObjectTemplate) {
             function generateChanges(obj, action) {
                 var objChanges;
 
-                if (notifyChangedProperties) {
+                if (notifyChanges && obj.__template__.__schema__.enableChangeTracking) {
+                    changeTracking = changeTracking || {};
                     changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
                     changeTracking[obj.__template__.__name__].push(objChanges = {
                         table: obj.__template__.__table__,
@@ -1221,7 +1195,7 @@ module.exports = function (PersistObjectTemplate) {
                         action: action,
                         properties: []
                     });
-                    if (action === 'update') {
+                    if (action === 'update' || action === 'delete') {
                         var props = obj.__template__.getProperties();
                         for (var prop in props) {
                             var propType = props[prop];
@@ -1229,9 +1203,8 @@ module.exports = function (PersistObjectTemplate) {
                                 continue;
                             }
 
-                            if ((obj.__template__['_ct_enabled_'] && isChanged('_ct_org_' + prop, prop))
-                                || (obj.__template__['_ct_enabled_'] === undefined)) {
-                                generateChangesForUpdate(prop, obj);
+                            if (isChanged('_ct_org_' + prop, prop)) {
+                                generatePropertyChanges(prop, obj);
                             }
                         }
                     }
@@ -1248,7 +1221,7 @@ module.exports = function (PersistObjectTemplate) {
                         (prop.match(/Persistor$/) && typeof props[propName.replace(/Persistor$/, '')] === 'object');
                 }
 
-                function generateChangesForUpdate(prop, obj) {
+                function generatePropertyChanges(prop, obj) {
                     objChanges.properties.push({
                         name: prop,
                         originalValue: obj['_ct_org_' + prop],

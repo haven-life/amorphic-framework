@@ -1,3 +1,5 @@
+## 2.3.4
+* Change tracking cleanup.
 ## 2.3.3
 * Modified changing tracking structure
 * change tracking flag has been moved to the template level.

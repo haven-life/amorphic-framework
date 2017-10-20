@@ -230,8 +230,8 @@ module.exports = function (PersistObjectTemplate) {
                     'logger': {
                         type: ['null', 'object']
                     },
-                    'notifyChangedProperties': {
-                        type: ['function']
+                    'notifyChanges': {
+                        type: 'boolean'
                     }
                 }
             },

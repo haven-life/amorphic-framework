@@ -853,7 +853,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         var persistorTransaction = options.transaction || this.__defaultTransaction__;
 
         if (PersistObjectTemplate.DB_Knex) {
-            return PersistObjectTemplate._commitKnex(persistorTransaction, logger, options.notifyChangedProperties);
+            return PersistObjectTemplate._commitKnex(persistorTransaction, logger, options.notifyChanges);
         }
     };
 
