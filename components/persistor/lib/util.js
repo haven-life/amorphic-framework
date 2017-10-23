@@ -216,7 +216,7 @@ module.exports = function (PersistObjectTemplate) {
                         type: ['null', 'object']
                     },
                     'enableChangeTracking' : {
-                        type: 'boolean'
+                        type: ['boolean', 'null', 'undefined']
                     }
                 }
             },
@@ -231,7 +231,7 @@ module.exports = function (PersistObjectTemplate) {
                         type: ['null', 'object']
                     },
                     'notifyChanges': {
-                        type: 'boolean'
+                        type: ['boolean', 'null', 'undefined']
                     }
                 }
             },

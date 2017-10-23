@@ -1,3 +1,6 @@
+## 2.3.5
+* Save should convert the object types properly.
+* notifyChanges schema changes to accept null and undefined values.
 ## 2.3.4
 * Change tracking cleanup.
 ## 2.3.3

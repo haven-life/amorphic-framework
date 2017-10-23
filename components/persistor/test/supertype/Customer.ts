@@ -55,6 +55,9 @@ export class Customer extends Persistable(Supertype) {
     @property({fetch: true, getType: () => Customer})
     secondaryReferrers:  Array<Customer> = [];
 
+    @property()
+    booleanProp: any;
+
     addAddress (type, lines, city, state, zip) {
         var address = new Address(this);
         address.lines = lines;

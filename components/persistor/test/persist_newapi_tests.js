@@ -97,7 +97,8 @@ describe('persistor transaction checks', function () {
             homeAddress: {type: Address},
             roles: {type: Array, of:Role, value: []},
             dob: {type: Date},
-            customObj: {type: Object}
+            customObj: {type: Object},
+            isMarried: {type: Boolean}
         });
 
         Role.mixin({
@@ -156,7 +157,7 @@ describe('persistor transaction checks', function () {
                     }
                 };
                 return emp.persist({transaction: tx, cascade: false}).then(function() {
-                    return PersistObjectTemplate.commit({transaction: tx, notifyChangedProperties: notifyPropertyChangedCallback}).then(function() {
+                    return PersistObjectTemplate.commit({transaction: tx, notifyChanges: true}).then(function() {
                         empId = emp._id;
                         addressId = add._id;
                         phoneId = phone._id;
@@ -326,7 +327,7 @@ describe('persistor transaction checks', function () {
                 expect(Object.keys(changes.Address[0])).to.contain('table');
             };
 
-            return PersistObjectTemplate.commit({notifyChangedProperties: notifyPropertyChangedCallback}).then(function() {
+            return PersistObjectTemplate.commit().then(function() {
                 return Address.countFromPersistWithQuery().then(function(count) {
                     expect(count).to.equal(2);
                 });
@@ -407,6 +408,7 @@ describe('persistor transaction checks', function () {
         var dob1 =  new Date('01/01/1975');
         emp1.customObj = {name: 'testName', dob: JSON.stringify(dob1)};
         emp1.dob = dob1;
+        emp1.isMarried = true;
 
         var tx =  PersistObjectTemplate.beginTransaction();
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
@@ -416,17 +418,19 @@ describe('persistor transaction checks', function () {
                     var emp = employees[0];
                     emp.dob = new Date('01/01/1976');
                     emp.customObj = {name: 'testName', dob: JSON.stringify (emp.dob)};
+                    emp.isMarried = false;
                     var innerTxn =  PersistObjectTemplate.beginTransaction();
                     emp.setDirty(innerTxn);
 
-                    var notifyPropertyChangedCallback = function(changes, txn) {
+
+                    innerTxn.postSave = function(txn, _logger, changes) {
                         expect(Object.keys(changes)).to.contain('Employee');
                         expect(Object.keys(changes.Employee[0])).to.contain('primaryKey');
                         expect(changes.Employee[0].properties[0].name).to.equal('dob');
                         var empNew = new Employee();
                         empNew.setDirty(txn);
                     };
-                    return PersistObjectTemplate.commit({transaction: innerTxn, notifyChangedProperties: notifyPropertyChangedCallback});
+                    return PersistObjectTemplate.commit({transaction: innerTxn, notifyChanges: true});
                 });
             });
         })
@@ -469,10 +473,11 @@ describe('persistor transaction checks', function () {
             add = employee.homeAddress;
         }
         function realTest() {
+            var notifyChanges;
             var tx =  PersistObjectTemplate.beginTransaction();
             add.persistDelete({transaction: tx});
             emp.persistDelete({transaction: tx});
-            return PersistObjectTemplate.commit({transaction: tx})
+            return PersistObjectTemplate.commit({transaction: tx, notifyChanges: notifyChanges});
         }
 
         function createFKs() {

@@ -138,7 +138,7 @@ module.exports = function (PersistObjectTemplate) {
 
 
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
-                pojo[prop] = obj[prop] ? JSON.stringify(obj[prop]) : null;
+                pojo[prop] = (obj[prop] === null || obj[prop] === undefined)  ? null : JSON.stringify(obj[prop]);
                 log(defineProperty, pojo, prop);
             } else if (defineProperty.type == Date) {
                 pojo[prop] = obj[prop] ? obj[prop] : null;

@@ -11,6 +11,8 @@ export class ExtendedCustomer extends Customer {
     @property()
     extendedProp: string = '';
 
+
+
     @property({fetch: true, getType: () => Customer})
     extendedReferrers:  Array<Customer>;
 }
