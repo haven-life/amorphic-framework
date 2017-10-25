@@ -282,7 +282,7 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId);
+                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking);
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
                             }
@@ -374,7 +374,7 @@ module.exports = function (PersistObjectTemplate) {
                 });
             }
 
-            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId) {
+            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking) {
                 var query = {_id: foreignId};
                 var options = {};
                 var closureProp = prop;
@@ -395,10 +395,10 @@ module.exports = function (PersistObjectTemplate) {
                         (pojo[join.alias + '____id'] ?
                             this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
                                 closureCascade, isTransient, closureDefineProperty,
-                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger)
+                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking)
                             : Promise.resolve(true)) :
                         this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
-                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger);
+                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking);
                     this.withoutChangeTracking(function () {
                         obj[closurePersistorProp].isFetching = true;
                     }.bind(this));

@@ -1,3 +1,6 @@
+## 2.3.6
+* changetracking flag must be passed to subqueries.
+* Promise issue fixed for process save and delete functions.
 ## 2.3.5
 * Save should convert the object types properly.
 * notifyChanges schema changes to accept null and undefined values.

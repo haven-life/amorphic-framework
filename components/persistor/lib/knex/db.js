@@ -1112,7 +1112,7 @@ module.exports = function (PersistObjectTemplate) {
                 function callSave(obj) {
                     return (obj.__template__ && obj.__template__.__schema__
                         ?  obj.persistSave(persistorTransaction, logger)
-                        : true);
+                        : Promise.resolve(true));
                 }
             }
 
@@ -1130,7 +1130,7 @@ module.exports = function (PersistObjectTemplate) {
                 function callDelete(obj) {
                     return (obj.__template__ && obj.__template__.__schema__
                         ?  obj.persistDelete(persistorTransaction, logger)
-                        : true)
+                        : Promise.resolve(true))
                 }
             }
 
