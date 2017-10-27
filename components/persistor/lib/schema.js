@@ -8,9 +8,10 @@ module.exports = function (PersistObjectTemplate) {
     }
 
     PersistObjectTemplate.appendSchema = function (schema) {
-        Object.keys(schema).forEach(function(key) {
+        Object.keys(schema).forEach(key => {
             this._schema[key] = schema[key];
-        })
+        });
+
         PersistObjectTemplate._verifySchema();
     }
 

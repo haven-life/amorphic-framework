@@ -1,3 +1,5 @@
+## 2.3.7
+* append schema context issue fixed
 ## 2.3.6
 * changetracking flag must be passed to subqueries.
 * Promise issue fixed for process save and delete functions.
