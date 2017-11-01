@@ -222,6 +222,11 @@ module.exports = function (PersistObjectTemplate) {
             // Go through all the properties and transfer them to newly created object
             var props = specificProperties || obj.__template__.getProperties();
             var value;
+
+            if (enableChangeTracking) {
+                obj.__template__['_ct_enabled_'] = true;
+            }
+
             for (var prop in props)
             {
                 value = pojo[prefix + prop];
@@ -269,6 +274,9 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignKey = schema.parents[prop].id;
                     var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : '') || '';
 
+                    if (enableChangeTracking) {
+                        obj['_ct_org_' + prop] = foreignId;
+                    }
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
                     if (cachedObject && (!cascadeFetch  || !cascadeFetch.fetch || allRequiredChildrenAvailableInCache(cachedObject, cascadeFetch.fetch))) {
@@ -309,7 +317,6 @@ module.exports = function (PersistObjectTemplate) {
                         else
                             obj[prop] = value;
                         if (enableChangeTracking) {
-                            obj.__template__['_ct_enabled_'] = true;
                             obj['_ct_org_' + prop] = obj[prop];
                         }
                     }.bind(this));

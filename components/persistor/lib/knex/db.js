@@ -1199,33 +1199,46 @@ module.exports = function (PersistObjectTemplate) {
                         var props = obj.__template__.getProperties();
                         for (var prop in props) {
                             var propType = props[prop];
-                            if (isObjectTemplateOrPersistorProperty(prop, propType)) {
+                            if (isOnetoManyRelationsOrPersistorProps(prop, propType)) {
                                 continue;
                             }
-
-                            if (isChanged('_ct_org_' + prop, prop)) {
-                                generatePropertyChanges(prop, obj);
-                            }
+                            generatePropertyChanges(prop, obj);
                         }
                     }
                 }
 
-                function isChanged(oldKey, newKey) {
-                    return props[prop].type === Date || props[prop].type === Object ?
-                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[newKey]) : obj[oldKey] !== obj[newKey];
-                }
-
-                function isObjectTemplateOrPersistorProperty(propName, propType) {
-                    return propType.type.isObjectTemplate ||
-                        (propType.type === Array && propType.of.isObjectTemplate) ||
+                function isOnetoManyRelationsOrPersistorProps(propName, propType) {
+                    return (propType.type === Array && propType.of.isObjectTemplate) ||
                         (prop.match(/Persistor$/) && typeof props[propName.replace(/Persistor$/, '')] === 'object');
                 }
 
                 function generatePropertyChanges(prop, obj) {
+                    //When the property type is not an object template, need to compare the values.
+                    //for date and object types, need to compare the stringified values.
+                    var oldKey = '_ct_org_' + prop;
+                    if (!props[prop].type.isObjectTemplate && (obj[oldKey] !== obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
+                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
+                        addChanges(prop, obj[oldKey], obj[prop], prop);
+                    }
+                    //For one to one relations, we need to check the ids associated to the parent record.
+                    else if (props[prop].type.isObjectTemplate && obj['_ct_org_' + prop] !== obj[prop + 'Persistor']._id) {
+                        addChanges(prop, obj[oldKey], obj[prop + 'Persistor'].id, getColumnName(prop, obj));
+                    }
+                }
+
+                function getColumnName(prop, obj) {
+                    var schema = obj.__template__.__schema__;
+                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                        throw  new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
+                    return schema.parents[prop].id;
+                }
+
+                function addChanges(prop, originalValue, newValue, columnName) {
                     objChanges.properties.push({
                         name: prop,
-                        originalValue: obj['_ct_org_' + prop],
-                        newValue: obj[prop]
+                        originalValue: originalValue,
+                        newValue: newValue,
+                        columnName: columnName
                     });
                 }
             }

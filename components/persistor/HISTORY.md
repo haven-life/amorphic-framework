@@ -1,3 +1,6 @@
+## 2.3.8
+* Added column name to the change tracking list.
+* one-to-one relations also track the changes.
 ## 2.3.7
 * append schema context issue fixed
 ## 2.3.6
