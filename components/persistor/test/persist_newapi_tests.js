@@ -419,6 +419,7 @@ describe('persistor transaction checks', function () {
                     emp.dob = new Date('01/01/1976');
                     emp.customObj = {name: 'testName', dob: JSON.stringify (emp.dob)};
                     emp.isMarried = false;
+                    emp.homeAddress = new Address();
                     var innerTxn =  PersistObjectTemplate.beginTransaction();
                     emp.setDirty(innerTxn);
 

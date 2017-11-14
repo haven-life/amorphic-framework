@@ -1,3 +1,5 @@
+## 2.3.9
+* Fixed change tracking issue for reference types.
 ## 2.3.8
 * Added column name to the change tracking list.
 * one-to-one relations also track the changes.
