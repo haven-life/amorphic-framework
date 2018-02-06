@@ -31,7 +31,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} logger object template logger
      * @returns {*}
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, order, establishedObject, isRefresh, logger, enableChangeTracking)
     {
 
         var topLevel = !requests;
@@ -72,7 +72,7 @@ module.exports = function (PersistObjectTemplate) {
                     });
             }
         }
-        options = options || {}
+        var options = order || {}
         if (skip)
             options.offset = skip;
         if (limit)

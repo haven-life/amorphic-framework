@@ -1,3 +1,5 @@
+## 2.3.10
+* Modified order parameter parsing logic in persistorFetchByQuery.
 ## 2.3.9
 * Fixed change tracking issue for reference types.
 ## 2.3.8

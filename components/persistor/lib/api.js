@@ -238,6 +238,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             logger.debug({component: 'persistor', module: 'api', activity: 'getFromPersistWithQuery',
                 data: {template: template.__name__}});
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
+            if (options.order && !options.order.sort) {
+                options.order = { sort: options.order };
+            }
             return (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoQuery(template, query, options.fetch, options.start,
                             options.limit, options.transient, options.order, options.order, logger) :
