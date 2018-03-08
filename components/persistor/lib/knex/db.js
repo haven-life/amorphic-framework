@@ -437,20 +437,20 @@ module.exports = function (PersistObjectTemplate) {
                     var prop = columnNameToProp(columnName);
                     if (!prop) {
                         PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, 'Extra column ' + columnName + ' on ' + table);
-                        commentOn(table, columnName, 'now obsolete');
+                        return commentOn(table, columnName, 'now obsolete');
                     } else {
                         if (prop == '_id')
-                            commentOn(table, columnName, 'primary key');
+                            return commentOn(table, columnName, 'primary key');
                         else if (prop.match(/:/)) {
                             prop = prop.substr(1);
                             var fkComment = getForeignKeyDescription(props[prop]);
                             var commentField = getDescription(prop, props[prop])
                             var comment = (commentField === '') ?  fkComment : fkComment + ', ' + commentField;
-                            commentOn(table, columnName, comment);
+                            return commentOn(table, columnName, comment);
                         } else if (prop == '_template')
-                            commentOn(table, columnName, getClassNames(prop));
+                            return commentOn(table, columnName, getClassNames(prop));
                         else if (prop != '__version__')
-                            commentOn(table, columnName, getDescription(prop, props[prop]));
+                            return commentOn(table, columnName, getDescription(prop, props[prop]));
                     }
                 }
             });
@@ -520,6 +520,7 @@ module.exports = function (PersistObjectTemplate) {
                             /*eslint-enable no-console*/
                         });
                 }
+                return;
             }
         }
 
