@@ -6,7 +6,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.concurrency = 10;
 
     PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger, enableChangeTracking) {
-        return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh, logger, enableChangeTracking )
+        return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh, logger, enableChangeTracking)
             .then(function(pojos) { return pojos[0] });
     }
 
@@ -25,10 +25,11 @@ module.exports = function (PersistObjectTemplate) {
      * @param {number} limit number of records to return
      * @param {bool} isTransient unknown.
      * @param {object} idMap object mapper for cache
-     * @param {object} options sort, limit, and skip options
+     * @param {object} options order, limit, and skip options
      * @param {object} establishedObject {need to review, used for amorphic}
      * @param {bool} isRefresh {need to review}
      * @param {object} logger object template logger
+     * @param {object} enableChangeTracking callback to get the change details
      * @returns {*}
      */
     PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, order, establishedObject, isRefresh, logger, enableChangeTracking)
@@ -158,6 +159,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {unknown} joins {@TODO need to review}
      * @param {bool} isRefresh {need to review}
      * @param {object} logger object template logger
+     * @param {object} enableChangeTracking callback to get the change details
      * @returns {*} an object via a promise as though it was created with new template()
      */
     PersistObjectTemplate.getTemplateFromKnexPOJO =

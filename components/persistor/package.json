@@ -2,7 +2,7 @@
     "name": "persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/selsamman/persistor",
-    "version": "2.3.10",
+    "version": "2.3.11",
     "dependencies": {
         "q": "1.x",
         "supertype": "2.2.*",
@@ -10,7 +10,7 @@
         "mongodb-bluebird": "x",
         "bluebird": "x",
         "knex": "*",
-        "pg":"*",
+        "pg": "*",
         "tv4": "^1.2.7"
     },
     "devDependencies": {
@@ -31,14 +31,13 @@
         "typescript": "*",
         "ts-node": "*"
     },
-    "directories": {
-    },
+    "directories": {},
     "engines": {
         "node": ">=0.8.0"
     },
     "repository": {
         "type": "git",
-            "url": "git://github.com/selsamman/persistor.git"
+        "url": "git://github.com/selsamman/persistor.git"
     },
     "scripts": {
         "lint": "eslint .",

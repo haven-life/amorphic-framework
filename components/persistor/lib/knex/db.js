@@ -350,14 +350,12 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback) {
-        //no need to synchronize Query objects if there is an entry for the corresponding main object in schema.json
-        if (template.name.match(/Query$/) && this._schema[template.name.replace('Query', '')]) {
-            return Promise.resolve();
-        }
-
-
         var aliasedTableName = template.__table__;
         var tableName = this.dealias(aliasedTableName);
+        //no need to synchronize Query objects if there is an entry for the corresponding main object in schema.json
+        if (template.name.match(/Query$/) && isTableCorrespondsToOtherSchemaEntry.call(this, template.name, tableName)) {
+            return Promise.resolve();
+        }
 
         while (template.__parent__) {
             template =  template.__parent__;
@@ -553,6 +551,19 @@ module.exports = function (PersistObjectTemplate) {
                 return prop;
             }
 
+        }
+
+        function isTableCorrespondsToOtherSchemaEntry(name, table) {
+            if (this._schema[name.replace('Query', '')]) {
+                return true;
+            }
+            var schemEntry = Object.keys(this._schema).find(function(k) {
+                return this._schema[k].table === table && k != name;
+            }.bind(this));
+            if (!!schemEntry) {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -1083,14 +1094,14 @@ module.exports = function (PersistObjectTemplate) {
 
 
             Promise.resolve(true)
-            .then(processPreSave.bind(this))
-            .then(processSaves.bind(this))
-            .then(processDeletes.bind(this))
-            .then(processDeleteQueries.bind(this))
-            .then(processTouches.bind(this))
-            .then(processPostSave.bind(this))
-            .then(processCommit.bind(this))
-            .catch(rollback.bind(this));
+                .then(processPreSave.bind(this))
+                .then(processSaves.bind(this))
+                .then(processDeletes.bind(this))
+                .then(processDeleteQueries.bind(this))
+                .then(processTouches.bind(this))
+                .then(processPostSave.bind(this))
+                .then(processCommit.bind(this))
+                .catch(rollback.bind(this));
 
             function processPreSave() {
                 return persistorTransaction.preSave
@@ -1217,7 +1228,7 @@ module.exports = function (PersistObjectTemplate) {
                     //for date and object types, need to compare the stringified values.
                     var oldKey = '_ct_org_' + prop;
                     if (!props[prop].type.isObjectTemplate && (obj[oldKey] !== obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
-                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
+                            JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
                         addChanges(prop, obj[oldKey], obj[prop], prop);
                     }
                     //For one to one relations, we need to check the ids associated to the parent record.
