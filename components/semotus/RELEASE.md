@@ -1,3 +1,5 @@
+## 2.3.9
+* Enabled javascript's strict mode and changed all variable declarations to use let and const.
 ## 2.3.8
 * Added error handling when the function to be called by callIfValid is not valid.
 ## 2.3.7
