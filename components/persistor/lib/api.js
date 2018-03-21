@@ -512,6 +512,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             persistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade, logger);
         };
 
+        template.prototype.setAsDeleted =  function (txn, onlyIfChanged) {
+            var persistObjectTemplate = this.__objectTemplate__ || self;
+            persistObjectTemplate.setAsDeleted(this, txn, onlyIfChanged)
+        };
+
         // Legacy
         template.prototype.cascadeSave = function (txn, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
@@ -674,7 +679,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {object} returns transaction object
      */
     PersistObjectTemplate.begin = function (notDefault) {
-        var txn = {id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}};
+        var txn = {id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}};
         if (!notDefault) {
             this.currentTransaction = txn;
         }

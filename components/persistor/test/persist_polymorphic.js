@@ -657,7 +657,7 @@ describe('type mapping tests for parent/child relations', function () {
             });
     });
 
-    it('Create a new table and check if the comments added to the fields are included in the database', function () {
+    it('Check if parent schema entry is missing...', function () {
 
         var AddressSyncChecks = PersistObjectTemplate.create('AddressSyncChecks', {});
         var CustomerSyncChecks = PersistObjectTemplate.create('CustomerSyncChecks', {});

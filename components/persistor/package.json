@@ -2,15 +2,15 @@
     "name": "persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/selsamman/persistor",
-    "version": "2.3.12",
+    "version": "2.3.13",
     "dependencies": {
         "q": "1.x",
         "supertype": "2.2.*",
         "underscore": "1.x",
         "mongodb-bluebird": "x",
         "bluebird": "x",
-        "knex": "*",
-        "pg": "*",
+        "knex": "0.13.0",
+        "pg": "7.4.1",
         "tv4": "^1.2.7"
     },
     "devDependencies": {
@@ -44,9 +44,7 @@
         "test": "istanbul cover _mocha -- test/* -R spec",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
-        "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/supertype/persist_banking_pgsql.ts",
         "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/supertype/one-to-many-checks.ts"
-
     },
     "bugs": {
         "url": "http://github.com/selsamman/persistor/issues"

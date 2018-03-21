@@ -266,5 +266,23 @@ describe('persistor transaction checks', function () {
             });
         });
     });
+    it('use setAsDeleted', function () {
+        var emp1 = new Employee();
+        emp1.name = 'Ravi setAsDeleted';
 
+        var tx =  PersistObjectTemplate.begin();
+        emp1.setDirty(tx);
+        return PersistObjectTemplate.end(tx).then(function() {
+            return Employee.countFromPersistWithQuery({name: 'Ravi setAsDeleted'}).then(function(count) {
+                expect(count).to.equal(1);
+                var txInner =  PersistObjectTemplate.beginTransaction();
+                emp1.setAsDeleted(txInner);
+                return PersistObjectTemplate.commit({transaction: txInner}).then(function() {
+                    return Employee.countFromPersistWithQuery({name: 'Ravi setAsDeleted'}).then(function(count) {
+                        expect(count).to.equal(0);
+                    });
+                });
+            });
+        });
+    });
 });

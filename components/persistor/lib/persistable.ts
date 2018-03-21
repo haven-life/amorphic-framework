@@ -95,6 +95,7 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         isStale () : any{}
         persist (options) : any{}
         setDirty(txn?, onlyIfChanged?, noCascade?, logger?) : any{}
+        setAsDeleted(txn?, onlyIfChanged?): any{}
         refresh (logger?) : any{};
 
         getTableName () : any {}

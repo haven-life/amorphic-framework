@@ -433,28 +433,36 @@ module.exports = function (PersistObjectTemplate) {
         }
         function addComments(table) {
             return knex(table).columnInfo().then(function (info) {
+                var promises = [];
                 for (var columnName in info) {
-                    var prop = columnNameToProp(columnName);
-                    if (!prop) {
-                        PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, 'Extra column ' + columnName + ' on ' + table);
-                        return commentOn(table, columnName, 'now obsolete');
-                    } else {
-                        if (prop == '_id')
-                            return commentOn(table, columnName, 'primary key');
-                        else if (prop.match(/:/)) {
-                            prop = prop.substr(1);
-                            var fkComment = getForeignKeyDescription(props[prop]);
-                            var commentField = getDescription(prop, props[prop])
-                            var comment = (commentField === '') ?  fkComment : fkComment + ', ' + commentField;
-                            return commentOn(table, columnName, comment);
-                        } else if (prop == '_template')
-                            return commentOn(table, columnName, getClassNames(prop));
-                        else if (prop != '__version__')
-                            return commentOn(table, columnName, getDescription(prop, props[prop]));
+                    var knexCommentPromise = processComment(columnName);
+                    if (!!knexCommentPromise) {
+                        promises.push(knexCommentPromise);
                     }
                 }
+                return Promise.all(promises);
             });
 
+            function processComment(columnName) {
+                var prop = columnNameToProp(columnName);
+                if (!prop) {
+                    PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, 'Extra column ' + columnName + ' on ' + table);
+                    return commentOn(table, columnName, 'now obsolete');
+                } else {
+                    if (prop == '_id')
+                        return commentOn(table, columnName, 'primary key');
+                    else if (prop.match(/:/)) {
+                        prop = prop.substr(1);
+                        var fkComment = getForeignKeyDescription(props[prop]);
+                        var commentField = getDescription(prop, props[prop])
+                        var comment = (commentField === '') ?  fkComment : fkComment + ', ' + commentField;
+                        return commentOn(table, columnName, comment);
+                    } else if (prop == '_template')
+                        return commentOn(table, columnName, getClassNames(prop));
+                    else if (prop != '__version__')
+                        return commentOn(table, columnName, getDescription(prop, props[prop]));
+                }
+            }
             function columnNameToProp(columnName) {
                 if (columnName  == '_id' || columnName == '__version__' || columnName == '_template')
                     return columnName;

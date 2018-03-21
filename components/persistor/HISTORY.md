@@ -1,3 +1,7 @@
+## 2.3.13
+* setAsDeleted is exposed on persistable objects.
+* pegged knex version.
+* Fixed promise issues with adding comment logic.
 ## 2.3.12
 * Including return to make promise calls to wait when adding comments.
 ## 2.3.11
