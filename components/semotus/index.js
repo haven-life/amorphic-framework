@@ -969,7 +969,7 @@ objectTemplate = this.__objectTemplate__;
 
             if (self.controller && self.controller.handleRemoteError) {
                 deferred.promise.originalThen = deferred.promise.then;
-                const handledRejection = false;
+                let handledRejection = false;
 
                 deferred.promise.then = function c(res, rej, not) {
                     if (rej) {

@@ -1,3 +1,5 @@
+## 2.3.10
+* Fixed a `const` inside `_setupFunction` that was being reassigned.
 ## 2.3.9
 * Enabled javascript's strict mode and changed all variable declarations to use let and const.
 ## 2.3.8
@@ -9,7 +11,7 @@
 * if the controller expired in the cache
 ## 2.3.5
 * Further fix (started in 2.3.2) to ensure array references for existing non-transient objects are recorded
-* Fix to avoid accumulating \__referencedObjects\__ for transient objects to avoid serialization errors. 
+* Fix to avoid accumulating \__referencedObjects\__ for transient objects to avoid serialization errors.
 ## 2.3.4
 * Fixed issue where changes received in browser inadvertently turned around to server
 ## 2.3.3
@@ -63,11 +65,11 @@
 ## 0.2.14
 * Delay on return of update conflicts and reduce count to 3.
 ## 0.2.13
-* Ability to prevent overlapping calls when running with amorphic 
+* Ability to prevent overlapping calls when running with amorphic
 ## 0.2.12
 * Added logging of response time and app level extra id info
 ## 0.2.11
-* Added api to flag objects with __changed__ for referenced arrays that changed 
+* Added api to flag objects with __changed__ for referenced arrays that changed
 ## 0.2.09
 * Data sync recovery was allowing two server requests to be processed simaltaneously
 ## 0.2.08
@@ -80,7 +82,7 @@
 ## 0.2.05
 * Don't pass in transaction to setDirty
 ## 0.1.33
-* Temporary removed object stringify comparison on change detection as this is a breaking change that should be 2.x 
+* Temporary removed object stringify comparison on change detection as this is a breaking change that should be 2.x
 ## 0.2.04 (also released as 1.32)
 * Fixed the error handling to permit recovery by client.js
 ## 0.2.03
@@ -118,6 +120,6 @@
 * Support for {toClient: true/false, toServer: true/false, name: template-name} in lieu of name on template.create
 ## 0.1.16
 * Proper handling of boolean null values
-* Proper handling of promises for server calls (could not have chained thens before) 
+* Proper handling of promises for server calls (could not have chained thens before)
 ## 0.1.13
 * Did not handle case of setting an array to [] and then repopulating it with the identical results
