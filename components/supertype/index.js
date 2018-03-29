@@ -1627,7 +1627,6 @@
         }
 
         // Called first time with parameter
-        var props = target;
         return decorator;
 
         // Decorator Workerbee
@@ -1639,9 +1638,8 @@
             target.prototype.amorphicGetClassName = function () {return target.__name__};
             target.isObjectTemplate = true;
             target.__injections__ = [];
-            target.__templateProps__ = props;
             target.__objectTemplate__ = objectTemplate;
-            var createProps = objectTemplate.getTemplateProperties(props || {});
+            var createProps = objectTemplate.getTemplateProperties(target || {});
             target.__toClient__ = createProps.__toClient__;
             target.__toServer__ = createProps.__toServer__;
             target.__shadowChildren__ = [];
