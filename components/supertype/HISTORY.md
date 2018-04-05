@@ -1,3 +1,7 @@
+## 2.2.6
+* Removed unused function _injectIntoObject.
+## 2.2.5
+* Removed unused property __templateProps__.
 ## 2.2.4
 * copyProperties function should be available on Supertype.
 ## 2.2.3

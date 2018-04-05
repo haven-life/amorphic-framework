@@ -529,9 +529,6 @@
                 }
             }
 
-        // Type system level injection
-            objectTemplate._injectIntoObject(this);
-
         // Template level injections
             for (var ix = 0; ix < template.__injections__.length; ++ix) {
                 template.__injections__[ix].call(this, this);
@@ -806,16 +803,6 @@
         }
 
         return false;
-    };
-
-/**
- * Overridden by other Type Systems to inject other elements
- *
- * @param {unknown} _obj - the object to be passed during creation time
- *
- * @private
- */
-    ObjectTemplate._injectIntoObject = function injectIntoObject(_obj) {
     };
 
 /**
@@ -1821,9 +1808,6 @@
 
     // Tell constructor not to execute as this is an empty object
         this.amorphicLeaveEmpty = objectTemplate._stashObject(this, template);
-
-    // Type system level injection
-        objectTemplate._injectIntoObject(this);  // This was used for the modules feature in amorphic (depricated)
 
     // Template level injections that the application may use
         var targetTemplate = template;
