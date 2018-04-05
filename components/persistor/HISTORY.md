@@ -1,3 +1,5 @@
+## 2.3.14
+* removed unused function injectIntoObject
 ## 2.3.13
 * setAsDeleted is exposed on persistable objects.
 * pegged knex version.
@@ -27,7 +29,7 @@
 * Modified changing tracking structure
 * change tracking flag has been moved to the template level.
 * Fixed date and object types comparison issues.
-* Any changes to the transaction object from the change tracking 
+* Any changes to the transaction object from the change tracking
 *   callback will be reprocessed.
 ## 2.3.2
 * New feature to allow private modules to append the schema entries.
@@ -95,9 +97,9 @@
 * (srksag pr) corrections to table sync
 ## 1.0.0-rc.1
 * (srksag pr) index synchronization happens at the table level
-* (srksag pr) DDL changes are part of transaction 
+* (srksag pr) DDL changes are part of transaction
 * Refreshing while passing in a map ignored processing if object being refreshed was in the map
-* Added nojoin as a parameter at the same level as fetch: in cascade fetch specs 
+* Added nojoin as a parameter at the same level as fetch: in cascade fetch specs
 ## 1.0.0-beta-6
 * Fixed serious bug where one-to-one relationships would get nulled out on refresh if the refresh made them point to a different object
 ## 1.0.0-beta-5
@@ -163,7 +165,7 @@
 * More robust boolean handling in Mongo
 * Support for enumurating persistor properties for amorphic
 ## 0.2.56
-* Fixed situation where setting filter types could fail to write out 
+* Fixed situation where setting filter types could fail to write out
 ## 0.2.55
 * Merge schema for subsets
 ## 0.2.54
@@ -197,7 +199,7 @@
 * Automatically index foreign keys
 ## 0.2.35
 * Fixed cascading saves on dirty
-* Fixed subclass properties on query 
+* Fixed subclass properties on query
 * Transaction support in delete
 ## 0.2.34
 * Superclasses now to fetch all columns
@@ -241,7 +243,7 @@
 * Added an isKnex method to template
 * Allow table to override forcing subclasses into parent tables
 ## 0.2.11
-* Fixed cascade save option 
+* Fixed cascade save option
 ## 0.2.09
 * Changed from string to text for column types
 * Allow column to be overridden in sub-class
@@ -290,9 +292,9 @@
   children: and parent: schema properties
 * Added transient parameter to queries for the benefit of semotus
 ## 0.1.56
-* Problem referencing one-to-many of cross-document sub-documents to documents 
+* Problem referencing one-to-many of cross-document sub-documents to documents
 ## 0.1.55
-* Allow query options and querys in .fetch call 
+* Allow query options and querys in .fetch call
 ## 0.1.53
 * Case of cross-document references could lead to two separate objects of the same id
 ## 0.1.52

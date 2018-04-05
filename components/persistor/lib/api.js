@@ -20,11 +20,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * PUBLIC INTERFACE FOR OBJECTS
      */
 
-    PersistObjectTemplate._injectIntoObject = function (object) {
-        // We now inject into the prototype during _injectIntoTemplate
-        baseClassForPersist._injectIntoObject(object);
-    }
-
     PersistObjectTemplate.getPersistorProps = function () {
         var persistorProps = {};
         _.each(PersistObjectTemplate.__dictionary__, processTemplate);
