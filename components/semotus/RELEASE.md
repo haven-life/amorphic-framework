@@ -1,3 +1,5 @@
+## 2.3.11
+* removed unused function `injectIntoObject` and added a `package-lock.json`
 ## 2.3.10
 * Fixed a `const` inside `_setupFunction` that was being reassigned.
 ## 2.3.9

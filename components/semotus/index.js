@@ -919,10 +919,6 @@ RemoteObjectTemplate.sessionize = function(obj, referencingObj) {
     return obj;
 };
 
-RemoteObjectTemplate._injectIntoObject = function injectIntoObject(obj) {
-    ObjectTemplate._injectIntoObject(obj);
-};
-
 RemoteObjectTemplate._injectIntoTemplate = function injectIntoTemplate(template) {
     ObjectTemplate._injectIntoTemplate(template);
 };
