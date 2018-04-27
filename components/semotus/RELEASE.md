@@ -1,3 +1,5 @@
+## 2.3.12
+* Support toClient and toServer filters on the properties
 ## 2.3.11
 * removed unused function `injectIntoObject` and added a `package-lock.json`
 ## 2.3.10

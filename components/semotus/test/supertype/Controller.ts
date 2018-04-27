@@ -1,19 +1,18 @@
 import {Supertype, supertypeClass, property, remote} from '../../index';
+var ObjectTemplate  = require('../../index.js');
+ObjectTemplate['toClientRuleSet'] = ['ClientRule'];
+ObjectTemplate['toServerRuleSet'] = ['ServerRule'];
 
 @supertypeClass({toClient: false, toServer: true})
 class Dummy {};
 
 import {Customer} from "./Customer";
 import {Account} from "./Account";
-import Promise = require('bluebird');
 import {Address} from "./Address";
 declare function require(name:string);
-var ObjectTemplate  = require('../../index.js');
-
-
 import { expect } from 'chai';
-expect(Dummy['__toClient__']).to.equal(false);
-expect(Dummy['__toServer__']).to.equal(true);
+//expect(Dummy['__toClient__']).to.equal(false);//
+//expect(Dummy['__toServer__']).to.equal(true);
 
 
 @supertypeClass
@@ -45,6 +44,40 @@ export class Controller extends Supertype {
 
     @remote({of: Customer})
     decoratedMultiple () {}
+
+
+    @property({toClient: false})
+    onClientFalse: boolean = false;
+
+    @property({toClient: true})
+    onClientTrue: boolean = false;
+
+    @property({toClient: ['NoClientRule']})
+    onClientNotRightApp: boolean = false;
+
+    @property({toClient: ['ClientRule']})
+    onClientWithApp: boolean = false;
+
+    @property({toServer: false})
+    onServerFalse: boolean = false;
+
+    @property({toServer: true})
+    onServerTrue: boolean = false;
+
+    @property({toServer: ['NoServerRule']})
+    onServerNotRightApp: boolean = false;
+
+    @property({toClient: ['ServerRule']})
+    onServerWithApp: boolean = false;
+
+    setAllClientRuleCheckFalgsonServer () {
+        this.onClientFalse = this.onClientTrue = this.onClientNotRightApp = this.onClientWithApp =  true;
+    }
+
+    setAllServerRuleCheckFalgsonClient () {
+        this.onServerFalse = this.onServerTrue = this.onServerNotRightApp = this.onServerWithApp =  true;
+    }
+
 
     constructor () {
         super()

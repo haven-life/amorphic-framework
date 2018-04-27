@@ -2639,6 +2639,8 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 
     this.property = function (props) {
         props = props || {};
+        props.toClient = applyRuleSet(props.toClient, this.toClientRuleSet);
+        props.toServer = applyRuleSet(props.toServer, this.toServerRuleSet);
         const baseDecorator = ObjectTemplate.property(props, objectTemplate);
         return function (target, targetKey) {
             baseDecorator(target, targetKey);
@@ -2668,6 +2670,15 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
         };
     };
 };
+
+function applyRuleSet(prop, ruleSet) {
+    if (prop instanceof Array && ruleSet instanceof Array && ruleSet.length > 0) {
+        return prop.some(r=> ruleSet.indexOf(r) >= 0);
+    }
+    else {
+        return prop;
+    }
+}
 
 // These two mixins and extender functions are needed because in the browser we only include supertype and semotus
 // and since classes use these in their extends hierarchy they must be defined.

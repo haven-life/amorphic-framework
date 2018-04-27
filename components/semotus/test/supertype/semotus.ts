@@ -246,5 +246,35 @@ describe("Typescript Banking Example", function () {
         });
     });
 
+    it("check onclient rules", function (done) {
+        RemoteObjectTemplate.serverAssert = function () {
+            serverController.setAllClientRuleCheckFalgsonServer();
+        }
+        clientController.mainFunc().then(function () {
+            expect(clientController.onClientFalse).to.equal(false);
+            expect(clientController.onClientTrue).to.equal(true);
+            expect(clientController.onClientNotRightApp).to.equal(false);
+            expect(clientController.onClientWithApp).to.equal(true);
+            done();
+        }).fail(function(e) {
+            done(e)
+        });
+    });
+
+    it("check onserver rules", function (done) {
+        clientController.setAllServerRuleCheckFalgsonClient();
+
+        RemoteObjectTemplate.serverAssert = function () {
+            expect(serverController.onServerFalse).to.equal(false);
+            expect(serverController.onServerTrue).to.equal(true);
+            expect(serverController.onServerNotRightApp).to.equal(false);
+            expect(serverController.onServerWithApp).to.equal(true);
+            done();
+
+        };
+
+        clientController.mainFunc();
+
+    });
 
 });

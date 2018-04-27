@@ -2,7 +2,7 @@
     "name": "semotus",
     "description": "A subclass of supertype that synchronizes sets of objects.",
     "homepage": "https://github.com/selsamman/semotus",
-    "version": "2.3.11",
+    "version": "2.3.12",
     "dependencies": {
         "q": "1.x",
         "supertype": "2.2.*"
@@ -25,7 +25,7 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "test": "istanbul cover _mocha -- test/* -R spec",
+        "test": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
         "compile": "node ./node_modules/typescript/bin/tsc"
     },
     "directories": {},
