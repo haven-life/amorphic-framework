@@ -1602,18 +1602,25 @@
 
     ObjectTemplate.init();
 
-    ObjectTemplate.supertypeClass = function (target, objectTemplate) {
+    /**
+     * 
+     * @param {*} objectProps- optional property for passing params into supertypeclass, if no params, is undefined,
+     *                      first param of this function defaults to objectTemplate instead
+     * @param {*} objectTemplate 
+     */
+    ObjectTemplate.supertypeClass = function (objectProps, objectTemplate) {
 
         // When used as @supertypeClass({bla bla bla}), the decorator is first called as it is
         // is being passed into the decorator processor and so it needs to return a function
         // so that it will be called again when the decorators are actually processed.  Kinda spliffy.
 
         // Called by decorator processor
-        if (target.prototype) {
-            return decorator(target);
+        if (objectProps.prototype) {
+            return decorator(objectProps);
         }
 
         // Called first time with parameter
+        var props = objectProps;
         return decorator;
 
         // Decorator Workerbee
@@ -1626,7 +1633,7 @@
             target.isObjectTemplate = true;
             target.__injections__ = [];
             target.__objectTemplate__ = objectTemplate;
-            var createProps = objectTemplate.getTemplateProperties(target || {});
+            var createProps = objectTemplate.getTemplateProperties(props || {});
             target.__toClient__ = createProps.__toClient__;
             target.__toServer__ = createProps.__toServer__;
             target.__shadowChildren__ = [];

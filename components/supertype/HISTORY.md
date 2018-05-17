@@ -1,3 +1,5 @@
+## 2.2.7
+* Reverted cleanup for @supertypeClass({}) in index.js
 ## 2.2.6
 * Removed unused function _injectIntoObject.
 ## 2.2.5
