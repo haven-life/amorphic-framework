@@ -45,7 +45,8 @@
     "test:config": "mocha test/config",
     "test:example": "mocha test/example",
     "test-d": "istanbul cover _mocha -- test/daemon/* -R spec",
-    "test-da": "istanbul cover _mocha -- test/daemon_auto/* -R spec"
+    "test-da": "istanbul cover _mocha -- test/daemon_auto/* -R spec",
+    "test:ts": "mocha -r ts-node/register typescript_tests/unittest.ts"
   },
   "directories": {},
   "engines": {

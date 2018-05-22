@@ -1,5 +1,5 @@
 {
-  "dbName" : "ticket_unit_test",
+  "dbName" : "test",
   "dbDriver" : "knex",
   "dbType" : "pg",
   "dbPath": "127.0.0.1",
