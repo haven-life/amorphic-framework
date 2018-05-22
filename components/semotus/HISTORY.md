@@ -1,3 +1,5 @@
+## 2.3.13
+* IE11 does not support for.. in loops with `const` or `let`. Changed those for loops to `var`.
 ## 2.3.12
 * Support toClient and toServer filters on the properties
 ## 2.3.11
