@@ -10,7 +10,7 @@
         "chai": "*",
         "eslint": "3.7.x",
         "istanbul": "0.4.5",
-        "mocha": "^3.1.2",
+        "mocha": "5.2.0",
         "sinon": "1.15.x",
         "q": "1.x",
         "@types/chai": "^3.4.34",
@@ -21,10 +21,11 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "test": "istanbul cover _mocha -- test/* -R spec",
+        "test": "mocha test/*",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
-        "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/typescript/animals.ts"
+        "test:typescript": "mocha --compilers ts:ts-node/register test/typescript/animals.ts",
+        "compile": "tsc"
     },
     "directories": {},
     "engines": {
