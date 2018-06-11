@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.10.0
+
+      - image: circleci/mongo:latest
+
+      - image: circleci/postgres:latest
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run:
+          name: npm-install
+          command: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run:
+          name: compile
+          command: npm run compile
+
+      # run tests!
+      - run:
+          name: test
+          command: npm test
+
+      # run typescript tests!
+      - run:
+          name: typescript test
+          command: npm run test:compiled:js

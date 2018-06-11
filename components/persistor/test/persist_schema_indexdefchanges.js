@@ -193,7 +193,7 @@ describe('index synchronization checks', function () {
         client: 'pg',
         connection: {
             host: '127.0.0.1',
-            database: 'persistor_banking',
+            database: 'test',
             user: 'postgres',
             password: 'postgres'
         }

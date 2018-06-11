@@ -41,10 +41,13 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "test": "istanbul cover _mocha -- test/* -R spec",
+        "coverage": "istanbul cover _mocha -- test/* -R spec",
+        "test": "mocha test/*.js",
+        "test:compiled:js": "mocha test/supertype/persist_banking_pgsql.js",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
-        "test:typescript": "mocha --compilers ts:ts-node/register,tsx:ts-node/register test/supertype/one-to-many-checks.ts"
+        "test:ts": "mocha --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts",
+        "compile": "tsc"
     },
     "bugs": {
         "url": "http://github.com/selsamman/persistor/issues"
