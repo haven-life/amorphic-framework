@@ -1,5 +1,4 @@
 var expect = require('chai').expect;
-var request = require('request');
 var axios = require('axios');
 var path = require('path');
 

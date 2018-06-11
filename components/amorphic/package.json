@@ -27,7 +27,7 @@
     "istanbul": "0.4.5",
     "mocha": "4.0.1",
     "mock-fs": "4.4.1",
-    "request": "2.83.0",
+    "request": "2.87.0",
     "sinon": "4.0.1",
     "xmlhttprequest-cookie": "0.9.4",
     "@types/chai": "4.0.4",
@@ -40,6 +40,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "istanbul cover _mocha -- test/* -R spec",
+    "test:docker": "docker-compose up --build",
     "test:trace": "mocha test/*",
     "test:debug": "mocha --debug-brk test/*",
     "test:config": "mocha test/config",
