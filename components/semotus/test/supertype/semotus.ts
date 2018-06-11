@@ -29,7 +29,7 @@ ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
 import { expect } from 'chai';
 import * as mocha from 'mocha';
-import * as Q from 'Q';
+import * as Q from 'q';
 
 function sendToServer(message) {
     ServerObjectTemplate.processMessage(message);
