@@ -17,7 +17,7 @@
         "chai": "3.x",
         "chai-as-promised": "^5.1.0",
         "istanbul": "0.4.5",
-        "mocha": "^3.1.2",
+        "mocha": "5.2.0",
         "sinon": "1.15.x",
         "sinon-chai": "2.8.x",
         "mock-fs": "3.6.x",
