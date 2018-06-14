@@ -1,6 +1,10 @@
-# superType
-## Purpose
-superType is a type system for javascript that supports
+[![CircleCI](https://circleci.com/gh/haven-life/supertype.svg?style=shield)](https://circleci.com/gh/haven-life/supertype)
+[![npm version](https://badge.fury.io/js/supertype.svg)](https://badge.fury.io/js/supertype)
+
+# SuperType
+## Description
+
+SuperType is a type system for JavaScript that supports:
 
 - Classical inheritence
 
@@ -9,11 +13,12 @@ superType is a type system for javascript that supports
 - Composition including collections
 
 ## Installation
-Include lib/index.js for use in the browser.  Install on node via  npm:
+Include `lib/index.js` for use in the browser.  Install on node via npm:
 
     npm install supertype
 
-It is automatically installed as a dependency for Amorphic
+It is automatically installed as a dependency for [Amorphic](https://github.com/haven-life/amorphic)
+
 ## Example
 Classes are defined as "templates".
 
@@ -58,7 +63,7 @@ Classes are defined as "templates".
         ark:    {type: Ark}
     });
 
-You create objects using new
+You create objects using `new`:
 
     var ark1 = new Ark();
     ark1.board(new Lion());
@@ -69,8 +74,7 @@ You create objects using new
     ark2.board(new Bear());
 
 
-Because superType knows about the interrelationships between your objects you can serialize and de-serialize even though you have circular references
-
+Because SuperType knows about the interrelationships between your objects you can serialize and de-serialize even though you have circular references:
 
     var serialArk1 = ark1.toJSONString();
     var serialArk2 = ark2.toJSONString();
@@ -79,7 +83,4 @@ Because superType knows about the interrelationships between your objects you ca
 
 ## License
 
-superType is licensed under the MIT license
-
-
-
+SuperType is licensed under the MIT license
