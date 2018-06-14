@@ -1,12 +1,16 @@
-# semotus
-## Purpose
-semotus is a subtype of supertype that synchronizes a set of objects,
+[![CircleCI](https://circleci.com/gh/haven-life/semotus.svg?style=shield)](https://circleci.com/gh/haven-life/semotus)
+[![npm version](https://badge.fury.io/js/semotus.svg)](https://badge.fury.io/js/semotus)
+
+# Semotus
+## Description
+
+Semotus is a subtype of [Supertype](https://github.com/haven-life/supertype) that synchronizes a set of objects,
 tracking changes and updating the other set when method calls
-are made across sets.  It is installed as part of Amorphic.
+are made across sets.  It is installed as part of [Amorphic](https://github.com/haven-life/amorphic).
 
 ## License
 
-superType is licensed under the MIT license
+Semotus is licensed under the MIT license
 
 
 
