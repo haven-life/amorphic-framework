@@ -1,14 +1,19 @@
-## Purpose
+[![CircleCI](https://circleci.com/gh/haven-life/persistor.svg?style=shield)](https://circleci.com/gh/haven-life/persistor)
+[![npm version](https://badge.fury.io/js/persistor.svg)](https://badge.fury.io/js/persistor)
 
-peristor is a subclass of superType that serializes to and reconstitutes from mongoDB
+# Persistor
+
+## Description
+
+Persistor is a subclass of [SuperType](https://github.com/haven-life/supertype) that serializes to and reconstitutes from mongoDB or PostgreSQL.
 
 ## Installation
 
-It is automatically installed with Amorphic
+It is automatically installed with [Amorphic](https://github.com/haven-life/amorphic)
 
 ## Example
 
-First create some object templates (many-to-many example) 
+First create some object templates (many-to-many example):
 
     var ObjectTemplate = require('supertype');
     var PersistObjectTemplate = require('persistor')(ObjectTemplate, null, ObjectTemplate);
@@ -127,7 +132,4 @@ The account object connected to the fetched role is also automatically when a ro
 
 ## License
 
-superType is licensed under the MIT license
-
-
-
+Persistor is licensed under the MIT license
