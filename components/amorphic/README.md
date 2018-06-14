@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/haven-life/amorphic.svg?style=shield)](https://circleci.com/gh/haven-life/amorphic)
+[![npm version](https://badge.fury.io/js/amorphic.svg)](https://badge.fury.io/js/amorphic)
+
 # Amorphic
 
 ## Description
