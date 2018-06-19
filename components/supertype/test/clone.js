@@ -1,5 +1,4 @@
 var expect = require('chai').expect;
-var Q = require('q');
 var ObjectTemplate = require('../index.js');
 
 var Main = ObjectTemplate.create('Main', {

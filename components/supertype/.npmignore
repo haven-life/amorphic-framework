@@ -1,6 +1,9 @@
-/test
+test
 coverage
+dist
+.circleci
 .eslintignore
 .eslintrc.js
+.gitignore
+HISTORY.md
 tsconfig.json
-

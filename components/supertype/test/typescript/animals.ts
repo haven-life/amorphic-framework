@@ -108,7 +108,7 @@ describe('Freeze Dried Arks', function () {
         var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
         
-        var ark : Ark = new Ark();
+        let ark: Ark = new Ark();
 
         ark.amorphic.logger.sendToLog = function sendToLog(level, obj) {
             var str = ark.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');

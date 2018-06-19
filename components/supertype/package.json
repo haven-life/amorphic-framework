@@ -1,7 +1,7 @@
 {
     "name": "supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "homepage": "https://github.com/selsamman/supertype",
+    "homepage": "https://github.com/haven-life/supertype",
     "version": "2.2.7",
     "dependencies": {
         "reflect-metadata": "^0.1.9"
@@ -11,8 +11,6 @@
         "eslint": "3.7.x",
         "istanbul": "0.4.5",
         "mocha": "5.2.0",
-        "sinon": "1.15.x",
-        "q": "1.x",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
         "@types/node": "^7.0.5",
@@ -20,12 +18,13 @@
         "ts-node": "*"
     },
     "scripts": {
+        "clean": "rm -rf dist",
         "lint": "eslint .",
-        "test": "mocha test/*",
+        "test": "mocha test/**/*.js dist/test/**/*.js",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
         "test:typescript": "mocha --compilers ts:ts-node/register test/typescript/animals.ts",
-        "compile": "tsc"
+        "compile": "tsc && cp index.js dist/"
     },
     "directories": {},
     "engines": {
@@ -33,10 +32,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/selsamman/supertype.git"
+        "url": "git://github.com/haven-life/supertype.git"
     },
     "bugs": {
-        "url": "http://github.com/selsamman/supertype/issues"
+        "url": "http://github.com/haven-life/supertype/issues"
     },
     "optionalDependencies": {}
 }
