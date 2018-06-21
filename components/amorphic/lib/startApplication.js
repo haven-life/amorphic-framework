@@ -5,7 +5,6 @@ let AmorphicContext = require('./AmorphicContext');
 let logMessage = require('./utils/logger').logMessage;
 let readFile = require('./utils/readFile').readFile;
 let getTemplates = require('./getTemplates').getTemplates;
-let typescript = require('./typescript');
 
 // Npm modules
 let Bluebird = require('bluebird');

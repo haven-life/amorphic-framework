@@ -1,10 +1,7 @@
 'use strict';
 
-// Internal modules
-let AmorphicContext = require('./AmorphicContext');
 let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
 let ConfigApi = require('./utils/configBuilder').ConfigAPI;
-let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;
 
@@ -31,8 +28,6 @@ function startup(configPath, schemaPath) {
     config.configStore = configStore;
 
     let schema = JSON.parse((readFile(schemaPath + '/schema.json')).toString());
-
-    logMessage(JSON.stringify(configStore.root.get()));
 
     return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema)
         .then (function a(injectObjectTemplate) {

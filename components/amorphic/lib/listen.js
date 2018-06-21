@@ -10,8 +10,6 @@ let startApplication = require('./startApplication').startApplication;
 let startUpServer = require('./startUpServer').startUpServer;
 let session = require('express-session');
 
-// Npm modules
-let connect = require('connect');
 let Bluebird = require('bluebird');
 
 /**
