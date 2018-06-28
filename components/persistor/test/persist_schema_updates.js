@@ -153,27 +153,26 @@ var schema = {
     }
 }
 
-
+var knexInit = require('knex');
+var knex;
 var schemaTable = 'index_schema_history';
 
 describe('schema update checks', function () {
-    var knex = require('knex')({
-        client: 'pg',
-        connection: {
-            host: '127.0.0.1',
-            database: 'test',
-            user: 'postgres',
-            password: 'postgres'
-        }
-    });
-
     before('arrange', function (done) {
-        (function () {
+        knex = knexInit({
+            client: 'pg',
+            connection: {
+                host: process.env.dbPath,
+                database: process.env.dbName,
+                user: process.env.dbUser,
+                password: process.env.dbPassword,
+            }
+        });
 
-            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
-            PersistObjectTemplate.setSchema(schema);
-            PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-        })();
+        PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
+        PersistObjectTemplate.setSchema(schema);
+        PersistObjectTemplate.performInjections(); // Normally done by getTemplates
+
         return Promise.all([
             knex.schema.dropTableIfExists('NewTable'),
             knex.schema.dropTableIfExists('employee'),
@@ -360,19 +359,12 @@ describe('schema update checks', function () {
         return boolData.persistSave().should.eventually.equal(boolData._id);
     });
 
-    it('save employee individually...', function (done) {
+    it('save employee individually...', function () {
         var validEmployee = new Employee('1111', 'New Employee');
-        try {
-            validEmployee.persistSave().then(function (id) {
-                expect(id.length).to.equal(24);
-                expect(validEmployee._id).to.equal(id);
-                done();
-            });
-        }
-        catch (e) {
-            expect(e).to.equal(null);
-            done(e);
-        }
+        return validEmployee.persistSave().then(function (id) {
+            expect(id.length).to.equal(24);
+            expect(validEmployee._id).to.equal(id);
+        });
     });
 
     it('should throw exception for non numeric ids', function () {

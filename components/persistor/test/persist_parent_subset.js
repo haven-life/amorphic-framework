@@ -11,15 +11,8 @@ chai.use(chaiAsPromised);
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 var Promise = require('bluebird');
-var knex = require('knex')({
-    client: 'pg',
-    connection: {
-        host: '127.0.0.1',
-        database: 'test',
-        user: 'postgres',
-        password: 'postgres'
-    }
-});
+var knexInit = require('knex');
+var knex;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
@@ -27,6 +20,15 @@ var schemaTable = 'index_schema_history';
 
 describe('persistor transaction checks', function () {
     before('arrange', function (done) {
+        knex = knexInit({
+            client: 'pg',
+            connection: {
+                host: process.env.dbPath,
+                database: process.env.dbName,
+                user: process.env.dbUser,
+                password: process.env.dbPassword,
+            }
+        });
         (function () {
             PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);

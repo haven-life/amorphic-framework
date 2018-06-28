@@ -186,41 +186,46 @@ var schema = {
         ]
     }
 }
-
+var knexInit = require('knex');
+var knex;
 var schemaTable = 'index_schema_history';
 describe('index synchronization checks', function () {
-    var knex = require('knex')({
-        client: 'pg',
-        connection: {
-            host: '127.0.0.1',
-            database: 'test',
-            user: 'postgres',
-            password: 'postgres'
-        }
-    });
-    var checkKeyExistsInSchema = function(key) {
-        return knex(schemaTable)
-            .select('schema')
-            .orderBy('sequence_id', 'desc')
-            .limit(1)
-            .then(function (records) {
-                if (!records[0]) return false;
-                var pattern = new RegExp(key);
-                return !!records[0].schema.match(pattern);
-            })
-    };
-    var getIndexes = function(key) {
-        return knex(schemaTable)
-            .select('schema')
-            .orderBy('sequence_id', 'desc')
-            .limit(1)
-            .then(function (records) {
-                if (!records[0]) return [];
-                return JSON.parse(records[0].schema)[key].indexes;
-            })
-    };
+    var checkKeyExistsInSchema;
+    var getIndexes;
 
     before('arrange', function (done) {
+        knex = knexInit({
+            client: 'pg',
+            connection: {
+                host: process.env.dbPath,
+                database: process.env.dbName,
+                user: process.env.dbUser,
+                password: process.env.dbPassword,
+            }
+        });
+
+        checkKeyExistsInSchema = function(key) {
+            return knex(schemaTable)
+                .select('schema')
+                .orderBy('sequence_id', 'desc')
+                .limit(1)
+                .then(function (records) {
+                    if (!records[0]) return false;
+                    var pattern = new RegExp(key);
+                    return !!records[0].schema.match(pattern);
+                })
+        };
+
+        getIndexes = function(key) {
+            return knex(schemaTable)
+                .select('schema')
+                .orderBy('sequence_id', 'desc')
+                .limit(1)
+                .then(function (records) {
+                    if (!records[0]) return [];
+                    return JSON.parse(records[0].schema)[key].indexes;
+                })
+        };
 
         (function () {
             PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');

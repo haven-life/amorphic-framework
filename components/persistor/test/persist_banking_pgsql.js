@@ -11,11 +11,12 @@ var _ = require('underscore');
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
+var logLevel = process.env.logLevel || 'debug';
 
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
-PersistObjectTemplate.logger.setLevel('debug');
+PersistObjectTemplate.logger.setLevel(logLevel);
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {
@@ -315,12 +316,11 @@ describe('Banking from pgsql Example', function () {
             .then(function () {
                 knex = require('knex')({
                     client: 'pg',
-                    debug: true,
                     connection: {
-                        host     : '127.0.0.1',
-                        database : 'test',
-                        user: 'postgres',
-                        password: 'postgres'
+                        host: process.env.dbPath,
+                        database: process.env.dbName,
+                        user: process.env.dbUser,
+                        password: process.env.dbPassword,
 
                     }
                 });

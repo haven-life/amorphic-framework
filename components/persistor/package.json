@@ -1,7 +1,7 @@
 {
     "name": "persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
-    "homepage": "https://github.com/selsamman/persistor",
+    "homepage": "https://github.com/haven-life/persistor",
     "version": "2.3.14",
     "dependencies": {
         "q": "1.x",
@@ -37,20 +37,23 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/selsamman/persistor.git"
+        "url": "git://github.com/haven-life/persistor.git"
     },
     "scripts": {
         "lint": "eslint .",
-        "coverage": "istanbul cover _mocha -- test/* -R spec",
-        "test": "mocha test/*.js",
+        "coverage": "istanbul cover mocha --exit -- test/* -R spec",
+        "test": "istanbul cover _mocha -- test/* -R spec",
+        "test:debug": "mocha test/**/*.js --inspect-brk=0.0.0.0:5858",
+        "test:docker": "docker-compose up --build",
+        "test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",
         "test:compiled:js": "mocha test/supertype/persist_banking_pgsql.js",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
         "test:ts": "mocha --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts",
-        "compile": "tsc"
+        "compile": "tsc && cp index.js dist/ && cp -R lib dist/"
     },
     "bugs": {
-        "url": "http://github.com/selsamman/persistor/issues"
+        "url": "http://github.com/haven-life/persistor/issues"
     },
     "optionalDependencies": {}
 }

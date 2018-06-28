@@ -8,15 +8,8 @@ chai.use(chaiAsPromised);
 
 var Promise = require('bluebird');
 
-var knex = require('knex')({
-    client: 'pg',
-    connection: {
-        host: '127.0.0.1',
-        database: 'test',
-        user: 'postgres',
-        password: 'postgres'
-    }
-});
+var knexInit = require('knex');
+var knex;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
@@ -25,6 +18,15 @@ var PersistObjectTemplate, ObjectTemplate;
 
 describe('persistor transaction checks', function () {
     before('drop schema table once per test suit', function() {
+        knex = knexInit({
+            client: 'pg',
+            connection: {
+                host: process.env.dbPath,
+                database: process.env.dbName,
+                user: process.env.dbUser,
+                password: process.env.dbPassword,
+            }
+        });
         return Promise.all([knex.schema.dropTableIfExists('tx_person'),
             knex.schema.dropTableIfExists(schemaTable)]);
     })

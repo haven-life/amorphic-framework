@@ -117,11 +117,10 @@ describe('Banking from pgsql Example', function () {
         knex =  persistor.connect({
                     client: 'pg',
                     connection: {
-                        host     : '127.0.0.1',
-                        database : 'test',
-                        user: 'postgres',
-                        password: 'postgres'
-
+                        host: process.env.dbPath,
+                        database: process.env.dbName,
+                        user: process.env.dbUser,
+                        password: process.env.dbPassword
                     }
                 },schema);
     });

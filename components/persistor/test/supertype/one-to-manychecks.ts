@@ -2,10 +2,11 @@
 declare function require(name:string);
 var ObjectTemplate = require('supertype');
 var PersistObjectTemplate = require('../../index.js')(ObjectTemplate, null, ObjectTemplate);
+var logLevel = process.env.logLevel || 'debug';
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
-PersistObjectTemplate.logger.setLevel('debug');
+PersistObjectTemplate.logger.setLevel(logLevel);
 
 
 import { expect } from 'chai';
@@ -42,11 +43,10 @@ describe('Banking from pgsql Example', function () {
                     client: 'pg',
                     debug: true,
                     connection: {
-                        host: '127.0.0.1',
-                        database: 'test',
-                        user: 'postgres',
-                        password: 'postgres'
-
+                        host: process.env.dbPath,
+                        database: process.env.dbName,
+                        user: process.env.dbUser,
+                        password: process.env.dbPassword
                     }
                 });
 

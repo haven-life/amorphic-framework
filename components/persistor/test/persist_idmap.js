@@ -34,7 +34,7 @@ function clearCollection(collectionName) {
 describe('IdMap checks', function () {
 
     before('opens the database for idmap checks', function () {
-        return MongoClient.connect('mongodb://localhost:27017/testpersist').then(function (dbopen) {
+        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (dbopen) {
             db = dbopen;
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
@@ -51,6 +51,9 @@ describe('IdMap checks', function () {
         });
     });
 
+    after('close db connection', function(){
+        return db.close();
+    });
 
     it('checking flags..', function() {
         var cust = new Customer();

@@ -1,6 +1,8 @@
-/test
+test
+.vscode
 coverage
 .eslintignore
 .eslintrc.js
 tsconfig.json
-
+wait-for-it.sh
+dist

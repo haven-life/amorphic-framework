@@ -3,6 +3,12 @@ jobs:
   build:
     docker:
       - image: circleci/node:8.10.0
+        environment:
+          port: 3001
+          dbUser: postgres
+          dbName: test
+          mongoHost: localhost
+          logLevel: info
 
       - image: circleci/mongo:latest
 
@@ -39,6 +45,6 @@ jobs:
           command: npm test
 
       # run typescript tests!
-      - run:
-          name: typescript test
-          command: npm run test:compiled:js
+      # - run:
+      #     name: typescript test
+      #     command: npm run test:compiled:js

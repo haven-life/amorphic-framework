@@ -1,0 +1,32 @@
+version: '2'
+services:
+  database-test:
+    image: postgres:9.4-alpine
+    ports:
+      - 5432
+    environment:
+      - POSTGRES_USER=persistor
+      - POSTGRES_PASSWORD=persistor
+      - POSTGRES_DB=test
+# uncomment to save data between tests
+#    volumes:
+#      - ./.postgres:/var/lib/postgresql/data
+  mongo:
+    image: mongo:3.4
+    ports:
+      - 27017
+# uncomment to save data between tests
+#    volumes:
+#      - ./.mongo:/data/db
+  persistor-test:
+    build:
+      context: .
+    ports:
+      - '5858:5858'
+    depends_on:
+      - mongo
+      - database-test
+    env_file:
+      - ./test.env
+    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test:debug    
+ 
