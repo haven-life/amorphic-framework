@@ -1,6 +1,7 @@
+## 2.4.11
+* Added better error logging for config params that are required for amorphic to start.
 ## 2.4.10
 * Pruning unused require's and removing logging of configs during unit tests
-
 ## 2.4.9
 * Added clientInit.js to allow to remove the dependency for Bindster in Amorphic. See the pull request notes for more details (https://github.com/selsamman/amorphic/pull/55).
 ## 2.4.8

@@ -1,6 +1,7 @@
 'use strict';
 
 let AmorphicContext = require('./AmorphicContext');
+let chalk = require('chalk');
 
 // TODO: Audit where these get used.
 /**
@@ -19,13 +20,21 @@ function buildStartUpParams(configStore) {
     amorphicOptions.sessionExpiration = rootCfg.get('sessionSeconds') * 1000;
     amorphicOptions.objectCacheExpiration = rootCfg.get('objectCacheSeconds') * 1000;
     amorphicOptions.appList = rootCfg.get('applications');
+
+    if (!rootCfg.get('application')) {
+        console.error(chalk.red('FATAL you did not define an application in your config.json file.'));
+    }
+
     amorphicOptions.appStartList = rootCfg.get('application').split(';');
     amorphicOptions.mainApp = amorphicOptions.appStartList[0];
     amorphicOptions.port = rootCfg.get('port');
 
-    for (let i; i < amorphicOptions.length; i++) {
+    if (!amorphicOptions.appList) {
+        console.error(chalk.red('FATAL you did not define an applications list in your config.json file.'));
+    }
+    for (let i = 0; i < amorphicOptions.appStartList.length; i++) {
         if (!amorphicOptions.appList[amorphicOptions.appStartList[i]]) {
-            console.error(`FATAL your application: ${amorphicOptions.appStartList[i]} is not in the applications list in your root config.`);
+            console.error(chalk.red('FATAL your application: %s is not in the applications list in your root config.'), amorphicOptions.appStartList[i]);
         }
     }
 
