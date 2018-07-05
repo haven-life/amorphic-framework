@@ -51,7 +51,7 @@ describe('IdMap checks', function () {
         });
     });
 
-    after('close db connection', function(){
+    after('close db connection', function() {
         return db.close();
     });
 

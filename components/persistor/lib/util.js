@@ -290,8 +290,6 @@ module.exports = function (PersistObjectTemplate) {
                         return keyTemplate || isFetchKeyInDefineProperties(key, child)
                     }, null);
                 }
-
-                return null;
             }
         }
 

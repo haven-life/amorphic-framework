@@ -39,6 +39,10 @@ jobs:
           name: compile
           command: npm run compile
 
+      - run:
+          name: lint
+          command: npm run lint
+
       # run tests!
       - run:
           name: test

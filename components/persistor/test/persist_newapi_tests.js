@@ -153,11 +153,7 @@ describe('persistor transaction checks', function () {
 
             function createRecords() {
                 var tx =  PersistObjectTemplate.beginDefaultTransaction();
-                var notifyPropertyChangedCallback = function(changes) {
-                    if (!changes) {
-                        throw Error('Not notifying changes for the new records..');
-                    }
-                };
+
                 return emp.persist({transaction: tx, cascade: false}).then(function() {
                     return PersistObjectTemplate.commit({transaction: tx, notifyChanges: true}).then(function() {
                         empId = emp._id;
@@ -322,13 +318,6 @@ describe('persistor transaction checks', function () {
 
         var tx =  PersistObjectTemplate.beginDefaultTransaction();
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
-            var notifyPropertyChangedCallback = function(changes) {
-                expect(Object.keys(changes)).to.contain('Address');
-                expect(Object.keys(changes.Address[0])).to.contain('primaryKey');
-                expect(Object.keys(changes.Address[0])).to.contain('properties');
-                expect(Object.keys(changes.Address[0])).to.contain('table');
-            };
-
             return PersistObjectTemplate.commit().then(function() {
                 return Address.countFromPersistWithQuery().then(function(count) {
                     expect(count).to.equal(2);

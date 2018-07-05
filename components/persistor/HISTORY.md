@@ -1,3 +1,5 @@
+## 2.3.15
+* clean up various files based on eslint rules
 ## 2.3.14
 * removed unused function injectIntoObject
 ## 2.3.13

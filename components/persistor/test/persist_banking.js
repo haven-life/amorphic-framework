@@ -242,7 +242,7 @@ function clearCollection(collectionName) {
 }
 
 describe('Banking Example', function () {
-    after('close db connection', function(){
+    after('close db connection', function() {
         return db.close();
     });
     it ('opens the database', function () {

@@ -32,7 +32,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} enableChangeTracking callback to get the change details
      * @returns {*}
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, order, establishedObject, isRefresh, logger, enableChangeTracking)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking)
     {
 
         var topLevel = !requests;
@@ -73,7 +73,7 @@ module.exports = function (PersistObjectTemplate) {
                     });
             }
         }
-        var options = order || {}
+        options = options || {}
         if (skip)
             options.offset = skip;
         if (limit)

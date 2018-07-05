@@ -123,12 +123,12 @@ module.exports = function (PersistObjectTemplate) {
                 var propType;
 
                 if (parentTemplate && parentTemplate.type) {
-                    var propType = parentTemplate.type === Array ? parentTemplate.of : parentTemplate.type;
+                    propType = parentTemplate.type === Array ? parentTemplate.of : parentTemplate.type;
                     if (!propType.__name__) {
                         throw new Error('getType attribute is missing for ' + prop + ' in ' + template.name);
                     }
                 }
-                
+
                 var parentSchema = (parentTemplate && parentTemplate.type && this.__dictionary__[propType.__name__]) ? this.__dictionary__[propType.__name__].__schema__ : null;
                 var isOTM = (parentSchema && parentSchema.children) ?
                     !!_.find(parentSchema.children, function(child) { return child.id == val.id}) : false;
