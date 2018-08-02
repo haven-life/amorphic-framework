@@ -113,7 +113,7 @@ module.exports = function (PersistObjectTemplate) {
         if (PersistObjectTemplate.objectMap && PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()])
             return PersistObjectTemplate.objectMap[pojo[prefix + '_id'].toString()];
         else
-            return 'persist' + '-' + pojo[prefix + '_template'].replace(/.*:/, '') + '-' + pojo[prefix + '_id'].toString()
+            return 'persist' + '-' + _template.name + '-' + pojo[prefix + '_id'].toString()
     };
 
     PersistObjectTemplate._persistProperty = function(defineProperty) {

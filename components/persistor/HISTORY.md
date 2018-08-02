@@ -1,3 +1,5 @@
+## 2.3.16
+* getObjectId should only use template name when generating the object ids for the objects loaded from the database.
 ## 2.3.15
 * clean up various files based on eslint rules
 ## 2.3.14

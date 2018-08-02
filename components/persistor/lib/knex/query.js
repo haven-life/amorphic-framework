@@ -200,7 +200,7 @@ module.exports = function (PersistObjectTemplate) {
               null : this.__dictionary__[pojo[prefix + '_template']]
             var obj = establishedObj || idMap[pojo[prefix + '_id']] ||
               this._createEmptyObject(persistTemplate || template,
-                this.getObjectId(template, pojo, prefix), defineProperty, isTransient);
+                this.getObjectId(persistTemplate || template, pojo, prefix), defineProperty, isTransient);
 
             // Once we find an object already fetched that is not transient query as normal for the rest
             if (!obj.__transient__  && !establishedObj && !isTransient)
