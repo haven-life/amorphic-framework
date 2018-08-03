@@ -228,7 +228,9 @@ module.exports = function (PersistObjectTemplate) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
-        knex.transacting(txn ? txn.knex : null);
+        if (txn && txn.knex) {
+            knex.transacting(txn.knex);
+        }
 
         // execute callback to chain on filter functions or convert mongo style filters
         if (typeof(queryOrChains) == 'function')
@@ -251,7 +253,9 @@ module.exports = function (PersistObjectTemplate) {
         var defineProperty = template.getProperties()[property];
         var tableName = this.dealias(defineProperty.of.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
-        knex.transacting(txn ? txn.knex : null);
+        if (txn && txn.knex) {
+            knex.transacting(txn.knex);
+        }
         var foreignKey = template.__schema__.children[property].id;
         var goodList = [];
         _.each(obj[property], function(o) {
@@ -284,7 +288,9 @@ module.exports = function (PersistObjectTemplate) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
-        knex.transacting(txn ? txn.knex : null);
+        if (txn && txn.knex) {
+            knex.transacting(txn.knex);
+        }
         return knex.where({_id: id}).delete();
     };
 
@@ -307,17 +313,18 @@ module.exports = function (PersistObjectTemplate) {
         (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'pre',
             data: {txn: (txn ? txn.id + ' ' : '-#- '), type: (updateID ? 'updating ' : 'insert '),
                 template: obj.__template__.__name__, id: obj.__id__, _id: obj._id, __version__: pojo.__version__}});
+        if (txn && txn.knex) {
+            knex.transacting(txn.knex)
+        }
         if (updateID) {
             return Promise.resolve(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
-                .transacting(txn ? txn.knex : null)
                 .then(checkUpdateResults.bind(this))
                 .then(logSuccess.bind(this)))
         } else {
             return Promise.resolve(knex
                 .insert(pojo)
-                .transacting(txn ? txn.knex : null)
                 .then(logSuccess.bind(this)));
         }
 
@@ -604,10 +611,14 @@ module.exports = function (PersistObjectTemplate) {
                 return (_dbschema, tableName);
             }
 
-            return  knex.schema.createTableIfNotExists(schemaTable, function (table) {
-                table.increments('sequence_id').primary();
-                table.text(schemaField);
-                table.timestamps();
+            return knex.schema.hasTable(schemaTable).then(function(exists) {
+                if (!exists) {
+                    return knex.schema.createTable(schemaTable, function(table) {
+                        table.increments('sequence_id').primary();
+                        table.text(schemaField);
+                        table.timestamps();
+                    })
+                }
             }).then(function () {
                 return knex(schemaTable)
                     .orderBy('sequence_id', 'desc')
@@ -826,8 +837,10 @@ module.exports = function (PersistObjectTemplate) {
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;
+        if (txn && txn.knex) {
+            knex.transacting(txn.knex)
+        }
         return knex
-            .transacting(txn ? txn.knex : null)
             .where('_id', '=', obj._id)
             .increment('__version__', 1)
             .then(function () {
@@ -1237,7 +1250,7 @@ module.exports = function (PersistObjectTemplate) {
                     //for date and object types, need to compare the stringified values.
                     var oldKey = '_ct_org_' + prop;
                     if (!props[prop].type.isObjectTemplate && (obj[oldKey] !== obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
-                            JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
+                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
                         addChanges(prop, obj[oldKey], obj[prop], prop);
                     }
                     //For one to one relations, we need to check the ids associated to the parent record.

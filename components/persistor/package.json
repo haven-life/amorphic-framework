@@ -2,14 +2,14 @@
     "name": "persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/haven-life/persistor",
-    "version": "2.3.16",
+    "version": "2.4.0",
     "dependencies": {
         "q": "1.x",
         "supertype": "2.2.*",
         "underscore": "1.x",
         "mongodb-bluebird": "x",
         "bluebird": "x",
-        "knex": "0.13.0",
+        "knex": "0.15.2",
         "pg": "7.4.1",
         "tv4": "^1.2.7"
     },
