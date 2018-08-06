@@ -1,3 +1,5 @@
+## 2.5.0
+* Get latest persistor module with `knex` module upgrade and sensitiveData flag feature.
 ## 2.4.13
 * Added back support of __ver being passed outside clientInit.js.
 ## 2.4.12
