@@ -694,7 +694,7 @@ describe('type mapping tests for parent/child relations', function () {
                 name: {type: String, value: 'Test Parent', comment:    'comment on an existing table'}
             });
             PersistObjectTemplate._verifySchema();
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments).then(function () {
+            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments, null, true).then(function () {
                 return knex('pg_catalog.pg_description')
                     .count()
                     .where('description', 'like', '%comment on an existing table%')
@@ -722,7 +722,7 @@ describe('type mapping tests for parent/child relations', function () {
                 newField: {type: String, value: 'Test Parent', comment:    'Adding a new field comment'}
             });
             PersistObjectTemplate._verifySchema();
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField).then(function () {
+            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField, null, true).then(function () {
                 return knex('pg_catalog.pg_description')
                     .count()
                     .where('description', 'like', '%Adding a new field comment%')

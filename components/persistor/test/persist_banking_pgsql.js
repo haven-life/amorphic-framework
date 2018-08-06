@@ -343,9 +343,6 @@ describe('Banking from pgsql Example', function () {
                 return clearCollection(Customer)
             }).then(function (count) {
                 expect(count).to.equal(0);
-                return clearCollection(Account)
-            }).then(function (count) {
-                expect(count).to.equal(0);
                 return clearCollection(Transaction)
             }).then(function (count) {
                 expect(count).to.equal(0);

@@ -3,6 +3,7 @@ module.exports = function (PersistObjectTemplate) {
     var Promise = require('bluebird');
     var _ = require('underscore');
 
+    var processedList = [];
     /**
      * Get a POJO by reading a table, optionally joining it to other tables
      *
@@ -354,9 +355,10 @@ module.exports = function (PersistObjectTemplate) {
      * e.g. adding a new field will add a field to the table.
      * @param {object} template supertype
      * @param {function} changeNotificationCallback callback to get the information on table or fields changes.
+     * @param {bool} forceSync forces the function to proceed with sync table step, useful for unit tests.
      * @returns {*}
      */
-    PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback) {
+    PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback, forceSync) {
         var aliasedTableName = template.__table__;
         var tableName = this.dealias(aliasedTableName);
         //no need to synchronize Query objects if there is an entry for the corresponding main object in schema.json
@@ -367,6 +369,12 @@ module.exports = function (PersistObjectTemplate) {
         while (template.__parent__) {
             template =  template.__parent__;
         }
+
+        //can skip the templates that were already processed.
+        if (processedList.includes(template.__name__) && !forceSync) {
+            return Promise.resolve();
+        }
+        processedList.push(template.__name__);
 
         if (!template.__table__) {
             throw new Error(template.__name__ + ' is missing a schema entry');
@@ -514,6 +522,7 @@ module.exports = function (PersistObjectTemplate) {
                 var valStr = '';
                 processValues(template);
                 var comment = defineProperty.comment ? defineProperty.comment + '; ' : '';
+                comment = defineProperty.sensitiveData ? comment + ';;sensitiveData;;' : comment;
                 _.each(values, function (_val, key) {valStr += (valStr.length == 0 ? '' : ', ') + key});
                 comment = valStr.length > 0 ? comment + 'values: ' + valStr : comment;
                 return comment;

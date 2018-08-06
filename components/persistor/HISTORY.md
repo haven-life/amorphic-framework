@@ -1,3 +1,6 @@
+## 2.4.1
+* sensitiveData flag is added to the comment.
+* Sync tables step will process the templates only once.
 ## 2.4.0
 * Minor changes to accommodate knex upgrade.
 ## 2.3.16

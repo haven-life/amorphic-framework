@@ -277,13 +277,13 @@ describe('index synchronization checks', function () {
     it('remove the existing index definition, system should delete the index', function () {
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
             schema.IndexSyncTable.indexes = [];
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
+            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
                 return getIndexes('IndexSyncTable').should.eventually.have.length(0);
             })
         });
     });
 
-    it('adding an index should upddate the table again..', function () {
+    it('add index and sync', function () {
         schema.IndexSyncTable.indexes = [
             {
                 name: 'Fst_Index',
@@ -293,12 +293,12 @@ describe('index synchronization checks', function () {
                 }
             }
         ];
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
             return getIndexes('IndexSyncTable').should.eventually.have.length(1);
         });
     });
 
-    it('adding an index should upddate the table again..', function () {
+    it('adding an index should update the table again..', function () {
         schema.IndexSyncTable.indexes = [
             {
                 name: 'Fst_Index',
@@ -315,7 +315,7 @@ describe('index synchronization checks', function () {
                 }
             }
         ];
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
             return getIndexes('IndexSyncTable').should.eventually.have.length(2);
         });
     });

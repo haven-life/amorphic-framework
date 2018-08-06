@@ -27,7 +27,7 @@ export class Persistor extends SupertypeSession {
 
     countFromKnexQuery (template, queryOrChains, _logger?) : any {}
     dropKnexTable (template : string) : any {};
-    synchronizeKnexTableFromTemplate (template : string) : any {};
+    synchronizeKnexTableFromTemplate (template : string, changeNotificationCallback? : any, forceSync? : boolean) : any {};
     setSchema(schema : any) {};
     appendSchema(schema : any) {};
     performInjections() {}

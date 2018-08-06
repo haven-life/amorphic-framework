@@ -315,7 +315,7 @@ describe('schema update checks', function () {
         })
         schema.newTable.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["id", "name"],"type": "unique"}}]');
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).then(function () {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable, null, true).then(function () {
             return knex(schemaTable)
                 .select('schema')
                 .orderBy('sequence_id', 'desc')
