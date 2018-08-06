@@ -1,7 +1,7 @@
 'use strict';
 
 const __controllerTemplate = 'Controller';
-const __appVersion = 0;
+const __appVersion = __ver || 0;
 
 var controller = typeof(controller) === 'undefined' ? null : controller;
 
@@ -20,7 +20,7 @@ function __bindController (newController, sessionExpiration) {
 function __refresh () {}
 
 // When a new version is detected pop up "about to be refreshed" and
-// then reload the document after 5 seconds.
+// then reload the document after 3 seconds.
 function __reload () {
     controller.amorphicStatus = 'reloading';
     setTimeout(function reload () {

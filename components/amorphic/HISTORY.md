@@ -1,3 +1,7 @@
+## 2.4.13
+* Added back support of __ver being passed outside clientInit.js.
+## 2.4.12
+* Get latest persistor module
 ## 2.4.11
 * Added better error logging for config params that are required for amorphic to start.
 ## 2.4.10
