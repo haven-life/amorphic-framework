@@ -1,3 +1,6 @@
+## 2.3.14
+* No need to check session.objects[objId].__template__.__name__  when serializing and deserializing. 
+* instanceof check should take care of this verification. has a dependency with Persistor@2.3.16.
 ## 2.3.13
 * IE11 does not support for.. in loops with `const` or `let`. Changed those for loops to `var`.
 ## 2.3.12

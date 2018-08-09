@@ -2110,7 +2110,7 @@ RemoteObjectTemplate._applyPropertyChange = function applyPropertyChange(changes
         objId = newValue;
 
         if (session.objects[objId]) {
-            if ((session.objects[objId] instanceof type) || (session.objects[objId].__template__.__name__ === type.__name__)) {
+            if (session.objects[objId] instanceof type) {
                 newValue = session.objects[objId];
             }
             else {
