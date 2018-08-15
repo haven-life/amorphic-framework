@@ -116,9 +116,9 @@ function buildDbConfig(appName, config) {
         dbType:         fetchFromConfig(appName, config, 'dbType')        || 'mongo',
         dbUser:         fetchFromConfig(appName, config, 'dbUser')        || 'nodejs',
         dbPassword:     fetchFromConfig(appName, config, 'dbPassword')    || null,
-        dbConnections:  fetchFromConfig(appName, config, 'dbConnections') || 20,
-        dbConcurrency:  fetchFromConfig(appName, config, 'dbConcurrency') || 5,
-        dbConnectionTimeout: fetchFromConfig(appName, config, 'dbConnectionTimeout') || 60000,
+        dbConnections:  parseInt(fetchFromConfig(appName, config, 'dbConnections')) || 20,
+        dbConcurrency:  parseInt(fetchFromConfig(appName, config, 'dbConcurrency')) || 5,
+        dbConnectionTimeout: parseInt(fetchFromConfig(appName, config, 'dbConnectionTimeout')) || 60000,
         dbPort: fetchFromConfig(appName, config, 'dbPort') || defaultPort,
         knexDebug: fetchFromConfig(appName, config, 'knexDebug') || false
     };

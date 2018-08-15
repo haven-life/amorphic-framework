@@ -1,4 +1,6 @@
-## 2.5.0
+## 2.5.1
+* pool parameter for latest knex only allows numbers.
+# 2.5.0
 * Get latest persistor module with `knex` module upgrade and sensitiveData flag feature.
 ## 2.4.13
 * Added back support of __ver being passed outside clientInit.js.
