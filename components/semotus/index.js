@@ -850,6 +850,7 @@ RemoteObjectTemplate._stashObject = function stashObject(obj, template) {
 
     if (obj.__id__.match(/^client.*?-([0-9]*)$/)) {
         this.maxClientSequence = Math.max(this.maxClientSequence, RegExp.$1);
+        this.nextObjId = Math.max(this.maxClientSequence, this.nextObjId) + 1;
     }
 
     return executeInit;

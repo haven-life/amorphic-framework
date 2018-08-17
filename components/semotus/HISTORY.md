@@ -1,3 +1,5 @@
+## 2.3.15
+* Quick fix for id collision/reuse issue on refresh of page
 ## 2.3.14
 * No need to check session.objects[objId].__template__.__name__  when serializing and deserializing. 
 * instanceof check should take care of this verification. has a dependency with Persistor@2.3.16.
