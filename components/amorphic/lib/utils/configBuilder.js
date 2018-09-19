@@ -40,6 +40,11 @@ ConfigBuilder.prototype.build = function build(rootDir) {
 
     let configStore = {};
 
+    let envName = this._configApi.get('APP_ENV');
+
+    if(envName) {
+        this._configApi.loadFile('root_env', rootDir + '/config_' + envName.toLowerCase() + '.json');
+    }
     this._configApi.loadFile('root_secure', rootDir +  '/config_secure.json');
     this._configApi.loadFile('root', rootDir + '/config.json');
 
@@ -55,12 +60,21 @@ ConfigBuilder.prototype.build = function build(rootDir) {
 
         let appCfgApi = ConfigAPI.createInstance();
 
+        if(envName) {
+            appCfgApi.loadFile('app_env', appCfg.appPath +  '/config_' + envName.toLowerCase() + '.json');
+        }
         appCfgApi.loadFile('app_secure', appCfg.appPath +  '/config_secure.json');
         appCfgApi.loadFile('app', appCfg.appPath + '/config.json');
 
+        if(envName) {
+            appCfgApi.loadFile('common_env', appCfg.appCommonPath +  '/config_' + envName.toLowerCase() + '.json');
+        }
         appCfgApi.loadFile('common_secure', appCfg.appCommonPath +  '/config_secure.json');
         appCfgApi.loadFile('common', appCfg.appCommonPath + '/config.json');
 
+        if(envName) {
+            appCfgApi.loadFile('root_env', rootDir +  '/config_' + envName.toLowerCase() + '.json');
+        }
         appCfgApi.loadFile('root_secure', rootDir +  '/config_secure.json');
         appCfgApi.loadFile('root', rootDir + '/config.json');
 
