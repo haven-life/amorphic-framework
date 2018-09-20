@@ -28,7 +28,7 @@ function restoreSession(path, session, controller, sessions) {
         );
 
         if (unserialized.serializationTimeStamp !== sessionData.serializationTimeStamp) {
-            ourObjectTemplate.logger.error({
+            ourObjectTemplate.logger.warn({
                 component: 'amorphic',
                 module: 'restoreSession',
                 activity: 'restore',

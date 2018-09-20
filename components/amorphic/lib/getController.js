@@ -185,7 +185,7 @@ function getController(path, controllerPath, initObjectTemplate, connectSession,
             }
 
             if (unserialized.serializationTimeStamp !== sessionData.serializationTimeStamp) {
-                persistableSemotableTemplate.logger.error({
+                persistableSemotableTemplate.logger.warn({
                     component: 'amorphic',
                     module: 'getController',
                     activity: 'restore',

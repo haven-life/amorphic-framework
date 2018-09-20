@@ -1,3 +1,6 @@
+## 2.6.0
+* environment specific configs are now supported
+* "session data not as saved" is now a warning instead of an error
 ## 2.5.1
 * pool parameter for latest knex only allows numbers.
 # 2.5.0
