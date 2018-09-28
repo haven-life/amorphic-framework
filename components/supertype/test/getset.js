@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var ObjectTemplate = require('../index.js');
+var ObjectTemplate = require('../dist/index.js').default;
 
 /* Teacher Student Example */
 

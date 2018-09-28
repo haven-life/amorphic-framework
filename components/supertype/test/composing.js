@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var ObjectTemplate = require('../index.js');
+var ObjectTemplate = require('../dist/index.js').default;
 
 describe('Composing Templates', function () {
     it ('has extended values', function () {

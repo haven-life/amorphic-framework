@@ -1,16 +1,24 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "target": "es5",
-    "outDir": "dist",
-    "rootDir": "./",
-    "baseUrl": ".",
+    "lib": ["es2015", "es2017", "dom"],
     "noImplicitAny": false,
-    "sourceMap": true,
     "typeRoots": [
       "../node_modules/@types"
     ],
+    "declaration": true,
+    "declarationDir": "dist",
+    "outDir": "./dist",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata":true
-  }
+    "emitDecoratorMetadata": true,
+    "inlineSources": true,
+    "inlineSourceMap": true
+  },
+  "declaration": true,
+  "exclude": [
+    "./typescript",
+    "./test/typescript"
+  ]
 }

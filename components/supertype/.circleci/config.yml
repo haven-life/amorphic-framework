@@ -29,5 +29,10 @@ jobs:
 
       # run javascript tests!
       - run:
-          name: test
+          name: js-tests
           command: npm test
+
+      # run typescript tests!
+      - run:
+          name: ts-tests
+          command: npm run test:ts

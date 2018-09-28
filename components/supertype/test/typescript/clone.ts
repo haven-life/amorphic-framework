@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import * as mocha from 'mocha';
-import {property, Supertype, supertypeClass} from "../../index";
+import {property, Supertype, supertypeClass} from "../../dist/index";
 
 @supertypeClass
 class Main extends Supertype {

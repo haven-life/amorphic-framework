@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var ObjectTemplate = require('../index.js');
+var ObjectTemplate = require('../dist/index.js').default;
 
 var Main = ObjectTemplate.create('Main', {
     name: {type: String, value: ''},

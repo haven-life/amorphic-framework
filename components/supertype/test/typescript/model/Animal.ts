@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property} from '../../../index';
-import {Ark} from './Arc';
+import {Supertype, supertypeClass, property} from '../../../dist/index';
+import {Ark} from './Ark';
 
 @supertypeClass({toServer: true, toClient: true})
 export class Animal extends Supertype
@@ -16,5 +16,3 @@ export class Animal extends Supertype
     @property({getType: () => {return Ark}})
     ark:    Ark;
 };
-
-

@@ -1,3 +1,7 @@
+## 3.0.0
+* Converted to typescript, added classes for Supertype, ObjectTemplate, added compilation step
+* Added prepublish hook for compilation
+* Updated Circle CI for tests
 ## 2.2.7
 * Reverted cleanup for @supertypeClass({}) in index.js
 ## 2.2.6

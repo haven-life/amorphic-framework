@@ -1,4 +1,4 @@
-import {Supertype, supertypeClass, property} from '../../../index';
+import {Supertype, supertypeClass, property} from '../../../dist/index';
 import {Animal} from './Animal';
 import {Lion} from "./Lion";
 
@@ -28,4 +28,3 @@ export class LionContainer extends AnimalContainer {
     @property({getType:() => Lion})
     containee: Lion;
 }
-
