@@ -1,3 +1,5 @@
+## 2.4.0
+* Upgraded to Supertype 3.0.0 
 ## 2.3.15
 * Quick fix for id collision/reuse issue on refresh of page
 ## 2.3.14

@@ -10,5 +10,8 @@
     ],
     "experimentalDecorators": true,
     "emitDecoratorMetadata":true
-  }
+  },
+  "include": [
+    "./test/supertype/*"
+  ]
 }

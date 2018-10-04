@@ -2,29 +2,33 @@
     "name": "semotus",
     "description": "A subclass of supertype that synchronizes sets of objects.",
     "homepage": "https://github.com/selsamman/semotus",
-    "version": "2.3.15",
+    "version": "2.4.0",
     "dependencies": {
         "q": "1.x",
-        "supertype": "2.2.*"
+        "supertype": "3.0.0"
     },
     "devDependencies": {
+        "@types/bluebird": "*",
+        "@types/chai": "^3.4.34",
+        "@types/mocha": "^2.2.39",
+        "@types/node": "^7.0.65",
+        "@types/q": "*",
         "chai": "3.x",
         "eslint": "3.7.x",
         "istanbul": "0.4.5",
         "mocha": "5.2.0",
         "sinon": "1.15.x",
-        "underscore": "1.x",
-        "ts-node": "*",
+        "underscore": "^1.9.1",
+        "ts-node": "^6.1.0",
         "q": "*",
-        "@types/q": "*",
-        "@types/chai": "^3.4.34",
-        "@types/mocha": "^2.2.39",
-        "@types/node": "^7.0.5",
-        "@types/bluebird": "*",
-        "typescript": "^2.1.6"
+        "typescript": "2.9.1"
     },
     "scripts": {
         "lint": "eslint .",
+        "tsTests": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
+        "debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
+        "debugJSTests": "mocha --inspect-brk test/*.js",
+        "test:ts": "npm run compile && npm run tsTests",
         "test": "mocha test/*.js test/supertype/semotus.js",
         "coverage": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
         "compile": "tsc"
@@ -35,10 +39,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/selsamman/semotus.git"
+        "url": "git://github.com/haven-life/semotus.git"
     },
     "bugs": {
-        "url": "http://github.com/selsamman/semotus/issues"
+        "url": "http://github.com/haven-life/semotus/issues"
     },
     "optionalDependencies": {}
 }

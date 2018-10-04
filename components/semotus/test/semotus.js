@@ -7,13 +7,14 @@
 var expect = require('chai').expect;
 var Q = require('q');
 var _ = require('underscore');
+var Semotus = require('../index.js');
 
-var ClientObjectTemplate = require('../index.js')._createObject();
+var ClientObjectTemplate = Semotus._createObject();
 ClientObjectTemplate.role = 'client';
 ClientObjectTemplate._useGettersSetters = false;
 ClientObjectTemplate.__conflictMode__ = 'soft';
 
-var ServerObjectTemplate = require('../index.js')._createObject();
+var ServerObjectTemplate = Semotus._createObject();
 ServerObjectTemplate.role = 'server';
 ServerObjectTemplate._useGettersSetters = true;
 ServerObjectTemplate.maxCallTime = 60 * 1000;

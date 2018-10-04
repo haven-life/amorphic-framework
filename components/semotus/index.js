@@ -34,9 +34,10 @@
  else {
         root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);
     }
-}(this, function (Q, _, ObjectTemplate) {
+}(this, function (Q, _, SupertypeModule) {
     'use strict';
-
+    
+var ObjectTemplate = SupertypeModule.default;
 const RemoteObjectTemplate = ObjectTemplate._createObject();
 
 RemoteObjectTemplate._useGettersSetters = typeof(window) === 'undefined';
@@ -505,6 +506,7 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
         }
     }
 
+    
     /**
      * If the changes could be applied and the validation was successful call the method
      *
@@ -951,8 +953,8 @@ RemoteObjectTemplate._setupFunction = function setupFunction(propertyName, prope
         return function b() {
 
             if (this.__objectTemplate__)                {
-objectTemplate = this.__objectTemplate__;
-}
+                objectTemplate = this.__objectTemplate__;
+            }
 
             if (validate && this.controller) { //TODO: make this one if statement
                 if (!validate.call(this.controller)) {
@@ -988,6 +990,7 @@ objectTemplate = this.__objectTemplate__;
         };
     }
 };
+
 
 /**
  * Overridden method in ObjectTemplate that creates a structure initialize a property in constructor
@@ -1494,6 +1497,7 @@ RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arra
     }
 };
 
+
 /**
  * Determine whether each array reference was an actual change or just a reference
  * If an actual change convert to a change log entry.  For arrays the changes
@@ -1577,6 +1581,7 @@ RemoteObjectTemplate._convertArrayReferencesToChanges = function convertArrayRef
                             changeGroup[obj.__id__][prop] = [this.clone(values), this.clone(values)];
                             changeGroup[obj.__id__][prop][1][ix] = currValue;
                         }
+                        
                         if (curr[ix] && curr[ix].__id__ && !curr[ix].__objectTemplate__) {
                             this.sessionize(curr[ix], obj);
                         }
@@ -1980,6 +1985,7 @@ RemoteObjectTemplate._validateServerIncomingProperty = function (obj, prop, defi
     return true;
 }
 
+
 /**
  * Apply changes for a specific property, cascading changes in the event
  * that a reference to an object that needs to be created is part of the change
@@ -2272,6 +2278,7 @@ RemoteObjectTemplate._createEmptyObject = function createEmptyObject(template, o
     }
     else {
         template.__objectTemplate__.nextDispenseId = objId;
+        this.nextDispenseId = objId; /** May be redundant with previous line */
         const wasTransient = this.__transient__;
 
         if (isTransient) {
@@ -2336,6 +2343,7 @@ RemoteObjectTemplate.inject = function inject(template, injector) {
  *
  * @private
  */
+
 RemoteObjectTemplate._queueRemoteCall = function queueRemoteCall(objId, functionName, deferred, args) {
     const session = this._getSession();
     args = Array.prototype.slice.call(args); // JS arguments array not an array after all
@@ -2486,6 +2494,7 @@ RemoteObjectTemplate._fromTransport = function clone(obj) {
 
 /**************************** Helper Functions **********************************/
 
+
 /**
  * Remove extra positions at the end of the array to keep length correct
  *
@@ -2595,7 +2604,7 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 
             // second time we must call the function returned the first time because it has the
             // properties as a closure
-            ret = ret ? ret(target, objectTemplate) : ObjectTemplate.supertypeClass(target, objectTemplate);
+            ret = ret ? ret(target, objectTemplate) : SupertypeModule.supertypeClass(target, objectTemplate);
 
             // Mainly for peristor properties to make sure they get transported
             target.createProperty = function (propertyName, defineProperty) {
@@ -2629,20 +2638,21 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 
 	    // Called first time with parameter rather than target - call supertypes supertypeClass function which will
         // return a function that must be called on the 2nd pass when we have a target.  It will remember parameter
-        ret = ObjectTemplate.supertypeClass(target, objectTemplate);
+        ret = SupertypeModule.supertypeClass(target, objectTemplate);
 	    return decorator; // decorator will be called 2nd time with ret as a closure
     };
 
     this.Supertype = function () {
-        return ObjectTemplate.Supertype.call(this, objectTemplate);
+        return SupertypeModule.Supertype.call(this, objectTemplate);
     };
-    this.Supertype.prototype = ObjectTemplate.Supertype.prototype;
+
+    this.Supertype.prototype = SupertypeModule.Supertype.prototype;
 
     this.property = function (props) {
         props = props || {};
         props.toClient = applyRuleSet(props.toClient, this.toClientRuleSet);
         props.toServer = applyRuleSet(props.toServer, this.toServerRuleSet);
-        const baseDecorator = ObjectTemplate.property(props, objectTemplate);
+        const baseDecorator = SupertypeModule.property(props, objectTemplate);
         return function (target, targetKey) {
             baseDecorator(target, targetKey);
             const defineProperties = {};
