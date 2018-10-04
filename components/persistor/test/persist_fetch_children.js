@@ -40,7 +40,7 @@ describe('persistor transaction checks', function () {
         return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = require('supertype');
+        ObjectTemplate = require('supertype').default;
         PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};

@@ -120,8 +120,9 @@ module.exports.Persistable = function (Base) {
     }(Base));
 }
 
+let ObjectTemplate = supertype.default;
 module.exports.Persistor = {
-    create: function () {return  module.exports(require('supertype'), null, require('supertype'))}
+    create: function () {return  module.exports(ObjectTemplate, null, ObjectTemplate)}
 }
 
 Object.defineProperty(module.exports.Persistable.prototype, 'persistor', {get: function () {

@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "outDir": "dist",
     "target": "es5",
+    "outDir": "dist",
     "lib": ["es2015", "es2017"],
     "noImplicitAny": false,
     "sourceMap": true,
@@ -11,5 +11,8 @@
     ],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
-  }
+  },
+  "include": [
+    "./test/supertype/**/*"
+  ]
 }

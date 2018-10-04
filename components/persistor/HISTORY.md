@@ -1,3 +1,5 @@
+## 2.5.0
+* Upgraded to Supertype 3.0.0 
 ## 2.4.1
 * sensitiveData flag is added to the comment.
 * Sync tables step will process the templates only once.
@@ -336,6 +338,3 @@
 ## 0.1.22
 * Made code not dependent on order of properties
 * Make sure data retrieved with older version accounts for changes in the way template names are now
-
-
-

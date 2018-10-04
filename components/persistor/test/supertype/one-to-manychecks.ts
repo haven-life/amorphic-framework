@@ -1,6 +1,6 @@
 
 declare function require(name:string);
-var ObjectTemplate = require('supertype');
+var ObjectTemplate = require('supertype').default;
 var PersistObjectTemplate = require('../../index.js')(ObjectTemplate, null, ObjectTemplate);
 var logLevel = process.env.logLevel || 'debug';
 
