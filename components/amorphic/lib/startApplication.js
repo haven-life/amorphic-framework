@@ -10,7 +10,7 @@ let getTemplates = require('./getTemplates').getTemplates;
 let Bluebird = require('bluebird');
 let persistor = require('persistor');
 let semotus = require('semotus');
-let superType = require('supertype');
+let superType = require('supertype').default;
 
 /**
  * Purpose unknown

@@ -2,7 +2,7 @@
   "name": "amorphic",
   "description": "Front to back isomorphic framework for developing applications with node.js and mongoDB",
   "homepage": "https://github.com/selsamman/amorphic",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "dependencies": {
     "amorphic-bindster": "2.0.*",
     "bluebird": "3.5.1",
@@ -15,10 +15,10 @@
     "formidable": "1.1.1",
     "mongodb-bluebird": "0.1.2",
     "nconf": "0.8.5",
-    "persistor": "2.4.*",
-    "semotus": "2.3.*",
+    "persistor": "2.5.*",
+    "semotus": "2.4.*",
     "serve-static": "1.13.1",
-    "supertype": "2.2.*",
+    "supertype": "3.0.*",
     "uglify-js": "2.7.5"
   },
   "devDependencies": {
@@ -41,6 +41,8 @@
     "xmlhttprequest-cookie": "0.9.4"
   },
   "scripts": {
+    "compile": "tsc",
+    "build": "npm run compile",
     "lint": "eslint .",
     "test": "istanbul cover _mocha -- test/* -R spec",
     "test:docker": "docker-compose up --build",
@@ -50,7 +52,8 @@
     "test:example": "mocha test/example",
     "test-d": "istanbul cover _mocha -- test/daemon/* -R spec",
     "test-da": "istanbul cover _mocha -- test/daemon_auto/* -R spec",
-    "test:ts": "mocha -r ts-node/register typescript_tests/unittest.ts"
+    "test:ts": "mocha -r ts-node/register typescript_tests/unittest.ts",
+    "debug:test:ts": "tsc && mocha --inspect-brk typescript_tests/unittest.js"
   },
   "directories": {},
   "engines": {

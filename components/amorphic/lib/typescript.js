@@ -1,7 +1,7 @@
 'use strict';
 
 let unitTestConfig = require('./unitTestConfig');  // TODO: This seems like the wrong way to go about this.
-
+let SupertypeDefinition = require('supertype');
 // Passed the main index export.  Will bind the decorators to either Persistor or Semotus
 function bindDecorators (objectTemplate) {
 
@@ -20,7 +20,12 @@ function bindDecorators (objectTemplate) {
      * @returns {unknown} unknown.
      */
     this.supertypeClass = function supertypeClass(target, props) {
-        return objectTemplate.supertypeClass(target, props, objectTemplate);
+        if (objectTemplate.supertypeClass) {
+            return objectTemplate.supertypeClass(target, props, objectTemplate);
+        }
+        else {
+            return SupertypeDefinition.supertypeClass(target, props, objectTemplate);
+        }
     };
 
     /**
@@ -29,9 +34,14 @@ function bindDecorators (objectTemplate) {
      * @returns {unknown} unknown.
      */
     this.Supertype = function Supertype() {
-        return objectTemplate.Supertype.call(this, objectTemplate);
+        if (objectTemplate.Supertype) {
+            return objectTemplate.Supertype.call(this, objectTemplate);
+        }
+        else {
+            return SupertypeDefinition.Supertype.call(this, objectTemplate);
+        }
     };
-    this.Supertype.prototype = require('supertype').Supertype.prototype;
+    this.Supertype.prototype = SupertypeDefinition.Supertype.prototype;
 
     /**
      *  Purpose unknown
@@ -41,7 +51,12 @@ function bindDecorators (objectTemplate) {
      * @returns {unknown} unknown.
      */
     this.property = function property(props) {
-        return objectTemplate.property(props, objectTemplate);
+        if (objectTemplate.property) {
+            return objectTemplate.property(props, objectTemplate);
+        }
+        else {
+            return SupertypeDefinition.property(props, objectTemplate);
+        }
     };
 
     /**
@@ -52,7 +67,12 @@ function bindDecorators (objectTemplate) {
      * @returns {unknown} unknown.
      */
     this.remote = function remote(defineProperty) {
-        return objectTemplate.remote(defineProperty, objectTemplate);
+        if (objectTemplate.remote) {
+            return objectTemplate.remote(defineProperty, objectTemplate);
+        }
+        else {
+            return SupertypeDefinition.remote(defineProperty, objectTemplate);
+        }
     };
 
     /**
@@ -70,6 +90,15 @@ function bindDecorators (objectTemplate) {
         return objectTemplate;
     };
 }
+
+/**
+ * For tests to use Supertype's default if the class doesn't have the associated property
+ *
+ * @param {*} objectTemplate
+ * @param {*} prop
+ * @returns
+ */
+
 
 module.exports = {
     bindDecorators: bindDecorators

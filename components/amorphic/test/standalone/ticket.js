@@ -2,7 +2,7 @@
 
 var expect = require('chai').expect;
 var fs = require('fs');
-var ObjectTemplate = require('supertype');
+var ObjectTemplate = require('supertype').default;
 var PersistObjectTemplate = require('persistor')(ObjectTemplate, null, ObjectTemplate);
 var amorphic = require('../../index.js');
 var logMessage = require('../../lib/utils/logger').logMessage;
@@ -255,6 +255,3 @@ describe('Ticket System Test Suite', function () {
         });
     });
 });
-
-
-

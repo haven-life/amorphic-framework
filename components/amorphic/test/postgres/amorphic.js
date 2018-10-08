@@ -18,7 +18,7 @@ var CookieJar = xhrc.CookieJar;
 
 // Create global variables for the benefit of client.js
 PostCallAssert = function () {};
-ObjectTemplate = require('supertype');
+ObjectTemplate = require('supertype').default;
 RemoteObjectTemplate = require('semotus')._createObject();
 RemoteObjectTemplate.role = 'client';
 RemoteObjectTemplate._useGettersSetters = false;
