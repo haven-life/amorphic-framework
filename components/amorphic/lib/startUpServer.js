@@ -12,13 +12,13 @@ let downloadRouter = require('./routers/downloadRouter').downloadRouter;
 let router = require('./routers/router').router;
 let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownloadsDir;
 let nonObjTemplatelogLevel = 1;
-let serveStatic = require('serve-static');
-let cookieParser = require('cookie-parser');
-let bodyParser = require('body-parser');
 
-// Npm modules
-let connect = require('connect');
+// External dependencies
+let bodyParser = require('body-parser');
+let cookieParser = require('cookie-parser');
+let express = require('express');
 let fs = require('fs');
+let serveStatic = require('serve-static');
 
 /**
  * Purpose unknown
@@ -41,7 +41,7 @@ function startUpServer(preSessionInject, postSessionInject, appList, appStartLis
     let appContext = AmorphicContext.appContext;
     let appConfig = AmorphicContext.applicationConfig[mainApp];
     let reqBodySizeLimit = appConfig.reqBodySizeLimit || '50mb';
-    let app = connect();
+    let app = express();
 
     downloads = generateDownloadsDir();
 
@@ -101,7 +101,7 @@ function startUpServer(preSessionInject, postSessionInject, appList, appStartLis
             limit: reqBodySizeLimit
         }))
         .use(bodyParser.urlencoded({
-          extended: true
+            extended: true
         }))
         .use(postRouter.bind(this, sessions, controllers, nonObjTemplatelogLevel))
         .use(amorphicEntry.bind(this, sessions, controllers, nonObjTemplatelogLevel));
@@ -113,7 +113,7 @@ function startUpServer(preSessionInject, postSessionInject, appList, appStartLis
 
     app.use(router.bind(this, sessions, nonObjTemplatelogLevel, controllers));
 
-    appContext.connectServer = app.listen(amorphicOptions.port);
+    appContext.server = app.listen(amorphicOptions.port);
 }
 
 module.exports = {

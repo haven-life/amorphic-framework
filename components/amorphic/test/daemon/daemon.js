@@ -72,8 +72,8 @@ describe('Run amorphic as a deamon', function() {
 
     after(function(done) {
         // Clean up server
-        if(amorphicContext.appContext.connectServer){
-            amorphicContext.appContext.connectServer.close();
+        if(amorphicContext.appContext.server){
+            amorphicContext.appContext.server.close();
         }
         done();
     });

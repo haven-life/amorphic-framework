@@ -10,7 +10,7 @@ let Bluebird = require('bluebird');
 /**
  * Purpose unknown
  *
- * @param {Object} req - Connect request object.
+ * @param {Object} req - Express request object.
  * @param {String} controllerPath - The path to the main controller js file.
  * @param {Function} initObjectTemplate - Function that injects properties and functions onto each object template.
  * @param {String} path - The app name.

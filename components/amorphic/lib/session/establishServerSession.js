@@ -19,7 +19,7 @@ let url = require('url');
  *
  * 3) newControllerID - if specified the browser has created a controller and will be sending the data to the server
  *
- * @param {Object} req - Connect request object.
+ * @param {Object} req - Express request object.
  * @param {String} path - The app name, used to identify future requests from XML.
  * @param {Boolean|String} newPage - force returning everything since this is likely a session continuation on a
  * new web page.

@@ -6,8 +6,8 @@ var amorphicContext = require('../../lib/AmorphicContext');
 var serverAmorphic = require('../../index.js');
 
 function afterEachDescribe(done) {
-    if(amorphicContext.appContext.connectServer){
-        amorphicContext.appContext.connectServer.close();
+    if(amorphicContext.appContext.server){
+        amorphicContext.appContext.server.close();
     }
     done();
 }

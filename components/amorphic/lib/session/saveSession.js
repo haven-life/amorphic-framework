@@ -10,7 +10,7 @@ let compressSessionData = require('./compressSessionData').compressSessionData;
  * @param {String} path - The app name.
  * @param {unknown} session unknown
  * @param {unknown} controller unknown
- * @param {Object} req - Connect request object.
+ * @param {Object} req - Express request object.
  * @param {unknown} sessions unknown
  */
 function saveSession(path, session, controller, req, sessions) {

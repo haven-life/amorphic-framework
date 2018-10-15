@@ -1,3 +1,5 @@
+## 2.8.0
+* upgrade HTTP module from connect to express.
 ## 2.7.0
 * Supertype typescript now supported
 ## 2.6.0
