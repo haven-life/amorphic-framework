@@ -4,14 +4,14 @@
     "homepage": "https://github.com/haven-life/persistor",
     "version": "2.5.0",
     "dependencies": {
-        "q": "1.x",
-        "supertype": "3.0.0",
-        "underscore": "1.x",
-        "mongodb-bluebird": "x",
         "bluebird": "x",
         "knex": "0.15.2",
+        "mongodb-bluebird": "x",
         "pg": "7.4.1",
-        "tv4": "^1.2.7"
+        "q": "1.x",
+        "supertype": "3.0.0",
+        "tv4": "^1.2.7",
+        "underscore": "1.x"
     },
     "devDependencies": {
         "chai": "3.x",
