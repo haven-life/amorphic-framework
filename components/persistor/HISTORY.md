@@ -1,3 +1,5 @@
+## 2.7.0
+* Fetch calls can provide projections that can be used when generating select sql.
 ## 2.6.0
 * logging exception as knex undefined error is not giving any useful information to debug.
 * Fixed issue where it was referencing an expired git url for supertype

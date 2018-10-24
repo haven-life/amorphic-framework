@@ -13,9 +13,10 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} options start, limit, and sort options can be passed..
      * @param {object} map mapper to cache
      * @param {object} logger objecttemplate logger
+     * @param {object} projection types with property names, will be used to ignore the fields from selects
      * @returns {*}
      */
-    PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map, logger) {
+    PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map, logger, projection) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
@@ -122,7 +123,11 @@ module.exports = function (PersistObjectTemplate) {
                     return;
                 if (type == Array && of.__table__) {
                     return;
-                } else if (type.isObjectTemplate) {
+                }
+                if (!prop.match(/^_./i) && !type.isObjectTemplate && !!projection && projection[template.__name__] instanceof Array && projection[template.__name__].indexOf(prop) === -1) {
+                    return;
+                }
+                else if (type.isObjectTemplate) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
                         throw  new Error(type.__name__ + '.' + prop + ' is missing a parents schema entry');
                     prop = schema.parents[prop].id;

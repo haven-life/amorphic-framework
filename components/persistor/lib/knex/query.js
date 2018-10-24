@@ -5,8 +5,8 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.concurrency = 10;
 
-    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger, enableChangeTracking) {
-        return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh, logger, enableChangeTracking)
+    PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger, enableChangeTracking, projection) {
+        return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh, logger, enableChangeTracking, projection)
             .then(function(pojos) { return pojos[0] });
     }
 
@@ -30,9 +30,10 @@ module.exports = function (PersistObjectTemplate) {
      * @param {bool} isRefresh {need to review}
      * @param {object} logger object template logger
      * @param {object} enableChangeTracking callback to get the change details
+     * @param {object} projection types with property names, will be used to ignore the fields from selects
      * @returns {*}
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking, projection)
     {
 
         var topLevel = !requests;
@@ -97,7 +98,7 @@ module.exports = function (PersistObjectTemplate) {
             return request.call(this);
 
         function getPOJOsFromQuery () {
-            return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver'], logger);
+            return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver'], logger, projection);
         }
 
         function getTemplatesFromPOJOS(pojos) {
@@ -111,7 +112,7 @@ module.exports = function (PersistObjectTemplate) {
             pojos.forEach(function (pojo, ix) {
                 sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix;
                 promises.push(PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
-                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking)
+                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection)
                     .then(function (obj) {
                         results[sortMap[obj._id]] = obj;
                     }))
@@ -160,10 +161,11 @@ module.exports = function (PersistObjectTemplate) {
      * @param {bool} isRefresh {need to review}
      * @param {object} logger object template logger
      * @param {object} enableChangeTracking callback to get the change details
+     * @param {object} projection types with property names, will be used to ignore the fields from selects
      * @returns {*} an object via a promise as though it was created with new template()
      */
     PersistObjectTemplate.getTemplateFromKnexPOJO =
-        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger, enableChangeTracking)
+        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger, enableChangeTracking, projection)
         {
             var self = this;
             prefix = prefix || '';
@@ -258,7 +260,7 @@ module.exports = function (PersistObjectTemplate) {
                     if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
                         cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
-                        queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty);
+                        queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty, projection);
                     } else
                         updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
 
@@ -292,7 +294,7 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking);
+                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection);
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
                             }
@@ -383,7 +385,7 @@ module.exports = function (PersistObjectTemplate) {
                 });
             }
 
-            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking) {
+            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection) {
                 var query = {_id: foreignId};
                 var options = {};
                 var closureProp = prop;
@@ -404,10 +406,10 @@ module.exports = function (PersistObjectTemplate) {
                         (pojo[join.alias + '____id'] ?
                             this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
                                 closureCascade, isTransient, closureDefineProperty,
-                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking)
+                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking, projection)
                             : Promise.resolve(true)) :
                         this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
-                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking);
+                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking, projection);
                     this.withoutChangeTracking(function () {
                         obj[closurePersistorProp].isFetching = true;
                     }.bind(this));
@@ -423,7 +425,7 @@ module.exports = function (PersistObjectTemplate) {
 
             }
 
-            function queueChildrenLoadRequest(obj, prop, schema, defineProperty) {
+            function queueChildrenLoadRequest(obj, prop, schema, defineProperty, projection) {
 
                 var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
@@ -454,7 +456,7 @@ module.exports = function (PersistObjectTemplate) {
                 }.bind(this));
                 requests.push(function () {
                     return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
-                        limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger)
+                        limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger, null, projection)
                         .then(function(objs) {
                             this.withoutChangeTracking(function () {
                                 if (foreignFilterKey) {

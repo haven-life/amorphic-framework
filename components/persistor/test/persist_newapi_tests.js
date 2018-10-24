@@ -181,7 +181,7 @@ describe('persistor transaction checks', function () {
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {
-        return Employee.persistorFetchById(empId, {fetch: {homeAddress: false}, enableChangeTracking: true})
+        return Employee.persistorFetchById(empId, { fetch: {homeAddress: false}, enableChangeTracking: true})
             .then(function(employee) {
                 expect(employee.homeAddress).is.equal(null);
             });
@@ -191,6 +191,15 @@ describe('persistor transaction checks', function () {
         return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: false}}, roles: true}}).then(function(employee) {
             expect(employee.homeAddress._id).is.equal(addressId);
             expect(employee.homeAddress.phone).is.equal(null);
+        });
+    });
+
+    it('persistorFetchById with fetch spec with type projections', function () {
+        return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: true}}, roles: true}, projection: { Address: ['city'], Role: ['name'], Phone: ['']}}).then(function(employee) {
+            expect(employee.homeAddress.state).is.equal(undefined);
+            expect(employee.homeAddress.city).is.equal('New York');
+            expect(employee.homeAddress.phone.number).is.equal(undefined);
+            expect(employee.homeAddress.phone._id).is.equal(phoneId);
         });
     });
 

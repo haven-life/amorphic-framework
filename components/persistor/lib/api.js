@@ -216,7 +216,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
             let fetchQuery = (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
-                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking));
+                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking, options.projection));
             return fetchQuery.catch(e => logExceptionAndRethrow(e, options.logger || persistObjectTemplate.logger, template.__name__, id, 'persistorFetchById'));
         };
 
@@ -259,7 +259,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                             options.limit, options.transient, options.order, options.order, logger) :
                 persistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, options.fetch, options.start,
                             options.limit, options.transient, null, options.order,
-                            undefined, undefined, logger, options.enableChangeTracking));
+                            undefined, undefined, logger, options.enableChangeTracking, options.projection));
             return fetchQuery.catch(e => logExceptionAndRethrow(e, options.logger || PersistObjectTemplate.logger, template.__name__, query, 'persistorFetchByQuery'));
         };
         /**

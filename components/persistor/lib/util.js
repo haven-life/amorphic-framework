@@ -197,6 +197,9 @@ module.exports = function (PersistObjectTemplate) {
                     'fetch': {
                         type: ['null', 'object']
                     },
+                    'projection': {
+                        type: ['null', 'object']
+                    },
                     'start': {
                         type: 'number'
                     },
