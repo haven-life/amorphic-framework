@@ -1,3 +1,5 @@
+## 2.8.1
+* updating persistor module to 2.6.*
 ## 2.8.0
 * upgrade HTTP module from connect to express.
 ## 2.7.0
