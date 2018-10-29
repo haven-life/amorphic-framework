@@ -13,7 +13,7 @@ let session = require('express-session');
 let Bluebird = require('bluebird');
 
 /**
- * Purpose unknown
+ * asynchronous listener function (returns a promise)
  *
  * @param {unknown} appDirectory unknown
  * @param {unknown} sessionStore unknown
@@ -65,9 +65,11 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
         }
     }
 
-    Bluebird.all(promises)
-        .then(startUpServer.bind(this, preSessionInject, postSessionInject, appList, appStartList, appDirectory,
-            sessionRouter))
+    return Bluebird.all(promises)
+        .then(startUpServer.bind(this, preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionRouter))
+        .then(function logStart() {
+            logMessage('Amorphic has been started');
+        })
         .catch(function error(e) {
             logMessage(e.message + ' ' + e.stack);
         });

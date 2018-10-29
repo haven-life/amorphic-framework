@@ -1,9 +1,11 @@
+## 2.9.0
+* Listen now returns a promise and logs when amorphic is finished
 ## 2.8.2
 * updating persistor module to 2.7.*
 ## 2.8.1
-* updating persistor module to 2.6.*
+* Updating persistor module to 2.6.*
 ## 2.8.0
-* upgrade HTTP module from connect to express.
+* Upgrade HTTP module from connect to express.
 ## 2.7.0
 * Supertype typescript now supported
 ## 2.6.0
