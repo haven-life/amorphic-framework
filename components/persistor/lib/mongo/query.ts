@@ -442,7 +442,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.getPOJOSFromPaths = function (_template, paths, pojo, query)
     {
-        function matches(pojo, query)
+        function matches(pojo, query, ...args)
         {
             var allFound = true;
             var ix;
@@ -628,7 +628,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.processCascade = function (query, options, parameterFetch, schemaFetch, propertyFetch) {
 
-        var fetch = {}; // Merge fetch specifications in order of priority
+        var fetch: any = {}; // Merge fetch specifications in order of priority
         var prop;
 
         if (propertyFetch) {

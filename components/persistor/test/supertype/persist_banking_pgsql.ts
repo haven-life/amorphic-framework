@@ -4,7 +4,7 @@
  *
  */
 
-import {Persistor} from '../../index.js';
+import {Persistor} from '../../dist/index.js';
 
 var persistor = Persistor.create();
 persistor.debugInfo = 'api;conflict;write;read;data';//'api;io';

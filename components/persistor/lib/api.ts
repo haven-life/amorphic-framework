@@ -139,7 +139,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {object} logger objecttemplate logger
          * @returns {object}
          */
-        template.getFromPersistWithId = function(id, cascade, isTransient, idMap, isRefresh, logger) {
+        template.getFromPersistWithId = async function(id, cascade, isTransient, idMap, isRefresh, logger) {
             (logger || PersistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'getFromPersistWithId',
                 data: {template: template.__name__, id: id}});
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
@@ -167,7 +167,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {object}
          * @deprecated in favor of persistorFetchWithQuery
          */
-        template.getFromPersistWithQuery = function(query, cascade, start, limit, isTransient, idMap, options, logger) {
+        template.getFromPersistWithQuery = async function(query, cascade, start, limit, isTransient, idMap, options, logger) {
             (logger || PersistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'getFromPersistWithQuery',
                 data: {template: template.__name__}});
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
@@ -190,7 +190,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {object}
          * @deprecated in favor of persitorDeleteByQuery
          */
-        template.deleteFromPersistWithQuery = function(query, txn, logger) {
+        template.deleteFromPersistWithQuery = async function(query, txn, logger) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             return dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query, logger) :
@@ -203,7 +203,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {json} options @todo
          * @returns {*}
          */
-        template.persistorFetchById = function(id, options) { // @TODO: Legacy
+        template.persistorFetchById = async function(id, options) { // @TODO: Legacy
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
@@ -226,7 +226,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {JSON} options @TODO
          * @returns {Object}
          */
-        template.persistorDeleteByQuery = function(query, options) {
+        template.persistorDeleteByQuery = async function(query, options) {
             PersistObjectTemplate._validateParams(options, 'persistSchema', template);
 
             options = options || {};
@@ -242,7 +242,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {JSON} options @TODO
          * @returns {*}
          */
-        template.persistorFetchByQuery = function(query, options) {
+        template.persistorFetchByQuery = async function(query, options) {
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
@@ -269,7 +269,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {object} options @TODO
          * @returns {Number}
          */
-        template.persistorCountByQuery = function(query, options) {
+        template.persistorCountByQuery = async function(query, options) {
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
@@ -296,7 +296,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {object}
          * @deprecated in favor of persistorDeleteByQuery
          */
-        template.deleteFromPersistWithId = function(id, txn, logger) {
+        template.deleteFromPersistWithId = async function(id, txn, logger) {
             (logger || PersistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'deleteFromPersistWithId',
                 data: {template: template.__name__, id: id}});
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
@@ -317,7 +317,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @returns {Number}
          * @deprecated in favor of persistorCountWithQuery
          */
-        template.countFromPersistWithQuery = function(query, logger) {
+        template.countFromPersistWithQuery = async function(query, logger) {
             (logger || PersistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'countFromPersistWithQuery',
                 data: {template: template.__name__}});
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
@@ -494,7 +494,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         template.prototype.persistTouch = // Legacy -- just use persistorSave
-        function (txn, logger) {
+        async function (txn, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistTouch',
                 data: {template: this.__template__.__name__, id: this.__id__}});
@@ -506,7 +506,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         //persistDelete is modified to support both legacy and V2, options this is passed for V2 as the first parameter.
         template.prototype.persistDelete = // Legacy
-        function (txn, logger) {
+        async function (txn, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             if (!txn || (txn && txn.knex && txn.knex.transacting)) {
                 (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'persistDelete',
@@ -552,7 +552,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         // Legacy
-        template.prototype.fetchProperty = function (prop, cascade, queryOptions, isTransient, idMap, logger) {
+        template.prototype.fetchProperty = async function (prop, cascade, queryOptions, isTransient, idMap, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'fetchProperty',
                 data: {template: this.__template__.__name__, id: this.__id__}});
@@ -573,7 +573,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         };
 
-        template.prototype.fetch = function (cascade, isTransient, idMap, logger) {
+        template.prototype.fetch = async function (cascade, isTransient, idMap, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'fetch',
                 data: {template: this.__template__.__name__, id: this.__id__}});
@@ -600,7 +600,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         };
 
-        template.prototype.persistorFetchReferences = template.prototype.fetchReferences = function(options) {
+        template.prototype.persistorFetchReferences = template.prototype.fetchReferences = async function(options) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'fetchSchema', this.__template__);
 
@@ -625,7 +625,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     properties, undefined, undefined, undefined, logger));
         };
 
-        template.prototype.persistorRefresh = template.prototype.refresh = function (logger) {
+        template.prototype.persistorRefresh = template.prototype.refresh = async function (logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             (logger || persistObjectTemplate.logger).debug({component: 'persistor', module: 'api', activity: 'refresh',
                 data: {template: this.__template__.__name__, id: this.__id__}});
@@ -637,7 +637,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         };
 
-        template.prototype.persistorSave =  template.prototype.persist = function (options) {
+        template.prototype.persistorSave =  template.prototype.persist = async function (options) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'persistSchema', this.__template__);
 
@@ -659,7 +659,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         //persistorDelete will only support new API calls.
-        template.prototype.persistorDelete = template.prototype.deleteV2 = function(options) {
+        template.prototype.persistorDelete = template.prototype.deleteV2 = async function(options) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'persistSchema', this.__template__);
 
@@ -787,7 +787,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         //Do we need to support cascase delete, if so we need to check the dependencies and delete them.
     };
 
-    PersistObjectTemplate.saveAll = function (txn, logger) {
+    PersistObjectTemplate.saveAll = async function (txn, logger) {
         var promises = [];
         var somethingSaved = false;
         var dirtyObjects = txn ? txn.dirtyObjects : this.dirtyObjects;
@@ -838,7 +838,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @param {ObjectTemplate.logger} logger - objecttemplate logger
      * @returns {*}
      */
-    PersistObjectTemplate.getPOJOFromQuery = function (template, query, options, logger) {
+    PersistObjectTemplate.getPOJOFromQuery = async function (template, query, options, logger) {
         var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
         var prefix = PersistObjectTemplate.dealias(template.__collection__);
         return dbType == PersistObjectTemplate.DB_Mongo ?
@@ -867,7 +867,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         return this.__defaultTransaction__;
     };
 
-    PersistObjectTemplate.commit = function commit(options) {
+    PersistObjectTemplate.commit = async function commit(options) {
         PersistObjectTemplate._validateParams(options, 'commitSchema');
 
         options = options || {};

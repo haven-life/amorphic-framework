@@ -62,7 +62,7 @@ module.exports = function (PersistObjectTemplate) {
         var idMap = {};
         return traverse(obj);
 
-        function traverse(obj) {
+        function traverse(obj, ...args) {
             if (!obj)
                 return;
             callback.call(null, obj);

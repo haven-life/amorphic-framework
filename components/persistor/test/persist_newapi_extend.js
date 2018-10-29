@@ -35,7 +35,7 @@ describe('persistor transaction checks', function () {
     });
     beforeEach('arrange', function () {
         ObjectTemplate = require('supertype').default;
-        PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
+        PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
         schema.Person = {};
         schema.Person.table =  'tx_person';
         schema.Person.documentOf =  'tx_person';

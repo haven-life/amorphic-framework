@@ -1,18 +1,15 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "outDir": "dist",
-    "lib": ["es2015", "es2017"],
-    "noImplicitAny": false,
-    "sourceMap": true,
-    "typeRoots": [
-      "./node_modules/@types"
+    "compilerOptions": {
+        "outDir": "./dist",
+        "rootDir": "./"
+    },
+    "extends": "./tsconfig.base.json",
+    "include": [
+        "./**/*.ts"
     ],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  },
-  "include": [
-    "./test/supertype/**/*"
-  ]
+    "exclude": [
+        "./test/**/*.ts",
+        "./index.d.ts",
+        "./**/persistable.ts"
+    ]
 }

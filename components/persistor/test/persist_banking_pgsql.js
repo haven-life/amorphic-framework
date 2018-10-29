@@ -9,7 +9,7 @@ var util = require('util');
 var Promise = require('bluebird');
 var _ = require('underscore');
 var ObjectTemplate = require('supertype').default;
-var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
 var logLevel = process.env.logLevel || 'debug';
 

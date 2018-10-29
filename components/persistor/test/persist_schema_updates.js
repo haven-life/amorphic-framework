@@ -12,7 +12,7 @@ chai.should();
 chai.use(chaiAsPromised);
 
 var ObjectTemplate = require('supertype').default;
-var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
 
 var Employee = PersistObjectTemplate.create('Employee', {

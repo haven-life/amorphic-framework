@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
 var ObjectTemplate = require('supertype').default;
-var PersistObjectTemplate = require('../index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
 
 var Address = PersistObjectTemplate.create('Address', {});

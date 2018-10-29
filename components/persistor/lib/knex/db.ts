@@ -135,7 +135,7 @@ module.exports = function (PersistObjectTemplate) {
                 cols.push(prefix + '.' + prop + ' as ' + (prefix ? prefix + '___' : '') + prop);
             }
 
-            function getPropsRecursive(template, map) {
+            function getPropsRecursive(template, map?) {
                 map = map || {};
                 _.map(template.getProperties(), function (val, prop) {
                     map[prop] = val
@@ -622,6 +622,7 @@ module.exports = function (PersistObjectTemplate) {
         var loadSchema = function (tableName) {
 
             if (!!_dbschema) {
+                //@ts-ignore
                 return (_dbschema, tableName);
             }
 
@@ -833,7 +834,7 @@ module.exports = function (PersistObjectTemplate) {
         }
     }
 
-    function getPropsRecursive(template, map) {
+    function getPropsRecursive(template, map?) {
         map = map || {};
         _.map(template.getProperties(), function (val, prop) {
             map[prop] = val

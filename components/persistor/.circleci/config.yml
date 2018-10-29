@@ -35,20 +35,23 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run:
-          name: compile
-          command: npm run compile
 
       - run:
           name: lint
           command: npm run lint
-
+      - run:
+          name: compile-persistor
+          command: npm run compile
       # run tests!
       - run:
           name: test
           command: npm test
 
+      - run:
+          name: compile-persistor-typescript-tests
+          command: npm run compile:tests
+
       # run typescript tests!
-      # - run:
-      #     name: typescript test
-      #     command: npm run test:compiled:js
+      - run:
+          name: typescript-test
+          command: npm run test:compiled:js
