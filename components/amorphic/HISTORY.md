@@ -1,3 +1,5 @@
+## 2.8.2
+* updating persistor module to 2.7.*
 ## 2.8.1
 * updating persistor module to 2.6.*
 ## 2.8.0
