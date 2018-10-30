@@ -1,3 +1,6 @@
+## 3.0.0
+* updating persistor module to 2.8.* to pull async API calls change
+* this is a BREAKING change, instead of returning Bluebird promises, persistor is returning native promises
 ## 2.9.0
 * Listen now returns a promise and logs when amorphic is finished
 ## 2.8.2

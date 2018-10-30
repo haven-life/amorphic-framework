@@ -2,7 +2,7 @@
   "name": "amorphic",
   "description": "Front to back isomorphic framework for developing applications with node.js and mongoDB",
   "homepage": "https://github.com/haven-life/amorphic",
-  "version": "2.9.0",
+  "version": "3.0.0",
   "dependencies": {
     "amorphic-bindster": "2.0.*",
     "bluebird": "3.5.1",
@@ -15,7 +15,7 @@
     "formidable": "1.1.1",
     "mongodb-bluebird": "0.1.2",
     "nconf": "0.8.5",
-    "persistor": "2.7.*",
+    "persistor": "2.8.*",
     "semotus": "2.4.*",
     "serve-static": "1.13.1",
     "supertype": "3.0.*",
