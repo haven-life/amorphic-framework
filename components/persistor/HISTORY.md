@@ -1,3 +1,5 @@
+## 2.8.1
+* The previous version of persistor was not publishing correctly/publishing incorrect files, this change fixes that
 ## 2.8.0
 * Marking API calls as async to fix the issues observed in Zone interception.
 * removed istanbul and included nyc for code coverage. 

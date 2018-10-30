@@ -5,4 +5,7 @@ coverage
 .eslintrc.js
 tsconfig.json
 wait-for-it.sh
-dist
+./lib
+./index.d.ts
+./index.ts
+.circleci
