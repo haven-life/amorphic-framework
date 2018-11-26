@@ -1,3 +1,5 @@
+## 2.8.2
+* Fixing up eslint
 ## 2.8.1
 * The previous version of persistor was not publishing correctly/publishing incorrect files, this change fixes that
 ## 2.8.0
