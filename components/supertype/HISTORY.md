@@ -1,3 +1,5 @@
+## 3.1.0
+* Adding a public api to allow customization of supertype's logging functionality.
 ## 3.0.0
 * Converted to typescript, added classes for Supertype, ObjectTemplate, added compilation step
 * Added prepublish hook for compilation
