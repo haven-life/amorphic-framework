@@ -1,3 +1,5 @@
+## 2.4.1
+* Upgraded to Supertype 3.1.0
 ## 2.4.0
 * Upgraded to Supertype 3.0.0 
 ## 2.3.15
