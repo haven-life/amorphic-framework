@@ -1,3 +1,5 @@
+## 3.1.0
+* Updating supertype to 3.1.0, adding a public api to allow customization of supertype's logging functionality
 ## 3.0.0
 * updating persistor module to 2.8.* to pull async API calls change
 * this is a BREAKING change, instead of returning Bluebird promises, persistor is returning native promises
