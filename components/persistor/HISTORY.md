@@ -1,3 +1,5 @@
+## 2.8.3
+* Upgraded to Supertype 3.1.*
 ## 2.8.2
 * Fixing up eslint
 ## 2.8.1
