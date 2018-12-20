@@ -1,11 +1,11 @@
 'use strict';
 let assert = require('chai').assert;
 let Bluebird = require('bluebird');
-let amorphic = require('../../index.js');
+let amorphic = require('../../dist/index.js');
 let axios = require('axios');
 let fs = require('fs');
 let path = require('path');
-let amorphicContext = require('../../lib/AmorphicContext');
+let amorphicContext = require('../../dist/lib/AmorphicContext');
 
 describe('Run amorphic as a deamon', function() {
 
@@ -67,6 +67,41 @@ describe('Run amorphic as a deamon', function() {
                 assert.strictEqual(response.message, 'Request failed with status code 404', 'The response message was correct');
                 assert.strictEqual(response.response.status, 404, 'The response code was 404');
                 assert.strictEqual(response.response.data, 'Not found', 'The error data matches');
+            });
+    });
+
+    it('should get an 200 response from a custom GET endpoint', function() {
+        return axios.get('http://localhost:3001/api/test')
+            .then(function(response) {
+                assert.isOk(response, 'The response is ok');
+                assert.strictEqual(response.status, 200, 'The response code was 200');
+                assert.strictEqual(response.data, 'test API endpoint OK');
+            });
+    });
+
+    it('should get a response from a second custom endpoint', function() {
+        return axios.get('http://localhost:3001/api/test-other-endpoint')
+            .then(function(response) {
+                assert.isOk(response, 'The response is ok');
+                assert.strictEqual(response.status, 200, 'The response code was 200');
+                assert.strictEqual(response.data, 'test API endpoint OK');
+            });
+    });
+
+    it('should use middleware limits to reject a POST request that\'s too large', function() {
+        return axios.post('http://localhost:3001/api/middleware-endpoint', {
+            firstName: 'Fred',
+            lastName: 'Flintstone'
+        })
+        .catch(function(response) {
+            assert.strictEqual(response.response.status, 413, 'The response code was 413');
+        });
+    });
+
+    it('should post to the endpoint successfully', function() {
+        return axios.post('http://localhost:3001/api/middleware-endpoint', {})
+            .then(function(response) {
+                assert.strictEqual(response.status, 200, 'The response code was 200');
             });
     });
 

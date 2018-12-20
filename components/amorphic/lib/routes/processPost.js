@@ -11,15 +11,15 @@ let Bluebird = require('bluebird');
  * which can return a response to be sent back
  *
  * @param {unknown} req unknown
- * @param {unknown} resp unknown
+ * @param {unknown} res unknown
  * @param {unknown} sessions unknown
  * @param {unknown} controllers unknown
  */
 
-function processPost(req, resp, sessions, controllers, nonObjTemplatelogLevel) {
+function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 
     let session = req.session;
-    let path = url.parse(req.url, true).query.path;
+    let path = url.parse(req.originalUrl, true).query.path;
 
     establishServerSession(req, path, false, false, null, sessions, controllers, nonObjTemplatelogLevel)
         .then(function ff(semotus) {
@@ -32,8 +32,8 @@ function processPost(req, resp, sessions, controllers, nonObjTemplatelogLevel) {
                     .then(function gg(controllerResp) {
                         ourObjectTemplate.setSession(remoteSessionId);
                         semotus.save(path, session, req);
-                        resp.writeHead(controllerResp.status, controllerResp.headers || {'Content-Type': 'text/plain'});
-                        resp.end(controllerResp.body);
+                        res.writeHead(controllerResp.status, controllerResp.headers || {'Content-Type': 'text/plain'});
+                        res.end(controllerResp.body);
                     })
                     .catch(function hh(e) {
                         ourObjectTemplate.logger.info({
@@ -41,8 +41,8 @@ function processPost(req, resp, sessions, controllers, nonObjTemplatelogLevel) {
                             module: 'processPost', activity: 'error'
                         }, 'Error ' + e.message + e.stack);
 
-                        resp.writeHead(500, {'Content-Type': 'text/plain'});
-                        resp.end('Internal Error');
+                        res.writeHead(500, {'Content-Type': 'text/plain'});
+                        res.end('Internal Error');
                     });
             }
             else {
@@ -51,8 +51,8 @@ function processPost(req, resp, sessions, controllers, nonObjTemplatelogLevel) {
         })
         .catch(function ii(error) {
             logMessage('Error establishing session for processPost ', req.session.id, error.message + error.stack);
-            resp.writeHead(500, {'Content-Type': 'text/plain'});
-            resp.end('Internal Error');
+            res.writeHead(500, {'Content-Type': 'text/plain'});
+            res.end('Internal Error');
         });
 }
 

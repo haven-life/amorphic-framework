@@ -9,18 +9,18 @@ let processMessage = require('../routes/processMessage').processMessage;
  * @param {unknown} sessions unknown
  * @param {unknown} controllers unknown
  * @param {unknown} req unknown
- * @param {unknown} resp unknown
+ * @param {unknown} res unknown
  * @param {unknown} next unknown
  */
 
-function router(sessions, nonObjTemplatelogLevel, controllers, req, resp, next) {
+function router(sessions, nonObjTemplatelogLevel, controllers, req, res, next) {
 
-    if (req.url.match(/amorphic\/xhr\?path\=/)) {
+    if (req.originalUrl.match(/amorphic\/xhr\?path\=/)) {
         if (req.body.type === 'logging') {
-            processLoggingMessage(req, resp);
+            processLoggingMessage(req, res);
         }
         else {
-            processMessage(req, resp, sessions, nonObjTemplatelogLevel, controllers);
+            processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers);
         }
     }
     else {

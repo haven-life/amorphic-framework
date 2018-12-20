@@ -1,4 +1,4 @@
-import {Supertype, supertypeClass, property, Remoteable, Persistable}  from '../../../../index.js';
+import {Supertype, supertypeClass, property, Remoteable, Persistable}  from '../../../../dist/index.js';
 
 console.log("Compiling Person");
 @supertypeClass

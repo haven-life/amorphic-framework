@@ -22,7 +22,7 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
     let applicationSourceMap;
 
     // If we're not initalizing
-    if (!req.url.match(/amorphic\/init/)) {
+    if (!req.originalUrl.match(/amorphic\/init/)) {
         next();
     }
 

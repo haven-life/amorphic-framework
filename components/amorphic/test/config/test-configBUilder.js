@@ -3,8 +3,8 @@
 var expect = require('chai').expect;
 var mockfs = require('mock-fs');
 
-var ConfigBuilder = require('../../lib/utils/configBuilder').ConfigBuilder;
-var ConfigApi = require('../../lib/utils/configBuilder').ConfigAPI;
+var ConfigBuilder = require('../../dist/lib/utils/configBuilder').ConfigBuilder;
+var ConfigApi = require('../../dist/lib/utils/configBuilder').ConfigAPI;
 
 describe('configBuilder', function() {
 

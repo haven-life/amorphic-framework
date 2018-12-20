@@ -9,13 +9,13 @@ let processPost = require('../routes/processPost').processPost;
  * @param {unknown} sessions unknown
  * @param {unknown} controllers unknown
  * @param {unknown} req unknown
- * @param {unknown} resp unknown
+ * @param {unknown} res unknown
  * @param {unknown} next unknown
  */
-function postRouter(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
+function postRouter(sessions, controllers, nonObjTemplatelogLevel, req, res, next) {
 
-    if (req.url.match(/amorphic\/xhr\?path\=/) && url.parse(req.url, true).query.form && req.method === 'POST') {
-        processPost(req, resp, sessions, controllers, nonObjTemplatelogLevel);
+    if (req.originalUrl.match(/amorphic\/xhr\?path\=/) && url.parse(req.originalUrl, true).query.form && req.method === 'POST') {
+        processPost(req, res, sessions, controllers, nonObjTemplatelogLevel);
     }
     else {
         next();

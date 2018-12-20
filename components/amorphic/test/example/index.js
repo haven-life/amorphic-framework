@@ -1,12 +1,12 @@
 'use strict';
 let assert = require('chai').assert;
 let Promise = require('bluebird');
-let serverAmorphic = require('../../index.js');
+let serverAmorphic = require('../../dist/index.js');
 let sinon = require('sinon');
 let axios = require('axios');
 let fs = require('fs');
 let path = require('path');
-let amorphicContext = require('../../lib/AmorphicContext');
+let amorphicContext = require('../../dist/lib/AmorphicContext');
 
 describe('Setup amorphic', function() {
     let server;

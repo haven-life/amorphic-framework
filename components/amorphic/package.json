@@ -2,11 +2,12 @@
   "name": "amorphic",
   "description": "Front to back isomorphic framework for developing applications with node.js and mongoDB",
   "homepage": "https://github.com/haven-life/amorphic",
-  "version": "3.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "version": "4.0.0",
   "dependencies": {
     "amorphic-bindster": "2.0.*",
     "bluebird": "3.5.1",
-    "body-parser": "1.18.2",
     "chalk": "2.4.1",
     "compression": "1.7.1",
     "cookie-parser": "1.4.3",
@@ -17,14 +18,17 @@
     "nconf": "0.8.5",
     "persistor": "2.8.*",
     "semotus": "2.4.*",
-    "serve-static": "1.13.1",
     "supertype": "3.1.*",
     "uglify-js": "2.7.5"
   },
   "devDependencies": {
     "@types/chai": "4.0.4",
+    "@types/compression": "0.0.36",
+    "@types/cookie-parser": "^1.4.1",
+    "@types/express": "^4.16.0",
+    "@types/express-session": "^1.15.11",
     "@types/mocha": "2.2.43",
-    "@types/node": "8.0.46",
+    "@types/node": "^8.10.36",
     "axios": "0.17.0",
     "chai": "4.1.2",
     "es6-promise": "4.1.1",
@@ -37,14 +41,18 @@
     "request": "2.87.0",
     "sinon": "4.0.1",
     "ts-node": "3.3.0",
-    "typescript": "2.5.3",
+    "typescript": "^2.5.3",
     "xmlhttprequest-cookie": "0.9.4"
   },
   "scripts": {
-    "compile": "tsc",
-    "build": "npm run compile",
+    "build": "npm run recreateDist && npm run copy && npm run compile",
+    "compile": "tsc -p ./tsconfig.json",
+    "compile:amorphic:tests": "tsc -p ./typescript_tests/tsconfig.test.json",
+    "copy": "cp *.js ./dist && cp index.* ./dist && cp -r ./lib ./dist && rm ./dist/lib/AmorphicServer.*",
     "lint": "eslint .",
-    "test": "istanbul cover _mocha -- test/* -R spec",
+    "prepublishOnly": "npm run build",
+    "recreateDist": "rm -rf ./dist/ && mkdir ./dist/",
+    "test": "istanbul cover _mocha -- test/* -R spec --exit",
     "test:docker": "docker-compose up --build",
     "test:trace": "mocha test/*",
     "test:debug": "mocha --debug-brk test/*",
@@ -52,8 +60,8 @@
     "test:example": "mocha test/example",
     "test-d": "istanbul cover _mocha -- test/daemon/* -R spec",
     "test-da": "istanbul cover _mocha -- test/daemon_auto/* -R spec",
-    "test:ts": "mocha -r ts-node/register typescript_tests/unittest.ts",
-    "debug:test:ts": "tsc && mocha --inspect-brk typescript_tests/unittest.js"
+    "test:ts": "mocha -r ts-node/register --project typescript_tests/tsconfig.test.json typescript_tests/unittest.ts",
+    "test:ts:debug": "tsc && mocha --inspect-brk typescript_tests/unittest.js"
   },
   "directories": {},
   "engines": {
@@ -61,10 +69,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/selsamman/amorphic.git"
+    "url": "git://github.com/haven-life/amorphic.git"
   },
   "bugs": {
-    "url": "http://github.com/selsamman/amorphic/issues"
+    "url": "http://github.com/haven-life/amorphic/issues"
   },
   "optionalDependencies": {}
 }

@@ -9,15 +9,15 @@ let processContentRequest = require('../routes/processContentRequest').processCo
  * @param {unknown} sessions unknown
  * @param {unknown} controllers unknown
  * @param {unknown} req unknown
- * @param {unknown} resp unknown
+ * @param {unknown} res unknown
  * @param {unknown} next unknown
  */
 
-function downloadRouter(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
-    let file = url.parse(req.url, true).query.file;
+function downloadRouter(sessions, controllers, nonObjTemplatelogLevel, req, res, next) {
+    let file = url.parse(req.originalUrl, true).query.file;
 
-    if (req.url.match(/amorphic\/xhr\?path\=/) && file && req.method === 'GET') {
-        processContentRequest(req, resp, sessions, controllers, nonObjTemplatelogLevel);
+    if (req.originalUrl.match(/amorphic\/xhr\?path\=/) && file && req.method === 'GET') {
+        processContentRequest(req, res, sessions, controllers, nonObjTemplatelogLevel);
     }
     else {
         next();

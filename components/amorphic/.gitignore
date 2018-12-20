@@ -12,3 +12,5 @@ typescript_tests/**/*.js
 typescript_tests/**/*.js.map
 lib/utils/remoteable.js
 lib/utils/remoteable.js.map
+dist
+.sonarlint

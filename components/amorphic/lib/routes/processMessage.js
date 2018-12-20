@@ -11,21 +11,21 @@ let displayPerformance = require('../utils/displayPerformance').displayPerforman
  * Process JSON request message
  *
  * @param {unknown} req unknown
- * @param {unknown} resp unknown
+ * @param {unknown} res unknown
  * @param {unknown} sessions unknown
  * @param {unknown} controllers unknown
  */
-function processMessage(req, resp, sessions, nonObjTemplatelogLevel, controllers) {
+function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers) {
 
     let session = req.session;
     let message = req.body;
-    let path = url.parse(req.url, true).query.path;
+    let path = url.parse(req.originalUrl, true).query.path;
     let sessionData = getSessionCache(path, req.session.id, false, sessions);
 
     if (!message.sequence) {
         log(1, req.session.id, 'ignoring non-sequenced message', nonObjTemplatelogLevel);
-        resp.writeHead(500, {'Content-Type': 'text/plain'});
-        resp.end('ignoring non-sequenced message');
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.end('ignoring non-sequenced message');
 
         return;
     }
@@ -95,7 +95,7 @@ function processMessage(req, resp, sessions, nonObjTemplatelogLevel, controllers
 
                 outbound.ver = semotus.appVersion;
                 ourObjectTemplate.logger.clearContextProps(context);
-                resp.end(JSON.stringify(outbound));  // return a sync message assuming no queued messages
+                res.end(JSON.stringify(outbound));  // return a sync message assuming no queued messages
 
                 for (let prop in ourObjectTemplate.logger.context) {
                     req.amorphicTracking.loggingContext[prop] = ourObjectTemplate.logger.context[prop];
@@ -129,7 +129,7 @@ function processMessage(req, resp, sessions, nonObjTemplatelogLevel, controllers
                 }
 
                 ourObjectTemplate.logger.clearContextProps(context);
-                resp.end(respstr);
+                res.end(respstr);
                 displayPerformance(req);
             };
 
@@ -149,15 +149,15 @@ function processMessage(req, resp, sessions, nonObjTemplatelogLevel, controllers
                     activity: 'error'
                 }, error.message + error.stack);
 
-                resp.writeHead(500, {'Content-Type': 'text/plain'});
+                res.writeHead(500, {'Content-Type': 'text/plain'});
                 ourObjectTemplate.logger.clearContextProps(context);
-                resp.end(error.toString());
+                res.end(error.toString());
             }
 
         }).catch(function failure(error) {
             log(0, req.session.id, error.message + error.stack, nonObjTemplatelogLevel);
-            resp.writeHead(500, {'Content-Type': 'text/plain'});
-            resp.end(error.toString());
+            res.writeHead(500, {'Content-Type': 'text/plain'});
+            res.end(error.toString());
         }).done();
 }
 

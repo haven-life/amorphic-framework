@@ -7,9 +7,8 @@ let ConfigApi = require('./utils/configBuilder').ConfigAPI;
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
-let startUpServer = require('./startUpServer').startUpServer;
-let session = require('express-session');
-
+let AmorphicServer = require('./AmorphicServer').AmorphicServer;
+let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
 
 /**
@@ -51,9 +50,6 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
     if (sessionStore) {
         sessionConfig['store'] = sessionStore;
     }
-
-    let sessionRouter = session(sessionConfig);
-
     // Initialize applications
     let appList = amorphicOptions.appList;
     let appStartList = amorphicOptions.appStartList;
@@ -66,7 +62,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
     }
 
     return Bluebird.all(promises)
-        .then(startUpServer.bind(this, preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionRouter))
+        .then(createServer.bind(this, preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionConfig))
         .then(function logStart() {
             logMessage('Amorphic has been started');
         })

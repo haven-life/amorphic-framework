@@ -1,4 +1,4 @@
-import {Supertype, supertypeClass, property, remote, Remoteable, Persistable}  from '../../../../index.js';
+import {Supertype, supertypeClass, property, remote, Remoteable, Persistable}  from '../../../../dist/index.js';
 import {Person} from './person';
 import {Project} from './project';
 import {TicketItemComment} from './ticketItemComment';

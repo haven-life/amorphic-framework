@@ -2,8 +2,8 @@ var expect = require('chai').expect;
 var axios = require('axios');
 var path = require('path');
 
-var amorphicContext = require('../../lib/AmorphicContext');
-var serverAmorphic = require('../../index.js');
+var amorphicContext = require('../../dist/lib/AmorphicContext');
+var serverAmorphic = require('../../dist/index.js');
 
 function afterEachDescribe(done) {
     if(amorphicContext.appContext.server){

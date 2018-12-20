@@ -6,19 +6,19 @@ let establishServerSession = require('../session/establishServerSession').establ
 /**
  * Purpose unknown
  *
- * @param {unknown} request unknown
- * @param {unknown} response unknown
+ * @param {unknown} req unknown
+ * @param {unknown} res unknown
  * @param {unknown} sessions unknown
  * @param {unknown} controllers unknown
  */
-function processContentRequest(request, response, sessions, controllers, nonObjTemplatelogLevel) {
+function processContentRequest(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 
-    let path = url.parse(request.url, true).query.path;
+    let path = url.parse(req.originalUrl, true).query.path;
 
-    establishServerSession(request, path, false, false, null, sessions, controllers,
+    establishServerSession(req, path, false, false, null, sessions, controllers,
         nonObjTemplatelogLevel).then(function zz(semotus) {
             if (typeof(semotus.objectTemplate.controller.onContentRequest) === 'function') {
-                semotus.objectTemplate.controller.onContentRequest(request, response);
+                semotus.objectTemplate.controller.onContentRequest(req, res);
             }
         });
 }

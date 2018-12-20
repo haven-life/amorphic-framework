@@ -39,10 +39,10 @@ clientController = null;
 var modelRequires;
 var controllerRequires;
 var Controller;
-var serverAmorphic = require('../../index.js');
-var amorphicContext = require('../../lib/AmorphicContext');
+var serverAmorphic = require('../../dist/index.js');
+var amorphicContext = require('../../dist/lib/AmorphicContext');
 
-// Fire up amrophic as the client
+// Fire up amorphic as the client
 require('../../client.js');
 
 function afterEachDescribe(done) {

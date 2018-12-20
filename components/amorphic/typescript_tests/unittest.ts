@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import {Amorphic} from '../index.js';
+import {Amorphic} from '../dist/index.js';
 import {Ticket} from "./apps/common/js/ticket";
-import {supertypeClass} from "../index";
+import {supertypeClass} from "../dist/index";
 
 @supertypeClass({toClient: false, toServer: true})
 class Dummy {};

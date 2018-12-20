@@ -12,4 +12,11 @@ Dockerfile-node-8
 docker-compose.yml
 .eslintrc.js
 .eslintignore
-
+.circleci
+/lib
+/client.js
+/clientInit.js
+/Dockerfile
+/index.d.ts
+/index.js
+/test.env

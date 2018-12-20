@@ -30,6 +30,10 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
+      - run:
+          name: npm-setup-prepublish 
+          command: npm run prepublishOnly
+
       # run javascript tests!
       - run:
           name: test

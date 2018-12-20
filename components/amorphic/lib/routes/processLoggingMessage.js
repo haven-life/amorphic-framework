@@ -12,11 +12,11 @@ let semotus = require('semotus');
  * Purpose unknown
  *
  * @param {unknown} req unknown
- * @param {unknown} resp unknown
+ * @param {unknown} res unknown
  */
-function processLoggingMessage(req, resp) {
+function processLoggingMessage(req, res) {
     let applicationConfig = AmorphicContext.applicationConfig;
-    let path = url.parse(req.url, true).query.path;
+    let path = url.parse(req.originalUrl, true).query.path;
     let session = req.session;
     let message = req.body;
     let persistableSemotableTemplate = persistor(null, null, semotus);
@@ -42,8 +42,8 @@ function processLoggingMessage(req, resp) {
 
     message.loggingData.from = 'browser';
     persistableSemotableTemplate.logger[message.loggingLevel](message.loggingData);
-    resp.writeHead(200, {'Content-Type': 'text/plain'});
-    resp.end('');
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end('');
 }
 
 module.exports = {
