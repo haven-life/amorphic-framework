@@ -126,8 +126,11 @@ module.exports = function (PersistObjectTemplate) {
                     throw   new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
 
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
+                let isChanged = value && (!value._id || !value.__version__);
                 if (value && !value._id) {
                     value._id = this.createPrimaryKey(value);
+                }
+                if (isChanged) {
                     value.setDirty(txn);
                 }
 

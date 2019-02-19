@@ -361,9 +361,11 @@ describe('schema update checks', function () {
 
     it('save employee individually...', function () {
         var validEmployee = new Employee('1111', 'New Employee');
+        var genId = validEmployee.generateId();
         return validEmployee.persistSave().then(function (id) {
             expect(id.length).to.equal(24);
             expect(validEmployee._id).to.equal(id);
+            expect(genId).to.equal(id);
         });
     });
 

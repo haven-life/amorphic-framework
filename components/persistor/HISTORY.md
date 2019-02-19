@@ -1,3 +1,5 @@
+## 2.9.0
+* generateId function has been added so that the consumers can get the db id before saving the object.
 ## 2.8.3
 * Upgraded to Supertype 3.1.*
 ## 2.8.2

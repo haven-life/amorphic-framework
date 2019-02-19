@@ -130,6 +130,43 @@ The account object connected to the fetched role is also automatically when a ro
         });
     });
 
+## Debugging the container
+
+    1. Remove local node_modules folder and delete package-lock file and run the following commnd to launch the container in debug mode.
+        npm run test:docker:debug
+
+        If you are using Visual Studio Code, you can use the following setting to attach to the debugging container.
+            {
+                "type": "node",
+                "request": "attach",
+                "name": "persistor_debug",
+                "port": 5858,
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "/app"
+            }
+
+## Debugging in the local environment.
+
+        2. Make sure to install the mongodb and postgres locally and set the environment variables from the test.local.env file.
+            If you are using Visual Studio Code, you can use the following setting to debug.
+                 {
+                    "type": "node",
+                    "request": "launch",
+                    "name": "Mocha Tests",
+                    "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+                    "args": [
+                        "-u",
+                        "tdd",
+                        "--timeout",
+                        "999999",
+                        "--colors",
+                        "${workspaceFolder}/test"
+                    ],
+                    "envFile": "${workspaceFolder}/test.local.env",
+                    "internalConsoleOptions": "openOnSessionStart"
+                }
+        
+
 ## License
 
 Persistor is licensed under the MIT license

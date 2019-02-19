@@ -69,6 +69,7 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         persistorRefresh(logger?) : any {}
         persistorDelete (options?) : any {};
         persistorIsStale () : any {}
+        generateId() : any {};
 
         _id: string;
         __version__: number;

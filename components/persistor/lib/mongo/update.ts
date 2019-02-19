@@ -242,9 +242,12 @@ module.exports = function (PersistObjectTemplate) {
                         throw   new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
 
                     foreignKey = schema.parents[prop].id;
+                    let isChanged = value && (!value._id || !value.__version__);
                     // Make sure referenced entity has an id
                     if (value && !value._id) {
                         value._id = this.getDBID().toString(); // Create one
+                    }
+                    if (isChanged) {
                         value.__dirty__ = true;     // Will need to be saved
                     }
                     // Make sure we point to that id

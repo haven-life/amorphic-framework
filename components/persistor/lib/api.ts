@@ -658,6 +658,15 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             }
         };
 
+        /**
+         * Can generate object id even before saving the record to the database.
+         * @returns {string}
+         */
+        template.prototype.generateId =  function (): string {
+            let persistObjectTemplate = this.__objectTemplate__ || self;
+            return (this._id = this._id || persistObjectTemplate.createPrimaryKey(this));
+        };
+
         //persistorDelete will only support new API calls.
         template.prototype.persistorDelete = template.prototype.deleteV2 = async function(options) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
