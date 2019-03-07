@@ -193,17 +193,17 @@ export class SupertypeLogger {
      * @param logObject - formatted log object, passed in from consumer
      * @param rawLogData - unformatted and unprocessed version of "logObject" param
      */
-    private sendToLog(logLevel, logObject, ...rawLogData) {
+    protected sendToLog(logLevel, logObject, ...rawLogData) {
         console.log(this.prettyPrint(logLevel, logObject));     // eslint-disable-line no-console
     }
 
     prettyPrint(level, json) {
         let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
 
-        return this.formatDateTime(new Date(json.time)) + ': ' + 
-                                    level.toUpperCase() + ': ' + 
-                                    addColonIfToken(split[1].name, ': ') + 
-                                    addColonIfToken(split[1].msg, ': ') + 
+        return this.formatDateTime(new Date(json.time)) + ': ' +
+                                    level.toUpperCase() + ': ' +
+                                    addColonIfToken(split[1].name, ': ') +
+                                    addColonIfToken(split[1].msg, ': ') +
                                     xy(split[0]);
 
         function addColonIfToken (token, colonAndSpace) {

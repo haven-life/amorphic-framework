@@ -1,3 +1,5 @@
+## 3.1.1
+* Making sure logging method can be customized
 ## 3.1.0
 * Adding a public api to allow customization of supertype's logging functionality.
 ## 3.0.0
