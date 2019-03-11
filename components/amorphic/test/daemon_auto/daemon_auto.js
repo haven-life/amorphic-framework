@@ -21,11 +21,6 @@ describe('Run amorphic as a deamon with template mode "auto"', function() {
         assert.equal(daemonAutoController.getObjectTemplate().controller, daemonAutoController, 'The objectTemplate\'s controller references where set up');
     });
 
-    it('should create the download directory', function() {
-        let downloadPath = path.join(path.dirname(require.main.filename), 'download');
-        assert.isTrue(fs.existsSync(downloadPath), 'The download path exists');
-    });
-
     it('should have values with descriptions', function() {
         assert.strictEqual(daemonAutoController.__values__('propWithValuesAndDescriptions').length, 1, 'The correct values for the prop');
         assert.strictEqual(daemonAutoController.__values__('propWithValuesAndDescriptions')[0], 'value', 'The correct values for the prop');
@@ -41,37 +36,6 @@ describe('Run amorphic as a deamon with template mode "auto"', function() {
         assert.strictEqual('value', daemonAutoController.getMapFromStatic().key, 'Static map values correct');
     });
 
-    it('can download a file', function() {
-        return new Bluebird(function(resolve, reject) {
-            try {
-                resolve(fs.readFileSync(__dirname + '/./apps/daemon_auto/js/DownloadTest.txt'));
-            }
-            catch (e) {
-                reject(e);
-            }
-        })
-            .then(function(fileData) {
-                return axios.get('http://localhost:3001/amorphic/xhr?path=daemon_auto&file=DownloadTest.txt')
-                    .then(function(response) {
-                        assert.isOk(response, 'The response is ok');
-                        assert.strictEqual(response.status, 200, 'The response code was 200');
-                        assert.strictEqual(response.data, fileData.toString(), 'The file data matches');
-                    });
-            });
-    });
-
-    it('should 404 when the file is not there', function() {
-        return axios.get('http://localhost:3001/amorphic/xhr?path=daemon_auto&file=NotFound.txt')
-            .then(function() {
-                assert.isNotOk('To be here');
-            })
-            .catch(function(response) {
-                assert.isOk(response, 'The error response is ok');
-                assert.strictEqual(response.message, 'Request failed with status code 404', 'The response message was correct');
-                assert.strictEqual(response.response.status, 404, 'The response code was 404');
-                assert.strictEqual(response.response.data, 'Not found', 'The error data matches');
-            });
-    });
 
     it('should get a response from a custom endpoint', function() {
         return axios.get('http://localhost:3001/api/test')

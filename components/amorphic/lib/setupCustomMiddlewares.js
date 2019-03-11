@@ -3,7 +3,7 @@
 const fs = require('fs');
 
 function setupCustomMiddlewares(appDirectory, mainAppName, router) {
-    const middlewareFilePath = appDirectory + '/apps/' + mainAppName + '/js/middlewares/index.js';
+    const middlewareFilePath = `${appDirectory}/${mainAppName}/js/middlewares/index.js`;
 
     let middlewares;
 

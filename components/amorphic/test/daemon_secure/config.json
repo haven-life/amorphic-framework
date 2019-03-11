@@ -1,0 +1,10 @@
+{
+    "sessionSeconds" : 3600,
+    "objectCacheSeconds" : 600,
+    "sessionSecret" : "Ey0veeljPcLsHitdxCG2",
+    "applications" : {
+        "daemon_secure": "apps/daemon_secure"
+    },
+    "application"  : "daemon_secure",
+    "port": 3001
+}

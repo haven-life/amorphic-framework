@@ -8,6 +8,7 @@ let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
 let AmorphicServer = require('./AmorphicServer').AmorphicServer;
+let SupertypeSession = require('supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
 
@@ -28,6 +29,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 
     if (typeof sendToLogFunction === 'function') {
         AmorphicContext.appContext.sendToLog = sendToLogFunction;
+        SupertypeSession.logger.setLogger(sendToLogFunction);
     }
 
     buildStartUpParams(configStore);

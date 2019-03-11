@@ -207,14 +207,6 @@ amorphic = // Needs to be global to make mocha tests work
 
         this.setContextProps = RemoteObjectTemplate.logger.setContextProps;
 
-        RemoteObjectTemplate.logger.setContextProps = function (props) {
-            for (var prop in props) {
-                this.loggingContext[prop] = props[prop];
-            }
-
-            this.setContextProps.call(RemoteObjectTemplate.logger, props);
-        }.bind(this);
-
             /**
              * Send message to server and process response
              *

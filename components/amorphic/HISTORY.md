@@ -1,3 +1,8 @@
+## 4.1.0
+* Adding config for the servers for daemon mode and enabling https server in addition to the http server. Now you can specify express options in the form 'serverOptions' in your app level config. This is used for HTTPS configuration. You need an 'isSecure' flag turned on, an optional 'securePort' flag for the https server (otherwise, will use the default port as per the HTTPS module)
+* Also removing the amorphic routes for daemon applications.
+* Fixed a bug where in daemon mode would not appropriately read the middlewares / routes in all cases 
+* Apply sendToLogFunction override to SupertypeSession, for a custom logger propogation
 ## 4.0.0
 * Enabling daemon applications to service their own endpoints.
 ## 3.1.0
