@@ -1,3 +1,5 @@
+## 3.1.2
+* Add amorphic context to the SupertypeLogger
 ## 3.1.1
 * Making sure logging method can be customized
 ## 3.1.0
