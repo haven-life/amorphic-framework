@@ -1,3 +1,10 @@
+## 4.2.0
+* Adding possible `serverMode` app level config option for amorphic. This key, if it exists has only one value that can be associated with it, `api`. This marks this application as **daemon exclusively**. This is provided as an **alternative** to the already existing `isDaemon`, and should be adopted for daemon applications going forward.
+* Augmented the legacy daemon mode (`isDaemon`) to be able to run both `/amorphic` specific and `/api` specific routes. It is now possible to hit `amorphic/xhr` (and the associated amorphic routes as well) in daemon mode through this paradigm.
+* `isDaemon` should be reserved for Legacy applications from now on. It is suggested to use `serverMode: "api"` for daemon specific applications going forward
+* It is **not recommended** to use both `serverMode` and `isDaemon` as possible configurations. If both `serverMode` is set to `api` and `isDaemon` is set to true, then amorphic will default to `api`.
+* All api routes will be continue to be namespaced by default the `/api` endpoint if `isDaemon` is set to true. If an app is set to `serverMode: "api"`, all routes will be namespaced by default to `/`. In addition, it is possible to specify a namespace value if you would like. Within your app-level config.json add an additional key for `serverOptions` as an object and within that object add an addition key called `apiPath`, with whatever string value necessary. You can see an example of this in the `daemon_only_apiPath` test
+* There are future plans to deprecate the `isDaemon` in favor of utilizing only `serverMode`
 ## 4.1.0
 * Adding config for the servers for daemon mode and enabling https server in addition to the http server. Now you can specify express options in the form 'serverOptions' in your app level config. This is used for HTTPS configuration. You need an 'isSecure' flag turned on, an optional 'securePort' flag for the https server (otherwise, will use the default port as per the HTTPS module)
 * Also removing the amorphic routes for daemon applications.

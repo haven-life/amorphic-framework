@@ -31,7 +31,7 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
     let commonJsDir = commonPath + '/js/';
     let controllerJsDir = path + '/public/js/';
 
-    if (config.isDaemon) {
+    if (config.isDaemon || config.serverMode === 'api') {
         controllerJsDir = path + '/js/';
     }
 
@@ -325,7 +325,8 @@ function checkTypes(classes) {
  * @returns {Object} The base template object.
  */
 function buildBaseTemplate(appConfig, processTypescript) {
-    if (appConfig.appConfig && appConfig.appConfig.isDaemon) {
+    const config = appConfig.appConfig;
+    if (config && (config.isDaemon || config.serverMode === 'api')) {
         return persistor(null, null, superType);
     }
 
@@ -349,7 +350,7 @@ function buildBaseTemplate(appConfig, processTypescript) {
  * @param {Object} appTemplates - unknown
  */
 function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates) {
-	if (config.isDaemon) {
+	if (config.isDaemon || config.serverMode === 'api') {
 		let ControllerTemplate = AmorphicContext.applicationTSController[appName] ||
 			appTemplates[prop].Controller;
 

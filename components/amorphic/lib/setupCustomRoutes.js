@@ -2,8 +2,8 @@
 
 const fs = require('fs');
 
-function setupCustomRoutes(appDirectory, mainAppName, router) {
-    const routerFilePath = `${appDirectory}/${mainAppName}/js/routers/index.js`;
+function setupCustomRoutes(appDirectory, mainAppPath, router) {
+    const routerFilePath = `${appDirectory}/${mainAppPath}/js/routers/index.js`;
 
     let routers;
 

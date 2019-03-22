@@ -4,7 +4,7 @@
   "homepage": "https://github.com/haven-life/amorphic",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "dependencies": {
     "amorphic-bindster": "2.0.*",
     "bluebird": "3.5.1",
@@ -18,7 +18,7 @@
     "nconf": "0.8.5",
     "persistor": "2.9.*",
     "semotus": "2.4.*",
-    "supertype": "^3.1.1",
+    "supertype": "^3.1.2",
     "uglify-js": "2.7.5"
   },
   "devDependencies": {
