@@ -1,3 +1,5 @@
+## 2.5.0
+* Adding the string of all the changes performed in a server call as parameter in the postServerCall callback
 ## 2.4.1
 * Upgraded to Supertype 3.1.0
 ## 2.4.0

@@ -535,7 +535,7 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
      */
     function postCallHook(returnValue) {
         if (this.controller && this.controller['postServerCall']) {
-            return Q(this.controller['postServerCall'].call(this.controller, remoteCall.changes.length > 2, callContext))
+            return Q(this.controller['postServerCall'].call(this.controller, remoteCall.changes.length > 2, callContext, this.changeString))
                 .then(function u() {
                     return returnValue;
                 });

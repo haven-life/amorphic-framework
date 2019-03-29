@@ -54,6 +54,8 @@ ServerObjectTemplate.logger.setLevel('info;activity:dataLogging');
 
 var serverAssert;
 
+var changes;
+
 function createTemplates(objectTemplate) {
 
     var Customer = objectTemplate.create('Customer', {
@@ -287,7 +289,9 @@ function createTemplates(objectTemplate) {
                 this.preServerCallObjects[templateName] = true;
             }
         },
-        postServerCall: function () {
+        postServerCall: function (ifChangesAreGreaterThanTwo, callContext, changeString) {
+            changes = JSON.stringify(changeString);
+
             if (this.postServerCallThrowException) {
                 throw 'postServerCallThrowException';
             }
@@ -450,6 +454,10 @@ describe('Banking Example', function () {
         clientController.mainFunc()
             .then(function () {
                 serverController.validateServerIncomingObjects = null;
+
+                // check to see this property is changed;
+                expect(changes).to.equal(`{"Controller.modPropString":"opps3"}`);
+                changes = undefined;
                 done();
             }, function (e) {
                 expect('Should not be here').to.equal(false);
