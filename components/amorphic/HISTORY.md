@@ -1,3 +1,5 @@
+## 4.2.1
+* Fixed a bug where front-end changes would be lost if the client received certain status code responses.
 ## 4.2.0
 * Adding possible `serverMode` app level config option for amorphic. This key, if it exists has only one value that can be associated with it, `api`. This marks this application as **daemon exclusively**. This is provided as an **alternative** to the already existing `isDaemon`, and should be adopted for daemon applications going forward.
 * Augmented the legacy daemon mode (`isDaemon`) to be able to run both `/amorphic` specific and `/api` specific routes. It is now possible to hit `amorphic/xhr` (and the associated amorphic routes as well) in daemon mode through this paradigm.
