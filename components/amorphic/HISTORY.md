@@ -1,3 +1,5 @@
+## 4.2.2
+* Updated Semotus to 2.5.*
 ## 4.2.1
 * Fixed a bug where front-end changes would be lost if the client received certain status code responses.
 ## 4.2.0
