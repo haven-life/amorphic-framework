@@ -487,19 +487,23 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
 
         let changes = JSON.parse(remoteCall.changes);
 
-        if (this._applyChanges(changes, this.role == 'client', subscriptionId, callContext)) {
+        if (this._applyChanges(changes, this.role === 'client', subscriptionId, callContext)) {
             const obj = session.objects[remoteCall.id];
 
             if (!obj) {
                 throw new Error('Cannot find object for remote call ' + remoteCall.id);
             }
 
-            if (this.role == 'server' && obj['validateServerCall']) {
+            // check to see if this function is supposed to be called directly from client
+            if (obj.__proto__[remoteCall.name].__on__ !== 'server') {
+                throw 'Invalid Function Call; not an API function';
+            }
+
+            if (this.role === 'server' && obj['validateServerCall']) {
                 return obj['validateServerCall'].call(obj, remoteCall.name, callContext);
             }
-            else {
-                return true;
-            }
+
+            return true;
         }
         else {
             throw 'Sync Error';
@@ -2665,12 +2669,26 @@ RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 
     this.remote = function (defineProperty) {
         defineProperty = defineProperty || {};
+
+        /*
+            if we haven't supplied a configuration object into the decorator,
+             default the role of this function to a server API function
+         */
         if (!defineProperty.on) {
             defineProperty.on = 'server';
         }
         return function (target, propertyName, descriptor) {
-            descriptor.value  = objectTemplate._setupFunction(propertyName, descriptor.value,
+            descriptor.value = objectTemplate._setupFunction(propertyName, descriptor.value,
                 defineProperty.on, defineProperty.validate);
+
+            /*
+                this function been marked as a server API either explicitly or by default.
+                set the appropriate metadata.
+             */
+            if (defineProperty.on === 'server') {
+                descriptor.value.__on__ = 'server';
+            }
+
             if (defineProperty.type) {
                 descriptor.value.__returns__ = defineProperty.type;
             }
