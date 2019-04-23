@@ -514,15 +514,21 @@ RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscr
     /**
      * If the changes could be applied and the validation was successful call the method
      *
-     * @param {unknown} isValid unknown
+     * @param {boolean} isValid - takes a flag if the call is valid or not, if it is then we proceed normally,
+     * otherwise, we throw an error and stop execution
      *
      * @returns {unknown} unknown
      */
-    function callIfValid() {
+    function callIfValid(isValid) {
+
         let obj = session.objects[remoteCall.id];
 
         if (!obj[remoteCall.name]){
             throw new Error(remoteCall.name + ' function does not exist.');
+        }
+
+        if (!isValid && remoteCall && remoteCall.name) {
+            throw new Error(remoteCall.name + ' refused')
         }
 
         let args = this._fromTransport(JSON.parse(remoteCall.arguments));

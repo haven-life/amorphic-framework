@@ -20,6 +20,8 @@ ServerObjectTemplate._useGettersSetters = true;
 ServerObjectTemplate.maxCallTime = 60 * 1000;
 ServerObjectTemplate.__conflictMode__ = 'soft';
 
+var failServer = false;
+var serverFailed = false;
 
 function sendToServer(message) {
     ServerObjectTemplate.processMessage(message);
@@ -47,8 +49,8 @@ var serverController = ServerObjectTemplate._createEmptyObject(ServerController,
 ServerObjectTemplate.syncSession();
 ServerObjectTemplate.controller = serverController;
 ServerObjectTemplate.__changeTracking__ = true;
-ServerObjectTemplate.reqSession = {loggingID: 'test'};
-ServerObjectTemplate.memSession = {semotus: {}};
+ServerObjectTemplate.reqSession = { loggingID: 'test' };
+ServerObjectTemplate.memSession = { semotus: {} };
 ServerObjectTemplate.logLevel = 1;
 ServerObjectTemplate.logger.setLevel('info;activity:dataLogging');
 
@@ -64,28 +66,28 @@ function createTemplates(objectTemplate) {
             this.lastName = last;
             this.middleName = middle;
         },
-        email: {type: String, value: '', length: 50, rule: ['text', 'email', 'required']},
-        firstName: {type: String, value: '', length: 40, rule: ['name', 'required']},
-        middleName: {type: String, value: '', length: 40, rule: 'name'},
-        lastName: {type: String, value: '', length: 40, rule: ['name', 'required']},
-        local1: {type: String, persist: false, value: 'local1'},
-        local2: {type: String, isLocal: true, value: 'local2'}
+        email: { type: String, value: '', length: 50, rule: ['text', 'email', 'required'] },
+        firstName: { type: String, value: '', length: 40, rule: ['name', 'required'] },
+        middleName: { type: String, value: '', length: 40, rule: 'name' },
+        lastName: { type: String, value: '', length: 40, rule: ['name', 'required'] },
+        local1: { type: String, persist: false, value: 'local1' },
+        local2: { type: String, isLocal: true, value: 'local2' }
     });
 
     var Address = objectTemplate.create('Address', {
         init: function (customer) {
             this.customer = customer;
         },
-        lines: {type: Array, of: String, value: [], max: 3},
-        city: {type: String, value: '', length: 20},
-        state: {type: String, value: '', length: 20},
-        postalCode: {type: String, value: '', length: 20},
-        country: {type: String, value: 'US', length: 3}
+        lines: { type: Array, of: String, value: [], max: 3 },
+        city: { type: String, value: '', length: 20 },
+        state: { type: String, value: '', length: 20 },
+        postalCode: { type: String, value: '', length: 20 },
+        country: { type: String, value: 'US', length: 3 }
     });
 
     Customer.mixin({
-        referredBy: {type: Customer, fetch: true},
-        referrers: {type: Array, of: Customer, value: [], fetch: true},
+        referredBy: { type: Customer, fetch: true },
+        referrers: { type: Array, of: Customer, value: [], fetch: true },
         addAddress: function (lines, city, state, zip) {
             var address = new Address(this);
             address.lines = lines;
@@ -95,12 +97,12 @@ function createTemplates(objectTemplate) {
             address.customer = this;
             this.addresses.push(address);
         },
-        addresses: {type: Array, of: Address, value: [], fetch: true}
+        addresses: { type: Array, of: Address, value: [], fetch: true }
     });
 
     var ReturnedMail = objectTemplate.create('ReturnedMail', {
-        date: {type: Date},
-        address: {type: Address},
+        date: { type: Date },
+        address: { type: Address },
         init: function (address, date) {
             this.address = address;
             this.date = date;
@@ -108,8 +110,8 @@ function createTemplates(objectTemplate) {
     });
 
     Address.mixin({
-        customer: {type: Customer},
-        returnedMail: {type: Array, of: ReturnedMail, value: []},
+        customer: { type: Customer },
+        returnedMail: { type: Array, of: ReturnedMail, value: [] },
         addReturnedMail: function (date) {
             this.returnedMail.push(new ReturnedMail(this, date));
         }
@@ -124,8 +126,8 @@ function createTemplates(objectTemplate) {
                 this.relationship = relationship;
             }
         },
-        relationship: {type: String, value: 'primary'},
-        customer: {type: Customer}
+        relationship: { type: String, value: 'primary' },
+        customer: { type: Customer }
     });
 
     var Account = objectTemplate.create('Account', {
@@ -148,10 +150,10 @@ function createTemplates(objectTemplate) {
 
             customer.roles.push(role);
         },
-        number: {type: Number},
-        title: {type: Array, of: String, max: 4},
-        roles: {type: Array, of: Role, value: [], fetch: true},
-        address: {type: Address},
+        number: { type: Number },
+        title: { type: Array, of: String, max: 4 },
+        roles: { type: Array, of: Role, value: [], fetch: true },
+        address: { type: Address },
         debit: function (amount) {
             new Transaction(this, 'debit', amount);
         },
@@ -190,7 +192,7 @@ function createTemplates(objectTemplate) {
         }
     });
     Address.mixin({
-        account: {type: Account}
+        account: { type: Account }
     });
     var Transaction = objectTemplate.create('Transaction', {
         init: function (account, type, amount, fromAccount) {
@@ -207,23 +209,23 @@ function createTemplates(objectTemplate) {
                 fromAccount.fromAccountTransactions.push(this);
             }
         },
-        amount: {type: Number},
-        type: {type: String},
-        account: {type: Account, fetch: true},
-        fromAccount: {type: Account, fetch: true}
+        amount: { type: Number },
+        type: { type: String },
+        account: { type: Account, fetch: true },
+        fromAccount: { type: Account, fetch: true }
     });
 
     Customer.mixin({
-        roles: {type: Array, of: Role, value: []}
+        roles: { type: Array, of: Role, value: [] }
     });
 
     Role.mixin({
-        account: {type: Account}
+        account: { type: Account }
     });
 
     Account.mixin({
-        transactions: {type: Array, of: Transaction, value: [], fetch: true},
-        fromAccountTransactions: {type: Array, of: Transaction, value: [], fetch: true}
+        transactions: { type: Array, of: Transaction, value: [], fetch: true },
+        fromAccountTransactions: { type: Array, of: Transaction, value: [], fetch: true }
     });
 
     var Controller = objectTemplate.create('Controller', {
@@ -232,11 +234,11 @@ function createTemplates(objectTemplate) {
                 serverAssert();
             }
         },
-        sam: {type: Customer},
-        karen: {type: Customer},
-        ashling: {type: Customer},
-        modPropString: {type: String},
-        modPropArray: {type: Array, of: String},
+        sam: { type: Customer },
+        karen: { type: Customer },
+        ashling: { type: Customer },
+        modPropString: { type: String },
+        modPropArray: { type: Array, of: String },
         init: function () {
 
             // Setup customers and addresses
@@ -301,16 +303,19 @@ function createTemplates(objectTemplate) {
             }
         },
         validateServerCall: function () {
-            return this.canValidateServerCall;
+            if (failServer) {
+                serverFailed = true;
+            }
+            return !failServer;
         },
-        preServerCallObjects: {isLocal: true, type: Object, value: {}},
-        preServerCalls: {isLocal: true, type: Number, value: 0},
-        postServerCalls: {isLocal: true, type: Number, value: 0},
-        preServerCallThrowException: {isLocal: true, type: Boolean, value: false},
-        postServerCallThrowException: {isLocal: true, type: Boolean, value: false},
-        postServerCallThrowRetryException: {isLocal: true, type: Boolean, value: false},
-        serverCallThrowException: {isLocal: true, type: Boolean, value: false},
-        canValidateServerCall: {isLocal: true, type: Boolean, value: true}
+        preServerCallObjects: { isLocal: true, type: Object, value: {} },
+        preServerCalls: { isLocal: true, type: Number, value: 0 },
+        postServerCalls: { isLocal: true, type: Number, value: 0 },
+        preServerCallThrowException: { isLocal: true, type: Boolean, value: false },
+        postServerCallThrowException: { isLocal: true, type: Boolean, value: false },
+        postServerCallThrowRetryException: { isLocal: true, type: Boolean, value: false },
+        serverCallThrowException: { isLocal: true, type: Boolean, value: false },
+        canValidateServerCall: { isLocal: true, type: Boolean, value: true }
     });
 
     return Controller;
@@ -512,5 +517,22 @@ describe('Banking Example', function () {
         }).fail(function (e) {
             done(e);
         });
+    });
+
+
+    it('Does not call main function, as validateServerCall has failed', function (done) {
+        failServer = true;
+        clientController.mainFunc()
+            .then(function () {
+                expect('Should not be here').to.equal(false);
+                done('should not be here');
+            }, function (e) {
+                expect(JSON.stringify(e)).to.equal(JSON.stringify({ code: 'internal_error', text: 'An internal error occurred' }));
+                expect(serverFailed).to.equal(true);
+                failServer = false;
+                done();
+            }).fail(function (e) {
+                done(e);
+            });
     });
 });
