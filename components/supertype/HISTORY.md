@@ -1,3 +1,5 @@
+## 3.2.0
+* Adding a statsd client property on base object template.
 ## 3.1.2
 * Add amorphic context to the SupertypeLogger
 ## 3.1.1

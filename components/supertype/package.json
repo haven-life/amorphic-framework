@@ -1,7 +1,7 @@
 {
     "name": "supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "3.1.2",
+    "version": "3.2.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
@@ -12,14 +12,14 @@
     "devDependencies": {
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
-        "@types/node": "^7.0.5",
+        "@types/node": "^11.11.6",
         "chai": "*",
         "eslint": "3.7.x",
         "istanbul": "0.4.5",
-        "sinon": "1.15.x",
-        "typescript": "2.9.2",
         "mocha": "5.2.0",
-        "ts-node": "*"
+        "sinon": "1.15.x",
+        "ts-node": "*",
+        "typescript": "2.9.2"
     },
     "scripts": {
         "lint": "eslint .",

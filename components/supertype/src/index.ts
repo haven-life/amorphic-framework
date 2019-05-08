@@ -18,19 +18,18 @@
  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/*
- * ObjectTemplate - n Type System with Benefits
- */
 
-import {ObjectTemplate} from './ObjectTemplate';
+import { ObjectTemplate } from './ObjectTemplate';
 
 ObjectTemplate.init();
 export default ObjectTemplate;
 
 let amorphicStatic = ObjectTemplate.amorphicStatic;
 let SupertypeSession = ObjectTemplate.amorphicStatic;
+export { StatsdClientInterface } from './StatsdClientInterface';
+export { StatsdHelper } from './StatsdHelper';
 
-export {amorphicStatic, SupertypeSession};
-export {SupertypeLogger} from './SupertypeLogger';
-export {Supertype} from './Supertype';
-export {supertypeClass, property, remote} from './decorators';
+export { amorphicStatic, SupertypeSession };
+export { SupertypeLogger } from './SupertypeLogger';
+export { Supertype } from './Supertype';
+export { supertypeClass, property, remote } from './decorators';
