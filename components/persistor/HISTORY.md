@@ -1,3 +1,5 @@
+## 2.9.1
+* Fix to avoid change tracking processing for non-Amorphic objects.
 ## 2.9.0
 * generateId function has been added so that the consumers can get the db id before saving the object.
 ## 2.8.3

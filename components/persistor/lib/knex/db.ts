@@ -1234,7 +1234,7 @@ module.exports = function (PersistObjectTemplate) {
             function generateChanges(obj, action) {
                 var objChanges;
 
-                if (notifyChanges && obj.__template__.__schema__.enableChangeTracking) {
+                if (notifyChanges && obj.__template__ && obj.__template__.__schema__ && obj.__template__.__schema__.enableChangeTracking) {
                     changeTracking = changeTracking || {};
                     changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
                     changeTracking[obj.__template__.__name__].push(objChanges = {
