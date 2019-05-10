@@ -1,3 +1,5 @@
+## 2.10.0
+* global chagetracking flags should not be disabled in fetch method.
 ## 2.9.1
 * Fix to avoid change tracking processing for non-Amorphic objects.
 ## 2.9.0
