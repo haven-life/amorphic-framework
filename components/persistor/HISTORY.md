@@ -1,3 +1,5 @@
+## 2.11.0
+* fetch spec can have recursive spec by providing a string starting with "recursive:".
 ## 2.10.0
 * global chagetracking flags should not be disabled in fetch method.
 ## 2.9.1

@@ -13,7 +13,7 @@ var knex;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
-var Employee, Department, Role, roleId;
+var Employee, Department, Role, roleId, EmployeeRef;
 var PersistObjectTemplate, ObjectTemplate;
 describe('persistor transaction checks', function () {
     before('drop schema table once per test suit', function() {
@@ -33,6 +33,8 @@ describe('persistor transaction checks', function () {
                 return knex.schema.dropTableIfExists('tx_role')
             }).then(function () {
                 return knex.schema.dropTableIfExists('tx_department')
+            }).then(function () {
+                return knex.schema.dropTableIfExists('tx_employee_ref')
             }),
             knex.schema.dropTableIfExists(schemaTable)]);
     })
@@ -44,15 +46,16 @@ describe('persistor transaction checks', function () {
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};
+        schema.EmployeeRef = {};
         schema.Department = {};
         schema.Role = {};
         schema.Role.table = 'tx_role';
         schema.Employee.table = 'tx_employee';
+        schema.EmployeeRef.table = 'tx_employee_ref';
         schema.Department.table = 'tx_department';
-
-
         schema.Employee.parents = {
-            department: {id: 'department_id'}
+            department: {id: 'department_id'},
+            referral: {id: 'referral_id'}
         };
         schema.Employee.children = {
             roles: {id: 'employee_id'}
@@ -61,8 +64,9 @@ describe('persistor transaction checks', function () {
             employee: {id: 'employee_id'},
             department: {id: 'role_id'}
         };
-
-
+        schema.EmployeeRef.parents = {
+            friend: {id: 'friend_id'}
+        };
         schema.Department.children = {
             employees: {id: 'employee_id'}
         };
@@ -73,22 +77,24 @@ describe('persistor transaction checks', function () {
         Employee = PersistObjectTemplate.create('Employee', {
             name: {type: String}
         });
-
         Department = PersistObjectTemplate.create('Department', {
             name: {type: String},
             manager: {type: Employee}
         });
-
+        EmployeeRef = PersistObjectTemplate.create('EmployeeRef', {
+            name: {type: String}
+        });
         Role = PersistObjectTemplate.create('Role', {
             name: {type:String}
         });
-
         Employee.mixin({
             department: {type: Department},
-            roles: {type: Array, of: Role, value: []}
-        })
-
-
+            roles: {type: Array, of: Role, value: []},
+            referral: {type: EmployeeRef}
+        });
+        EmployeeRef.mixin({
+            friend: {type: Employee}
+        });
         Role.mixin({
             employee: {type: Employee},
             department: {type: Department}
@@ -107,7 +113,16 @@ describe('persistor transaction checks', function () {
 
         emp.department = dep1;
         emp.roles = [role1, role2];
+        var referral = new EmployeeRef();
+        referral.name = 'referral';
+        var second = new Employee();
+        second.name = 'second'
+        referral.friend = second;
 
+        var referralSecond = new EmployeeRef();
+        referral.name = 'referralSecond';
+        second.referral = referralSecond
+        emp.referral = referral;
 
         (function () {
             PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
@@ -120,6 +135,7 @@ describe('persistor transaction checks', function () {
         function prepareData() {
             PersistObjectTemplate.performInjections();
             return syncTable(Employee)
+                .then(syncTable.bind(this, EmployeeRef))
                 .then(syncTable.bind(this, Department))
                 .then(syncTable.bind(this, Role))
                 .then(createRecords.bind(Employee));
@@ -142,16 +158,18 @@ describe('persistor transaction checks', function () {
     afterEach('remove tables and after each test', function() {
         return Promise.all([
             knex.schema.dropTableIfExists('tx_employee')
-           .then(function () {
-               return knex.schema.dropTableIfExists('tx_department')
-           }).then(function () {
-               return knex.schema.dropTableIfExists('tx_role')
-           }),
+            .then(function () {
+                return knex.schema.dropTableIfExists('tx_department')
+            }).then(function () {
+                return knex.schema.dropTableIfExists('tx_role')
+            }).then(function () {
+                return knex.schema.dropTableIfExists('tx_employee_ref')
+            }),
             knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('load intermediate objects first and then try to load the parents ', function () {
-        return Role.getFromPersistWithId(roleId, {employee: {fetch: {department: {fetch: {manager: {fetch: {roles: true}}}}}}}).then(function(role) {
+        return Role.getFromPersistWithId(roleId, {employee: { fetch: { department: { fetch: { manager: { fetch: { roles: true }}}}, referral: { fetch: { friend: 'recursive:employee'}}}}}).then(function (role) {
             expect(role.employee.department.manager.roles.length).is.equal(2);
         });
     });

@@ -33,7 +33,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} projection types with property names, will be used to ignore the fields from selects
      * @returns {*}
      */
-    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking, projection)
+    PersistObjectTemplate.getFromPersistWithKnexQuery = function (requests, template, queryOrChains, cascade, skip, limit, isTransient, idMap, options, establishedObject, isRefresh, logger, enableChangeTracking, projection, orgCascade)
     {
 
         var topLevel = !requests;
@@ -62,6 +62,7 @@ module.exports = function (PersistObjectTemplate) {
                     throw  new Error(props[prop].type.__name__ + '.' + prop + ' is missing a parents schema entry');
                 var foreignKey = schema.parents[prop].id;
                 var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
+                orgCascade = orgCascade || cascade;
                 if (((defineProperty['fetch'] && !defineProperty['nojoin']) || cascadeFetch ||
                     (schema.parents[prop].fetch == true  && !schema.parents[prop].nojoin)) &&
                     cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin))
@@ -112,7 +113,7 @@ module.exports = function (PersistObjectTemplate) {
             pojos.forEach(function (pojo, ix) {
                 sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix;
                 promises.push(PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
-                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection)
+                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
                     .then(function (obj) {
                         results[sortMap[obj._id]] = obj;
                     }))
@@ -165,7 +166,7 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*} an object via a promise as though it was created with new template()
      */
     PersistObjectTemplate.getTemplateFromKnexPOJO =
-        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger, enableChangeTracking, projection)
+        function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
         {
             var self = this;
             prefix = prefix || '';
@@ -238,7 +239,16 @@ module.exports = function (PersistObjectTemplate) {
                 var type = defineProperty.type;
                 var of = defineProperty.of;
                 var cascadeFetch = (cascade && typeof(cascade[prop] != 'undefined')) ? cascade[prop] : null;
-
+                if (cascadeFetch && cascadeFetch.fetch) {
+                    Object.keys(cascadeFetch.fetch).map(key => {
+                        if (typeof cascadeFetch.fetch[key] === 'string') {
+                            var fetchSpec = cascadeFetch.fetch[key];
+                            var [, parentProp] = fetchSpec.match(/recursive:(.*)/)
+                            var recursiveFetch = parentProp ? this.processRecursiveFetch(orgCascade, parentProp) : fetchSpec;
+                            cascadeFetch.fetch[key] = recursiveFetch;
+                        }
+                    })
+                }
                 // Create a persistor if not already there
                 var persistorPropertyName = prop + 'Persistor';
 
@@ -294,7 +304,7 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection);
+                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade);
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
                             }
@@ -385,7 +395,7 @@ module.exports = function (PersistObjectTemplate) {
                 });
             }
 
-            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection) {
+            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade) {
                 var query = {_id: foreignId};
                 var options = {};
                 var closureProp = prop;
@@ -406,10 +416,10 @@ module.exports = function (PersistObjectTemplate) {
                         (pojo[join.alias + '____id'] ?
                             this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
                                 closureCascade, isTransient, closureDefineProperty,
-                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking, projection)
+                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking, projection, orgCascade)
                             : Promise.resolve(true)) :
                         this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
-                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking, projection);
+                            null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking, projection, orgCascade);
                     this.withoutChangeTracking(function () {
                         obj[closurePersistorProp].isFetching = true;
                     }.bind(this));
@@ -456,7 +466,7 @@ module.exports = function (PersistObjectTemplate) {
                 }.bind(this));
                 requests.push(function () {
                     return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
-                        limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger, null, projection)
+                        limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger, null, projection, orgCascade)
                         .then(function(objs) {
                             this.withoutChangeTracking(function () {
                                 if (foreignFilterKey) {

@@ -297,4 +297,10 @@ module.exports = function (PersistObjectTemplate) {
         }
 
     }
+
+    PersistObjectTemplate.processRecursiveFetch = function processRecursiveFetch(fetch, key) {
+        let [, current, remaining, ] = key.split(/^(\w*)[\.]*(.*)/);
+        let fetchSpec = current && fetch[current] && fetch[current].fetch;
+        return remaining ? processRecursiveFetch(fetchSpec, remaining) : fetchSpec;
+    }
 };
