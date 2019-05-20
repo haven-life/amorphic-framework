@@ -1,3 +1,5 @@
+## 2.11.1
+* fix to address the issues related to properties marked as non-persist in change tracking.
 ## 2.11.0
 * fetch spec can have recursive spec by providing a string starting with "recursive:".
 ## 2.10.0

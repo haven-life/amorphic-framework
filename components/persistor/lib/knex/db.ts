@@ -1269,7 +1269,7 @@ module.exports = function (PersistObjectTemplate) {
                         addChanges(prop, obj[oldKey], obj[prop], prop);
                     }
                     //For one to one relations, we need to check the ids associated to the parent record.
-                    else if (props[prop].type.isObjectTemplate && obj['_ct_org_' + prop] !== obj[prop + 'Persistor'].id) {
+                    else if (props[prop].type.isObjectTemplate && obj[prop + 'Persistor'] && obj['_ct_org_' + prop] !== obj[prop + 'Persistor'].id) {
                         addChanges(prop, obj[oldKey], obj[prop + 'Persistor'].id, getColumnName(prop, obj));
                     }
                 }
