@@ -1,3 +1,5 @@
+## 4.3.0
+* Updated Persistor to 2.11.*
 ## 4.2.2
 * Updated Semotus to 2.5.*
 ## 4.2.1
