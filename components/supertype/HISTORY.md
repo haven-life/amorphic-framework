@@ -1,3 +1,5 @@
+## 3.3.0
+* Moving Supertype to @havenlife/supertype in NPM
 ## 3.2.0
 * Adding a statsd client property on base object template.
 ## 3.1.2
