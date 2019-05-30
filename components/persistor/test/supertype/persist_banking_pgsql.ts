@@ -1015,7 +1015,7 @@ describe('Banking from pgsql Example', function () {
             output += str.replace(/[\r\n ]/g, '');
         };
 
-        sam.amorphic.logger.startContext({name: 'supertype'});
+        sam.amorphic.logger.startContext({name: '@havenlife/supertype'});
         sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
         var context = sam.amorphic.logger.setContextProps({permFoo: 'permBar1'});
         sam.amorphic.logger.warn({foo: 'bar2'});
@@ -1036,7 +1036,7 @@ describe('Banking from pgsql Example', function () {
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(foo="bar1")(permFoo="permBar1"foo="bar2")(foo="bar3")(permFoo="childFoo"foo="bar4")(foo="bar5")(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
+        var result = '(__amorphicContext={"name":"@havenlife/supertype"}foo="bar1")(__amorphicContext={"name":"@havenlife/supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"@havenlife/supertype"}foo="bar3")(__amorphicContext={"name":"@havenlife/supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"@havenlife/supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
 
         expect(output).to.equal(result);
         sam.amorphic.logger = oldSendToLog;

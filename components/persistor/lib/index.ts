@@ -51,7 +51,7 @@
  */
 var nextId = 1;
 var objectTemplate;
-var supertype = require('supertype');
+var supertype = require('@havenlife/supertype');
 
 module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();

@@ -11,7 +11,7 @@ chai.use(chaiAsPromised);
 
 
 var Promise = require('bluebird');
-var ObjectTemplate = require('supertype').default;
+var ObjectTemplate = require('@havenlife/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
 
@@ -733,7 +733,7 @@ describe('type mapping tests for parent/child relations', function () {
     });
 
     it('Adding a foreign key refrence in children', function () {
-        var ObjectTemplate1 = require('supertype').default;
+        var ObjectTemplate1 = require('@havenlife/supertype').default;
         var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
         var BaseTemplate_FK_on_Child = PersistObjectTemplate1.create('BaseTemplate_FK_on_Child', {
             name: {type: String, value: 'Test Parent'}
@@ -771,14 +771,14 @@ describe('type mapping tests for parent/child relations', function () {
     });
 
     it('getDB without setting database', function () {
-        var ObjectTemplate1 = require('supertype').default;
+        var ObjectTemplate1 = require('@havenlife/supertype').default;
         var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
         expect(PersistObjectTemplate1.getDB.bind(this, 'pg')).to.throw('You must do PersistObjectTempate.setDB');
 
     });
 
     it('without schema..', function () {
-        var ObjectTemplate1 = require('supertype').default;
+        var ObjectTemplate1 = require('@havenlife/supertype').default;
         var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
         var emptySchema = PersistObjectTemplate1._verifySchema();
         expect(emptySchema).to.be.an('undefined');

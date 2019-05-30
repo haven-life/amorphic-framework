@@ -1,8 +1,8 @@
 {
-    "name": "persistor",
+    "name": "@havenlife/persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/haven-life/persistor",
-    "version": "2.11.1",
+    "version": "3.0.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
@@ -11,11 +11,14 @@
         "mongodb-bluebird": "x",
         "pg": "7.4.1",
         "q": "1.x",
-        "supertype": "3.1.*",
         "tv4": "^1.2.7",
         "underscore": "1.x"
     },
+    "peerDependencies": {
+        "@havenlife/supertype": "3.3.*"
+    },
     "devDependencies": {
+        "@havenlife/supertype": "3.3.*",
         "chai": "3.x",
         "chai-as-promised": "^5.1.0",
         "nyc": "13.0.0",
@@ -48,7 +51,7 @@
         "compile:tests": "tsc -p ./test/supertype/tsconfig.test.json",
         "compile:all": "npm run compile && npm run compile:tests",
         "prepublishOnly": "npm run compile",
-        "test": "nyc _mocha -- test/* -R spec", 
+        "test": "nyc _mocha -- test/* -R spec",
         "test:debug": "mocha test/**/*.js --inspect-brk=0.0.0.0:5858",
         "test:docker": "docker-compose up --build",
         "test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",

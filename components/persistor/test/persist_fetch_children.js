@@ -42,7 +42,7 @@ describe('persistor transaction checks', function () {
         return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = require('supertype').default;
+        ObjectTemplate = require('@havenlife/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};
