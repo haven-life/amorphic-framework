@@ -1,5 +1,5 @@
 [![CircleCI](https://circleci.com/gh/haven-life/semotus.svg?style=shield)](https://circleci.com/gh/haven-life/semotus)
-[![npm version](https://badge.fury.io/js/semotus.svg)](https://badge.fury.io/js/semotus)
+[![npm version](https://badge.fury.io/js/%40havenlife%2Fsemotus.svg)](https://badge.fury.io/js/%40havenlife%2Fsemotus)
 
 # Semotus
 ## Description
@@ -11,6 +11,3 @@ are made across sets.  It is installed as part of [Amorphic](https://github.com/
 ## License
 
 Semotus is licensed under the MIT license
-
-
-

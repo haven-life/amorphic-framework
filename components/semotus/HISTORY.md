@@ -1,3 +1,6 @@
+## 3.0.0
+* Moving the targeted npm repository to @havenlife/semotus
+* Made Supertype a peerDependency, indicating that it is the consuming application's responsibility to install semotus
 ## 2.5.2
 * Fixed a bug where callIfValid still called the remote function if it wasn't valid
 ## 2.5.1
