@@ -3,11 +3,8 @@
 let AmorphicContext = require('./AmorphicContext');
 let chalk = require('chalk');
 
-// TODO: Audit where these get used.
-/**
- * Purpose unknown
- *
- * @param {unknown} configStore unknown
+/*
+    Amorphic startup options setup
  */
 function buildStartUpParams(configStore) {
     let amorphicOptions = AmorphicContext.amorphicOptions || {};
@@ -43,7 +40,7 @@ function buildStartUpParams(configStore) {
     }
     else {
         amorphicOptions.sessionSecret = 'swat_team';
-        console.warn('WARNING you are starting amorphic with no sessionSecret. The default sessionSecret "swat_team" will be used.');
+        console.warn('WARNING you are starting amorphic with no sessionSecret.');
     }
 }
 

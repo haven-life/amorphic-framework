@@ -5,6 +5,7 @@ let establishServerSession = require('../session/establishServerSession').establ
 let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
 let Bluebird = require('bluebird');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Process a post request by establishing a session and calling the controllers processPost method
@@ -17,6 +18,8 @@ let Bluebird = require('bluebird');
  */
 
 function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
+
+    let processPostStartTime = process.hrtime();
 
     let session = req.session;
     let path = url.parse(req.originalUrl, true).query.path;
@@ -34,6 +37,11 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
                         semotus.save(path, session, req);
                         res.writeHead(controllerResp.status, controllerResp.headers || {'Content-Type': 'text/plain'});
                         res.end(controllerResp.body);
+
+                        statsdUtils.computeTimingAndSend(
+                            processPostStartTime,
+                            'amorphic.webserver.process_post.response_time',
+                            { result: 'success' });
                     })
                     .catch(function hh(e) {
                         ourObjectTemplate.logger.info({
@@ -43,6 +51,11 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 
                         res.writeHead(500, {'Content-Type': 'text/plain'});
                         res.end('Internal Error');
+
+                        statsdUtils.computeTimingAndSend(
+                            processPostStartTime,
+                            'amorphic.webserver.process_post.response_time',
+                            { result: 'failure' });
                     });
             }
             else {
@@ -53,6 +66,11 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
             logMessage('Error establishing session for processPost ', req.session.id, error.message + error.stack);
             res.writeHead(500, {'Content-Type': 'text/plain'});
             res.end('Internal Error');
+
+            statsdUtils.computeTimingAndSend(
+                processPostStartTime,
+                'amorphic.webserver.process_post.response_time',
+                { result: 'failure' });
         });
 }
 

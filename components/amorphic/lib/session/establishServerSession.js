@@ -1,10 +1,11 @@
 'use strict';
 
-let AmorphicContext = require('../AmorphicContext');
+let amorphicContext = require('../AmorphicContext');
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let establishInitialServerSession = require('./establishInitialServerSession').establishInitialServerSession;
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Establish a server session
@@ -32,7 +33,9 @@ let url = require('url');
  */
 function establishServerSession(req, path, newPage, reset, newControllerId, sessions, controllers, nonObjTemplatelogLevel) {
 
-    let applicationConfig = AmorphicContext.applicationConfig;
+    let establishInitialServerSessionTime = process.hrtime();
+
+    let applicationConfig = amorphicContext.applicationConfig;
 
     // Retrieve configuration information
     let config = applicationConfig[path];
@@ -67,11 +70,19 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
 
             if (!referer.match(createControllerFor) && createControllerFor !== 'yes') {
 
+                statsdUtils.computeTimingAndSend(
+                    establishInitialServerSessionTime,
+                    'amorphic.session.establish_server_session.response_time');
+
                 return establishInitialServerSession(req, controllerPath, initObjectTemplate, path,
                     appVersion, sessionExpiration);
             }
         }
     }
+
+    statsdUtils.computeTimingAndSend(
+        establishInitialServerSessionTime,
+        'amorphic.session.establish_server_session.response_time');
 
     return establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
         sessionExpiration, session, sessionStore, newControllerId, objectCacheExpiration, newPage,

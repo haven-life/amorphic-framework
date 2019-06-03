@@ -7,7 +7,7 @@
         "test": "apps/test",
         "config": "apps/config"
     },
-	"application": "test;config",
+	"application": "test;config;",
     "conflictMode": "hard",
     "commonPath": "apps/common"
 }

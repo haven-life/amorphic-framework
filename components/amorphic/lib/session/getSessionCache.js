@@ -1,6 +1,7 @@
 'use strict';
 
-let AmorphicContext = require('../AmorphicContext');
+let amorphicContext = require('../AmorphicContext');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Manage a set of data keyed by the session id used for message sequence and serialization tracking
@@ -13,6 +14,8 @@ let AmorphicContext = require('../AmorphicContext');
  * @returns {*|{sequence: number, serializationTimeStamp: null, timeout: null}}
  */
 function getSessionCache(path, sessionId, keepTimeout, sessions) {
+    let getSessionCacheTime = process.hrtime();
+
     let key = path + '-' + sessionId;
     let session = sessions[key] || {sequence: 1, serializationTimeStamp: null, timeout: null, semotus: {}};
     sessions[key] = session;
@@ -26,7 +29,11 @@ function getSessionCache(path, sessionId, keepTimeout, sessions) {
             if (sessions[key]) {
                 delete sessions[key];
             }
-        }, AmorphicContext.amorphicOptions.sessionExpiration);
+        }, amorphicContext.amorphicOptions.sessionExpiration);
+
+        statsdUtils.computeTimingAndSend(
+            getSessionCacheTime,
+            'amorphic.session.get_session_cache.response_time');
     }
 
     return session;

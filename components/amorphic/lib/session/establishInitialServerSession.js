@@ -6,6 +6,7 @@ let semotus = require('semotus');
 let getTemplates = require('../getTemplates').getTemplates;
 let getServerConfigString = require('../utils/getServerConfigString').getServerConfigString;
 let Bluebird = require('bluebird');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -20,6 +21,8 @@ let Bluebird = require('bluebird');
  * @returns {unknown} unknown
  */
 function establishInitialServerSession(req, controllerPath, initObjectTemplate, path, appVersion, sessionExpiration) {
+
+    let establishInitialServerSessionTime = process.hrtime();
 
     let amorphicOptions = AmorphicContext.amorphicOptions;
     let applicationConfig = AmorphicContext.applicationConfig;
@@ -48,6 +51,11 @@ function establishInitialServerSession(req, controllerPath, initObjectTemplate, 
     req.amorphicTracking.addServerTask({name: 'Creating Session without Controller'}, process.hrtime());
 
     return Bluebird.try(function h() {
+
+        statsdUtils.computeTimingAndSend(
+            establishInitialServerSessionTime,
+            'amorphic.session.establish_initial_server_session.response_time');
+
         return {
             appVersion: appVersion,
 

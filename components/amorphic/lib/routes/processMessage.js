@@ -6,6 +6,7 @@ let log = Logger.log;
 let getSessionCache = require('../session/getSessionCache').getSessionCache;
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let displayPerformance = require('../utils/displayPerformance').displayPerformance;
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Process JSON request message
@@ -17,7 +18,10 @@ let displayPerformance = require('../utils/displayPerformance').displayPerforman
  */
 function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers) {
 
+    let processMessageStartTime = process.hrtime();
+
     let session = req.session;
+
     let message = req.body;
     let path = url.parse(req.originalUrl, true).query.path;
     let sessionData = getSessionCache(path, req.session.id, false, sessions);
@@ -26,6 +30,11 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
         log(1, req.session.id, 'ignoring non-sequenced message', nonObjTemplatelogLevel);
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end('ignoring non-sequenced message');
+
+        statsdUtils.computeTimingAndSend(
+            processMessageStartTime,
+            'amorphic.webserver.process_message.response_time',
+            { result: 'failure' });
 
         return;
     }
@@ -105,6 +114,11 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 sessionData.sequence = message.sequence + 1;
                 displayPerformance(req);
 
+                statsdUtils.computeTimingAndSend(
+                    processMessageStartTime,
+                    'amorphic.webserver.process_message.response_time',
+                    { result: 'success' });
+
                 return;
             }
 
@@ -129,8 +143,14 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 }
 
                 ourObjectTemplate.logger.clearContextProps(context);
+
                 res.end(respstr);
                 displayPerformance(req);
+
+                statsdUtils.computeTimingAndSend(
+                    processMessageStartTime,
+                    'amorphic.webserver.process_message.response_time',
+                    { result: 'success' });
             };
 
             ourObjectTemplate.incomingIP = (String(req.headers['x-forwarded-for'] ||
@@ -152,12 +172,22 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 res.writeHead(500, {'Content-Type': 'text/plain'});
                 ourObjectTemplate.logger.clearContextProps(context);
                 res.end(error.toString());
+
+                statsdUtils.computeTimingAndSend(
+                    processMessageStartTime,
+                    'amorphic.webserver.process_message.response_time',
+                    { result: 'failure' });
             }
 
         }).catch(function failure(error) {
             log(0, req.session.id, error.message + error.stack, nonObjTemplatelogLevel);
             res.writeHead(500, {'Content-Type': 'text/plain'});
             res.end(error.toString());
+
+            statsdUtils.computeTimingAndSend(
+                processMessageStartTime,
+                'amorphic.webserver.process_message.response_time',
+                { result: 'failure' });
         }).done();
 }
 

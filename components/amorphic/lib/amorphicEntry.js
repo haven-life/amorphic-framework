@@ -1,22 +1,17 @@
 'use strict';
 
-let AmorphicContext = require('./AmorphicContext');
+let amorphicContext = require('./AmorphicContext');
 let logMessage = require('./utils/logger').logMessage;
 let establishServerSession = require('./session/establishServerSession').establishServerSession;
 let displayPerformance = require('./utils/displayPerformance').displayPerformance;
-
 let Bluebird = require('bluebird');
+let statsdUtils = require('supertype').StatsdHelper;
 
-/**
- * Purpose unknown
- *
- * @param {unknown} sessions unknown
- * @param {unknown} controllers unknown
- * @param {unknown} req unknown
- * @param {unknown} resp unknown
- * @param {unknown} next unknown
+/*
+    Set up amorphic for the first time
  */
 function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
+    let amorphicEntryTime = process.hrtime();
     let amorphicOptions;
     let applicationSource;
     let applicationSourceMap;
@@ -26,9 +21,9 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
         next();
     }
 
-    amorphicOptions = AmorphicContext.amorphicOptions;
-    applicationSource = AmorphicContext.applicationSource;
-    applicationSourceMap = AmorphicContext.applicationSourceMap;
+    amorphicOptions = amorphicContext.amorphicOptions;
+    applicationSource = amorphicContext.applicationSource;
+    applicationSourceMap = amorphicContext.applicationSourceMap;
 
     logMessage('Requesting ' + req.originalUrl);
 
@@ -71,6 +66,10 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
 
         req.amorphicTracking.addServerTask({name: 'Request Compressed Sources'}, time);
         displayPerformance(req);
+
+        statsdUtils.computeTimingAndSend(
+            amorphicEntryTime,
+            'amorphic.session.amorphic_entry.response_time');
     }
     else if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.js/)) {
         // This is where you come to when you hit the page the first time, like insurify's okta post.'
@@ -109,13 +108,25 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
 
                     if (amorphicOptions.sourceMode === 'webpack') {
                         resp.end(response);
+
+                        statsdUtils.computeTimingAndSend(
+                            amorphicEntryTime,
+                            'amorphic.session.amorphic_entry.response_time');
                     }
                     else if (amorphicOptions.sourceMode !== 'debug') {
                         resp.end("document.write(\"<script src='" + url.replace(/\.js/, '.cached.js') +
                             "'></script>\");\n" + response);
+
+                        statsdUtils.computeTimingAndSend(
+                            amorphicEntryTime,
+                            'amorphic.session.amorphic_entry.response_time');
                     }
                     else {
                         resp.end(applicationSource[appName] + response);
+
+                        statsdUtils.computeTimingAndSend(
+                            amorphicEntryTime,
+                            'amorphic.session.amorphic_entry.response_time');
                     }
 
                     req.amorphicTracking.addServerTask({name: 'Application Initialization'}, time);

@@ -2,6 +2,7 @@
 
 let url = require('url');
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -12,6 +13,7 @@ let establishServerSession = require('../session/establishServerSession').establ
  * @param {unknown} controllers unknown
  */
 function processContentRequest(req, res, sessions, controllers, nonObjTemplatelogLevel) {
+    let processContentRequestTime = process.hrtime();
 
     let path = url.parse(req.originalUrl, true).query.path;
 
@@ -19,6 +21,11 @@ function processContentRequest(req, res, sessions, controllers, nonObjTemplatelo
         nonObjTemplatelogLevel).then(function zz(semotus) {
             if (typeof(semotus.objectTemplate.controller.onContentRequest) === 'function') {
                 semotus.objectTemplate.controller.onContentRequest(req, res);
+
+                statsdUtils.computeTimingAndSend(
+                    processContentRequestTime,
+                    'amorphic.webserver.process_content_request.response_time',
+                    { result: 'success' });
             }
         });
 }

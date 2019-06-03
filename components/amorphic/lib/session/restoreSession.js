@@ -3,6 +3,7 @@
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let decompressSessionData = require('./decompressSessionData').decompressSessionData;
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -15,6 +16,8 @@ let decompressSessionData = require('./decompressSessionData').decompressSession
  * @returns {unknown} unknown
  */
 function restoreSession(path, session, controller, sessions) {
+    let restoreSessionTime = process.hrtime();
+
     let ourObjectTemplate = getObjectTemplate(controller);
 
     ourObjectTemplate.withoutChangeTracking(function callBack() {
@@ -44,6 +47,10 @@ function restoreSession(path, session, controller, sessions) {
         ourObjectTemplate.logger.info({component: 'amorphic', module: 'restoreSession', activity: 'restoring'});
         ourObjectTemplate.syncSession();  // Clean tracking of changes
     });
+
+    statsdUtils.computeTimingAndSend(
+        restoreSessionTime,
+        'amorphic.session.restore_session_cache.response_time');
 
     return controller;
 }

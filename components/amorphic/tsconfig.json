@@ -1,5 +1,5 @@
 {
-  "include": [
+  "files": [
     "./lib/AmorphicServer.ts"
   ],
   "compilerOptions": {

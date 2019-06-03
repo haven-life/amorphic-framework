@@ -21,7 +21,7 @@ let Bluebird = require('bluebird');
  * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction) {
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient) {
 
     let builder = new ConfigBuilder(new ConfigApi());
     let configStore = builder.build(appDirectory);
@@ -33,6 +33,17 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
     }
 
     buildStartUpParams(configStore);
+
+    // fetch main app after building startup configs, which populates 'mainApp' field.
+    const mainApp = AmorphicContext.amorphicOptions.mainApp;
+
+    // check the app level config to see if we should be sending stats.
+    let shouldEnableStatsdSending = configStore[mainApp] ? configStore[mainApp].get('amorphicEnableStatsd') : false;
+
+    // if we decide we want to send stats, and we also have a stats client to use, make it available via the session.
+    if (shouldEnableStatsdSending && statsdClient) {
+        SupertypeSession.statsdClient = statsdClient;
+    }
 
     let sanitizedAmorphicOptions = Object.assign({}, amorphicOptions);
     delete sanitizedAmorphicOptions.sessionSecret;

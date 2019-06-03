@@ -4,6 +4,7 @@ let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
 let formidable = require('formidable');
 let fs = require('fs');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -14,6 +15,8 @@ let fs = require('fs');
  * @param {unknown} downloads unknown
  */
 function processFile(req, resp, next, downloads) {
+    let processFileTime = process.hrtime();
+
     if (!downloads) {
         logMessage('no download directory');
         next();
@@ -49,6 +52,11 @@ function processFile(req, resp, next, downloads) {
         req.session.file = file;
         resp.end('<html><body><script>parent.amorphic.prepareFileUpload(\'package\');' +
             'parent.amorphic.uploadFunction.call(null, "' +  fileName + '"' + ')</script></body></html>');
+
+        statsdUtils.computeTimingAndSend(
+            processFileTime,
+            'amorphic.webserver.process_file.response_time',
+            { result: 'success' });
     });
 }
 

@@ -3,6 +3,7 @@
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let compressSessionData = require('./compressSessionData').compressSessionData;
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -14,6 +15,8 @@ let compressSessionData = require('./compressSessionData').compressSessionData;
  * @param {unknown} sessions unknown
  */
 function saveSession(path, session, controller, req, sessions) {
+    let saveSessionTime = process.hrtime();
+
     let request = controller.__request;
     controller.__request = null;
 
@@ -55,6 +58,10 @@ function saveSession(path, session, controller, req, sessions) {
         time);
 
     controller.__request = request;
+
+    statsdUtils.computeTimingAndSend(
+        saveSessionTime,
+        'amorphic.session.save_session.response_time');
 }
 
 module.exports = {

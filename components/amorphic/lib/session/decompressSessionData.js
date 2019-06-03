@@ -2,6 +2,7 @@
 
 let AmorphicContext = require('../AmorphicContext');
 let zlib = require('zlib');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -11,11 +12,30 @@ let zlib = require('zlib');
  * @returns {unknown} unknown
  */
 function decompressSessionData(objData) {
+    let decompressSessionDataStartTime = process.hrtime();
+
     let amorphicOptions = AmorphicContext.amorphicOptions;
     if (amorphicOptions.compressSession && objData.data) {
-        let buffer = new Buffer(objData.data);
+        try {
+            let buffer = new Buffer(objData.data);
 
-        return zlib.inflateSync(buffer);
+            let decompressedData = zlib.inflateSync(buffer);
+
+            statsdUtils.computeTimingAndSend(
+                decompressSessionDataStartTime,
+                'amorphic.session.decompress_session_data.response_time',
+                { result: 'success' });
+
+            return decompressedData;
+
+        } catch (e) {
+            statsdUtils.computeTimingAndSend(
+                decompressSessionDataStartTime,
+                'amorphic.session.decompress_session_data.response_time',
+                { result: 'failure' });
+
+            throw e;
+        }
     }
 
     return objData;

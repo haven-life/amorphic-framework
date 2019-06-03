@@ -1,15 +1,12 @@
 'use strict';
 let assert = require('chai').assert;
-let Promise = require('bluebird');
 let serverAmorphic = require('../../dist/index.js');
-let sinon = require('sinon');
 let axios = require('axios');
 let fs = require('fs');
 let path = require('path');
 let amorphicContext = require('../../dist/lib/AmorphicContext');
 
 describe('Setup amorphic', function() {
-    let server;
     before(function(done) {
         serverAmorphic.listen(__dirname);
         done();
@@ -25,7 +22,6 @@ describe('Setup amorphic', function() {
         let downloadPath = path.join(path.dirname(require.main.filename), 'download');
         assert.isTrue(fs.existsSync(downloadPath), 'The download path exists');
     });
-
 
     after(function() {
         // Clean up server

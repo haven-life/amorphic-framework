@@ -10,6 +10,7 @@ let restoreSession = require('./restoreSession').restoreSession;
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let Bluebird = require('bluebird');
+let statsdUtils = require('supertype').StatsdHelper;
 
 /**
  * Continues an already establised session.
@@ -35,6 +36,7 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
                                          sessionExpiration, session, sessionStore,
                                          newControllerId, objectCacheExpiration, newPage,
                                          controllers, nonObjTemplatelogLevel, sessions, reset) {
+    let establishContinuedServerSessionTime = process.hrtime();
 
     let applicationConfig = AmorphicContext.applicationConfig;
     let applicationPersistorProps = AmorphicContext.applicationPersistorProps;
@@ -120,6 +122,10 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
     }
 
     return Bluebird.try(function g() {
+        statsdUtils.computeTimingAndSend(
+            establishContinuedServerSessionTime,
+            'amorphic.session.establish_continued_server_session.response_time');
+
         return ret;
     });
 }

@@ -41,6 +41,7 @@ var controllerRequires;
 var Controller;
 var serverAmorphic = require('../../dist/index.js');
 var amorphicContext = require('../../dist/lib/AmorphicContext');
+const SupertypeSession = require('supertype').SupertypeSession;
 
 // Fire up amorphic as the client
 require('../../client.js');
@@ -49,12 +50,15 @@ function afterEachDescribe(done) {
     if(amorphicContext.appContext.server){
         amorphicContext.appContext.server.close();
     }
+    // reset the session statsd client
+    SupertypeSession.statsdClient = undefined;
     done();
 }
-function beforeEachDescribe(done, appName, createControllerFor, sourceMode) {
+function beforeEachDescribe(done, appName, createControllerFor, sourceMode, statsClient) {
     process.env.createControllerFor = createControllerFor;
     process.env.sourceMode = sourceMode || 'debug';
-    serverAmorphic.listen(__dirname + '/');
+    amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
+    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, undefined, statsClient);
     var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     var controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
@@ -731,3 +735,23 @@ describe('source mode prod testing', function () {
         });
     });
 });
+
+describe('statsd module enabled', function () {
+
+    const statsModule = {
+        timing: 'timing stub'
+    };
+
+    before(function (done) {
+        return beforeEachDescribe(done, 'test', 'yes', 'prod', statsModule);
+    });
+
+    after(afterEachDescribe);
+
+    it('should be able to consume a module and put it on amorphic static (supertype session)', () => {
+        const statsdClient = SupertypeSession.amorphicStatic.statsdClient;
+        expect(statsdClient.timing).to.equal('timing stub');
+    });
+});
+
+// TODO HL-16449 refactor testing suite, re-add statsd module disabled unit test.
