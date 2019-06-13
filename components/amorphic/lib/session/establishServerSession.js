@@ -5,7 +5,7 @@ let getSessionCache = require('./getSessionCache').getSessionCache;
 let establishInitialServerSession = require('./establishInitialServerSession').establishInitialServerSession;
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Establish a server session

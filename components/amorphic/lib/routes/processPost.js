@@ -5,7 +5,7 @@ let establishServerSession = require('../session/establishServerSession').establ
 let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
 let Bluebird = require('bluebird');
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Process a post request by establishing a session and calling the controllers processPost method

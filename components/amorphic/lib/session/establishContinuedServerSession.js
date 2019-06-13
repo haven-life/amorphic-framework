@@ -10,7 +10,7 @@ let restoreSession = require('./restoreSession').restoreSession;
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let Bluebird = require('bluebird');
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Continues an already establised session.

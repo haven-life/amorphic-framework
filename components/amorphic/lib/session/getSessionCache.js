@@ -1,7 +1,7 @@
 'use strict';
 
 let amorphicContext = require('../AmorphicContext');
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Manage a set of data keyed by the session id used for message sequence and serialization tracking

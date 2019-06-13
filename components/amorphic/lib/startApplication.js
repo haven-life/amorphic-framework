@@ -8,9 +8,9 @@ let getTemplates = require('./getTemplates').getTemplates;
 
 // Npm modules
 let Bluebird = require('bluebird');
-let persistor = require('persistor');
-let semotus = require('semotus');
-let superType = require('supertype').default;
+let persistor = require('@havenlife/persistor');
+let semotus = require('@havenlife/semotus');
+let superType = require('@havenlife/supertype').default;
 
 /**
  * Purpose unknown

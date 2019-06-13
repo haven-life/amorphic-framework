@@ -2,7 +2,7 @@
 
 let url = require('url');
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Purpose unknown

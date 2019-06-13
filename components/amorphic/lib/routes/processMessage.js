@@ -6,7 +6,7 @@ let log = Logger.log;
 let getSessionCache = require('../session/getSessionCache').getSessionCache;
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let displayPerformance = require('../utils/displayPerformance').displayPerformance;
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Process JSON request message

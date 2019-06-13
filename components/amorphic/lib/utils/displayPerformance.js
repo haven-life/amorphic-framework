@@ -1,6 +1,6 @@
 'use strict';
 
-let Semotus = require('semotus');
+let Semotus = require('@havenlife/semotus');
 
 /**
  * Purpose unknown

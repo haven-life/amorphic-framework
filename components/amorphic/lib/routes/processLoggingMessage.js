@@ -5,8 +5,8 @@ let Logger = require('../utils/logger');
 let getLoggingContext = Logger.getLoggingContext;
 let setupLogger = Logger.setupLogger;
 let url = require('url');
-let persistor = require('persistor');
-let semotus = require('semotus');
+let persistor = require('@havenlife/persistor');
+let semotus = require('@havenlife/semotus');
 
 /**
  * Purpose unknown

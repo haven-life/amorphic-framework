@@ -4,7 +4,7 @@ let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
 let formidable = require('formidable');
 let fs = require('fs');
-let statsdUtils = require('supertype').StatsdHelper;
+let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
  * Purpose unknown

@@ -1,3 +1,5 @@
+## 4.5.0
+* Using @havenlife/supertype, @havenlife/semotus, @havenlife/persistor
 ## 4.4.0
 * Add the option to pass in an analytics client into amorphic. Use this
 * client to monitor key function response times.
