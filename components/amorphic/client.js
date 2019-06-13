@@ -139,13 +139,30 @@ amorphic = // Needs to be global to make mocha tests work
     config: {},
     schema: {},
     sessionExpiration: 0,
-    sessionExpirationCushion: 10000,
-    heartBeat: null,
+    activityHeartbeatInterval: 20000,
+    logoutTimer: null,
     session: (new Date()).getTime(),
     state: 'live',
     app: 'generic',
     sessionId: 0,
     loggingContext: {},
+
+    /**
+     * expire the user's session
+     */
+    logoutFunction: function logoutUser() {
+        if (this.state === 'live') {
+            // check to see if the consuming app has defined logout functionality to use
+            if (this.controller.publicExpireSession && typeof this.controller.publicExpireSession === 'function') {
+                this.controller.publicExpireSession();
+            }
+            // consuming app has NOT specified logout behavior. use our default.
+            else {
+                console.log('Server session ready to expire, resetting controller to be offline');
+                this.expireController();
+            }
+        }
+    },
 
         /**
          * start a session with the server and process any initial messages
@@ -256,9 +273,6 @@ amorphic = // Needs to be global to make mocha tests work
                     return;
                 }
 
-                    // Setup a new session timeout check
-                self._setSessionTimeout();
-
                 if (message.type == 'pinged') {
                     return;
                 }
@@ -311,13 +325,32 @@ amorphic = // Needs to be global to make mocha tests work
             self._windowActivity();
         });
 
+        /*
+            there will always be a countdown working towards executing user logout. we will check every x seconds
+            if there has been activity. if there is, reset this countdown. if not, logout executes.
+
+            NO ACTIVITY?
+            if no activity after `sessionExpiration` amount of time, the logout callback will execute.
+            this can either be our definition of logout, or the consuming app's overridden version of logout.
+
+            YES ACTIVITY?
+            if there is activity before the session expires, and reset the timer to start counting down again.
+         */
+        setInterval(function checkActivityHeartbeat() {
+            if (self.activity) {
+                clearTimeout(self.logoutTimer);
+
+                self.logoutTimer = setTimeout(self.logoutFunction.bind(self), self.sessionExpiration);
+                self.activity = false;
+            }
+        }, self.activityHeartbeatInterval);
+
         setInterval(function () {
             self._zombieCheck();
         }, 50);
-
-            // For file uploads we use an iFrame
     },
 
+    // For file uploads we use an iFrame
     prepareFileUpload: function(id) {
         var iFrame = document.getElementById(id);
         var iFrameDoc = iFrame.contentWindow.document;
@@ -356,37 +389,6 @@ amorphic = // Needs to be global to make mocha tests work
                 console.log('Another browser took over, entering zombie state');
             }
         }
-    },
-
-        /**
-         * Manage session expiration by listening for 'activity' and pinging the
-         * the server just before the session expires
-         */
-    _setSessionTimeout: function () {
-        var self = this;
-        self.activity = false;
-
-        if (self.heartBeat) {
-            clearTimeout(self.heartBeat);
-        }
-
-        self.heartBeat = setTimeout(function () {
-            if (self.state == 'live') {
-                if (self.activity) {
-                    console.log('Server session ready to expire, activity detected, keeping alive');
-                    self.pingSession(); // Will setup new timer
-                }
-                else if (self.controller.clientExpire && this.controller.clientExpire()) {    // See if expiration handled by controller
-                    console.log('Server session ready to expire, controller resetting itself to be offline');
-
-                    return; // No new timer
-                }
-                else {
-                    console.log('Server session ready to expire, resetting controller to be offline');
-                    self.expireController();
-                }
-            }
-        }, self.sessionExpiration - self.sessionExpirationCushion);
     },
 
     expireController: function () {
