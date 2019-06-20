@@ -10,6 +10,7 @@
     "exclude": [
         "./test/**/*.ts",
         "./index.d.ts",
-        "./**/persistable.ts"
+        "./**/persistable.ts",
+        "./dist/**"
     ]
 }

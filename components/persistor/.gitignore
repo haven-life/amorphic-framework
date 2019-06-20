@@ -5,3 +5,4 @@ npm-debug.log
 download
 coverage
 dist
+.nyc_output

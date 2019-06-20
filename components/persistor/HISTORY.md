@@ -1,3 +1,6 @@
+## 3.1.0
+* Enabling stats through persistor
+* Persistor will now pull all minor supertype changes instead of only bug fixes
 ## 3.0.0
 * Moving the target npm repo to @havenlife/persistor
 ## 2.11.1
