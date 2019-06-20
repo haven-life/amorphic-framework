@@ -1,3 +1,6 @@
+## 4.6.0
+* Using stats client for persistor
+* Amorphic will now pull all minor supertype, persistor and semotus changes instead of only bug fixes
 ## 4.5.0
 * Using @havenlife/supertype, @havenlife/semotus, @havenlife/persistor
 * refactor inactivity logout functionality.
