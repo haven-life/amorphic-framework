@@ -1,155 +1,147 @@
-import {Supertype, supertypeClass, property, remote} from '../../index';
-var ObjectTemplate  = require('../../index.js');
+import { Supertype, supertypeClass, property, remote } from '../../index';
+var ObjectTemplate = require('../../index.js');
 ObjectTemplate['toClientRuleSet'] = ['ClientRule'];
 ObjectTemplate['toServerRuleSet'] = ['ServerRule'];
 
-@supertypeClass({toClient: false, toServer: true})
-class Dummy {};
+@supertypeClass({ toClient: false, toServer: true })
+class Dummy {}
 
-import {Customer} from "./Customer";
-import {Account} from "./Account";
-import {Address} from "./Address";
-declare function require(name:string);
+import { Customer } from './Customer';
+import { Account } from './Account';
+import { Address } from './Address';
+declare function require(name: string);
 import { expect } from 'chai';
 //expect(Dummy['__toClient__']).to.equal(false);//
 //expect(Dummy['__toServer__']).to.equal(true);
 
-
 @supertypeClass
 export class Controller extends Supertype {
+	@remote({ on: 'server' })
+	mainFunc(): Q.Promise<any> {
+		return ObjectTemplate.serverAssert();
+	}
 
-    @remote({on: "server"})
-    mainFunc  () : Q.Promise<any> {
-        return ObjectTemplate.serverAssert();
-    };
+	giveSamASecondAccount() {
+		var address = new Address(this.sam, ['Plantana']);
+		var samsNewAccount = new Account(1234, ['Sam Elsamman'], this.sam, address);
+		samsNewAccount.addCustomer(this.sam, 'sole');
+	}
 
-    giveSamASecondAccount () {
-        var address = new Address(this.sam, ['Plantana']);
-        var samsNewAccount = new Account(1234, ['Sam Elsamman'], this.sam, address);
-        samsNewAccount.addCustomer(this.sam, 'sole');
+	@property()
+	sam: Customer;
 
-    }
+	@property()
+	karen: Customer;
 
-    @property()
-    sam:     Customer;
+	@property()
+	ashling: Customer;
 
-    @property()
-    karen:   Customer;
+	@remote({ type: Customer })
+	decoratedSingle() {}
 
-    @property()
-    ashling: Customer;
+	@remote({ of: Customer })
+	decoratedMultiple() {}
 
-    @remote({type: Customer})
-    decoratedSingle () {}
+	@property({ toClient: false })
+	onClientFalse: boolean = false;
 
-    @remote({of: Customer})
-    decoratedMultiple () {}
+	@property({ toClient: true })
+	onClientTrue: boolean = false;
 
+	@property({ toClient: ['NoClientRule'] })
+	onClientNotRightApp: boolean = false;
 
-    @property({toClient: false})
-    onClientFalse: boolean = false;
+	@property({ toClient: ['ClientRule'] })
+	onClientWithApp: boolean = false;
 
-    @property({toClient: true})
-    onClientTrue: boolean = false;
+	@property({ toServer: false })
+	onServerFalse: boolean = false;
 
-    @property({toClient: ['NoClientRule']})
-    onClientNotRightApp: boolean = false;
+	@property({ toServer: true })
+	onServerTrue: boolean = false;
 
-    @property({toClient: ['ClientRule']})
-    onClientWithApp: boolean = false;
+	@property({ toServer: ['NoServerRule'] })
+	onServerNotRightApp: boolean = false;
 
-    @property({toServer: false})
-    onServerFalse: boolean = false;
+	@property({ toClient: ['ServerRule'] })
+	onServerWithApp: boolean = false;
 
-    @property({toServer: true})
-    onServerTrue: boolean = false;
+	setAllClientRuleCheckFalgsonServer() {
+		this.onClientFalse = this.onClientTrue = this.onClientNotRightApp = this.onClientWithApp = true;
+	}
 
-    @property({toServer: ['NoServerRule']})
-    onServerNotRightApp: boolean = false;
+	setAllServerRuleCheckFalgsonClient() {
+		this.onServerFalse = this.onServerTrue = this.onServerNotRightApp = this.onServerWithApp = true;
+	}
 
-    @property({toClient: ['ServerRule']})
-    onServerWithApp: boolean = false;
+	constructor() {
+		super();
 
-    setAllClientRuleCheckFalgsonServer () {
-        this.onClientFalse = this.onClientTrue = this.onClientNotRightApp = this.onClientWithApp =  true;
-    }
+		// Setup customers and addresses
+		var sam = new Customer('Sam', 'M', 'Elsamman');
+		var karen = new Customer('Karen', 'M', 'Burke');
+		var ashling = new Customer('Ashling', '', 'Burke');
 
-    setAllServerRuleCheckFalgsonClient () {
-        this.onServerFalse = this.onServerTrue = this.onServerNotRightApp = this.onServerWithApp =  true;
-    }
+		// Setup referrers
+		sam.referrers = [ashling, karen];
+		ashling.referredBy = sam;
+		karen.referredBy = sam;
 
+		sam.local1 = 'foo';
+		sam.local2 = 'bar';
 
-    constructor () {
-        super()
+		// Setup addresses
+		sam.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
+		sam.addAddress(['38 Haggerty Hill Rd', ''], 'Rhinebeck', 'NY', '12572');
 
-        // Setup customers and addresses
-        var sam = new Customer("Sam", "M", "Elsamman");
-        var karen = new Customer("Karen", "M", "Burke");
-        var ashling = new Customer("Ashling", "", "Burke");
+		sam.addresses[0].addReturnedMail(new Date());
+		sam.addresses[0].addReturnedMail(new Date());
+		sam.addresses[1].addReturnedMail(new Date());
 
-        // Setup referrers
-        sam.referrers = [ashling, karen];
-        ashling.referredBy = sam;
-        karen.referredBy = sam;
+		karen.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
+		karen.addAddress(['38 Haggerty Hill Rd', ''], 'Rhinebeck', 'NY', '12572');
 
-        sam.local1 = "foo";
-        sam.local2 = "bar";
+		karen.addresses[0].addReturnedMail(new Date());
 
-        // Setup addresses
-        sam.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
-        sam.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
+		ashling.addAddress(['End of the Road', ''], 'Lexington', 'KY', '34421');
 
-        sam.addresses[0].addReturnedMail(new Date());
-        sam.addresses[0].addReturnedMail(new Date());
-        sam.addresses[1].addReturnedMail(new Date());
+		// Setup accounts
+		var samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.addresses[0]);
+		var jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
+		jointAccount.addCustomer(karen, 'joint');
+		jointAccount.addCustomer(ashling, 'joint');
 
-        karen.addAddress(["500 East 83d", "Apt 1E"], "New York", "NY", "10028");
-        karen.addAddress(["38 Haggerty Hill Rd", ""], "Rhinebeck", "NY", "12572");
+		samsAccount.credit(100); // Sam has 100
+		samsAccount.debit(50); // Sam has 50
+		jointAccount.credit(200); // Joint has 200
+		jointAccount.transferTo(100, samsAccount); // Joint has 100, Sam has 150
+		jointAccount.transferFrom(50, samsAccount); // Joint has 150, Sam has 100
+		jointAccount.debit(25); // Joint has 125
 
-        karen.addresses[0].addReturnedMail(new Date());
+		this.sam = sam;
+		this.karen = karen;
+		this.ashling = ashling;
+	}
+	preServerCall(changeCount, objectsChanged) {
+		for (var templateName in objectsChanged) this.preServerCallObjects[templateName] = true;
+	}
+	postServerCall() {
+		if (this.postServerCallThrowException) throw 'postServerCallThrowException';
+		if (this.postServerCallThrowRetryException) throw 'Retry';
+	}
+	validateServerCall() {
+		return this.canValidateServerCall;
+	}
 
-        ashling.addAddress(["End of the Road", ""], "Lexington", "KY", "34421");
-
-        // Setup accounts
-        var samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.addresses[0]);
-        var jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
-        jointAccount.addCustomer(karen, "joint");
-        jointAccount.addCustomer(ashling, "joint");
-
-        samsAccount.credit(100);                        // Sam has 100
-        samsAccount.debit(50)                           // Sam has 50
-        jointAccount.credit(200);                       // Joint has 200
-        jointAccount.transferTo(100, samsAccount);      // Joint has 100, Sam has 150
-        jointAccount.transferFrom(50, samsAccount);     // Joint has 150, Sam has 100
-        jointAccount.debit(25);                         // Joint has 125
-
-        this.sam = sam;
-        this.karen = karen;
-        this.ashling = ashling;
-    }
-    preServerCall (changeCount, objectsChanged) {
-        for(var templateName in objectsChanged)
-            this.preServerCallObjects[templateName] = true;
-    }
-    postServerCall () {
-        if (this.postServerCallThrowException)
-            throw "postServerCallThrowException"
-        if (this.postServerCallThrowRetryException)
-            throw "Retry"
-    }
-    validateServerCall () {
-        return this.canValidateServerCall;
-    }
-
-    preServerCallObjects: Object = {};
-    preServerCalls: Number = 0;
-    postServerCalls: Number = 0;
-    preServerCallThrowException: Boolean = false;
-    postServerCallThrowException: Boolean = false;
-    postServerCallThrowRetryException: Boolean = false;
-    serverCallThrowException: Boolean = false;
-    canValidateServerCall: Boolean = true;
-};
+	preServerCallObjects: Object = {};
+	preServerCalls: Number = 0;
+	postServerCalls: Number = 0;
+	preServerCallThrowException: Boolean = false;
+	postServerCallThrowException: Boolean = false;
+	postServerCallThrowRetryException: Boolean = false;
+	serverCallThrowException: Boolean = false;
+	canValidateServerCall: Boolean = true;
+}
 
 expect(Controller.prototype.decoratedSingle['__returns__']).to.equal(Customer);
 expect(Controller.prototype.decoratedSingle['__returnsarray__']).to.equal(undefined);

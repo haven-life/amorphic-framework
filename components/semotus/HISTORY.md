@@ -1,3 +1,5 @@
+## 3.1.0
+* Cleaned up a lot of files with better error logging and formatting
 ## 3.0.0
 * Moving the targeted npm repository to @havenlife/semotus
 * Made Supertype a peerDependency, indicating that it is the consuming application's responsibility to install semotus
