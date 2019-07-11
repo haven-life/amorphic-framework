@@ -23,7 +23,6 @@
 		"sinon": "1.15.x",
 		"underscore": "^1.9.1",
 		"ts-node": "^6.1.0",
-		"q": "*",
 		"typescript": "2.9.1"
 	},
 	"scripts": {

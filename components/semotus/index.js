@@ -324,7 +324,11 @@
 
 		switch (remoteCall.type) {
 			case 'ping':
-				this.logger.info({ component: 'semotus', module: 'processMessage', activity: 'ping' });
+				this.logger.info({
+					component: 'semotus',
+					module: 'processMessage',
+					activity: 'ping'
+				});
 				session.sendMessage({ type: 'pinged', sync: true, value: null, name: null, changes: null });
 				break;
 
@@ -336,7 +340,11 @@
 				// or return an error response so the caller will roll back
 				if (!this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
 					this.logger.error(
-						{ component: 'semotus', module: 'processMessage', activity: 'syncError' },
+						{
+							component: 'semotus',
+							module: 'processMessage',
+							activity: 'syncError'
+						},
 						'Could not apply changes on sync message'
 					);
 					this._convertArrayReferencesToChanges();
@@ -360,7 +368,10 @@
 											component: 'semotus',
 											module: 'processMessage',
 											activity: 'blockingCall',
-											data: { call: remoteCall.name, sequence: remoteCall.sequence }
+											data: {
+												call: remoteCall.name,
+												sequence: remoteCall.sequence
+											}
 										},
 										remoteCall.name
 									);
@@ -464,6 +475,7 @@
 			return Q(forceupdate)
 				.then(preCallHook.bind(this))
 				.then(applyChangesAndValidateCall.bind(this))
+				.then(customValidation.bind(this))
 				.then(callIfValid.bind(this))
 				.then(postCallHook.bind(this))
 				.then(postCallSuccess.bind(this))
@@ -494,9 +506,12 @@
 			this.logger.info(
 				{
 					component: 'semotus',
-					module: 'processMessage',
+					module: 'processCall',
 					activity: 'preServerCall',
-					data: { call: remoteCall.name, sequence: remoteCall.sequence }
+					data: {
+						call: remoteCall.name,
+						sequence: remoteCall.sequence
+					}
 				},
 				remoteCall.name
 			);
@@ -529,9 +544,13 @@
 			this.logger.info(
 				{
 					component: 'semotus',
-					module: 'processMessage',
-					activity: 'call',
-					data: { call: remoteCall.name, sequence: remoteCall.sequence, remoteCallId: remoteCall.id }
+					module: 'processCall',
+					activity: 'applyChangesAndValidateCall',
+					data: {
+						call: remoteCall.name,
+						sequence: remoteCall.sequence,
+						remoteCallId: remoteCall.id
+					}
 				},
 				remoteCall.name
 			);
@@ -553,10 +572,43 @@
 				if (this.role === 'server' && obj['validateServerCall']) {
 					return obj['validateServerCall'].call(obj, remoteCall.name, callContext);
 				}
-
 				return true;
 			} else {
 				throw 'Sync Error';
+			}
+		}
+
+		/**
+		 * Apply function specific custom serverSide validation functions
+		 *
+		 * @param {boolean} isValid - Result of previous validation step (applyChangesAndValidateCall)
+		 * @returns {boolean} True if passed function
+		 */
+		function customValidation(isValid) {
+			let loggerObject = {
+				component: 'semotus',
+				module: 'processCall',
+				activity: 'customValidation',
+				data: {
+					call: remoteCall.name,
+					sequence: remoteCall.sequence,
+					remoteCallId: remoteCall.id
+				}
+			};
+
+			let remoteObject = session.objects[remoteCall.id];
+
+			this.logger.info(loggerObject, remoteCall.name);
+
+			if (!isValid) {
+				return false;
+			} else if (this.role === 'server' && remoteObject[remoteCall.name].serverValidation) {
+				let args = this._extractArguments(remoteCall);
+				args.unshift(remoteObject);
+
+				return remoteObject[remoteCall.name].serverValidation.apply(null, args);
+			} else {
+				return true;
 			}
 		}
 
@@ -569,6 +621,19 @@
 		 * @returns {unknown} unknown
 		 */
 		function callIfValid(isValid) {
+			let loggerObject = {
+				component: 'semotus',
+				module: 'processCall',
+				activity: 'callIfValid',
+				data: {
+					call: remoteCall.name,
+					sequence: remoteCall.sequence,
+					remoteCallId: remoteCall.id
+				}
+			};
+
+			this.logger.info(loggerObject, remoteCall.name);
+
 			let obj = session.objects[remoteCall.id];
 
 			if (!obj[remoteCall.name]) {
@@ -579,7 +644,7 @@
 				throw new Error(remoteCall.name + ' refused');
 			}
 
-			let args = this._fromTransport(JSON.parse(remoteCall.arguments));
+			let args = this._extractArguments(remoteCall);
 
 			return obj[remoteCall.name].apply(obj, args);
 		}
@@ -618,9 +683,13 @@
 			this.logger.info(
 				{
 					component: 'semotus',
-					module: 'processMessage',
+					module: 'processCall',
 					activity: 'postCall.success',
-					data: { call: remoteCall.name, callTime: logTime(), sequence: remoteCall.sequence }
+					data: {
+						call: remoteCall.name,
+						callTime: logTime(),
+						sequence: remoteCall.sequence
+					}
 				},
 				remoteCall.name
 			);
@@ -646,23 +715,36 @@
 				this.logger.error(
 					{
 						component: 'semotus',
-						module: 'processMessage',
+						module: 'processCall',
 						activity: 'postCall.syncError',
-						data: { call: remoteCall.name, callTime: logTime(), sequence: remoteCall.sequence }
+						data: {
+							call: remoteCall.name,
+							callTime: logTime(),
+							sequence: remoteCall.sequence
+						}
 					},
 					remoteCall.name
 				);
 
-				packageChanges.call(this, { type: 'response', sync: false, changes: '', remoteCallId: remoteCallId });
+				packageChanges.call(this, {
+					type: 'response',
+					sync: false,
+					changes: '',
+					remoteCallId: remoteCallId
+				});
 			} else if (err.message == 'Update Conflict') {
 				// Not this may be caught in the trasport (e.g. Amorphic) and retried)
 				if (callContext.retries++ < 3) {
 					this.logger.warn(
 						{
 							component: 'semotus',
-							module: 'processMessage',
+							module: 'processCall',
 							activity: 'postCall.updateConflict',
-							data: { call: remoteCall.name, callTime: logTime(), sequence: remoteCall.sequence }
+							data: {
+								call: remoteCall.name,
+								callTime: logTime(),
+								sequence: remoteCall.sequence
+							}
 						},
 						remoteCall.name
 					);
@@ -672,21 +754,29 @@
 					this.logger.error(
 						{
 							component: 'semotus',
-							module: 'processMessage',
+							module: 'processCall',
 							activity: 'postCall.updateConflict',
-							data: { call: remoteCall.name, callTime: logTime(), sequence: remoteCall.sequence }
+							data: {
+								call: remoteCall.name,
+								callTime: logTime(),
+								sequence: remoteCall.sequence
+							}
 						},
 						remoteCall.name
 					);
 
-					packageChanges.call(this, { type: 'retry', sync: false, remoteCallId: remoteCallId });
+					packageChanges.call(this, {
+						type: 'retry',
+						sync: false,
+						remoteCallId: remoteCallId
+					});
 				}
 			} else {
 				if (!(err instanceof Error)) {
 					this.logger.info(
 						{
 							component: 'semotus',
-							module: 'processMessage',
+							module: 'processCall',
 							activity: 'postCall.error',
 							data: {
 								message: JSON.stringify(err),
@@ -702,7 +792,7 @@
 						this.logger.error(
 							{
 								component: 'semotus',
-								module: 'processMessage',
+								module: 'processCall',
 								activity: 'postCall.exception',
 								data: {
 									message: err.message,
@@ -717,7 +807,7 @@
 						this.logger.error(
 							{
 								component: 'semotus',
-								module: 'processMessage',
+								module: 'processCall',
 								activity: 'postCall.exception',
 								data: {
 									message: err.message,
@@ -1078,17 +1168,27 @@
 	 *
 	 * @returns {*} - the original function or a wrapper to make a remote call
 	 */
-	RemoteObjectTemplate._setupFunction = function setupFunction(propertyName, propertyValue, role, validate) {
+	RemoteObjectTemplate._setupFunction = function setupFunction(
+		propertyName,
+		propertyValue,
+		role,
+		validate,
+		serverValidation,
+		template
+	) {
 		/** @type {RemoteObjectTemplate} */
 		let objectTemplate = this;
 		const self = this;
 
 		if (!role || role == this.role) {
+			if (role === 'server') {
+				propertyValue.serverValidation = serverValidation;
+			}
 			return propertyValue;
 		} else {
 			// Function wrapper it self will return a promise wrapped to setup the this pointer
 			// the function body will queue a remote call to the client/server
-			return function b() {
+			return function remoteFunctionWrapper() {
 				if (this.__objectTemplate__) {
 					objectTemplate = this.__objectTemplate__;
 				}
@@ -1864,7 +1964,7 @@
 			return value.__id__;
 		} else if (value instanceof Date) {
 			return value.getTime();
-		} else if (typeof value == 'number' && isNaN(value)) {
+		} else if (typeof value === 'number' && isNaN(value)) {
 			return null;
 		} else {
 			if (value) {
@@ -2009,9 +2109,9 @@
 		}
 
 		/*  We used to delete changes but this means that changes while a message is processed
-     is effectively lost.  Now we just don't record changes while processing.
-     this._deleteChanges();
-     */
+         is effectively lost.  Now we just don't record changes while processing.
+         this._deleteChanges();
+         */
 		this.processingSubscription = null;
 		this.logger.debug({
 			component: 'semotus',
@@ -2707,6 +2807,19 @@
 	/**************************** Helper Functions **********************************/
 
 	/**
+	 *
+	 * Helper to extract arguments from the remote call
+	 *
+	 * @param {Object} remoteCall The abstraction of a remoteCall for this flow. Has the arguments
+	 *
+	 * @returns {Object} the array of arguments from the call
+	 */
+	RemoteObjectTemplate._extractArguments = function extractArguments(remoteCall) {
+		const args = JSON.parse(remoteCall.arguments);
+		return this._fromTransport(args);
+	};
+
+	/**
 	 * Remove extra positions at the end of the array to keep length correct
 	 *
 	 * @param {unknown} array unknown
@@ -2882,24 +2995,30 @@
 			defineProperty = defineProperty || {};
 
 			/*
-            if we haven't supplied a configuration object into the decorator,
-             default the role of this function to a server API function
-         */
+                if we haven't supplied a configuration object into the decorator,
+                 default the role of this function to a server API function
+             */
 			if (!defineProperty.on) {
 				defineProperty.on = 'server';
 			}
+
+			// function that we call to validate any changes for remote calls
+			let remoteValidator = defineProperty.serverValidation;
+
 			return function(target, propertyName, descriptor) {
 				descriptor.value = objectTemplate._setupFunction(
 					propertyName,
 					descriptor.value,
 					defineProperty.on,
-					defineProperty.validate
+					defineProperty.validate,
+					remoteValidator,
+					defineProperty.target
 				);
 
 				/*
-                this function been marked as a server API either explicitly or by default.
-                set the appropriate metadata.
-             */
+                    this function been marked as a server API either explicitly or by default.
+                    set the appropriate metadata.
+                 */
 				if (defineProperty.on === 'server') {
 					descriptor.value.__on__ = 'server';
 				}

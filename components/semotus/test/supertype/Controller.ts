@@ -11,13 +11,35 @@ import { Account } from './Account';
 import { Address } from './Address';
 declare function require(name: string);
 import { expect } from 'chai';
+
+import * as Q from 'q';
 //expect(Dummy['__toClient__']).to.equal(false);//
 //expect(Dummy['__toServer__']).to.equal(true);
 
 @supertypeClass
 export class Controller extends Supertype {
-	@remote({ on: 'server' })
-	mainFunc(): Q.Promise<any> {
+	@remote({
+		on: 'server'
+	})
+	mainFunc(...args): Q.Promise<any> {
+		return ObjectTemplate.serverAssert();
+	}
+
+	@remote({
+		on: 'server',
+		serverValidation: async (controller: Controller, ...args: any[]) => {
+			controller.serverValidatorCounter = args.length;
+			if (args.length === 3 && args[0] === 'first' && args[1] === 'second' && args[2] === 'third') {
+				controller.argumentValidator = true;
+				await Q.delay(1500);
+				return true;
+			}
+			controller.argumentValidator = false;
+			await Q.delay(1500);
+			return false;
+		}
+	})
+	testServerValidation(...args) {
 		return ObjectTemplate.serverAssert();
 	}
 
@@ -59,6 +81,9 @@ export class Controller extends Supertype {
 
 	@property({ toServer: true })
 	onServerTrue: boolean = false;
+
+	serverValidatorCounter = 0;
+	argumentValidator = false;
 
 	@property({ toServer: ['NoServerRule'] })
 	onServerNotRightApp: boolean = false;

@@ -1,5 +1,6 @@
 ## 3.1.0
 * Cleaned up a lot of files with better error logging and formatting
+* Added server validator function for remote functions. Within the remote decorator add another parameter for `serverValidation`, which takes an async function as a callback whose parameters are the controller and all other argument parameters for the remote function in the order that they are defined in the remote function's definition.
 ## 3.0.0
 * Moving the targeted npm repository to @havenlife/semotus
 * Made Supertype a peerDependency, indicating that it is the consuming application's responsibility to install semotus
