@@ -174,7 +174,7 @@ function getTemplates(persistObjectTemplate, appPath, templates, config, appName
 
     // Because of the two pass nature, requiredTemplates are not update for extends which are only done between passes
     // Record source and source map
-    if (ast && !applicationSource[appName] && !(config.appConfig.isDaemon || config.appConfig.serverMode === 'api')) {
+    if (ast && !applicationSource[appName] && !(config.appConfig.serverMode === 'daemon' || config.appConfig.serverMode === 'api')) {
         ast.figure_out_scope();
 
         /*eslint-disable new-cap, camelcase */

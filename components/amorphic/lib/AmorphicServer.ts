@@ -44,7 +44,7 @@ type ServerOptions = https.ServerOptions &
 //@TODO: Experiment with app.engine so we can have customizable SSR
 export class AmorphicServer {
     app: express.Express;
-
+    private serverMode: string;
     routers: { path: string; router: express.Router }[] = [];
 
     /**
@@ -57,10 +57,10 @@ export class AmorphicServer {
     * @param sessionConfig - Object containing the session config
     */
     static createServer(preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionConfig) {
-        const server = new AmorphicServer(express());
         const amorphicOptions = AmorphicContext.amorphicOptions;
         const mainApp = amorphicOptions.mainApp;
         const appConfig = AmorphicContext.applicationConfig[mainApp];
+        const server = new AmorphicServer(express(), appConfig.appConfig.serverMode);
 
         const amorphicRouterOptions: Options = {
             amorphicOptions,
@@ -73,30 +73,14 @@ export class AmorphicServer {
         };
 
         const serverOptions: ServerOptions = appConfig.appConfig && appConfig.appConfig.serverOptions;
-        //
-        // serverMode is only set to 'api' right now, 
-        // we will need to revisit when we want to deprecate isDaemon
 
-        // Setup the preSession and postSession Injects for daemon mode only (if only daemon mode)
-        if (appConfig.appConfig.serverMode === 'api') {
-            if (preSessionInject) {
-                preSessionInject.call(null, server.app);
-            }
-            if (postSessionInject) {
-                postSessionInject.call(null, server.app);
-            }
-            const apiPath = (serverOptions && serverOptions.apiPath) ? serverOptions.apiPath : '/';
-            server.setupUserEndpoints(appDirectory, appList[mainApp], apiPath);
-        }
+        const apiPath = serverOptions && serverOptions.apiPath;
 
-        // Setup the amorphic router if not daemon Only
-        else {
+        server.setupUserEndpoints(appDirectory, appList[mainApp], apiPath);
+
+        // for anything other than user only routes, set up our default amorphic router.
+        if (server.serverMode !== 'api') {
             server.setupAmorphicRouter(amorphicRouterOptions);
-            // Setup the daemon mode router if this field is set at all
-
-            if (appConfig.appConfig.isDaemon) {
-                server.setupUserEndpoints(appDirectory, appList[mainApp]);
-            }
         }
 
         server.app.locals.name = mainApp;
@@ -134,12 +118,13 @@ export class AmorphicServer {
     }
 
     /**
-    * @TODO: make this a proper class
-    *
-    * @param {express.Express} app Express server
-    **/
-    constructor(app: express.Express) {
+     *
+     * @param {express.Express} app, an instance of an express server
+     * @param {string} serverMode
+     */
+    constructor(app: express.Express, serverMode: string) {
         this.app = app;
+        this.serverMode = serverMode;
     }
 
     /**
@@ -288,22 +273,25 @@ export class AmorphicServer {
      * for amorphic is for the '/amorphic' routes to run
      * @memberof AmorphicServer
      */
-    setupUserEndpoints(appDirectory, mainAppPath, apiPath = '/api') {
-
-        let router = setupCustomMiddlewares(appDirectory, mainAppPath, express.Router());
-        router = setupCustomRoutes(appDirectory, mainAppPath, router);
+    setupUserEndpoints(appDirectory: string, mainAppPath: string, apiPath = '/api') {
+        let filePath = this.getBaseControllerFilePath(appDirectory, mainAppPath);
+        let router = setupCustomMiddlewares(filePath, express.Router());
+        router = setupCustomRoutes(filePath, router);
 
         if (router) {
             this.app.use(apiPath, router);
             this.routers.push({ path: apiPath, router: router });
         }
-
-        /**
-        *   
-        * Keep in mind when registering the middlewares be careful!
-        * @TODO: when implementing middlewares register error handling from middlewares on APP not ROUTER 
-        * https://github.com/expressjs/express/issues/2679
-        */
     }
 
+    private getBaseControllerFilePath(appDirectory: string, mainAppPath: string) {
+        let codeLocation: string;
+
+        if (this.serverMode === 'api' || this.serverMode === 'daemon') {
+            codeLocation = 'js'
+        } else {
+            codeLocation = 'public/js'
+        }
+        return `${appDirectory}/${mainAppPath}/${codeLocation}/`;
+    }
 }

@@ -1,3 +1,6 @@
+## 5.0.0
+* allowing amorphic session apps to set up custom endpoints
+* refactor server mode to be the source of truth for server configuration
 ## 4.6.0
 * Using stats client for persistor
 * Amorphic will now pull all minor supertype, persistor and semotus changes instead of only bug fixes

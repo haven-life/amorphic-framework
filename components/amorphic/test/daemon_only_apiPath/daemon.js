@@ -40,7 +40,7 @@ describe('Run amorphic as deamon only with apiPath specified', function() {
 
 
     it('should get an 200 response from a custom GET endpoint', function() {
-        return axios.get('http://localhost:3001/api/test')
+        return axios.get('http://localhost:3001/test')
             .then(function(response) {
                 assert.isOk(response, 'The response is ok');
                 assert.strictEqual(response.status, 200, 'The response code was 200');
@@ -49,7 +49,7 @@ describe('Run amorphic as deamon only with apiPath specified', function() {
     });
 
     it('should get a response from a second custom endpoint', function() {
-        return axios.get('http://localhost:3001/api/test-other-endpoint')
+        return axios.get('http://localhost:3001/test-other-endpoint')
             .then(function(response) {
                 assert.isOk(response, 'The response is ok');
                 assert.strictEqual(response.status, 200, 'The response code was 200');
@@ -58,7 +58,7 @@ describe('Run amorphic as deamon only with apiPath specified', function() {
     });
 
     it('should use middleware limits to reject a POST request that\'s too large', function() {
-        return axios.post('http://localhost:3001/api/middleware-endpoint', {
+        return axios.post('http://localhost:3001/middleware-endpoint', {
             firstName: 'Fred',
             lastName: 'Flintstone'
         })
@@ -68,7 +68,7 @@ describe('Run amorphic as deamon only with apiPath specified', function() {
     });
 
     it('should post to the endpoint successfully', function() {
-        return axios.post('http://localhost:3001/api/middleware-endpoint', {})
+        return axios.post('http://localhost:3001/middleware-endpoint', {})
             .then(function(response) {
                 assert.strictEqual(response.status, 200, 'The response code was 200');
             });

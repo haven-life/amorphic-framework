@@ -1,4 +1,5 @@
 var expect = require('chai').expect;
+let assert = require('chai').assert;
 var request = require('request');
 var axios = require('axios');
 var path = require('path');
@@ -751,6 +752,50 @@ describe('statsd module enabled', function () {
     it('should be able to consume a module and put it on amorphic static (supertype session)', () => {
         const statsdClient = SupertypeSession.amorphicStatic.statsdClient;
         expect(statsdClient.timing).to.equal('timing stub');
+    });
+});
+
+describe('amorphic api enabled', function () {
+
+    before(function (done) {
+        return beforeEachDescribe(done, 'test', 'yes', 'prod');
+    });
+
+    after(afterEachDescribe);
+
+    it('should get an 200 response from a custom GET endpoint', function () {
+        return axios.get('http://localhost:3001/api/test')
+            .then(function (response) {
+                assert.isOk(response, 'The response is ok');
+                assert.strictEqual(response.status, 200, 'The response code was 200');
+                assert.strictEqual(response.data, 'test API endpoint OK');
+            });
+    });
+
+    it('should get a response from a second custom endpoint', function () {
+        return axios.get('http://localhost:3001/api/test-other-endpoint')
+            .then(function (response) {
+                assert.isOk(response, 'The response is ok');
+                assert.strictEqual(response.status, 200, 'The response code was 200');
+                assert.strictEqual(response.data, 'test API endpoint OK');
+            });
+    });
+
+    it('should use middleware limits to reject a POST request that\'s too large', function () {
+        return axios.post('http://localhost:3001/api/middleware-endpoint', {
+            firstName: 'Fred',
+            lastName: 'Flintstone'
+        })
+            .catch(function (response) {
+                assert.strictEqual(response.response.status, 413, 'The response code was 413');
+            });
+    });
+
+    it('should post to the endpoint successfully', function () {
+        return axios.post('http://localhost:3001/api/middleware-endpoint', {})
+            .then(function (response) {
+                assert.strictEqual(response.status, 200, 'The response code was 200');
+            });
     });
 });
 
