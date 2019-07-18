@@ -1,4 +1,6 @@
 ## 5.0.0
+* breaking change for daemon applications. server mode config is now only config used to specify run mode.
+* deamon apps will need to change config from "isDaemon": true, to "serverMode": "daemon"
 * allowing amorphic session apps to set up custom endpoints
 * refactor server mode to be the source of truth for server configuration
 ## 4.6.0
