@@ -4,7 +4,7 @@ ObjectTemplate['toClientRuleSet'] = ['ClientRule'];
 ObjectTemplate['toServerRuleSet'] = ['ServerRule'];
 
 @supertypeClass({ toClient: false, toServer: true })
-class Dummy {}
+class Dummy { }
 
 import { Customer } from './Customer';
 import { Account } from './Account';
@@ -39,7 +39,7 @@ export class Controller extends Supertype {
 			return false;
 		}
 	})
-	testServerValidation(...args) {
+	testServerValidation(firstArg, secondArg, thirdArg) {
 		return ObjectTemplate.serverAssert();
 	}
 
@@ -59,10 +59,10 @@ export class Controller extends Supertype {
 	ashling: Customer;
 
 	@remote({ type: Customer })
-	decoratedSingle() {}
+	decoratedSingle() { }
 
 	@remote({ of: Customer })
-	decoratedMultiple() {}
+	decoratedMultiple() { }
 
 	@property({ toClient: false })
 	onClientFalse: boolean = false;
@@ -98,6 +98,8 @@ export class Controller extends Supertype {
 	setAllServerRuleCheckFalgsonClient() {
 		this.onServerFalse = this.onServerTrue = this.onServerNotRightApp = this.onServerWithApp = true;
 	}
+
+	hitMaxRetries: boolean = false;
 
 	constructor() {
 		super();
@@ -157,6 +159,50 @@ export class Controller extends Supertype {
 	validateServerCall() {
 		return this.canValidateServerCall;
 	}
+
+	/**
+	 * Callback to handle errors from the client
+	 *
+	 * @param {*} errorType - Error type associated (error, retry, response)
+	 * @param {*} remoteCallId - Id for remote call
+	 * @param {*} obj - Instance for which the remote object function is called for
+	 * @param {*} functionName - Name of function being called
+	 * @param {*} callContext - Context (number of retries etc)
+	 * @param {*} changeString - Changes
+	 * @memberof Controller
+	 */
+	async postServerErrorHandler(errorType, remoteCallId, obj, functionName, callContext, changeString) {
+		if (functionName === 'testAsyncPostServerError') {
+			await Q.delay(1500);
+			this.asyncErrorHandlerCalled = true;
+		}
+		else if (functionName === 'tryThrowingAnErrorFromErrorHandler') {
+			throw new Error('Callback is throwing an error');
+		}
+		else if (errorType === 'retry' && callContext.retries >= 3 && functionName === 'testUpdateConflictErrorHandling') {
+			// is an update conflict, throw an error if callContext.retries is >= 3, indicating we've maxed out retries
+			this.hitMaxRetries = true;
+			throw new Error('Hit max # of retries'); // log that we have hit the max retries for this function
+		}
+	}
+
+	@remote({ on: 'server' })
+	testAsyncPostServerError() {
+		throw new Error('yo');
+	}
+
+
+	@remote({ on: 'server' })
+	tryThrowingAnErrorFromErrorHandler() {
+		throw new Error('yo');
+	}
+
+	@remote({ on: 'server' })
+	testUpdateConflictErrorHandling() {
+		return ObjectTemplate.serverAssert();
+	}
+
+	asyncErrorHandlerCalled: boolean = false;
 
 	preServerCallObjects: Object = {};
 	preServerCalls: Number = 0;

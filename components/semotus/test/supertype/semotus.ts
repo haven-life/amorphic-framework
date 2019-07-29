@@ -78,8 +78,8 @@ ServerObjectTemplate.reqSession = { loggingID: 'test', semotus: {} };
 ServerObjectTemplate.logLevel = 1;
 ServerObjectTemplate.logger.setLevel('info;activity:dataLogging');
 
-describe('Typescript Banking Example', function() {
-	it('can log in a closed loop', function() {
+describe('Typescript Banking Example', function () {
+	it('can log in a closed loop', function () {
 		var date = new Date('2010-11-11T05:00:00.000Z');
 		var output = '';
 
@@ -119,8 +119,8 @@ describe('Typescript Banking Example', function() {
 		sam.amorphic.logger = oldSendToLog;
 	});
 
-	it('pass object graph to server and return', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('pass object graph to server and return', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.sam.roles[0].account.getBalance()).to.equal(100);
 			expect(serverController.sam.roles[1].account.getBalance()).to.equal(125);
 			expect(serverController.preServerCallObjects['Controller']).to.equal(true);
@@ -130,18 +130,18 @@ describe('Typescript Banking Example', function() {
 		expect(clientController.sam.roles[1].account.getBalance()).to.equal(125);
 		clientController
 			.mainFunc()
-			.then(function() {
+			.then(function () {
 				expect(clientController.sam.roles[0].account.getBalance()).to.equal(100);
 				expect(clientController.sam.roles[1].account.getBalance()).to.equal(125);
 				done();
 			})
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 		console.log('foo');
 	});
-	it('change results on server by poking an amount', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('change results on server by poking an amount', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.sam.roles[0].account.transactions[0].__changed__).to.equal(true);
 			serverController.sam.roles[0].account.transactions[0].__changed__ = false;
 			serverController.sam.roles[0].account.transactions[0].amount = 200;
@@ -149,111 +149,111 @@ describe('Typescript Banking Example', function() {
 		};
 		clientController
 			.mainFunc()
-			.then(function() {
+			.then(function () {
 				expect(clientController.sam.roles[0].account.getBalance()).to.equal(200);
 				done();
 			})
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
-	it('change results on server by adding a transaction', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('change results on server by adding a transaction', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			serverController.sam.roles[0].account.credit(100);
 		};
 		clientController
 			.mainFunc()
-			.then(function() {
+			.then(function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(300);
 				done();
 			})
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
-	it('change results on server by adding an account', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('change results on server by adding an account', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			serverController.giveSamASecondAccount();
 			serverController.sam.roles[0].account.credit(100);
 		};
 		clientController
 			.mainFunc()
-			.then(function() {
+			.then(function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(400);
 				expect(serverController.sam.roles[2].account.address.lines[0]).to.equal('Plantana');
 				done();
 			})
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
 
-	it('throw an execption', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('throw an execption', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			throw 'get stuffed';
 		};
 		clientController
 			.mainFunc()
 			.then(
-				function() {
+				function () {
 					expect('Should not be here').to.equal(false);
 				},
-				function(e) {
+				function (e) {
 					expect(e.message).to.equal('get stuffed');
 					done();
 				}
 			)
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
-	it('can get a synchronization error', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('can get a synchronization error', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			throw 'get stuffed';
 		};
 		clientController
 			.mainFunc()
 			.then(
-				function() {
+				function () {
 					expect('Should not be here').to.equal(false);
 				},
-				function(e) {
+				function (e) {
 					expect(e.message).to.equal('get stuffed');
 					done();
 				}
 			)
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
-	it('can get a synchronization error from overlapping calls', function(done) {
+	it('can get a synchronization error from overlapping calls', function (done) {
 		this.timeout(7000);
-		RemoteObjectTemplate.serverAssert = function() {
+		RemoteObjectTemplate.serverAssert = function () {
 			return Q.delay(1000);
 		};
-		clientController.mainFunc().then(function() {
+		clientController.mainFunc().then(function () {
 			expect('Should not be here').to.equal(false);
 		});
 		clientController
 			.mainFunc()
 			.then(
-				function() {
+				function () {
 					expect('Should not be here').to.equal(false);
 				},
-				function(e) {
+				function (e) {
 					console.log(e);
-					Q.delay(1000).then(function() {
+					Q.delay(1000).then(function () {
 						done();
 					});
 				}
 			)
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
 
-	it('change tracking to work with arrays', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('change tracking to work with arrays', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
 			serverController.sam.roles[0].account.__changed__ = false;
 			serverController.sam.roles[0].account.debit(50);
@@ -266,37 +266,37 @@ describe('Typescript Banking Example', function() {
 		clientController.sam.roles[0].account.debit(50);
 		clientController
 			.mainFunc()
-			.then(function() {
+			.then(function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(balance - 100);
 				done();
 			})
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
 
-	it('check onclient rules', function(done) {
-		RemoteObjectTemplate.serverAssert = function() {
+	it('check onclient rules', function (done) {
+		RemoteObjectTemplate.serverAssert = function () {
 			serverController.setAllClientRuleCheckFalgsonServer();
 		};
 		clientController
 			.mainFunc()
-			.then(function() {
+			.then(function () {
 				expect(clientController.onClientFalse).to.equal(false);
 				expect(clientController.onClientTrue).to.equal(true);
 				expect(clientController.onClientNotRightApp).to.equal(false);
 				expect(clientController.onClientWithApp).to.equal(true);
 				done();
 			})
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
 	});
 
-	it('check onserver rules', function(done) {
+	it('check onserver rules', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
-		RemoteObjectTemplate.serverAssert = function() {
+		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.onServerFalse).to.equal(false);
 			expect(serverController.onServerTrue).to.equal(true);
 			expect(serverController.onServerNotRightApp).to.equal(false);
@@ -307,10 +307,10 @@ describe('Typescript Banking Example', function() {
 		clientController.mainFunc();
 	});
 
-	it('check serverValidationRules to succeed', function(done) {
+	it('check serverValidationRules to succeed', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
-		RemoteObjectTemplate.serverAssert = function() {
+		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.serverValidatorCounter).to.equal(3);
 			expect(serverController.argumentValidator).to.equal(true);
 			done();
@@ -319,10 +319,10 @@ describe('Typescript Banking Example', function() {
 		clientController.testServerValidation('first', 'second', 'third');
 	});
 
-	it('check serverValidationRules to fail', function(done) {
+	it('check serverValidationRules to fail', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
-		RemoteObjectTemplate.serverAssert = function() {
+		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.serverValidatorCounter).to.equal(0);
 			expect(serverController.argumentValidator).to.equal(false);
 			done();
@@ -331,16 +331,89 @@ describe('Typescript Banking Example', function() {
 		clientController
 			.testServerValidation('first', 'second')
 			.then(
-				function() {
+				function () {
 					expect('Should not be here').to.equal(false);
 				},
-				function(e) {
+				function (e) {
 					expect(e.text).to.equal('An internal error occurred');
 					done();
 				}
 			)
-			.fail(function(e) {
+			.fail(function (e) {
 				done(e);
 			});
+	});
+
+	it('Post server error handling works asynchronously', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+
+		RemoteObjectTemplate.serverAssert = function () {
+			expect(serverController.asyncErrorHandlerCalled).to.equal(true);
+			done();
+		};
+
+		clientController
+			.testAsyncPostServerError()
+			.then(
+				function () {
+					expect('Should not be here').to.equal(false);
+				},
+				function (e) {
+					expect(e.text).to.equal('An internal error occurred');
+					done();
+				}
+			)
+			.fail(function (e) {
+				done(e);
+			});
+	});
+
+	it('Post server error handling can throw a new error', function (done) {
+
+		// For this test, you need to verify if the logs are correct, it should say
+		// 'User defined - postServerErrorHandler threw an error', and then the error message
+		clientController.setAllServerRuleCheckFalgsonClient();
+
+		RemoteObjectTemplate.serverAssert = function () {
+			done();
+		};
+
+		clientController
+			.tryThrowingAnErrorFromErrorHandler()
+			.then(
+				function () {
+					expect('Should not be here').to.equal(false);
+				},
+				function (e) {
+					expect(e.text).to.equal('An internal error occurred');
+					done();
+				}
+			)
+			.fail(function (e) {
+				done(e);
+			});
+	});
+
+	it('Mocks Update Conflict and then retries three times (tries 4 times total) and postServerErrorHandler updates Update Conflict count and throws a log only error on 3rd time', function (done) {
+		this.timeout(8000);
+
+		clientController.setAllServerRuleCheckFalgsonClient();
+		let retries = 0;
+		RemoteObjectTemplate.serverAssert = function () {
+			if (retries < 3) {
+				retries++;
+				throw new Error('Update Conflict');
+			}
+		};
+
+		clientController
+			.testUpdateConflictErrorHandling()
+			.then(
+				function () {
+					expect(serverController.hitMaxRetries).to.equal(true);
+					expect(retries).to.equal(3);
+					done();
+				}
+			);
 	});
 });

@@ -1,3 +1,6 @@
+## 3.2.0
+* Updated some packages (using npm audit)
+* Added an async postServerErrorHandler callback on the controller for verifying errors on remote functions parameters are the errorType (sync, response, error), the remoteCall Id, the object instance for the function that's called the function name, the call context, and the list of changes for the object (same format as postServerCall's changes), in that order.
 ## 3.1.0
 * Cleaned up a lot of files with better error logging and formatting
 * Added server validator function for remote functions. Within the remote decorator add another parameter for `serverValidation`, which takes an async function as a callback whose parameters are the controller and all other argument parameters for the remote function in the order that they are defined in the remote function's definition.

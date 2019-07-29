@@ -22,6 +22,8 @@ ServerObjectTemplate.__conflictMode__ = 'soft';
 
 var failServer = false;
 var serverFailed = false;
+var throwErrorFromCallback = false;
+var errCallbackHit = false;
 
 function sendToServer(message) {
     ServerObjectTemplate.processMessage(message);
@@ -308,6 +310,14 @@ function createTemplates(objectTemplate) {
             }
             return !failServer;
         },
+        postServerErrorHandler(errorType, remoteCallId, obj, functionName, callContext, changeString) {
+            if (errCallbackHit) {
+                return Q.delay(1500).then(function() { this.asyncErrorHandlerCalled = true});
+            }
+            else if (throwErrorFromCallback) {
+                throw new Error('Callback is throwing an error');
+            }
+        },
         preServerCallObjects: { isLocal: true, type: Object, value: {} },
         preServerCalls: { isLocal: true, type: Number, value: 0 },
         postServerCalls: { isLocal: true, type: Number, value: 0 },
@@ -535,4 +545,59 @@ describe('Banking Example', function () {
                 done(e);
             });
     });
+
+    it('Post server error handling works asynchronously', function (done) {
+
+        failServer = true;
+        errCallbackHit = true;
+		serverAssert = function () {
+			expect(serverController.asyncErrorHandlerCalled).to.equal(true);
+			done();
+		};
+
+		clientController
+			.mainFunc()
+			.then(
+				function () {
+					expect('Should not be here').to.equal(false);
+				},
+				function (e) {
+                    failServer = false;
+                    errCallbackHit = false;
+					expect(e.text).to.equal('An internal error occurred');
+					done();
+				}
+			)
+			.fail(function (e) {
+				done(e);
+			});
+	});
+
+	it('Post server error handling can throw a new error', function (done) {
+
+		// For this test, you need to verify if the logs are correct, it should say
+		// 'User defined - postServerErrorHandler threw an error', and then the error message
+        failServer = true;
+        throwErrorFromCallback = true;
+		serverAssert = function () {
+			done();
+		};
+
+		clientController
+			.mainFunc()
+			.then(
+				function () {
+					expect('Should not be here').to.equal(false);
+				},
+				function (e) {
+                    throwErrorFromCallback = false;
+                    failServer = false;
+					expect(e.text).to.equal('An internal error occurred');
+					done();
+				}
+			)
+			.fail(function (e) {
+				done(e);
+			});
+	});
 });
