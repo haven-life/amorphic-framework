@@ -43,24 +43,28 @@ var Controller;
 var serverAmorphic = require('../../dist/index.js');
 var amorphicContext = require('../../dist/lib/AmorphicContext');
 const SupertypeSession = require('@havenlife/supertype').SupertypeSession;
+const sendToLog = SupertypeSession.logger.sendToLog;
 
 // Fire up amorphic as the client
 require('../../client.js');
 
 function afterEachDescribe(done) {
-    if(amorphicContext.appContext.server){
-        amorphicContext.appContext.server.close();
-    }
-    // reset the session statsd client
-    SupertypeSession.statsdClient = undefined;
-    done();
+	if (amorphicContext.appContext.server) {
+		amorphicContext.appContext.server.close();
+	}
+	// reset the session statsd client
+	SupertypeSession.statsdClient = undefined;
+	done();
 }
 function beforeEachDescribe(done, appName, createControllerFor, sourceMode, statsClient) {
-    process.env.createControllerFor = createControllerFor;
-    process.env.sourceMode = sourceMode || 'debug';
-    amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
-    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, undefined, statsClient);
-    var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
+	process.env.createControllerFor = createControllerFor;
+	process.env.sourceMode = sourceMode || 'debug';
+	amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
+
+	// need to inject the amorphicStatic send to log because due to loading up both client and server in the same module resolution
+	// we override our sendToLog with the the clients sometimes
+	serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, sendToLog, statsClient);
+	var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     var controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
     controllerRequires = require(controllerRequiresPath).controller(RemoteObjectTemplate, function () {
@@ -583,12 +587,16 @@ describe('Second Group of Tests', function () {
             method: 'post',
             url: 'http://localhost:3001/amorphic/xhr?path=test&form=true',
             data: {
-                sequence: 1
+                sequence: 1,
+                loggingContext: {
+                    requestID: 1000
+                }
             },
             validateStatus: function (status) {
                 return true;
             }
         }).then(function (res) {
+            console.log(res.req);
             expect(res.status).to.equal(500);
             expect(res.data).to.equal('Internal Error');
         });
@@ -670,7 +678,7 @@ describe('processLoggingMessage', function() {
         };
 
         expect(amorphic._post.calledOnce).to.be.true;
-        expect(amorphic._post.calledWith(url, payload)).to.be.true;
+		expect(amorphic._post.calledWith(url, sinon.match(payload))).to.be.true;
     });
 });
 
@@ -797,6 +805,7 @@ describe('amorphic api enabled', function () {
                 assert.strictEqual(response.status, 200, 'The response code was 200');
             });
     });
+    
 });
 
 // TODO HL-16449 refactor testing suite, re-add statsd module disabled unit test.

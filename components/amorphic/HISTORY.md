@@ -1,3 +1,15 @@
+## 5.1.0
+* Logging Improvements
+* Added any level logging from client in an amorphic app to propagate to the server side logs, as long as you specify the 'browser' component.
+* Example, from the client: amorphic.logger.info({
+            module: 'testModule',
+            activity: 'testActivity',
+            component: 'browser'
+        }, 'Client Side JS LOG from browser');
+* Adding request id logging on every amorphic request (outside of processPost)
+* Adding a unique request ID generator in client.js for the front end if they want to generate one (generateUID)
+* Logs the amorphic, persistor, semotus, and supertype versions at startup
+* Adding types for the remote decorator and the properties associated with it
 ## 5.0.0
 * breaking change for daemon applications. server mode config is now only config used to specify run mode.
 * deamon apps will need to change config from "isDaemon": true, to "serverMode": "daemon"

@@ -146,6 +146,7 @@ amorphic = // Needs to be global to make mocha tests work
     app: 'generic',
     sessionId: 0,
     loggingContext: {},
+    storedUID: 0,
 
     /**
      * expire the user's session
@@ -211,15 +212,20 @@ amorphic = // Needs to be global to make mocha tests work
         RemoteObjectTemplate.logger.sendToLog = function (level, data) {
             var output = RemoteObjectTemplate.logger.prettyPrint(level, data);
 
+            var component = data.component;
+
             console.log(output);
 
-            if (level == 'error' || level == 'fatal') {
+            var levelStatus = level == 'error' || level == 'fatal';
+            var clientOverride = component && component === 'browser';
+
+            if ( levelStatus || clientOverride) {
                 this.sendLoggingMessage(level, data);
 
                 if (this.controller && typeof(this.controller.displayError) === 'function') {
                     this.controller.displayError(output);
                 }
-            }
+            } 
         }.bind(this);
 
         this.setContextProps = RemoteObjectTemplate.logger.setContextProps;
@@ -424,6 +430,12 @@ amorphic = // Needs to be global to make mocha tests work
         this.bindController.call(null, controller, expiration);
     },
 
+    generateUID: function () {
+        // shamelessly taken from https://stackoverflow.com/questions/8012002/create-a-unique-number-with-javascript-time/28918947
+        this.storedUID = new Date().valueOf().toString(36) + Math.random().toString(36).substr(2);
+        return this.storedUID;
+    },
+
     _reset: function (message, appVersion, reload) {
         if (this.sessionId) {
             RemoteObjectTemplate.deleteSession(this.sessionId);
@@ -459,6 +471,9 @@ amorphic = // Needs to be global to make mocha tests work
     },
 
     _post: function (url, message, success, failure, retries, retryInterval) {
+
+        // Add request ID for every post call into the messages loggingContext
+        message.loggingContext.requestID = this.generateUID();
         success = success || function () {};
         failure = failure || function () {};
         retries = retries || 30;

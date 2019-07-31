@@ -60,7 +60,8 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
         }
 
         if (!session.semotus.loggingContext[path]) {
-            session.semotus.loggingContext[path] = getLoggingContext(path, null);
+            let messageContext = req.body && req.body.loggingContext;
+            session.semotus.loggingContext[path] = Object.assign(getLoggingContext(path, null), messageContext);
         }
     }
 
