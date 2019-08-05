@@ -270,7 +270,7 @@ module.exports = function (PersistObjectTemplate) {
                     if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
                         cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
-                        queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty, projection);
+                        queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty, projection, cascade);
                     } else
                         updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
 
@@ -343,7 +343,7 @@ module.exports = function (PersistObjectTemplate) {
 
 
 
-            function collectLikeFilters (_prop, _query, thisDefineProperty, foreignFilterKey) {
+            function collectLikeFilters (_prop, _query, thisDefineProperty, foreignFilterKey, fetchSpec) {
 
                 // Collect a structure of similar filters (excluding the first one)
                 var filters = null;
@@ -351,8 +351,9 @@ module.exports = function (PersistObjectTemplate) {
                 for (var candidateProp in props) {
                     var candidateDefineProp = props[candidateProp];
                     var filter = schema.children[candidateProp] ? schema.children[candidateProp].filter : null;
+                    var includedInFetch = fetchSpec && fetchSpec[candidateProp] && fetchSpec[candidateProp].fetch;
                     if (filter && filter.property == foreignFilterKey &&
-                        candidateDefineProp.of.__table__ == thisDefineProperty.of.__table__ &&  excluded++) {
+                        candidateDefineProp.of.__table__ == thisDefineProperty.of.__table__ && includedInFetch && excluded++) {
                         filters = filters || {};
                         filters[candidateProp] = {
                             foreignFilterKey: filter.property,
@@ -435,7 +436,7 @@ module.exports = function (PersistObjectTemplate) {
 
             }
 
-            function queueChildrenLoadRequest(obj, prop, schema, defineProperty, projection) {
+            function queueChildrenLoadRequest(obj, prop, schema, defineProperty, projection, fetchSpec) {
 
                 var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
@@ -446,7 +447,7 @@ module.exports = function (PersistObjectTemplate) {
                 query[schema.children[prop].id] = obj._id;
                 if (foreignFilterKey) {
                     // accumulate hash of all like properties (except the first one)
-                    var alternateProps = collectLikeFilters(prop, query, defineProperty, foreignFilterKey);
+                    var alternateProps = collectLikeFilters(prop, query, defineProperty, foreignFilterKey, fetchSpec);
                     // If other than the first one just leave it for the original to take care of
                     if (alternateProps && alternateProps[prop])
                         return;

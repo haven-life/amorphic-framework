@@ -1,3 +1,10 @@
+## 3.1.2
+* minor fix when checking for similar filters in schema definition.
+
+## 3.1.1
+* drop indexes should be called first before add/change to support index type changes.
+* sorting fields are chained as multiple orderBy calls to support the breaking changes introduced by knex@0.16.1 and to support the old syntax.
+
 ## 3.1.0
 * Enabling stats through persistor
 * Persistor will now pull all minor supertype changes instead of only bug fixes

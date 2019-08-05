@@ -320,6 +320,28 @@ describe('index synchronization checks', function () {
         });
     });
 
+    it('changing the index type should update the table again..', function () {
+        schema.IndexSyncTable.indexes = [
+            {
+                name: 'Fst_Index_New',
+                def: {
+                    columns: ['name'],
+                    type: 'unique'
+                }
+            },
+            {
+                name: 'Scd_Index',
+                def: {
+                    columns: ['id'],
+                    type: 'index'
+                }
+            }
+        ];
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
+            return getIndexes('IndexSyncTable').should.eventually.have.length(2);
+        });
+    });
+
     it('adding a new field and verifying the notification', function () {
         function fieldsNotify(fields) {
             expect(fields).to.match(/newField|notificationCheck/);

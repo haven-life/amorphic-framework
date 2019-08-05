@@ -48,10 +48,10 @@ module.exports = function (PersistObjectTemplate) {
                     descending.push(tableName + '.' + key);
             });
             if (ascending.length)
-                select = select.orderBy(ascending);
+                select = ascending.reduce((result, column) => select.orderBy(column), select);
             if (descending.length)
-                select = select.orderBy(descending, 'DESC');
-        }
+                select = descending.reduce((result, column) => select.orderBy(column, 'desc'), select);
+            }
         if (options && options.limit) {
             select = select.limit(options.limit);
             select = select.offset(0)
@@ -756,15 +756,15 @@ module.exports = function (PersistObjectTemplate) {
                     else
                         table[type](columns, name);
 
-                }).bind(this));
+                }));
             }
 
 
             return knex.transaction(function (trx) {
                 return trx.schema.table(tableName, function (table) {
-                    _.map(Object.getOwnPropertyNames(dbChanges), function (key) {
-                        return syncIndexesForHierarchy.call(this, key, dbChanges, table);
-                    }.bind(this));
+                    syncIndexesForHierarchy('delete', dbChanges, table);
+                    syncIndexesForHierarchy('add', dbChanges, table);
+                    syncIndexesForHierarchy('change', dbChanges, table);
                 })
             })
         };
