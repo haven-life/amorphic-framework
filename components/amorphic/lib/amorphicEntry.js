@@ -84,10 +84,7 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
                 let time = process.hrtime();
                 
                 if (req.method === 'POST' && session.objectTemplate.controller.processPost) {
-                    let message = req.body;
-                    let context = message && message.loggingContext;
-                    session.objectTemplate.logger.setContextProps(context);
-
+                    
                     Bluebird.resolve(session.objectTemplate.controller.processPost(req.originalUrl, req.body, req))
                         .then(function b (controllerResp) {
                             session.save(appName, req.session, req);

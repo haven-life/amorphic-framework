@@ -27,12 +27,9 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 		.then(function ff(semotus) {
 			let ourObjectTemplate = semotus.objectTemplate;
 			let remoteSessionId = req.session.id;
-			let message = req.body;
-			let context = message && message.loggingContext;
-			ourObjectTemplate.logger.setContextProps(context);
 
 			if (typeof ourObjectTemplate.controller.processPost === 'function') {
-				Bluebird.resolve(ourObjectTemplate.controller.processPost(null, req.body))
+				Bluebird.resolve(ourObjectTemplate.controller.processPost(null, req.body, req))
 					.then(function gg(controllerResp) {
 						ourObjectTemplate.setSession(remoteSessionId);
 						semotus.save(path, session, req);

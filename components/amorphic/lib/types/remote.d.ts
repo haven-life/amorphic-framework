@@ -1,3 +1,5 @@
+import { Supertype } from '../..';
+
 /**
  * A server validation callback that can be passed into the remote decorator for a function.
  *
@@ -9,7 +11,7 @@
  * @returns {Promise<boolean>} - True if the validation has passed, and false if it failed
  *
  */
-type ServerValidationFunction = (object: any, ...args: any) => Promise<boolean>;
+type ServerValidationFunction = (object: Supertype, ...args: any[]) => Promise<boolean>;
 
 type RemoteDecoratorProps = {
 	/**
@@ -18,7 +20,7 @@ type RemoteDecoratorProps = {
 	 *
 	 * This will default to server if you don't define the behavior
 	 **/
-    on?: 'client' | 'server' | undefined;
+	on?: 'client' | 'server' | undefined;
 
 	/**
 	 * An asynchronous server-side validation callback that executes before we call the remote function on the server,
@@ -26,7 +28,7 @@ type RemoteDecoratorProps = {
 	 *
 	 * @type {ServerValidationFunction}
 	 */
-    serverValidation?: ServerValidationFunction;
+	serverValidation?: ServerValidationFunction;
 
 	/**
 	 * A synchronous client side validation callback called in the case where code in the browser calls code in the server
@@ -37,14 +39,14 @@ type RemoteDecoratorProps = {
 	 *
 	 * @deprecated
 	 */
-    validate?: () => boolean;
+	validate?: () => boolean;
 
 	/**
 	 * Defines the return type of this function (NOT USED ANYMORE)
 	 *
 	 * @deprecated
 	 */
-    type?: any;
+	type?: any;
 
 	/**
 	 * Used in place of type, if this function returns an array (NOT USED ANYMORE)
@@ -52,7 +54,7 @@ type RemoteDecoratorProps = {
 	 * @deprecated
 	 */
 
-    of?: any;
+	of?: any;
 };
 
 type MethodDecoratorType = (target: any, propertyName: string, descriptor: TypedPropertyDescriptor<Function>) => void;
@@ -83,7 +85,8 @@ type MethodDecoratorType = (target: any, propertyName: string, descriptor: Typed
  *  4) Custom Validation - Where we run asynchronous function specific validation callbacks, which you can define in the remote decorator of the function being called. Is boolean
  *  5) Function Call - The actual function call
  *  6) Post Server Call - An asynchronous callback defined on the base controller that executes after successfully calling the remote function
- *  7) (Optional) Error - If update conflict retry with force update as true
+ *  7) (Optional) Error - If update conflict retry with force update as true, otherwise return error to the client
+ * 		7a) (Optional) PostServerErrorHandler - Optional callback defined within a controller that runs after error is thrown
  *  8) Send changes back to original caller
  *
  * @export

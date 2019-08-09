@@ -50,8 +50,6 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 req.amorphicTracking.browser = message.performanceLogging;
             }
 
-            semotus.objectTemplate.logger.setContextProps(message.loggingContext);
-
             let callContext = message.type;
 
             if (message.type === 'call') {
@@ -73,13 +71,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
 
             let ourObjectTemplate = semotus.objectTemplate;
             let remoteSessionId = req.session.id;
-
-            ourObjectTemplate.expireSession = function expoSession() {
-                req.session.destroy();
-                ourObjectTemplate.sessionExpired = true;
-            };
-
-            ourObjectTemplate.sessionExpired = false;
+        
             let startMessageProcessing;
 
         // If we expired just return a message telling the client to reset itself

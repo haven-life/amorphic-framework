@@ -1,3 +1,7 @@
+## 5.2.0
+* Exposing expire session to all entry points that require session in the app
+* Adding interfaces / types / documentation for Amorphic App Controller
+* Cleaning up some small bugs 
 ## 5.1.0
 * Logging Improvements
 * Added any level logging from client in an amorphic app to propagate to the server side logs, as long as you specify the 'browser' component.

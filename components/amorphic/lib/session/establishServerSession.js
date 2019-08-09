@@ -8,6 +8,32 @@ let url = require('url');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
+ * Sets up generic logging context with context passed from request
+ * Sets up expireSession handler in one place for all requests incoming to the session
+ * Sets sessionExpired to false for all routes where session is required (processPost, processMessage, amorphicEntry, processContentRequest)
+ * 
+ * @param {*} semotus
+ * @returns
+ */
+function setup(req, semotus) {
+    if (semotus && semotus.objectTemplate) {
+        semotus.objectTemplate.expireSession = function expoSession() {
+            req.session.destroy();
+            semotus.objectTemplate.sessionExpired = true;
+        };
+        semotus.objectTemplate.sessionExpired = false;
+    }
+
+    let message = req.body;
+    if (message && semotus.objectTemplate && semotus.objectTemplate.logger) {
+        let context = message && message.loggingContext;
+        semotus.objectTemplate.logger.setContextProps(context);
+    }
+
+    return semotus;
+}
+
+/**
  * Establish a server session
 
  * The entire session mechanism is predicated on the fact that there is a unique instance
@@ -86,7 +112,8 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
 
     return establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
         sessionExpiration, session, sessionStore, newControllerId, objectCacheExpiration, newPage,
-        controllers, nonObjTemplatelogLevel, sessions, reset);
+        controllers, nonObjTemplatelogLevel, sessions, reset)
+        .then(setup.bind(this, req));
 }
 
 module.exports = {
