@@ -241,7 +241,7 @@ function clearCollection(collectionName) {
     });
 }
 
-describe('Banking Example', function () {
+describe('Banking Example JS', function () {
     after('close db connection', function() {
         return db.close();
     });
@@ -660,8 +660,9 @@ describe('Banking Example', function () {
         writing = true;
         var testDelete = new Customer('Ashling', '', 'testDelete');
         return testDelete.persistSave()
-            .then(Customer.countFromPersistWithQuery.bind(this))
-            .then(function(count) {
+            .then(function() {
+                return Customer.countFromPersistWithQuery();
+            }).then(function(count) {
                 expect(count).to.equal(5);
             }).then(function() {
                 return Customer.deleteFromPersistWithQuery({lastName: {$eq: 'testDelete'}})
@@ -689,7 +690,7 @@ describe('Banking Example', function () {
         return PersistObjectTemplate.getTemplateFromMongoPOJO(pojo, withoutType, null, null, {});
     });
 
-    it('can delete', function (done) {
+    it('can delete persist_banking', function (done) {
         Customer.getFromPersistWithId(sam._id,
             {roles: {fetch: {account: {fetch: {roles: {fetch: {customer: {fetch: true}}}}}}}}).then (function (customer) {
                 var promises = [];

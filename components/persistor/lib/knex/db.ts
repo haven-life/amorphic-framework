@@ -247,7 +247,10 @@ module.exports = function (PersistObjectTemplate) {
         return knex.delete();
     };
 
-    PersistObjectTemplate.deleteFromKnexByQuery = function (template, queryOrChains, txn, _logger) {
+    PersistObjectTemplate.deleteFromKnexByQuery = async function (template, queryOrChains, txn, _logger) {
+        if (!txn) {
+            return PersistObjectTemplate.deleteFromKnexQuery(template, queryOrChains, txn, _logger);
+        }
         var deleteQueries = txn ? txn.deleteQueries : this.deleteQueries;
         var deleteQuery = {name: template.__name__, template: template, queryOrChains: queryOrChains};
         deleteQueries[template.__name__] = deleteQuery;

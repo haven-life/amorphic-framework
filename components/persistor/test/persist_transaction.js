@@ -329,7 +329,7 @@ describe('persistor transaction checks', function () {
         expect(Object.keys(tx.dirtyObjects).length).to.equal(0);
     });
 
-    it('when an array of field used without providing the table name..', function () {
+    it('when an array of fields are used without providing the table name..', function () {
         schema.EmployeeDelWithoutTable = {};
         schema.AddressDelWithoutTable = {};
         schema.EmployeeDelWithoutTable.documentOf = 'tx_deletewot_employee';
@@ -361,7 +361,7 @@ describe('persistor transaction checks', function () {
         })
     });
 
-    it('when an array of field used without providing the table name..', function () {
+    it('when an array of fields are used without providing the table name 2..', function () {
         schema.EmployeeDelWithoutTable1 = {};
         schema.AddressDelWithoutTable1 = {};
         schema.EmployeeDelWithoutTable1.table = 'tx_deletewot1_employee';

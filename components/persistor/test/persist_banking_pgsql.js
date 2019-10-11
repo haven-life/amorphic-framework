@@ -1183,7 +1183,7 @@ describe('Banking from pgsql Example', function () {
     });
 
 
-    it('can delete', function (done) {
+    it('can delete js', function (done) {
         Customer.getFromPersistWithQuery({}, {roles: {fetch: {account: true}}}).then (function (customers) {
             function deleteStuff(txn) {
                 var promises = [];

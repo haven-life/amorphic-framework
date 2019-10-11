@@ -511,4 +511,25 @@ describe('persistor transaction checks', function () {
             return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
         }
     });
+
+    it('calling delete without transaction', function () {
+        return createFKs()
+            .then(loadEmployee.bind(this))
+            .then(realTest.bind(this));
+
+        function loadEmployee() {
+            return Employee.persistorFetchById(empId, {fetch: {homeAddress: true}})
+        }
+
+        async function realTest() {
+            await Employee.persistorDeleteByQuery({name: 'Ravi'});
+            return Employee.persistorFetchByQuery({name: 'Ravi'}).then(function(employees) {
+                expect(employees.length).to.equal(0);
+            })
+        }
+
+        function createFKs() {
+            return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
+        }
+    });
 });
