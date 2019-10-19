@@ -86,7 +86,6 @@ module.exports = function (PersistObjectTemplate) {
             return Promise.resolve(true)
               .then(getPOJOsFromQuery)
               .then(getTemplatesFromPOJOS.bind(this))
-              .then(resolvePromises.bind(this))
         }
 
         // If at the top level we want to execute this requests and any that are appended during processing
@@ -102,26 +101,24 @@ module.exports = function (PersistObjectTemplate) {
             return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver'], logger, projection);
         }
 
-        function getTemplatesFromPOJOS(pojos) {
+        async function getTemplatesFromPOJOS(pojos) {
             joins.forEach(function(join) {
                 pojos.forEach(function (pojo) {
                     pojo.__alias__ = pojo.__alias__ || [];
                     pojo.__alias__.push(join.template);
                 });
             });
-            var sortMap = {};
-            pojos.forEach(function (pojo, ix) {
-                sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix;
-                promises.push(PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
-                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
-                    .then(function (obj) {
-                        results[sortMap[obj._id]] = obj;
-                    }))
-            }.bind(this));
-        }
+            const sortMap = {};
+            let ix = 0;
+            for(const pojo of pojos) {
 
-        function resolvePromises () {
-            return Promise.all(promises).then(function () {return Promise.resolve(results)});
+                sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix++;
+                const obj = await PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
+                    null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade);
+                results[sortMap[obj._id]] = obj;
+            }
+
+            return results;
         }
     }
 
