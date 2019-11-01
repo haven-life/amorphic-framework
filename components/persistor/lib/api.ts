@@ -714,22 +714,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         // Legacy
         template.prototype.cascadeSave = function (txn, logger) {
-            var time = getTime();
-
             var persistObjectTemplate = this.__objectTemplate__ || self;
-            var query = Promise.resolve(persistObjectTemplate.setDirty(this, txn || persistObjectTemplate.currentTransaction, true, false, logger));
-
-            const name = 'cascadeSave';
-            return query
-                .then(result => {
-                    getStats(time, template.__name__, name);
-                    return result;
-                })
-                // @TODO: need to handle errors with log
-                .catch(e => {
-                    getStats(time, template.__name__, name, true);
-                    throw e;
-                });
+            persistObjectTemplate.setDirty(this, txn || persistObjectTemplate.currentTransaction, true, false, logger);
         };
 
         template.prototype.isStale = // Legacy
@@ -809,7 +795,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             }
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(this.__template__.__collection__)).type;
             var previousDirtyTracking = persistObjectTemplate.__changeTracking__;
-            persistObjectTemplate.__changeTracking__ = false;
             var promise = (dbType == persistObjectTemplate.DB_Mongo) ?
                 persistObjectTemplate.getTemplateFromMongoPOJO(this, this.__template__, null, null, idMap, cascade, this, properties, isTransient, logger) :
                 persistObjectTemplate.getTemplateFromKnexPOJO(this, this.__template__, null, idMap, cascade, isTransient, null, this, properties, undefined, undefined, undefined, logger);
@@ -992,7 +977,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {object} returns transaction object
      */
     PersistObjectTemplate.begin = function (notDefault) {
-        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {} };
+        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}};
         if (!notDefault) {
             this.currentTransaction = txn;
         }
@@ -1178,7 +1163,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     PersistObjectTemplate.commit = async function commit(options) {
         var time = getTime();
         PersistObjectTemplate._validateParams(options, 'commitSchema');
-
         options = options || {};
         var logger = options.logger || PersistObjectTemplate.logger;
 
