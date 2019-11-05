@@ -1,3 +1,6 @@
+## 3.2.0
+* enable remote storage of data properties (knex path only).
+* local FS and amazon S3 supported out of the box for non-db storage location.
 ## 3.1.5
 * Fixing a bug where cascadeSave was a becoming async
 * Fixed a bug where changeTracking was on by default

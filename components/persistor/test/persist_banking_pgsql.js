@@ -34,7 +34,13 @@ var Customer = PersistObjectTemplate.create('Customer', {
     local2:      {type: String, isLocal: true, value: 'local2'},
     nullNumber:  {type: Number, value: null},
     nullDate:    {type: Date, value: null},
-    nullString: {type: String, value: null}
+    nullString: {type: String, value: null},
+    bankingDocument: {
+        type: String,
+        isRemoteObject: true,
+        remoteKeyBase: 'test-remote-key',
+        value: 'meh'
+    }
 });
 
 var Address = PersistObjectTemplate.create('Address', {
@@ -46,7 +52,12 @@ var Address = PersistObjectTemplate.create('Address', {
     city:       {type: String, value: '', length: 20},
     state:      {type: String, value: '', length: 20},
     postalCode: {type: String, value: '', length: 20, logChanges: true},
-    country:    {type: String, value: 'US', length: 3}
+    country:    {type: String, value: 'US', length: 3},
+    addressDocument: { type: String,
+        isRemoteObject: true,
+        remoteKeyBase: 'address-remote-key',
+        value: null
+    }
 });
 
 Customer.mixin({
@@ -324,6 +335,10 @@ describe('Banking from pgsql Example', function () {
 
                     }
                 });
+                PersistObjectTemplate.setRemoteDocConnection({
+                    bucketName: 'test-bucket-persistor',
+                    environment: 'local'
+                });
                 PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
                 PersistObjectTemplate.setSchema(schema);
                 PersistObjectTemplate.performInjections(); // Normally done by getTemplates
@@ -416,7 +431,7 @@ describe('Banking from pgsql Example', function () {
 
         // Setup accounts
         samsAccount = new Account(123412341234123, ['Sam Elsamman'], sam, sam.primaryAddresses[0]);
-        jointAccount = new Account(.123412341234123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.primaryAddresses[0]);
+        jointAccount = new Account(0.123412341234123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.primaryAddresses[0]);
         jointAccount.addCustomer(karen, 'joint');
         jointAccount.addCustomer(ashling, 'joint');
 
@@ -981,8 +996,12 @@ describe('Banking from pgsql Example', function () {
             customer = c;
             expect(customer.secondaryAddresses[0].city).to.equal('Rhinebeck');
             expect(customer.primaryAddresses[0].city).to.equal('The Big Apple');
+            expect(customer.primaryAddresses[0].addressDocument).to.equal(null);
+
             customer.secondaryAddresses[0].city = 'Red Hook';
             customer.primaryAddresses[0].city = 'New York';
+            customer.primaryAddresses[0].addressDocument = 'Address Document';
+
             txn = PersistObjectTemplate.begin();
             customer.secondaryAddresses[0].setDirty(txn);
             customer.primaryAddresses[0].setDirty(txn);
@@ -995,6 +1014,7 @@ describe('Banking from pgsql Example', function () {
         }).then(function(customer) {
             expect(customer.secondaryAddresses[0].city).to.equal('Rhinebeck');
             expect(customer.primaryAddresses[0].city).to.equal('The Big Apple');
+            expect(customer.primaryAddresses[0].addressDocument).to.equal(null);
         }).catch(function(e) {
             throw e;
         });
@@ -1179,6 +1199,18 @@ describe('Banking from pgsql Example', function () {
             done();
         }).catch(function(e) {
             done(e)
+        });
+    });
+
+    it('can save / retrieve a document to remote store', function(done) {
+        Customer.getFromPersistWithId(sam._id).then(function(samRemoteDoc) {
+            samRemoteDoc.bankingDocument = 'meow!';
+            return samRemoteDoc.persistSave();
+        }).then(function () {
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(customerOutput) {
+            expect(customerOutput.bankingDocument).to.equal('meow!');
+            done();
         });
     });
 

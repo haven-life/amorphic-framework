@@ -10,6 +10,8 @@
  *
  */
 
+import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     let supertypeRequire = require('@havenlife/supertype');
@@ -165,6 +167,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             });
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             const time = getTime();
+
             let getQuery = (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap, logger) :
                 PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh, logger));
@@ -729,8 +732,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         _id: (dbType == persistObjectTemplate.DB_Mongo) ? persistObjectTemplate.ObjectID(this._id.toString()) : this._id,
                         __version__: this.__version__
                     }).then(function (count) {
-                        return !count
-                    }.bind(this))
+                    return !count
+                }.bind(this))
                     .then(result => {
                         getStats(time, template.__name__, name);
                         return result;
@@ -771,7 +774,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 getStats(time, template.__name__, name);
                 return result;
             })
-                // @TODO: need to handle errors with log
+            // @TODO: need to handle errors with log
                 .catch(e => {
                     getStats(time, template.__name__, name, true);
                     throw e;
@@ -803,7 +806,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 getStats(time, template.__name__, name);
                 return result;
             })
-                // @TODO: need to handle errors with log
+            // @TODO: need to handle errors with log
                 .catch(e => {
                     getStats(time, template.__name__, name, true);
                     throw e;
@@ -953,7 +956,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 getStats(time, template.__name__, name);
                 return result;
             })
-                // @TODO: need to handle errors with log
+            // @TODO: need to handle errors with log
 
                 .catch(e => {
                     getStats(time, template.__name__, name, true);
@@ -1122,6 +1125,17 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     };
 
     /**
+     * hook to pass in remote doc configurations and place them onto the base object template.
+     *
+     * @param {remoteDocConnectionOptions} options - enable our remote
+     * object storage functionality. if enabled, config
+     */
+    PersistObjectTemplate.setRemoteDocConnection = function (options: RemoteDocConnectionOptions): void {
+        this.bucketName = options.bucketName;
+        this.environment = options.environment;
+    };
+
+    /**
      * retrieve a PLain Old Javascript Object given a query
      * @param {SuperType} template - template to load
      * @param {json|function} query - can pass either mongo style queries or callbacks to add knex calls..
@@ -1147,16 +1161,30 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             });
     }
 
-    PersistObjectTemplate.beginTransaction = function () {
-        var txn = {
-            id: new Date().getTime(), dirtyObjects: {},
-            savedObjects: {}, touchObjects: {}, deletedObjects: {}, deleteQueries: {}
+    PersistObjectTemplate.beginTransaction = function (): PersistorTransaction {
+        return {
+            id: new Date().getTime(),
+            dirtyObjects: {},
+            savedObjects: {},
+            touchObjects: {},
+            deletedObjects: {},
+            remoteObjects: new Set(),
+            deleteQueries: {}
         };
-        return txn;
     };
 
-    PersistObjectTemplate.beginDefaultTransaction = function () {
-        this.__defaultTransaction__ = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {} };
+    PersistObjectTemplate.beginDefaultTransaction = function (): PersistorTransaction {
+        const defaultTransaction: PersistorTransaction = {
+            id: new Date().getTime(),
+            dirtyObjects: {},
+            savedObjects: {},
+            touchObjects: {},
+            deletedObjects: {},
+            remoteObjects: new Set(),
+            deleteQueries: {}
+        };
+
+        this.__defaultTransaction__ = defaultTransaction;
         return this.__defaultTransaction__;
     };
 
@@ -1180,7 +1208,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             getStats(time, 'PersistObjectTemplate', name);
             return result;
         })
-            // @TODO: need to handle errors with log
+        // @TODO: need to handle errors with log
             .catch(e => {
                 getStats(time, 'PersistObjectTemplate', name, true);
                 throw e;
@@ -1197,6 +1225,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         var knex = require('knex');
         var connection = knex(config);
         this.setDB(connection, this.DB_Knex, config.client);
+        this.setRemoteDocConnection(config);
         this.setSchema(schema);
         this.performInjections(); // Normally done by getTemplates
         return connection;

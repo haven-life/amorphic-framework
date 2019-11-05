@@ -1,3 +1,7 @@
+import { RemoteDocService } from '../remote-doc/RemoteDocService';
+import { PersistorTransaction } from '../types/PersistorTransaction';
+import * as uuidv4 from 'uuid/v4';
+
 module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
@@ -17,10 +21,12 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} logger object template logger
      * @returns {*}
      */
-    PersistObjectTemplate.persistSaveKnex = function(obj, txn, logger) {
+    PersistObjectTemplate.persistSaveKnex = async function(obj, txn: PersistorTransaction, logger): Promise<any> {
 
         (logger || this.logger).debug({component: 'persistor', module: 'db.persistSaveKnex', activity: 'pre', data:{template: obj.__template__.__name__, id: obj.__id__, _id: obj._id}});
         this.checkObject(obj);
+
+        let remoteDocService = null;
 
         var template = obj.__template__;
         var schema = template.__schema__;
@@ -139,7 +145,56 @@ module.exports = function (PersistObjectTemplate) {
 
                 dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
+            } else if (defineProperty.isRemoteObject && defineProperty.isRemoteObject === true) {
+                const uniqueIdentifier = uuidv4();
 
+                const remoteObject: string = obj[prop];
+
+                if (remoteObject && defineProperty.remoteKeyBase) {
+                    // remoteDocService = remoteDocService || RemoteDocService.new(this.environment);
+                    remoteDocService = RemoteDocService.new(this.environment);
+                    // the contents of the object we want to save in the remote store
+                    const documentBody = remoteObject;
+
+                    // unique identifier to find the object we're saving in the remote store
+                    const objectKey = defineProperty.__remoteObjectKey__ || `${defineProperty.remoteKeyBase}-${uniqueIdentifier}`;
+
+                    const bucket = this.bucketName;
+
+                    try {
+                        if(txn) {
+                            if(txn.remoteObjects) {
+                                txn.remoteObjects.add(objectKey);
+                            } else {
+                                txn.remoteObjects = new Set(objectKey);
+                            }
+                        }
+
+                        // grab the document from remote store
+                        promises.push(remoteDocService.uploadDocument(documentBody, objectKey, bucket));
+
+                        // only place a reference to the remote object in the database itself - not the actual
+                        // contents of the property.
+                        pojo[prop] = objectKey;
+
+                        defineProperty.__remoteObjectKey__ = objectKey;
+
+                        log(defineProperty, pojo, prop);
+                    } catch (e) {
+                        (logger || this.logger).error({
+                            component: 'persistor',
+                            module: 'update',
+                            activity: 'persistSaveKnex',
+                            data: {
+                                template: obj.__template__.__name__,
+                                errorMessage: e,
+                                message: 'there was a problem uploading the document'
+                            }
+                        });
+                    }
+                } else if (remoteObject && !defineProperty.remoteKeyBase) {
+                    throw new Error('RemoteObject missing unique identifier key for storage in decorator');
+                }
             } else if (defineProperty.type == Array || defineProperty.type == Object) {
                 pojo[prop] = (obj[prop] === null || obj[prop] === undefined)  ? null : JSON.stringify(obj[prop]);
                 log(defineProperty, pojo, prop);
@@ -156,11 +211,12 @@ module.exports = function (PersistObjectTemplate) {
         }
         (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'dataLogging', data: {template: obj.__template__.__name__, _id: pojo._id, values: dataSaved}});
 
-        promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger))
-        return Promise.all(promises)
-            .then (function () {
-                return obj
-            });
+        promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
+
+        return Promise.all(promises).then(function() {
+            return obj;
+        });
+
         function log(defineProperty, pojo, prop) {
             if (defineProperty.logChanges)
                 dataSaved[prop]  = pojo[prop];
@@ -185,27 +241,4 @@ module.exports = function (PersistObjectTemplate) {
                 obj[prop] = copyProps(obj[prop]);
         }
     }
-    // /**
-    //  * Remove objects from a collection/table
-    //  *
-    //  * @param {object} template supertype
-    //  * @param {object/function} query conditions to use, can even pass functions to add extra conditions
-    //  * @param {object} txn transaction object
-    //  * @param {object} _logger objecttemplate logger
-    //  */
-    // PersistObjectTemplate.deleteFromPersistWithKnexQuery = function(template, query, txn, logger)
-    // {
-    //     return this.deleteFromKnexQuery(template, query, txn, logger);
-    // }
-    //
-    // /**
-    //  * Remove object from a collection/table
-    //  *
-    //  * @param options
-    //  */
-    // PersistObjectTemplate.deleteFromPersistWithKnexId = function(template, id, txn, logger)
-    // {
-    //     return this.deleteFromKnexId(template, id, txn, logger);
-    // }
-
 }
