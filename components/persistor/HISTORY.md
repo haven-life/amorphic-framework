@@ -1,3 +1,6 @@
+## 3.2.1
+* changing field returned for objectTemplateName to make sure it is returned even when object is not persisted
+
 ## 3.2.0
 * enable remote storage of data properties (knex path only).
 * local FS and amazon S3 supported out of the box for non-db storage location.
