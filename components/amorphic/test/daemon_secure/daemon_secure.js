@@ -4,6 +4,7 @@ let Bluebird = require('bluebird');
 let amorphic = require('../../dist/index.js');
 let axios = require('axios');
 let fs = require('fs');
+const os = require('os');
 let path = require('path');
 let amorphicContext = require('../../dist/lib/AmorphicContext');
 
@@ -24,7 +25,7 @@ describe('Run amorphic as secure daemon', function() {
     });
 
     it('should create the download directory', function() {
-        let downloadPath = path.join(path.dirname(require.main.filename), 'download');
+        let downloadPath = path.join(os.tmpdir(), 'download');
         assert.isTrue(fs.existsSync(downloadPath), 'The download path exists');
     });
 

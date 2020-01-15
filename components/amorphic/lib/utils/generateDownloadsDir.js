@@ -1,30 +1,30 @@
 'use strict';
 
-let fs = require('fs');
-let path = require('path');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 /**
- * Purpose unknown
+ * creates a location for amorphic file downloads in the
+ * system's temp directory and returns a string of the path to it.
  *
- * @param {unknown} path unknown
- *
- * @returns {unknown} unknown
+ * @returns {string} - file path of downloads directory
  */
 function generateDownloadsDir() {
     // Create temporary directory for file uploads
-    let dloads = path.join(path.dirname(require.main.filename), 'download');
+    let downloadDir = path.join(os.tmpdir(), 'download');
 
-    if (!fs.existsSync(dloads)) {
-        fs.mkdirSync(dloads);
+    if (!fs.existsSync(downloadDir)) {
+        fs.mkdirSync(downloadDir);
     }
 
-    let files = fs.readdirSync(dloads);
+    let files = fs.readdirSync(downloadDir);
 
     for (let ix = 0; ix < files.length; ++ix) {
-        fs.unlinkSync(path.join(dloads, files[ix]));
+        fs.unlinkSync(path.join(downloadDir, files[ix]));
     }
 
-    return dloads;
+    return downloadDir;
 }
 
 module.exports = {

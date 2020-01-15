@@ -107,13 +107,13 @@ function setUpInjectObjectTemplate(appName, config, schema) {
  * @returns {Object} An object containing all the dbconfig options.
  */
 function buildDbConfig(appName, config) {
-    var dbDriver = fetchFromConfig(appName, config, 'dbDriver') || 'mongo';
+    var dbDriver = fetchFromConfig(appName, config, 'dbDriver') || 'knex';
     var defaultPort = dbDriver === 'mongo' ? 27017 : 5432;
     return {
         dbName:         fetchFromConfig(appName, config, 'dbName'),
         dbPath:         fetchFromConfig(appName, config, 'dbPath'),
         dbDriver:       dbDriver,
-        dbType:         fetchFromConfig(appName, config, 'dbType')        || 'mongo',
+        dbType:         fetchFromConfig(appName, config, 'dbType')        || 'knex',
         dbUser:         fetchFromConfig(appName, config, 'dbUser')        || 'nodejs',
         dbPassword:     fetchFromConfig(appName, config, 'dbPassword')    || null,
         dbConnections:  parseInt(fetchFromConfig(appName, config, 'dbConnections')) || 20,
