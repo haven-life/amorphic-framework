@@ -99,7 +99,7 @@ function setUpInjectObjectTemplate(appName, config, schema) {
 }
 
 /**
- * Builds a data base config, pulling options from the app config.
+ * Builds a data base config, pulling options from the app config. Defaults to Knex
  *
  * @param {String} appName - The app name.
  * @param {Object} config - The app specific config from the config store.

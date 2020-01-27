@@ -24,7 +24,7 @@ function buildStartUpParams(configStore) {
 
     amorphicOptions.appStartList = rootCfg.get('application').split(';');
     amorphicOptions.mainApp = amorphicOptions.appStartList[0];
-    amorphicOptions.port = rootCfg.get('port');
+    amorphicOptions.port = rootCfg.get('port') || 3000; // default to 3000 if not listed
 
     if (!amorphicOptions.appList) {
         console.error(chalk.red('FATAL you did not define an applications list in your config.json file.'));

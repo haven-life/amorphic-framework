@@ -1,3 +1,7 @@
+## 5.4.0
+* Default app port to 3000 if not listed
+* Security fix to remove istanbul for NYC
+* Fixing old type and adding new types for preServerCall
 ## 5.3.0
 * use the os' temporary directory to store downloads instead of project root directory.
 * default to knex db connection instead of mongo
