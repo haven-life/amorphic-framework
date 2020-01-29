@@ -1,5 +1,5 @@
 import { RemoteDocClient } from '../remote-doc-types/index';
-import { S3, AWSError, SharedIniFileCredentials } from 'aws-sdk';
+import { S3, AWSError } from 'aws-sdk';
 
 export class S3RemoteDocClient implements RemoteDocClient {
 
@@ -14,21 +14,24 @@ export class S3RemoteDocClient implements RemoteDocClient {
 
         if (!this.hasCredentials() || (this.hasCredentials() && !this.isCredentialsValid())) {
 
-            // grab credentials from shared aws profiles file
-            const credentials = new SharedIniFileCredentials({ profile: 'S3'});
-
             const endPoint = 'https://s3.amazonaws.com/' + bucket;
 
-            this.S3Instance = new S3({
+            let S3Instance = new S3({
                 endpoint: endPoint,
                 region: 'us-east-1',
                 s3BucketEndpoint: true
             });
 
-            this.S3Instance.config.credentials = credentials;
-
-            return this.S3Instance;
-
+            return new Promise<S3>((resolve, reject) => {
+                S3Instance.config.getCredentials((err: AWS.AWSError) => {
+                    if (err) {
+                        return reject(err);
+                    } else {
+                        this.S3Instance = S3Instance;
+                        return resolve(this.S3Instance);
+                    }
+                });
+            });
         } else {
             return this.S3Instance;
         }

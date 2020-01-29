@@ -35,6 +35,7 @@ module.exports = function (PersistObjectTemplate) {
         var props = template.getProperties();
         var promises = [];
         var dataSaved = {};
+        let remoteUpdates: Array<Promise<any>> = [];
 
         obj._id = obj._id || this.createPrimaryKey(obj);
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
@@ -171,7 +172,7 @@ module.exports = function (PersistObjectTemplate) {
                         }
 
                         // grab the document from remote store
-                        promises.push(remoteDocService.uploadDocument(documentBody, objectKey, bucket));
+                        remoteUpdates.push(remoteDocService.uploadDocument(documentBody, objectKey, bucket));
 
                         // only place a reference to the remote object in the database itself - not the actual
                         // contents of the property.
@@ -213,9 +214,11 @@ module.exports = function (PersistObjectTemplate) {
 
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
 
-        return Promise.all(promises).then(function() {
-            return obj;
-        });
+        return Promise.all(promises) // update sql saves first
+            .then(Promise.all(remoteUpdates)) // update remote objects second
+            .then(function() {
+                return obj;
+            });
 
         function log(defineProperty, pojo, prop) {
             if (defineProperty.logChanges)
