@@ -1,3 +1,5 @@
+## 5.5.0
+* send app configs over to persistor for remote document config setup
 ## 5.4.0
 * Default app port to 3000 if not listed
 * Security fix to remove istanbul for NYC
