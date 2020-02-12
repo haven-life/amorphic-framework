@@ -320,7 +320,7 @@ function clearCollection(template) {
         throw 'Invalid collection name ' + collectionName;
 }
 
-describe('Banking from pgsql Example', function () {
+describe('Banking from pgsql Example persist_banking_pgsql', function () {
     var knex;
     it ('opens the database Postgres', function () {
         return Promise.resolve()

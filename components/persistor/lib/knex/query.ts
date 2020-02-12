@@ -290,7 +290,7 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : '') || '';
 
                     if (enableChangeTracking) {
-                        obj['_ct_org_' + prop] = foreignId;
+                        obj['_ct_org_' + prop] = foreignId !== '' ? foreignId : null;
                     }
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];

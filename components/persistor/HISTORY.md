@@ -1,3 +1,6 @@
+
+## 3.2.3
+* Audit fixes.
 ## 3.2.2
 * updating order of operations for multisource rollbacks
 * fixing default method of authentication with aws

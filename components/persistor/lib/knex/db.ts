@@ -1289,7 +1289,7 @@ module.exports = function (PersistObjectTemplate) {
                         var props = obj.__template__.getProperties();
                         for (var prop in props) {
                             var propType = props[prop];
-                            if (isOnetoManyRelationsOrPersistorProps(prop, propType)) {
+                            if (isOnetoManyRelationsOrPersistorProps(prop, propType) || !PersistObjectTemplate._persistProperty(propType)) {
                                 continue;
                             }
                             generatePropertyChanges(prop, obj);
@@ -1306,13 +1306,16 @@ module.exports = function (PersistObjectTemplate) {
                     //When the property type is not an object template, need to compare the values.
                     //for date and object types, need to compare the stringified values.
                     var oldKey = '_ct_org_' + prop;
-                    if (!props[prop].type.isObjectTemplate && (obj[oldKey] !== obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
-                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
+                    const replaceNullValuesWithUndefined = function (k, v) { return v === null ? undefined : v; };
+                    if (!props[prop].type.isObjectTemplate && (obj[oldKey] != obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
+                        JSON.stringify(obj[oldKey], replaceNullValuesWithUndefined) !== JSON.stringify(obj[prop], replaceNullValuesWithUndefined))))  {
                         addChanges(prop, obj[oldKey], obj[prop], prop);
+                        obj[oldKey] = obj[prop];
                     }
                     //For one to one relations, we need to check the ids associated to the parent record.
                     else if (props[prop].type.isObjectTemplate && obj[prop + 'Persistor'] && obj['_ct_org_' + prop] !== obj[prop + 'Persistor'].id) {
                         addChanges(prop, obj[oldKey], obj[prop + 'Persistor'].id, getColumnName(prop, obj));
+                        obj[oldKey] = obj[prop + 'Persistor'].id;
                     }
                 }
 
