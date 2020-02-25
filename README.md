@@ -1,3 +1,18 @@
+[![CircleCI](https://circleci.com/gh/haven-life/amorphic.svg?style=shield)](https://circleci.com/gh/haven-life/amorphic)
+
+Amorphic:
+ [![npm version](https://badge.fury.io/js/amorphic.svg)](https://badge.fury.io/js/amorphic)
+
+Persistor:
+[![npm version](https://badge.fury.io/js/%40havenlife%2Fpersistor.svg)](https://badge.fury.io/js/%40havenlife%2Fpersistor)
+
+Semotus:
+[![npm version](https://badge.fury.io/js/%40havenlife%2Fsemotus.svg)](https://badge.fury.io/js/%40havenlife%2Fsemotus)
+
+Supertype:
+[![npm version](https://badge.fury.io/js/supertype.svg)](https://badge.fury.io/js/supertype)
+
+
 # The Amorphic Framework
 
 *Shamelessly copied and pasted from [here](https://medium.com/haven-life/an-introduction-to-the-isomorphic-paradigm-using-amorphic-b7a8071ca11f)*
