@@ -16,7 +16,7 @@
         "emitDecoratorMetadata": true
     },
     "include": [
-        "./unittest",
-        "./apps"
+        "./unittest.ts",
+        "./apps.ts"
     ]
 }

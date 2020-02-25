@@ -22,6 +22,7 @@
 		"uglify-js": "2.7.5"
 	},
 	"devDependencies": {
+		"underscore": "^1.9.2",
 		"@havenlife/semotus": "^3.2.x",
 		"@types/chai": "4.0.4",
 		"@types/compression": "0.0.36",
@@ -46,6 +47,7 @@
 		"xmlhttprequest-cookie": "0.9.4"
 	},
 	"scripts": {
+		"setup": "npm install",
 		"build": "npm run recreateDist && npm run copy && npm run compile",
 		"compile": "tsc -p ./tsconfig.json",
 		"compile:amorphic:tests": "tsc -p ./typescript_tests/tsconfig.test.json",
@@ -53,9 +55,9 @@
 		"lint": "eslint .",
 		"prepublishOnly": "npm run build",
 		"recreateDist": "rm -rf ./dist/ && mkdir ./dist/",
-		"test": "nyc npm run test:trace",
+		"test": "mocha test/* --exit",
 		"test:docker": "docker-compose up --build",
-		"test:trace": "mocha test/* --exit",
+		"test:trace": "nyc npm run test",
 		"test:debug": "mocha --inspect test/*",
 		"test:config": "mocha test/config",
 		"test:daemon": "mocha test/daemon/*",
@@ -65,7 +67,9 @@
 		"test:V2": "mocha test/V2",
 		"test-d": "nyc npm run test:daemon",
 		"test-da": "nyc npm run test:daemon_auto",
-		"test:ts": "mocha -r ts-node/register --project typescript_tests/tsconfig.test.json typescript_tests/unittest.ts",
+		"test:ts:register": "mocha -r ts-node/register --project typescript_tests/tsconfig.test.json typescript_tests/unittest.ts",
+		"test:ts": "npm run compile:amorphic:tests && npm run test:compiled:js",
+		"test:compiled:js": "mocha ./typescript_tests/unittest.js",
 		"test:ts:debug": "tsc && mocha --inspect-brk typescript_tests/unittest.js"
 	},
 	"directories": {},

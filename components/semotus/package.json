@@ -10,6 +10,7 @@
 		"@havenlife/supertype": "3.3.*"
 	},
 	"devDependencies": {
+		"reflect-metadata": "^0.1.13",
 		"@havenlife/supertype": "3.3.*",
 		"@types/bluebird": "*",
 		"@types/chai": "^3.4.34",
@@ -26,14 +27,15 @@
 		"typescript": "2.9.1"
 	},
 	"scripts": {
-		"lint": "eslint .",
-		"tsTests": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
+		"setup": "npm install",
+		"tsTests": "npm run compile && npm run tsTests",
 		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
 		"debugJSTests": "mocha --inspect-brk test/*.js",
-		"test:ts": "npm run compile && npm run tsTests",
-		"test": "mocha test/*.js test/supertype/semotus.js",
+		"test:ts": "mocha -- test/supertype/semotus.js -R spec",
+		"test": "mocha -- test/types.js test/semotus.js",
 		"coverage": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
-		"compile": "tsc"
+		"compile": "tsc",
+		"prepublishOnly": "npm run compile"
 	},
 	"directories": {},
 	"engines": {

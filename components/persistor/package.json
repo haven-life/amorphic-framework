@@ -29,6 +29,7 @@
         "sinon-chai": "2.8.x",
         "mock-fs": "3.6.x",
         "eslint": "3.7.x",
+        "reflect-metadata": "^0.1.13",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
         "@types/node": "^7.0.5",
@@ -47,6 +48,7 @@
         "url": "git://github.com/haven-life/persistor.git"
     },
     "scripts": {
+        "setup": "npm install",
         "lint": "eslint .",
         "coverage": "nyc mocha --exit -- test/* -R spec",
         "compile": "tsc -p ./tsconfig.json && cp index.d.ts dist/ && cp ./lib/persistable.ts dist/lib/",
@@ -60,7 +62,8 @@
         "test:compiled:js": "_mocha ./test/supertype/persist_banking_pgsql.js --exit",
         "test:config": "mocha test/config --exit",
         "test:example": "mocha test/example --exit",
-        "test:ts": "mocha --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts",
+        "test:ts": "npm run compile:tests && npm run test:compiled:js",
+        "test:ts:register": "mocha --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts",
         "test:ts:debug": "mocha --inspect-brk --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts"
     },
     "bugs": {
