@@ -1,97 +1,17 @@
-version: 2
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
 jobs:
-  build:
-    docker:
-      - image: circleci/node:8.10.0
-        environment:
-          port: 3001
-          dbUser: postgres
-          dbName: test
-          mongoHost: localhost
-          logLevel: info
-
-      - image: circleci/mongo:latest
-
-      - image: circleci/postgres:latest
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test
-          POSTGRES_HOST_AUTH_METHOD: trust
-
+  build-and-test:
+    executor:
+      name: node/default
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-      - run:
-          name: Install lerna
-          command: npm install
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-
-      - run:
-          name: Install all modules
-          command: npm run setup
-
-      # build for all packages
-      - run:
-          name: Build packages
-          command: npm run build
-
-      # run javascript tests - Supertype!
-      - run:
-          name: Supertype JS Tests
-          command: npm run test:supertype
-
-      # run typescript tests - Supertype!
-      - run:
-          name: Supertype TS Tests
-          command: npm run test:ts:supertype
-
-      # run javascript tests - Semotus!
-      - run:
-          name: Semotus JS Tests
-          command: npm run test:semotus
-
-      # run typescript tests - Semotus!
-      - run:
-          name: Semotus TS Tests
-          command: npm run test:ts:semotus
-
-
-      # run javascript tests - Amorphic!
-      - run:
-          name: Amorphic JS Tests
-          command: npm run test:amorphic
-
-      # run typescript tests - Amorphic!
-      - run:
-          name: Amorphic TS Tests
-          command: npm run test:ts:amorphic
-
-#      # run javascript tests - Persistor!
-      - run:
-          name: Persistor JS Tests
-          command: npm run test:persistor
-
-      # run typescript tests - Persistor!
-      - run:
-          name: Persistor TS Tests
-          command: npm run test:ts:persistor
-
-#      # run all js tests
-#      - run:
-#          name: All Tests
-#          command: npm run test
-#
-#      # run all ts tests
-#      - run:
-#          name: All Tests
-#          command: npm run test:ts
+      - node/with-cache:
+          steps:
+            - run: npm install
+            - run: npm test
+workflows:
+    build-and-test:
+      jobs:
+        - build-and-test
