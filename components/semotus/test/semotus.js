@@ -5,9 +5,10 @@
  */
 
 var expect = require('chai').expect;
-var Q = require('q');
 var _ = require('underscore');
-var Semotus = require('../index.js');
+var Semotus = require('../dist/index.js');
+
+var delay = require('../dist/helpers/Utilities.js').delay;
 
 var ClientObjectTemplate = Semotus._createObject();
 ClientObjectTemplate.role = 'client';
@@ -312,7 +313,9 @@ function createTemplates(objectTemplate) {
         },
         postServerErrorHandler(errorType, remoteCallId, obj, functionName, callContext, changeString) {
             if (errCallbackHit) {
-                return Q.delay(1500).then(function() { this.asyncErrorHandlerCalled = true});
+                return delay(1500).then(function () {
+                    this.asyncErrorHandlerCalled = true
+                });
             }
             else if (throwErrorFromCallback) {
                 throw new Error('Callback is throwing an error');
@@ -350,7 +353,7 @@ describe('Banking Example', function () {
 
         clientController.mainFunc().then(function () {
             done();
-        }).fail(function (e) {
+        }).catch(function (e) {
             done(e);
         });
     });
@@ -366,7 +369,7 @@ describe('Banking Example', function () {
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance()).to.equal(200);
             done();
-        }).fail(function (e) {
+        }).catch(function (e) {
             done(e);
         });
     });
@@ -382,7 +385,7 @@ describe('Banking Example', function () {
             }, function (e) {
                 expect(e.message).to.equal('get stuffed');
                 done();
-            }).fail(function (e) {
+            }).catch(function (e) {
             done(e);
         });
     });
@@ -406,7 +409,7 @@ describe('Banking Example', function () {
                 done();
             }, function (e) {
                 expect('should not be here').to.equal(false);
-            }).fail(function (e) {
+            }).catch(function (e) {
             done(e);
         });
     });
@@ -430,7 +433,7 @@ describe('Banking Example', function () {
                 done();
             }, function (e) {
                 expect('Should not be here').to.equal(false);
-            }).fail(function (e) {
+            }).catch(function (e) {
             done(e);
         });
     });
@@ -451,7 +454,7 @@ describe('Banking Example', function () {
                 done();
             }, function (e) {
                 expect('Should not be here').to.equal(false);
-            }).fail(function (e) {
+            }).catch(function (e) {
             done(e);
         });
     });
@@ -476,7 +479,7 @@ describe('Banking Example', function () {
                 done();
             }, function (e) {
                 expect('Should not be here').to.equal(false);
-            }).fail(function (e) {
+            }).catch(function (e) {
             done(e);
         });
     });
@@ -485,9 +488,10 @@ describe('Banking Example', function () {
         this.timeout(7000);
 
         serverAssert = function () {
-            return Q.delay(1000);
+            return delay(1000);
         };
 
+        //@TODO: Need to fix this test. This error is erroneous
         clientController.mainFunc()
             .then(function () {
                 expect('Should not be here').to.equal(false);
@@ -498,10 +502,10 @@ describe('Banking Example', function () {
                 expect('Should not be here').to.equal(false);
             }, function (e) {
                 console.log(e);
-                Q.delay(1000).then(function () {
+                delay(1000).then(function () {
                     done();
                 });
-            }).fail(function (e) {
+            }).catch(function (e) {
             done(e);
         });
     });
@@ -524,7 +528,7 @@ describe('Banking Example', function () {
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance()).to.equal(balance - 100);
             done();
-        }).fail(function (e) {
+        }).catch(function (e) {
             done(e);
         });
     });
@@ -541,7 +545,7 @@ describe('Banking Example', function () {
                 expect(serverFailed).to.equal(true);
                 failServer = false;
                 done();
-            }).fail(function (e) {
+            }).catch(function (e) {
                 done(e);
             });
     });
@@ -568,7 +572,7 @@ describe('Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -596,7 +600,7 @@ describe('Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});

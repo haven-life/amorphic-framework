@@ -7,7 +7,10 @@
 declare function require(name: string);
 
 // RemoteObjectTemplate will be used for server template creation
-var RemoteObjectTemplate = require('../../index.js');
+var RemoteObjectTemplate = require('../../dist/index.js');
+
+var delay = require('../../dist/helpers/Utilities.js').delay;
+
 RemoteObjectTemplate.role = 'server';
 RemoteObjectTemplate._useGettersSetters = true;
 RemoteObjectTemplate.maxCallTime = 60 * 1000;
@@ -26,9 +29,7 @@ ServerObjectTemplate.__conflictMode__ = 'soft';
 ServerObjectTemplate.memSession = { semotus: {} };
 ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
-import { expect } from 'chai';
-import * as mocha from 'mocha';
-import * as Q from 'q';
+import {expect} from 'chai';
 
 function sendToServer(message) {
 	ServerObjectTemplate.processMessage(message);
@@ -135,7 +136,7 @@ describe('Typescript Banking Example', function () {
 				expect(clientController.sam.roles[1].account.getBalance()).to.equal(125);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 		console.log('foo');
@@ -153,7 +154,7 @@ describe('Typescript Banking Example', function () {
 				expect(clientController.sam.roles[0].account.getBalance()).to.equal(200);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -167,7 +168,7 @@ describe('Typescript Banking Example', function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(300);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -183,7 +184,7 @@ describe('Typescript Banking Example', function () {
 				expect(serverController.sam.roles[2].account.address.lines[0]).to.equal('Plantana');
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -203,7 +204,7 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -222,14 +223,14 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
 	it('can get a synchronization error from overlapping calls', function (done) {
 		this.timeout(7000);
 		RemoteObjectTemplate.serverAssert = function () {
-			return Q.delay(1000);
+			return delay(1000);
 		};
 		clientController.mainFunc().then(function () {
 			expect('Should not be here').to.equal(false);
@@ -242,12 +243,12 @@ describe('Typescript Banking Example', function () {
 				},
 				function (e) {
 					console.log(e);
-					Q.delay(1000).then(function () {
+					delay(1000).then(function () {
 						done();
 					});
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -270,7 +271,7 @@ describe('Typescript Banking Example', function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(balance - 100);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -288,7 +289,7 @@ describe('Typescript Banking Example', function () {
 				expect(clientController.onClientWithApp).to.equal(true);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -339,7 +340,7 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -363,7 +364,7 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -389,7 +390,7 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});

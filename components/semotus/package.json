@@ -1,41 +1,46 @@
 {
 	"name": "@havenlife/semotus",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
-	"homepage": "https://github.com/selsamman/semotus",
-	"version": "3.2.0",
-	"dependencies": {
-		"q": "1.x"
-	},
+	"homepage": "https://github.com/haven-life/semotus",
+	"version": "4.0.0",
+	"main": "dist/index.js",
+	"types": "dist/exports.d.ts",
 	"peerDependencies": {
 		"@havenlife/supertype": "3.3.*"
 	},
 	"devDependencies": {
-		"reflect-metadata": "^0.1.13",
 		"@havenlife/supertype": "3.3.*",
-		"@types/bluebird": "*",
 		"@types/chai": "^3.4.34",
 		"@types/mocha": "^2.2.39",
 		"@types/node": "^7.0.65",
-		"@types/q": "*",
 		"chai": "3.x",
 		"eslint": "3.7.x",
-		"istanbul": "0.4.5",
 		"mocha": "5.2.0",
+		"nyc": "^15.0.0",
 		"sinon": "1.15.x",
-		"underscore": "^1.9.1",
+		"ts-mocha": "^6.0.0",
 		"ts-node": "^6.1.0",
-		"typescript": "2.9.1"
+		"typescript": "3.5.2",
+		"underscore": "^1.9.1"
 	},
 	"scripts": {
 		"setup": "npm install",
 		"tsTests": "npm run compile && npm run tsTests",
 		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
 		"debugJSTests": "mocha --inspect-brk test/*.js",
-		"test:ts": "mocha -- test/supertype/semotus.js -R spec",
+		"test:ts:compiled": "mocha test/supertype/semotus.js",
+		"test:ts": "ts-mocha -p ./src/tsconfig.json test/supertype/semotus.ts",
 		"test": "mocha -- test/types.js test/semotus.js",
-		"coverage": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
-		"compile": "tsc",
-		"prepublishOnly": "npm run compile"
+		"coverage": "nyc npm run test",
+		"coverage:ts": "nyc npm run test:ts",
+		"prepublishOnly": "npm run compile",
+		"clean": "rm -rf ./dist",
+		"compile": "npm run compile && npm run copyStatics",
+		"build": "npm run compileSrc && npm run compileTests",
+		"compileSrc": "tsc -p ./src/tsconfig.json",
+		"compileTests": "tsc -p ./test/supertype/tsconfig.json",
+		"copyStatics": "cp ./exports.d.ts ./dist/index.d.ts",
+		"buildAndTest": "npm run build && npm run test:js && npm run test:ts:compiled"
 	},
 	"directories": {},
 	"engines": {
