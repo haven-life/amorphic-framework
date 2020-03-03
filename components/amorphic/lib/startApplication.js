@@ -170,7 +170,7 @@ function injectObjectTemplate(amorphicOptions, config, dbConfig, db, schema, obj
     if (dbConfig && db) {
         objectTemplate.setDB(db, dbConfig.dbDriver);
         objectTemplate.setSchema(schema);
-        objectTemplate.setRemoteDocConnection(config);
+        objectTemplate.setRemoteDocConnection(config.persistorRemoteDocConfigs);
     }
 
     objectTemplate.config = config;
