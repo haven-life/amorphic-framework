@@ -1,4 +1,5 @@
-
+## 3.2.4
+* use a more unique keyname for remote doc configs 
 ## 3.2.3
 * Audit fixes.
 ## 3.2.2
