@@ -1,5 +1,3 @@
-## 3.2.5
-* using the OS' temp directory for storing documents instead of the project root
 ## 3.2.4
 * use a more unique keyname for remote doc configs 
 ## 3.2.3
