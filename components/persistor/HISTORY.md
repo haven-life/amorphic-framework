@@ -1,3 +1,6 @@
+## 3.2.5
+* use the OS temp dir for remote doc testing instead of project root dir
+* use the amorphic object id as the unique identifier in S3
 ## 3.2.4
 * use a more unique keyname for remote doc configs 
 ## 3.2.3
