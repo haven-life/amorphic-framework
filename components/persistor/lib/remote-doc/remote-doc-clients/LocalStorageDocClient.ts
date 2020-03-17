@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as path from 'path';
+import * as os from 'os';
 import { RemoteDocClient } from '../remote-doc-types/index';
 
 /**
@@ -14,7 +14,7 @@ export class LocalStorageDocClient implements RemoteDocClient {
     }
 
     init(): this {
-        let remoteDocStorageDir = path.join(path.dirname(require.main.filename), 'remoteDocStorageDir');
+        let remoteDocStorageDir = os.tmpdir();
 
         if (!fs.existsSync(remoteDocStorageDir)) {
             fs.mkdirSync(remoteDocStorageDir);
