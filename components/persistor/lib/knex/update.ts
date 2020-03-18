@@ -157,7 +157,7 @@ module.exports = function (PersistObjectTemplate) {
                     const documentBody = remoteObject;
 
                     // unique identifier to find the object we're saving in the remote store
-                    const objectKey = `${defineProperty.remoteKeyBase}/${uniqueIdentifier}`;
+                    const objectKey = `${defineProperty.remoteKeyBase}-${uniqueIdentifier}`;
 
                     const bucket = this.bucketName;
 
