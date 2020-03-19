@@ -191,6 +191,8 @@ module.exports = function (PersistObjectTemplate) {
                                 message: 'there was a problem uploading the document'
                             }
                         });
+
+                        throw e;
                     }
                 } else if (remoteObject && !defineProperty.remoteKeyBase) {
                     throw new Error('RemoteObject missing unique identifier key for storage in decorator');
