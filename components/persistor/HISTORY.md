@@ -1,8 +1,11 @@
+## 3.2.6
+* re throw errors in uploadObject for remote docs
+* log exceptions in downloadObject as errors instead of debug
 ## 3.2.5
 * use the OS temp dir for remote doc testing instead of project root dir
 * use the amorphic object id as the unique identifier in S3
 ## 3.2.4
-* use a more unique keyname for remote doc configs 
+* use a more unique keyname for remote doc configs
 ## 3.2.3
 * Audit fixes.
 ## 3.2.2
@@ -53,7 +56,7 @@
 * The previous version of persistor was not publishing correctly/publishing incorrect files, this change fixes that
 ## 2.8.0
 * Marking API calls as async to fix the issues observed in Zone interception.
-* removed istanbul and included nyc for code coverage. 
+* removed istanbul and included nyc for code coverage.
 * converting preliminary to typescript
 * adding persist banking typescript tests to circle ci
 ## 2.7.0
