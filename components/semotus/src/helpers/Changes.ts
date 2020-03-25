@@ -1,11 +1,61 @@
 import {Semotus} from './Types';
 import * as Sessions from './Sessions';
+import {sync} from "./Sessions";
 
 /**
  * @TODO: Fill out with array change functions, etc.
  */
 
 /**************************** Change Management Functions **********************************/
+
+/**
+ * Helper method to check if the specified state exists in this array of syncStates
+ * @param state
+ * @param syncStates
+ */
+function checkStates(state: string | undefined, syncStates: Array<string>, scope: '+' | '-') {
+    if (!!state) { // If the state is empty or undefined, will sync only templates without syncStates, if state exists, will filter out all that do not have that state in their syncstates
+        return syncStates.length === 0; // IF array is empty, THEN default state exists in array. ELSE IF array has any values, returns false
+    }
+    else {
+        if (syncStates.length === 0 && scope === '+') {
+            return true; // Return true on empty syncStates array, only if scope is INCLUSIVE
+        }
+        else {
+            return syncStates.includes(state); // IF has state AND does not match array indexes, THEN state does NOT exist
+        }
+    }
+}
+
+/**
+ * Returns true if we should filter this property OUT
+ * Returns false if we should not filter this property out, and actually accept and change properties on this ref
+ *
+ * @param defineProperty
+ * @param template
+ * @param semotus
+ */
+export function filterOutBySyncState(defineProperty, template, semotus: Semotus): boolean {
+    // Check scopes
+    // If '*': Everything gets sent (No explicit check for this, just checks for - and +)
+    // If '-': Exclusive to syncStates
+    // If '+': Inclusive of [default_set, syncState]
+
+    if (semotus.controller.syncState && template) { // We've set the syncState property on the controller, and we have a template
+        const {scope, state} = semotus.controller.syncState;
+        const syncStates: Array<String> = template.syncStates;
+
+        if (scope === '-' || scope === '+') {
+            return !checkStates(state, syncStates, scope);
+        } else {  // scope is default '*', or anything not - or +
+            return false; // Do not filter this template, do not bother checking syncState
+        }
+    }
+    else {
+        return false; // Base case, don't filter anything out
+    }
+}
+
 
 /**
  * Helper function to determine if we should not create changes for the property this defineProperty metadata is associated with
@@ -82,10 +132,11 @@ export function accept(defineProperty, template: any = {}, semotus: Semotus) {
  *
  * @private
  */
-export function create(defineProperty, template: any = {}, semotus: Semotus) {
+
+//@TODO: Will this any default = {} cause issues?
+export function create(defineProperty, template, semotus: Semotus) {
     return !(doNotChange(defineProperty, template, semotus));
 }
-
 
 /**
  * Determine whether any tracking of old values is needed

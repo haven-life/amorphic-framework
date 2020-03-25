@@ -6,9 +6,9 @@
 
 var expect = require('chai').expect;
 var _ = require('underscore');
-var Semotus = require('../dist/index.js');
+var Semotus = require('../../dist');
 
-var delay = require('../dist/helpers/Utilities.js').delay;
+var delay = require('../../dist/helpers/Utilities.js').delay;
 
 var ClientObjectTemplate = Semotus._createObject();
 ClientObjectTemplate.role = 'client';

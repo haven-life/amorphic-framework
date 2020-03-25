@@ -8,6 +8,7 @@ export type Subscription = {
         change: ChangeGroup;
     }
 }
+
 export type PreServerCallChanges = { [key: string]: boolean };
 export const Change = 'change';
 export type ArrayTypes = 'array' | 'arrayDirty';
@@ -160,6 +161,12 @@ type Controller = {
      * @memberof Controller
      */
     preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate?: boolean): Promise<void>;
+
+
+    syncState?: {
+        scope: '+' | '*' | '-'
+        state: string
+    }
 }
 
 export interface Semotus {

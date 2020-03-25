@@ -20,7 +20,7 @@
 export function supertypeClass(objectTemplate, SupertypeModule, target): any {
     let ret;
     let ObjectTemplate = SupertypeModule.default;
-    let syncStates: String[] | undefined = undefined;
+    let syncStates: String[] = [];  // Default syncStates to empty array
 
     // Decorator workerbee
     const decorator = function decorator(target) {
@@ -75,6 +75,8 @@ export function supertypeClass(objectTemplate, SupertypeModule, target): any {
         return decorator(target);
     } else if (target && target.syncStates && target.syncStates instanceof Array) {
         syncStates = target.syncStates;
+    } else if (target && target.syncStates ) {
+        console.warn(`Semotus warning: ${target.syncStates} is not an array value, so not setting up SyncStates for this target: ${target}`);
     }
 
     // Called first time with parameters (prop definition) rather than target (template)
