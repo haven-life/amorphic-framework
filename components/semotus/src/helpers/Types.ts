@@ -9,7 +9,6 @@ export type Subscription = {
     }
 }
 
-export type PreServerCallChanges = { [key: string]: boolean };
 export const Change = 'change';
 export type ArrayTypes = 'array' | 'arrayDirty';
 export type ErrorType = 'error' | 'retry' | 'response';
@@ -25,7 +24,6 @@ export type ProcessCallPayload = {
     remoteCallId: any;
     restoreSessionCallback?: Function;
 }
-
 
 /**
  *  id is the id of the object + '/' + property.
@@ -90,9 +88,14 @@ export type SavedSession = {
     referenced: number;
 };
 
-type ChangeString = { [key: string]: string };
-type CallContext = { retries: number; startTime: Date };
+export interface RemoteableClass extends Supertype {
+    syncStates: Array<String>;
+    __toClient__: boolean;
+    __toServer__: boolean;
+}
 
+type ChangeString = { [key: string]: string };
+type PreServerCallChanges = { [key: string]: boolean };
 
 type Controller = {
     /**
