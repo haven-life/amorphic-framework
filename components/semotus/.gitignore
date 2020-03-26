@@ -2,6 +2,7 @@ node_modules
 npm-debug.log
 coverage
 .idea
+dist
 
 test/supertype/*.js
 test/supertype/*.js.map

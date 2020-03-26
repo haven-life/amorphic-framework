@@ -89,7 +89,7 @@ export type SavedSession = {
 };
 
 export interface RemoteableClass extends Supertype {
-    syncStates: Array<String>;
+    syncStates: Array<string>;
     __toClient__: boolean;
     __toServer__: boolean;
 }

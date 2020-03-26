@@ -39,7 +39,7 @@ function hasState(state: string | undefined, syncStates: Array<string>, scope: '
  */
 function filterSyncStates(semotusClass: RemoteableClass, semotus: Semotus): boolean {
     const {scope, state} = semotus.controller.syncState;
-    const syncStates: Array<String> = semotusClass.syncStates;
+    const syncStates: Array<string> = semotusClass.syncStates;
 
     if (scope === '-' || scope === '+') {
         return !hasState(state, syncStates, scope);
