@@ -75,7 +75,7 @@ export function doNotChange(defineProperty, semotusClass:  RemoteableClass | und
             return true; // If we're trying to send property to the client from server, when the whole semotusClass has toClient == false;
         }
         else if (semotus.controller.syncState) { // We've set the syncState property on the controller, and we have a semotusClass
-            filterSyncStates(semotusClass, semotus)
+            return filterSyncStates(semotusClass, semotus)
         }
     }
 
@@ -108,7 +108,7 @@ export function doNotAccept(defineProperty, semotusClass: RemoteableClass, semot
         return true; // If we're trying to accept changes where semotusClass's toClient is false, but we're on the client
     }
     else if (semotus.controller.syncState) { // We've set the syncState property on the controller, and we have a semotusClass
-        filterSyncStates(semotusClass, semotus);
+        return filterSyncStates(semotusClass, semotus);
     }
 
     return false;
