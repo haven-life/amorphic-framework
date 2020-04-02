@@ -11,7 +11,7 @@ var _ = require('underscore');
 var sinon = require('sinon');
 var ObjectTemplate = require('@havenlife/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient');
+var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
 var writing = true;
 var logLevel = process.env.logLevel || 'debug';
 
