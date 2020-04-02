@@ -1232,11 +1232,14 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             return Promise.reject('Upload Failed');
         });
         const fred = new Customer('Fred', 'T', 'Flinstone');
+        fred.bankingDocument = 'important';
         PersistObjectTemplate.begin();
         fred.setDirty();
         PersistObjectTemplate.end().then(function() {
+            console.log('Expected transaction to fail')
             expect.fail('Expected transaction to fail');
-        }, function (e) {
+        }, function (e) {            
+            console.log('Upload Failed')
             expect(e.message).to.equal('Upload Failed');
         });
     });
