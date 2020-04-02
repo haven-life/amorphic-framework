@@ -324,14 +324,9 @@ function clearCollection(template) {
 
 describe('Banking from pgsql Example persist_banking_pgsql', function () {
     var knex;
-    var sandbox;
-
-    beforeEach(function() {
-        sandbox = sinon.createSandbox();
-    })
 
     afterEach(function() {
-        sandbox.restore();
+        sinon.restore();
     });
 
     it ('opens the database Postgres', function () {
@@ -1230,7 +1225,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     it('can rollback when failing to save a document to the remote store', function(done) {
         try {
             console.log('sinon replace', sinon.replace);
-            sandbox.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
+            sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
                 return Promise.reject('Upload Failed');
             });
             const fred = new Customer('Fred', 'T', 'Flinstone');
