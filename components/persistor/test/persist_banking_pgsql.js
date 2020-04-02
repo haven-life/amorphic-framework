@@ -11,7 +11,7 @@ var _ = require('underscore');
 var sinon = require('sinon');
 var ObjectTemplate = require('@havenlife/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient.js');
+var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient');
 var writing = true;
 var logLevel = process.env.logLevel || 'debug';
 
@@ -1224,6 +1224,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
 
     it('can rollback when failing to save a document to the remote store', function(done) {
         try {
+            console.log('LocalStorageDocClient.keys', Object.keys(LocalStorageDocClient));
             console.log('sinon replace', sinon.replace);
             sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
                 return Promise.reject('Upload Failed');
@@ -1235,7 +1236,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             PersistObjectTemplate.end().then(function() {
                 console.log('Expected transaction to fail')
                 expect.fail('Expected transaction to fail');
-            }, function (e) {            
+            }, function (e) {
                 console.log('Upload Failed')
                 expect(e.message).to.equal('Upload Failed');
             });
