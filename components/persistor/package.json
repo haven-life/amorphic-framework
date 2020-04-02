@@ -34,7 +34,7 @@
         "mock-fs": "3.6.x",
         "nyc": "13.0.0",
         "reflect-metadata": "^0.1.13",
-        "sinon": "~1.15.4",
+        "sinon": "9.0.1",
         "sinon-chai": "2.8.x",
         "ts-node": "*",
         "typescript": "*"
