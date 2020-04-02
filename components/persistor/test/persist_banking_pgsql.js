@@ -327,7 +327,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     var sandbox;
 
     beforeEach(function() {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
     })
 
     afterEach(function() {
@@ -1229,6 +1229,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
 
     it('can rollback when failing to save a document to the remote store', function(done) {
         try {
+            console.log('sinon replace', sinon.replace);
             sandbox.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
                 return Promise.reject('Upload Failed');
             });
