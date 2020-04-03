@@ -1221,8 +1221,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         });
     });
 
-
-    it('can rollback when failing to save a document to the remote store', function(done) {
+    it('creates rollback when failing to save a document to the remote store', function(done) {
         sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
             return Promise.reject('Upload Failed');
         });
@@ -1235,6 +1234,34 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             done();
         }, function (e) {
             expect(e.message).to.equal('Upload Failed');
+        }).then(function() {
+            return Customer.getFromPersistWithQuery({ firstName: 'Fred' });
+        }).then(function(customerOutput) {
+            expect(customerOutput, 'Customer should of rolled back').to.have.length(0);
+            done();
+        });
+    });
+
+    it('updates rollback when failing to save a document to the remote store', function(done) {
+        sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
+            return Promise.reject('Upload Failed');
+        });
+        const fred = new Customer('Fred', 'T', 'Flinstone');
+        fred.persistSave().then(function() {
+            return Customer.getFromPersistWithId(fred._id);
+        }).then(function(fred) {
+            fred.firstName = 'Bob'
+            fred.bankingDocument = 'meow!';
+            return fred.persistSave();
+        }).then(function() {
+            expect.fail('Expected transaction to fail');
+            done();
+        }, function (e) {
+            expect(e.message).to.equal('Upload Failed');
+        }).then(function () {
+            return Customer.getFromPersistWithId(fred._id);
+        }).then(function(customerOutput) {
+            expect(customerOutput.firstName).to.equal('Fred');
             done();
         });
     });
