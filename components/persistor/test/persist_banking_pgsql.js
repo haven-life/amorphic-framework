@@ -8,8 +8,10 @@ var expect = require('chai').expect;
 var util = require('util');
 var Promise = require('bluebird');
 var _ = require('underscore');
+var sinon = require('sinon');
 var ObjectTemplate = require('@havenlife/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
 var writing = true;
 var logLevel = process.env.logLevel || 'debug';
 
@@ -322,6 +324,11 @@ function clearCollection(template) {
 
 describe('Banking from pgsql Example persist_banking_pgsql', function () {
     var knex;
+
+    afterEach(function() {
+        sinon.restore();
+    });
+
     it ('opens the database Postgres', function () {
         return Promise.resolve()
             .then(function () {
@@ -1214,6 +1221,52 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         });
     });
 
+    it('creates rollback when failing to save a document to the remote store', function(done) {
+        sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
+            return Promise.reject('Upload Failed');
+        });
+        const fred = new Customer('Fred', 'T', 'Flinstone');
+        fred.bankingDocument = 'important';
+        PersistObjectTemplate.begin();
+        fred.setDirty();
+        PersistObjectTemplate.end().then(function() {
+            expect.fail('Expected transaction to fail');
+        }, function (e) {
+            expect(e.message).to.equal('Upload Failed');
+        }).then(function() {
+            return Customer.getFromPersistWithQuery({ firstName: 'Fred' });
+        }).then(function(customerOutput) {
+            expect(customerOutput, 'Customer should of rolled back').to.have.length(0);
+            done();
+        }).catch(function (err) {
+            done(err);
+        });
+    });
+
+    it('updates rollback when failing to save a document to the remote store', function(done) {
+        sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
+            return Promise.reject('Upload Failed');
+        });
+        const fred = new Customer('Fred', 'T', 'Flinstone');
+        fred.persistSave().then(function() {
+            return Customer.getFromPersistWithId(fred._id);
+        }).then(function(fred) {
+            fred.firstName = 'Bob'
+            fred.bankingDocument = 'meow!';
+            return fred.persistSave();
+        }).then(function() {
+            expect.fail('Expected transaction to fail');
+        }, function (e) {
+            expect(e.message).to.equal('Upload Failed');
+        }).then(function () {
+            return Customer.getFromPersistWithId(fred._id);
+        }).then(function(customerOutput) {
+            expect(customerOutput.firstName).to.equal('Fred');
+            done();
+        }).catch(function (err) {
+            done(err);
+        });
+    });
 
     it('can delete js', function (done) {
         Customer.getFromPersistWithQuery({}, {roles: {fetch: {account: true}}}).then (function (customers) {
