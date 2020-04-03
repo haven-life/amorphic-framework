@@ -1231,7 +1231,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         fred.setDirty();
         PersistObjectTemplate.end().then(function() {
             expect.fail('Expected transaction to fail');
-            done();
         }, function (e) {
             expect(e.message).to.equal('Upload Failed');
         }).then(function() {
@@ -1239,6 +1238,8 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         }).then(function(customerOutput) {
             expect(customerOutput, 'Customer should of rolled back').to.have.length(0);
             done();
+        }).catch(function (err) {
+            done(err);
         });
     });
 
@@ -1255,7 +1256,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             return fred.persistSave();
         }).then(function() {
             expect.fail('Expected transaction to fail');
-            done();
         }, function (e) {
             expect(e.message).to.equal('Upload Failed');
         }).then(function () {
@@ -1263,6 +1263,8 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         }).then(function(customerOutput) {
             expect(customerOutput.firstName).to.equal('Fred');
             done();
+        }).catch(function (err) {
+            done(err);
         });
     });
 
