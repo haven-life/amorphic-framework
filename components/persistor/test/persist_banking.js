@@ -246,7 +246,7 @@ describe('Banking Example JS', function () {
         return db.close();
     });
     it ('opens the database', function () {
-        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (dbopen)
+        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (dbopen){
             console.log(dbopen);
             db = dbopen;
             PersistObjectTemplate.setDB(db);
