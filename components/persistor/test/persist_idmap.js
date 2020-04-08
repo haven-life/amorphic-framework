@@ -21,7 +21,7 @@ var schema = {
     }
 }
 
-var MongoClient = require('mongodb-bluebird');
+var MongoClient = require('mongodb');
 var db;
 
 function clearCollection(collectionName) {
