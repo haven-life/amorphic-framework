@@ -4,6 +4,8 @@
  *
  */
 
+var sinon = require('sinon');
+var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
 var expect = require('chai').expect;
 var util = require('util');
 var Promise = require('bluebird');
@@ -322,6 +324,11 @@ function clearCollection(template) {
 
 describe('Banking from pgsql Example persist_banking_pgsql', function () {
     var knex;
+
+    afterEach(function() {
+        sinon.restore();
+    });
+
     it ('opens the database Postgres', function () {
         return Promise.resolve()
             .then(function () {
@@ -1210,6 +1217,29 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             return Customer.getFromPersistWithId(sam._id);
         }).then(function(customerOutput) {
             expect(customerOutput.bankingDocument).to.equal('meow!');
+            done();
+        });
+    });
+
+    it('should rollback transaction on failure to save to remote store', function(done) {
+        sinon.replace(LocalStorageDocClient.prototype, 'uploadDocument', function() {
+            return Promise.reject('Upload Failed');
+        });
+        Customer.getFromPersistWithId(sam._id).then(function(samCustomer) {
+            var txn = PersistObjectTemplate.begin();
+            samCustomer.bankingDocument = 'this should have rolled back';
+            samCustomer.firstName = 'this should have rolled back';
+            samCustomer.setDirty();
+            return PersistObjectTemplate.end(txn);
+        }).then(function() {
+            expect.fail('Expected transaction to fail');
+            done();
+        }).catch(function(e) {
+            expect(e).to.equal('Upload Failed');
+            return Customer.getFromPersistWithId(sam._id);
+        }).then(function(samCustomer) {
+            expect(samCustomer.firstName).to.not.equal('this should have rolled back');
+            expect(samCustomer.bankingDocument).to.not.equal('this should have rolled back');
             done();
         });
     });

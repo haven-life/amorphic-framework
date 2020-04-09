@@ -216,7 +216,9 @@ module.exports = function (PersistObjectTemplate) {
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
 
         return Promise.all(promises) // update sql saves first
-            .then(Promise.all(remoteUpdates)) // update remote objects second
+            .then(() => {
+                return Promise.all(remoteUpdates);
+            }) // update remote objects second
             .then(function() {
                 return obj;
             });

@@ -2,7 +2,7 @@
     "name": "@havenlife/persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from mongodb",
     "homepage": "https://github.com/haven-life/persistor",
-    "version": "3.2.6",
+    "version": "3.2.7",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
@@ -25,7 +25,7 @@
         "chai-as-promised": "^5.1.0",
         "nyc": "13.0.0",
         "mocha": "5.2.0",
-        "sinon": "1.15.x",
+        "sinon": "9.0.1",
         "sinon-chai": "2.8.x",
         "mock-fs": "3.6.x",
         "eslint": "3.7.x",
