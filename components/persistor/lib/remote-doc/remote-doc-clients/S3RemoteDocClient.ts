@@ -1,5 +1,5 @@
 import { RemoteDocClient } from '../remote-doc-types/index';
-import {S3, AWSError, SharedIniFileCredentials} from 'aws-sdk';
+import { S3, AWSError } from 'aws-sdk';
 
 export class S3RemoteDocClient implements RemoteDocClient {
 
