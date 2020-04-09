@@ -1,5 +1,5 @@
 ## 3.2.7
-* fix promise handling to re-enable rollback functionality 
+* fix promise handling to re-enable rollback functionality
 ## 3.2.6
 * re throw errors in uploadObject for remote docs
 * log exceptions in downloadObject as errors instead of debug
