@@ -46,7 +46,7 @@ module.exports = function (PersistObjectTemplate) {
         return collection.deleteMany(query, {w:1, fsync:true});
     };
 
-    PersistObjectTemplate.getPOJOFromMongoQuery = function(template, query, options, logger) {
+    PersistObjectTemplate.getPOJOFromMongoQuery = async function(template, query, options, logger) {
         (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'read'}, 'db.' + template.__collection__ + '.find({" + JSON.stringify(query) + "})');
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
@@ -55,11 +55,14 @@ module.exports = function (PersistObjectTemplate) {
             options.sort = {_id:1};
 
         if (typeof(options) === "function") {
-            return collection.find(query, undefined, options);
+            const res =  await collection.find(query, undefined, options);
+            console.log(res);
+            return res;
         }
         else {
-            return collection.find(query, options);
-        }
+            const res =  await collection.find(query, options);
+            console.log(res);
+            return res;        }
     };
 
     PersistObjectTemplate.countFromMongoQuery = function(template, query) {
