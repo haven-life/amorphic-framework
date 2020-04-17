@@ -56,13 +56,14 @@ module.exports = function (PersistObjectTemplate) {
 
         if (typeof(options) === "function") {
             const res =  await collection.find(query, undefined, options);
-            console.log(res);
+            console.log(typeof(res));
             return res;
         }
         else {
             const res =  await collection.find(query, options);
-            console.log(res);
-            return res;        }
+            console.log(typeof(res));
+            return res;
+        }
     };
 
     PersistObjectTemplate.countFromMongoQuery = function(template, query) {
