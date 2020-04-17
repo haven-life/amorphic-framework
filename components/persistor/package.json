@@ -62,7 +62,7 @@
         "test:compiled:js": "_mocha ./test/supertype/persist_banking_pgsql.js --exit",
         "test:config": "mocha test/config --exit",
         "test:example": "mocha test/example --exit",
-        "test:ts": "npm run compile:tests && npm run test:compiled:js",
+        "test:ts": "npm run ompile:tests && npm run test:compiled:js",
         "test:ts:register": "mocha --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts",
         "test:ts:debug": "mocha --inspect-brk --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts"
     },
