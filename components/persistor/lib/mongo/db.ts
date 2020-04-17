@@ -12,7 +12,7 @@ module.exports = function (PersistObjectTemplate) {
             return collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1});
         }
         else {
-            if(pojo._id) {
+            if(!!pojo._id) {
                 pojo._id = new this.ObjectId();
             }
             return collection.update({ '_id': pojo._id }, pojo, {w:1});
