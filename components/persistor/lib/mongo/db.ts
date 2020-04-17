@@ -60,7 +60,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.countFromMongoQuery = function(template, query) {
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
-        return collection.count(query);
+        return collection.countDocuments(query);
     };
 
     PersistObjectTemplate.distinctFromMongoQuery = function(template, field, query) {

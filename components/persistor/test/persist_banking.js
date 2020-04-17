@@ -236,8 +236,8 @@ var db;
 
 function clearCollection(collectionName) {
     var collection = db.collection(collectionName);
-    return collection.remove({}, {w:1}).then (function () {
-        return collection.count()
+    return collection.deleteMany({}, {w:1}).then (function () {
+        return collection.countDocuments()
     });
 }
 
