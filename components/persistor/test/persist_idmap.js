@@ -35,7 +35,7 @@ describe('IdMap checks', function () {
 
     before('opens the database for idmap checks', function () {
         return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (clientParam) {
-            client = clientParam
+            client = clientParam;
             db = client.db();
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
