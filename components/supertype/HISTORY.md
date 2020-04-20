@@ -1,3 +1,5 @@
+## 3.3.1
+* Npm audit for developer dependencies
 ## 3.3.0
 * Moving Supertype to @havenlife/supertype in NPM
 ## 3.2.0
