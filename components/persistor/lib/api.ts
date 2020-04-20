@@ -260,7 +260,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {json} options @todo
          * @returns {*}
          */
-        template.persistorFetchById = async function (id, options) { // @TODO: Legacy
+        template.persistorFetchById = async function (id, options) {
             const time = getTime();
 
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
@@ -606,6 +606,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         template.prototype.persistSave = // Legacy
             function (txn, logger) {
+                process.emitWarning('persistSave is a Legacy function', {
+                    code: 'PERSISTOR_LEGACY',
+                    detail: 'See persistorSave, cascadeSave (for multiple entities), or setDirty (for daemon applications) for alternative approaches'
+                });
                 const time = getTime();
 
                 var persistObjectTemplate = this.__objectTemplate__ || self;
