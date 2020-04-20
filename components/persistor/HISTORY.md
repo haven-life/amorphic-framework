@@ -1,6 +1,7 @@
 ## 4.0.0
 * Npm audit updated all modules
 * Updated Mongo and Knex modules to higher major versions, leading to breaking changes
+* Added process emit warnings for legacy calls in persistor
 ## 3.2.6
 * re throw errors in uploadObject for remote docs
 * log exceptions in downloadObject as errors instead of debug
