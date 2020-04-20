@@ -354,16 +354,16 @@ describe('Banking Example JS', function () {
         }).catch(function(e) {done(e)});
     });
 
-    // it('Accounts have addresses', function (done) {
-    //     Account.getFromPersistWithQuery(null, {address: true}).then (function (accounts) {
-    //         expect(accounts.length).to.equal(2);
-    //         expect(accounts[0].address.__template__.__name__).to.equal('Address');
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
+    it('Accounts have addresses', function (done) {
+        Account.getFromPersistWithQuery(null, {address: true}).then (function (accounts) {
+            expect(accounts.length).to.equal(2);
+            expect(accounts[0].address.__template__.__name__).to.equal('Address');
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+
     it('Can find debits and credits >= 200 with a $in', function (done) {
         Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}, amount:{'$gte': 200}}).then (function (transactions) {
             expect(transactions.length).to.equal(1);
@@ -374,376 +374,376 @@ describe('Banking Example JS', function () {
         })
     });
     //
-    // it('Can find debits and credits >= 200 with a $in', function (done) {
-    //     Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}, amount:{'$in': [200, 100], $gt: 100}}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(1);
-    //         expect(transactions[0].amount).to.equal(200);
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
-    // it('Can find debits and credits with a $or', function (done) {
-    //     Transaction.getFromPersistWithQuery({'$or':[{type: 'debit'}, {type: 'credit'}]}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(4);
-    //         expect(transactions[0].type).to.not.equal('xfer');
-    //         expect(transactions[1].type).to.not.equal('xfer');
-    //         expect(transactions[2].type).to.not.equal('xfer');
-    //         expect(transactions[3].type).to.not.equal('xfer');
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
-    // it('Can find debits and amount $gt 1000 with $and', function () {
-    //     return Transaction.getFromPersistWithQuery({'$and':[{type: 'debit'}, {amount:{$gt:100}}]}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(2);
-    //     });
-    // });
-    //
-    // it('Can find debits with a $nin', function () {
-    //     return Transaction.getFromPersistWithQuery({type: {$nin: ['credit']}}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(2);
-    //     });
-    // });
-    //
-    // it('Can find transactions with amount less than 100', function () {
-    //     return Transaction.getFromPersistWithQuery({amount:{$lt: 100}}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(3);
-    //     });
-    // });
-    //
-    // it('Can find transactions with amount less than or equal to 200', function () {
-    //     return Transaction.getFromPersistWithQuery({amount:{'$lte': 200}}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(6);
-    //     });
-    // });
-    // it('Can find transactions with amount not equal to 200', function () {
-    //     return Transaction.getFromPersistWithQuery({amount:{'$ne': 200}}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(5);
-    //     });
-    // });
-    //
-    // it('Can find debits and credits with a $in', function (done) {
-    //     Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(4);
-    //         expect(transactions[0].type).to.not.equal('xfer');
-    //         expect(transactions[1].type).to.not.equal('xfer');
-    //         expect(transactions[2].type).to.not.equal('xfer');
-    //         expect(transactions[3].type).to.not.equal('xfer');
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
-    // it('Can fetch all transactions', function (done) {
-    //     Transaction.getFromPersistWithQuery({}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(6);
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    // it('Can fetch transfers', function (done) {
-    //     Transaction.getFromPersistWithQuery({type: 'xfer'}, {account: true, fromAccount: true}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(2);
-    //         expect(transactions[0].type).to.equal('xfer');
-    //         expect(transactions[1].type).to.equal('xfer');
-    //         expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
-    //         expect(transactions[0].account.__template__.__name__).to.equal('Account');
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    // it('can fetch a pojo', function () {
-    //     return PersistObjectTemplate.getPOJOFromQuery(Customer, {firstName: 'Sam'}).then(function (pojo) {
-    //         expect(pojo[0].firstName).to.equal('Sam');
-    //     });
-    // });
-    //
-    // it('sam looks good', function (done) {
-    //     Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
-    //         expect(customer.firstName).to.equal('Sam');
-    //         expect(customer.local1).to.equal('local1');
-    //         expect(customer.local2).to.equal('local2');
-    //         expect(customer.number).to.equal(23);
-    //         expect(customer.boolTrue).to.equal(true);
-    //         expect(customer.boolFalse).to.equal(false);
-    //         expect(customer.roles[0].relationship).to.equal('primary');
-    //         expect(customer.roles[0].customer).to.equal(customer);
-    //         expect(customer.roles[0].accountPersistor.isFetched).to.equal(false);
-    //
-    //         return customer.roles[0].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then(function ()
-    //         {
-    //             expect(customer.roles[0].account.number).to.equal(123);
-    //             var primaryRole = customer.roles[0].account.roles[0].relationship == 'primary' ?
-    //                 customer.roles[0].account.roles[0] : customer.roles[0].account.roles[1];
-    //             expect(primaryRole).to.equal(customer.roles[0]);
-    //             var jointRole = customer.roles[0].account.roles[0].relationship == 'joint' ?
-    //                 customer.roles[0].account.roles[0] : customer.roles[0].account.roles[1];
-    //             expect(jointRole).to.equal(jointRole.customer.roles[0]);
-    //             expect(customer.addresses[0].lines[0]).to.equal('500 East 83d');
-    //             expect(customer.addresses[1].lines[0]).to.equal('38 Haggerty Hill Rd');
-    //             expect(customer.addresses[1].customer).to.equal(customer);
-    //
-    //             expect(customer.addresses[0].returnedMail.length).to.equal(2);
-    //             expect(customer.addresses[1].returnedMail.length).to.equal(1);
-    //
-    //             var r1 = customer.referrers[0];
-    //             var r2 = customer.referrers[1];
-    //             var karen = r1.firstName == 'Karen' ? r1 : r2;
-    //             var ashling = r1.firstName == 'Karen' ? r2 : r1;
-    //             expect(karen.firstName).to.equal('Karen');
-    //             expect(ashling.firstName).to.equal('Ashling');
-    //             done();
-    //         });
-    //     }).catch(function(e) {
-    //         done(e)
-    //     });
-    // });
-    //
-    // it('using fetch with value store functions', function () {
-    //     return Customer.getFromPersistWithId(sam._id).then (function (customer) {
-    //         var idMap = [];
-    //         var test1 = function(obj) {
-    //             obj['test'] = 'setting values';
-    //         };
-    //         idMap[sam._id] = [test1];
-    //         return customer.fetch({roles: true}, false, idMap).then(function() {
-    //             expect(customer.test).to.equal('setting values');
-    //         });
-    //     }).catch(function(e) {
-    //         throw e;
-    //     });
-    // });
-    //
-    //
-    //
-    // it('using fetch with value store functions2', function (done) {
-    //     done();
-    //     // var AccountExt = PersistObjectTemplate.create('AccountExt', {});
-    //     // schema.AccountExt = {documentOf: 'AccountExt'};
-    //     // // schema.CustomerExt = {};
-    //     // schema.Customer.parents = {
-    //     //     newProperty: {
-    //     //         id: 'accountext_id',
-    //     //         fetch: false
-    //     //     }
-    //     // };
-    //     // var CustomerExt = Customer.extend('CustomerExt', {
-    //     //     newProperty: { type:  AccountExt }
-    //     // });
-    //     // PersistObjectTemplate._verifySchema();
-    //     // PersistObjectTemplate._injectIntoTemplate(AccountExt);
-    //     // PersistObjectTemplate._injectIntoTemplate(CustomerExt);
-    //     // CustomerExt.getFromPersistWithId(sam._id).then (function (customer) {
-    //     //     customer['newProperty'] = [];
-    //     //     return customer.fetch({newProperty: true}).then( function ()
-    //     //     {
-    //     //         expect(customer.test).to.equal('setting values');
-    //     //         done();
-    //     //     });
-    //     // }).catch(function(e){
-    //     //     done(e)
-    //     // });
-    // });
-    //
-    // it('has a correct joint account balance for sam', function (done) {
-    //     Account.getFromPersistWithId(samsAccount._id, {roles: true}).then (function (account) {
-    //         expect(account.getBalance()).to.equal(samsAccount.getBalance());
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     });
-    // });
-    // it('fetchProperty call for code coverage, these values are already available in the object', function () {
-    //     Account.getFromPersistWithId(samsAccount._id).then (function (account) {
-    //         account.fetchProperty('roles');
-    //     }).catch(function(e) {
-    //         throw e;
-    //     });
-    // });
-    //
-    // it('distinctFromMongoQuery coverage', function () {
-    //     PersistObjectTemplate.distinctFromMongoQuery(Customer, 'firstName', {_id: PersistObjectTemplate.ObjectID(sam._id.toString())}).then(function(customers) {
-    //         expect(customers.length).to.greaterThan(0);
-    //     }).catch(function(e) {
-    //         throw e;
-    //     });
-    // });
-    //
-    // it('getPOJOFromMongoId coverage', function () {
-    //     PersistObjectTemplate.getPOJOFromMongoId(Customer, sam._id).then (function (customer) {
-    //         expect(customer.firstName).to.equal('Sam');
-    //     }).catch(function(e) {
-    //         throw e;
-    //     });
-    // });
-    // it('getPOJOFromMongoId should return null', function () {
-    //     PersistObjectTemplate.getPOJOFromMongoId(Customer, '5841ea4e0579b824807ab48b').then (function (customer) {
-    //         expect(customer).to.equal(null);
-    //     }).catch(function(e) {
-    //         throw e;
-    //     });
-    // });
-    // it('has a correct joint account balance for the joint account', function (done) {
-    //     Account.getFromPersistWithId(jointAccount._id, {roles: true}).then (function (account) {
-    //         expect(account.getBalance()).to.equal(jointAccount.getBalance());
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    // it('Can fetch all transactions', function (done) {
-    //     Transaction.getFromPersistWithQuery({}).then (function (transactions) {
-    //         expect(transactions.length).to.equal(6);
-    //         done();
-    //     }).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    // it('Can change things to null', function (done) {
-    //     Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
-    //         customer.firstName = null;
-    //         customer.referredBy = null;
-    //         customer.isStale();
-    //         return customer.persistSave();
-    //     }).then (function () {
-    //         return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
-    //     }).then (function (customer) {
-    //         expect(customer.firstName).to.equal(null);
-    //         expect(customer.referredBy).to.equal(null);
-    //         done();
-    //     }.bind(this)).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
-    // it('Reset data with transaction object', function (done) {
-    //     Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
-    //         customer.firstName = 'Sam';
-    //         customer.referredBy = null;
-    //         var txn = PersistObjectTemplate.begin();
-    //         return customer.persistSave(txn);
-    //     }).then (function () {
-    //         return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
-    //     }).then (function (customer) {
-    //         expect(customer.firstName).to.equal('Sam');
-    //         expect(customer.referredBy).to.equal(null);
-    //         done();
-    //     }.bind(this)).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
-    // it('Check PersistTouch call for Mongo', function (done) {
-    //     Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
-    //         customer.firstName = null;
-    //         customer.referredBy = null;
-    //         return customer.persistTouch();
-    //     }).then (function () {
-    //         return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
-    //     }).then (function (customer) {
-    //         expect(customer.firstName).to.equal(null);
-    //         expect(customer.referredBy).to.equal(null);
-    //         done();
-    //     }.bind(this)).catch(function(e) {
-    //         done(e)
-    //     })
-    // });
-    //
-    //
-    // it('can delete using mongo query', function () {
-    //     writing = true;
-    //     var testDelete = new Customer('Ashling', '', 'testDelete');
-    //     return testDelete.persistSave()
-    //         .then(function() {
-    //             return Customer.countFromPersistWithQuery();
-    //         }).then(function(count) {
-    //             expect(count).to.equal(5);
-    //         }).then(function() {
-    //             return Customer.deleteFromPersistWithQuery({lastName: {$eq: 'testDelete'}})
-    //         }).then(function() {
-    //             return Customer.countFromPersistWithQuery();
-    //         }).then(function(count) {
-    //             expect(count).to.equal(4);
-    //         });
-    // });
-    //
-    // it('saved callback test without passing trasaction object', function () {
-    //     writing = true;
-    //     var testDelete = new Customer('Without', '', 'Transaction');
-    //     return PersistObjectTemplate.saved(testDelete);
-    // });
-    //
-    // it('creating a new type without type field defined', function () {
-    //     schema.notificationCheck = {};
-    //     schema.notificationCheck.documentOf = 'pg/notificationCheck';
-    //     var withoutType = PersistObjectTemplate.create('withoutType', {
-    //         name: {value: 'PrimaryIndex'}
-    //     });
-    //     PersistObjectTemplate._verifySchema();
-    //     var pojo = {_id: '123123', _template: 'withoutype'};
-    //     return PersistObjectTemplate.getTemplateFromMongoPOJO(pojo, withoutType, null, null, {});
-    // });
-    //
-    // it('can delete persist_banking', function (done) {
-    //     Customer.getFromPersistWithId(sam._id,
-    //         {roles: {fetch: {account: {fetch: {roles: {fetch: {customer: {fetch: true}}}}}}}}).then (function (customer) {
-    //             var promises = [];
-    //             for (var ix = 0; ix < customer.roles.length; ++ix) {
-    //                 var account = customer.roles[ix].account;
-    //                 for (var jx = 0; jx < account.roles.length; ++jx) {
-    //                     promises.push(account.roles[jx].persistDelete());
-    //                     promises.push(account.roles[jx].customer.persistDelete());
-    //                 }
-    //                 promises.push(account.persistDelete());
-    //                 promises.push(customer.roles[0].persistDelete());
-    //             }
-    //
-    //             promises.push(Customer.deleteFromPersistWithQuery({lastName: {$eq: 'Elsamman'}}));
-    //             return Promise.all(promises).then (function () {
-    //                 return Customer.countFromPersistWithQuery()
-    //             }).then (function (count) {
-    //                 expect(count).to.equal(1);
-    //                 return Account.countFromPersistWithQuery()
-    //             }).then(function (count) {
-    //                 expect(count).to.equal(0);
-    //                 return Role.countFromPersistWithQuery()
-    //             }).then(function (count) {
-    //                 expect(count).to.equal(0);
-    //                 done();
-    //             });
-    //         }).catch(function(e) {done(e)});
-    // });
-    //
-    // it('getDB without setting database', function () {
-    //     expect(PersistObjectTemplate.persistSaveMongo.bind(this, {})).to.throw('Attempt to save an non-templated Object');
-    //     var testWithOutSchema = PersistObjectTemplate.create('testWithOutSchema', {});
-    //     var obj = new testWithOutSchema();
-    //     expect(PersistObjectTemplate.persistSaveMongo.bind(this, obj)).to.throw('Schema entry missing for testWithOutSchema');
-    //     var schema = {};
-    //     schema.testWithOutSchema = {};
-    //     PersistObjectTemplate.setSchema(schema);
-    //     PersistObjectTemplate._verifySchema();
-    //     expect(PersistObjectTemplate.persistSaveMongo.bind(PersistObjectTemplate, obj)).to.throw('which subDocument without necessary parent links to reach top level document');
-    // });
-    //
-    // it('Loading template from ', function () {
-    //     expect(PersistObjectTemplate.persistSaveMongo.bind(this, {})).to.throw('Attempt to save an non-templated Object');
-    //     var testWithOutSchema1 = PersistObjectTemplate.create('testWithOutSchema1', {});
-    //     var obj = new testWithOutSchema1();
-    //     expect(PersistObjectTemplate.persistSaveMongo.bind(PersistObjectTemplate, obj)).to.throw('Schema entry missing for testWithOutSchema');
-    //     var schema = {};
-    //     schema.testWithOutSchema1 = {};
-    //     PersistObjectTemplate.setSchema(schema);
-    //     PersistObjectTemplate._verifySchema();
-    //     expect(PersistObjectTemplate.persistSaveMongo.bind(PersistObjectTemplate, obj)).to.throw('which subDocument without necessary parent links to reach top level document');
-    // });
+    it('Can find debits and credits >= 200 with a $in', function (done) {
+        Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}, amount:{'$in': [200, 100], $gt: 100}}).then (function (transactions) {
+            expect(transactions.length).to.equal(1);
+            expect(transactions[0].amount).to.equal(200);
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+
+    it('Can find debits and credits with a $or', function (done) {
+        Transaction.getFromPersistWithQuery({'$or':[{type: 'debit'}, {type: 'credit'}]}).then (function (transactions) {
+            expect(transactions.length).to.equal(4);
+            expect(transactions[0].type).to.not.equal('xfer');
+            expect(transactions[1].type).to.not.equal('xfer');
+            expect(transactions[2].type).to.not.equal('xfer');
+            expect(transactions[3].type).to.not.equal('xfer');
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+
+    it('Can find debits and amount $gt 1000 with $and', function () {
+        return Transaction.getFromPersistWithQuery({'$and':[{type: 'debit'}, {amount:{$gt:100}}]}).then (function (transactions) {
+            expect(transactions.length).to.equal(2);
+        });
+    });
+
+    it('Can find debits with a $nin', function () {
+        return Transaction.getFromPersistWithQuery({type: {$nin: ['credit']}}).then (function (transactions) {
+            expect(transactions.length).to.equal(2);
+        });
+    });
+
+    it('Can find transactions with amount less than 100', function () {
+        return Transaction.getFromPersistWithQuery({amount:{$lt: 100}}).then (function (transactions) {
+            expect(transactions.length).to.equal(3);
+        });
+    });
+
+    it('Can find transactions with amount less than or equal to 200', function () {
+        return Transaction.getFromPersistWithQuery({amount:{'$lte': 200}}).then (function (transactions) {
+            expect(transactions.length).to.equal(6);
+        });
+    });
+    it('Can find transactions with amount not equal to 200', function () {
+        return Transaction.getFromPersistWithQuery({amount:{'$ne': 200}}).then (function (transactions) {
+            expect(transactions.length).to.equal(5);
+        });
+    });
+
+    it('Can find debits and credits with a $in', function (done) {
+        Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}}).then (function (transactions) {
+            expect(transactions.length).to.equal(4);
+            expect(transactions[0].type).to.not.equal('xfer');
+            expect(transactions[1].type).to.not.equal('xfer');
+            expect(transactions[2].type).to.not.equal('xfer');
+            expect(transactions[3].type).to.not.equal('xfer');
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+
+    it('Can fetch all transactions', function (done) {
+        Transaction.getFromPersistWithQuery({}).then (function (transactions) {
+            expect(transactions.length).to.equal(6);
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+    it('Can fetch transfers', function (done) {
+        Transaction.getFromPersistWithQuery({type: 'xfer'}, {account: true, fromAccount: true}).then (function (transactions) {
+            expect(transactions.length).to.equal(2);
+            expect(transactions[0].type).to.equal('xfer');
+            expect(transactions[1].type).to.equal('xfer');
+            expect(transactions[0].fromAccount.__template__.__name__).to.equal('Account');
+            expect(transactions[0].account.__template__.__name__).to.equal('Account');
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+    it('can fetch a pojo', function () {
+        return PersistObjectTemplate.getPOJOFromQuery(Customer, {firstName: 'Sam'}).then(function (pojo) {
+            expect(pojo[0].firstName).to.equal('Sam');
+        });
+    });
+
+    it('sam looks good', function (done) {
+        Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
+            expect(customer.firstName).to.equal('Sam');
+            expect(customer.local1).to.equal('local1');
+            expect(customer.local2).to.equal('local2');
+            expect(customer.number).to.equal(23);
+            expect(customer.boolTrue).to.equal(true);
+            expect(customer.boolFalse).to.equal(false);
+            expect(customer.roles[0].relationship).to.equal('primary');
+            expect(customer.roles[0].customer).to.equal(customer);
+            expect(customer.roles[0].accountPersistor.isFetched).to.equal(false);
+
+            return customer.roles[0].fetch({account: {fetch: {roles: {fetch: {customer: {fetch: {roles: true}}}}}}}).then(function ()
+            {
+                expect(customer.roles[0].account.number).to.equal(123);
+                var primaryRole = customer.roles[0].account.roles[0].relationship == 'primary' ?
+                    customer.roles[0].account.roles[0] : customer.roles[0].account.roles[1];
+                expect(primaryRole).to.equal(customer.roles[0]);
+                var jointRole = customer.roles[0].account.roles[0].relationship == 'joint' ?
+                    customer.roles[0].account.roles[0] : customer.roles[0].account.roles[1];
+                expect(jointRole).to.equal(jointRole.customer.roles[0]);
+                expect(customer.addresses[0].lines[0]).to.equal('500 East 83d');
+                expect(customer.addresses[1].lines[0]).to.equal('38 Haggerty Hill Rd');
+                expect(customer.addresses[1].customer).to.equal(customer);
+
+                expect(customer.addresses[0].returnedMail.length).to.equal(2);
+                expect(customer.addresses[1].returnedMail.length).to.equal(1);
+
+                var r1 = customer.referrers[0];
+                var r2 = customer.referrers[1];
+                var karen = r1.firstName == 'Karen' ? r1 : r2;
+                var ashling = r1.firstName == 'Karen' ? r2 : r1;
+                expect(karen.firstName).to.equal('Karen');
+                expect(ashling.firstName).to.equal('Ashling');
+                done();
+            });
+        }).catch(function(e) {
+            done(e)
+        });
+    });
+
+    it('using fetch with value store functions', function () {
+        return Customer.getFromPersistWithId(sam._id).then (function (customer) {
+            var idMap = [];
+            var test1 = function(obj) {
+                obj['test'] = 'setting values';
+            };
+            idMap[sam._id] = [test1];
+            return customer.fetch({roles: true}, false, idMap).then(function() {
+                expect(customer.test).to.equal('setting values');
+            });
+        }).catch(function(e) {
+            throw e;
+        });
+    });
+
+
+
+    it('using fetch with value store functions2', function (done) {
+        done();
+        // var AccountExt = PersistObjectTemplate.create('AccountExt', {});
+        // schema.AccountExt = {documentOf: 'AccountExt'};
+        // // schema.CustomerExt = {};
+        // schema.Customer.parents = {
+        //     newProperty: {
+        //         id: 'accountext_id',
+        //         fetch: false
+        //     }
+        // };
+        // var CustomerExt = Customer.extend('CustomerExt', {
+        //     newProperty: { type:  AccountExt }
+        // });
+        // PersistObjectTemplate._verifySchema();
+        // PersistObjectTemplate._injectIntoTemplate(AccountExt);
+        // PersistObjectTemplate._injectIntoTemplate(CustomerExt);
+        // CustomerExt.getFromPersistWithId(sam._id).then (function (customer) {
+        //     customer['newProperty'] = [];
+        //     return customer.fetch({newProperty: true}).then( function ()
+        //     {
+        //         expect(customer.test).to.equal('setting values');
+        //         done();
+        //     });
+        // }).catch(function(e){
+        //     done(e)
+        // });
+    });
+
+    it('has a correct joint account balance for sam', function (done) {
+        Account.getFromPersistWithId(samsAccount._id, {roles: true}).then (function (account) {
+            expect(account.getBalance()).to.equal(samsAccount.getBalance());
+            done();
+        }).catch(function(e) {
+            done(e)
+        });
+    });
+    it('fetchProperty call for code coverage, these values are already available in the object', function () {
+        Account.getFromPersistWithId(samsAccount._id).then (function (account) {
+            account.fetchProperty('roles');
+        }).catch(function(e) {
+            throw e;
+        });
+    });
+
+    it('distinctFromMongoQuery coverage', function () {
+        PersistObjectTemplate.distinctFromMongoQuery(Customer, 'firstName', {_id: PersistObjectTemplate.ObjectID(sam._id.toString())}).then(function(customers) {
+            expect(customers.length).to.greaterThan(0);
+        }).catch(function(e) {
+            throw e;
+        });
+    });
+
+    it('getPOJOFromMongoId coverage', function () {
+        PersistObjectTemplate.getPOJOFromMongoId(Customer, sam._id).then (function (customer) {
+            expect(customer.firstName).to.equal('Sam');
+        }).catch(function(e) {
+            throw e;
+        });
+    });
+    it('getPOJOFromMongoId should return null', function () {
+        PersistObjectTemplate.getPOJOFromMongoId(Customer, '5841ea4e0579b824807ab48b').then (function (customer) {
+            expect(customer).to.equal(null);
+        }).catch(function(e) {
+            throw e;
+        });
+    });
+    it('has a correct joint account balance for the joint account', function (done) {
+        Account.getFromPersistWithId(jointAccount._id, {roles: true}).then (function (account) {
+            expect(account.getBalance()).to.equal(jointAccount.getBalance());
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+    it('Can fetch all transactions', function (done) {
+        Transaction.getFromPersistWithQuery({}).then (function (transactions) {
+            expect(transactions.length).to.equal(6);
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+    it('Can change things to null', function (done) {
+        Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
+            customer.firstName = null;
+            customer.referredBy = null;
+            customer.isStale();
+            return customer.persistSave();
+        }).then (function () {
+            return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
+        }).then (function (customer) {
+            expect(customer.firstName).to.equal(null);
+            expect(customer.referredBy).to.equal(null);
+            done();
+        }.bind(this)).catch(function(e) {
+            done(e)
+        })
+    });
+
+    it('Reset data with transaction object', function (done) {
+        Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
+            customer.firstName = 'Sam';
+            customer.referredBy = null;
+            var txn = PersistObjectTemplate.begin();
+            return customer.persistSave(txn);
+        }).then (function () {
+            return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
+        }).then (function (customer) {
+            expect(customer.firstName).to.equal('Sam');
+            expect(customer.referredBy).to.equal(null);
+            done();
+        }.bind(this)).catch(function(e) {
+            done(e)
+        })
+    });
+
+    it('Check PersistTouch call for Mongo', function (done) {
+        Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true}).then (function (customer) {
+            customer.firstName = null;
+            customer.referredBy = null;
+            return customer.persistTouch();
+        }).then (function () {
+            return Customer.getFromPersistWithId(sam._id, {roles: true, referredBy: true})
+        }).then (function (customer) {
+            expect(customer.firstName).to.equal(null);
+            expect(customer.referredBy).to.equal(null);
+            done();
+        }.bind(this)).catch(function(e) {
+            done(e)
+        })
+    });
+
+
+    it('can delete using mongo query', function () {
+        writing = true;
+        var testDelete = new Customer('Ashling', '', 'testDelete');
+        return testDelete.persistSave()
+            .then(function() {
+                return Customer.countFromPersistWithQuery();
+            }).then(function(count) {
+                expect(count).to.equal(5);
+            }).then(function() {
+                return Customer.deleteFromPersistWithQuery({lastName: {$eq: 'testDelete'}})
+            }).then(function() {
+                return Customer.countFromPersistWithQuery();
+            }).then(function(count) {
+                expect(count).to.equal(4);
+            });
+    });
+
+    it('saved callback test without passing trasaction object', function () {
+        writing = true;
+        var testDelete = new Customer('Without', '', 'Transaction');
+        return PersistObjectTemplate.saved(testDelete);
+    });
+
+    it('creating a new type without type field defined', function () {
+        schema.notificationCheck = {};
+        schema.notificationCheck.documentOf = 'pg/notificationCheck';
+        var withoutType = PersistObjectTemplate.create('withoutType', {
+            name: {value: 'PrimaryIndex'}
+        });
+        PersistObjectTemplate._verifySchema();
+        var pojo = {_id: '123123', _template: 'withoutype'};
+        return PersistObjectTemplate.getTemplateFromMongoPOJO(pojo, withoutType, null, null, {});
+    });
+
+    it('can delete persist_banking', function (done) {
+        Customer.getFromPersistWithId(sam._id,
+            {roles: {fetch: {account: {fetch: {roles: {fetch: {customer: {fetch: true}}}}}}}}).then (function (customer) {
+                var promises = [];
+                for (var ix = 0; ix < customer.roles.length; ++ix) {
+                    var account = customer.roles[ix].account;
+                    for (var jx = 0; jx < account.roles.length; ++jx) {
+                        promises.push(account.roles[jx].persistDelete());
+                        promises.push(account.roles[jx].customer.persistDelete());
+                    }
+                    promises.push(account.persistDelete());
+                    promises.push(customer.roles[0].persistDelete());
+                }
+
+                promises.push(Customer.deleteFromPersistWithQuery({lastName: {$eq: 'Elsamman'}}));
+                return Promise.all(promises).then (function () {
+                    return Customer.countFromPersistWithQuery()
+                }).then (function (count) {
+                    expect(count).to.equal(1);
+                    return Account.countFromPersistWithQuery()
+                }).then(function (count) {
+                    expect(count).to.equal(0);
+                    return Role.countFromPersistWithQuery()
+                }).then(function (count) {
+                    expect(count).to.equal(0);
+                    done();
+                });
+            }).catch(function(e) {done(e)});
+    });
+
+    it('getDB without setting database', function () {
+        expect(PersistObjectTemplate.persistSaveMongo.bind(this, {})).to.throw('Attempt to save an non-templated Object');
+        var testWithOutSchema = PersistObjectTemplate.create('testWithOutSchema', {});
+        var obj = new testWithOutSchema();
+        expect(PersistObjectTemplate.persistSaveMongo.bind(this, obj)).to.throw('Schema entry missing for testWithOutSchema');
+        var schema = {};
+        schema.testWithOutSchema = {};
+        PersistObjectTemplate.setSchema(schema);
+        PersistObjectTemplate._verifySchema();
+        expect(PersistObjectTemplate.persistSaveMongo.bind(PersistObjectTemplate, obj)).to.throw('which subDocument without necessary parent links to reach top level document');
+    });
+
+    it('Loading template from ', function () {
+        expect(PersistObjectTemplate.persistSaveMongo.bind(this, {})).to.throw('Attempt to save an non-templated Object');
+        var testWithOutSchema1 = PersistObjectTemplate.create('testWithOutSchema1', {});
+        var obj = new testWithOutSchema1();
+        expect(PersistObjectTemplate.persistSaveMongo.bind(PersistObjectTemplate, obj)).to.throw('Schema entry missing for testWithOutSchema');
+        var schema = {};
+        schema.testWithOutSchema1 = {};
+        PersistObjectTemplate.setSchema(schema);
+        PersistObjectTemplate._verifySchema();
+        expect(PersistObjectTemplate.persistSaveMongo.bind(PersistObjectTemplate, obj)).to.throw('which subDocument without necessary parent links to reach top level document');
+    });
 
 
     it('closes the database', function (done) {
