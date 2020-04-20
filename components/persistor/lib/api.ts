@@ -197,9 +197,14 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {bool} options {@TODO}
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persistorFetchWithQuery
+         * @deprecated in favor of persistorFetchByQuery
          */
         template.getFromPersistWithQuery = async function (query, cascade, start, limit, isTransient, idMap, options, logger) {
+
+            process.emitWarning('getFromPersistWithQuery is a Legacy function', {
+                code: 'PERSISTOR_LEGACY',
+                detail: 'Use persistorFetchByQuery for alternative approach'
+            });
             (logger || PersistObjectTemplate.logger).debug({
                 component: 'persistor', module: 'api', activity: 'getFromPersistWithQuery',
                 data: { template: template.__name__ }
@@ -234,6 +239,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @deprecated in favor of persitorDeleteByQuery
          */
         template.deleteFromPersistWithQuery = async function (query, txn, logger) {
+            process.emitWarning('deleteFromPersistWithQuery is a Legacy function', {
+                code: 'PERSISTOR_LEGACY',
+                detail: 'See persistorDeleteByQuery for alternative approaches'
+            });
+
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             const time = getTime();
 
@@ -405,6 +415,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @deprecated in favor of persistorDeleteByQuery
          */
         template.deleteFromPersistWithId = async function (id, txn, logger) {
+            process.emitWarning('deleteFromPersistWithId is a Legacy function', {
+                code: 'PERSISTOR_LEGACY',
+                detail: 'Use persistorDeleteByQuery for alternative approach'
+            });
             const time = getTime();
 
             (logger || PersistObjectTemplate.logger).debug({
@@ -437,6 +451,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @deprecated in favor of persistorCountWithQuery
          */
         template.countFromPersistWithQuery = async function (query, logger) {
+            process.emitWarning('countFromPersistWithQuery is a Legacy function', {
+                code: 'PERSISTOR_LEGACY',
+                detail: 'Use persistorCountByQuery for alternative approach'
+            });
             const time = getTime();
 
             (logger || PersistObjectTemplate.logger).debug({
@@ -608,7 +626,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             function (txn, logger) {
                 process.emitWarning('persistSave is a Legacy function', {
                     code: 'PERSISTOR_LEGACY',
-                    detail: 'See persistorSave, cascadeSave (for multiple entities), or setDirty (for daemon applications) for alternative approaches'
+                    detail: 'Use persistorSave, cascadeSave (for multiple entities), or setDirty (for daemon applications) for alternative approaches'
                 });
                 const time = getTime();
 
@@ -648,6 +666,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         template.prototype.persistTouch = // Legacy -- just use persistorSave
             async function (txn, logger) {
+                process.emitWarning('persistTouch is a Legacy function', {
+                    code: 'PERSISTOR_LEGACY',
+                    detail: 'Use persistorSave for alternative approaches'
+                });
                 const time = getTime();
                 var persistObjectTemplate = this.__objectTemplate__ || self;
                 (logger || persistObjectTemplate.logger).debug({
@@ -675,6 +697,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         //persistDelete is modified to support both legacy and V2, options this is passed for V2 as the first parameter.
         template.prototype.persistDelete = // Legacy
             async function (txn, logger) {
+
+                process.emitWarning('persistDelete is a Legacy function', {
+                    code: 'PERSISTOR_LEGACY'
+                });
+
                 const time = getTime();
 
                 var persistObjectTemplate = this.__objectTemplate__ || self;
@@ -708,7 +735,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             };
 
-        // Legacy
         template.prototype.setDirty = function (txn, onlyIfChanged, cascade, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade, logger);
@@ -984,6 +1010,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {object} returns transaction object
      */
     PersistObjectTemplate.begin = function (notDefault) {
+        process.emitWarning('begin is a Legacy function', {
+            code: 'PERSISTOR_LEGACY',
+            detail: 'Use beginTransaction for alternative approach'
+        });
         var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}};
         if (!notDefault) {
             this.currentTransaction = txn;
@@ -993,6 +1023,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
 
     PersistObjectTemplate.end = function (persistorTransaction, logger) {
+        process.emitWarning('end is a Legacy function', {
+            code: 'PERSISTOR_LEGACY',
+            detail: 'Use commit for alternative approach'
+        });
         persistorTransaction = persistorTransaction || this.currentTransaction;
         logger = logger || PersistObjectTemplate.logger;
         return PersistObjectTemplate.commit({ transaction: persistorTransaction, logger: logger });
@@ -1076,6 +1110,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     };
 
     PersistObjectTemplate.saveAll = async function (txn, logger) {
+        process.emitWarning('saveAll is a Legacy function', {
+            code: 'PERSISTOR_LEGACY',
+            detail: 'Use persistorSave for alternative approach'
+        });
         var time = getTime();
         var promises = [];
         var somethingSaved = false;
