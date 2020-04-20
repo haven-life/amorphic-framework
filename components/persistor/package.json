@@ -30,7 +30,7 @@
         "chai": "3.x",
         "chai-as-promised": "^5.1.0",
         "eslint": "3.7.x",
-        "mocha": "5.2.0",
+        "mocha": "7.1.1",
         "mock-fs": "3.6.x",
         "nyc": "^15.0.1",
         "reflect-metadata": "^0.1.13",
