@@ -22,7 +22,7 @@ var schema = {
 }
 
 var MongoClient = require('mongodb');
-var db;
+var db, client;
 
 function clearCollection(collectionName) {
     var collection = db.collection(collectionName);
@@ -34,8 +34,9 @@ function clearCollection(collectionName) {
 describe('IdMap checks', function () {
 
     before('opens the database for idmap checks', function () {
-        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (dbopen) {
-            db = dbopen;
+        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (clientParam) {
+            client = clientParam
+            db = client.db();
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
@@ -52,7 +53,7 @@ describe('IdMap checks', function () {
     });
 
     after('close db connection', function() {
-        return db.close();
+        return client.close();
     });
 
     it('checking flags..', function() {

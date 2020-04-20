@@ -17,6 +17,7 @@ var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role, AddressType;
 var PersistObjectTemplate, ObjectTemplate;
 describe('persistor transaction checks', function () {
+    this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({
             client: 'pg',

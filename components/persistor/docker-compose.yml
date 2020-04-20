@@ -24,6 +24,8 @@ services:
     depends_on:
       - mongo
       - database-test
+    volumes:
+      - ./:/app
     environment:
       - logLevel=info
     env_file:

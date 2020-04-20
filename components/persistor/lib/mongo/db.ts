@@ -8,15 +8,10 @@ module.exports = function (PersistObjectTemplate) {
         pojo.__version__ = obj.__version__;
         var db = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection;
         var collection = db.collection(this.dealias(obj.__template__.__collection__));
-        if (updateID) {
-            return collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1});
-        }
-        else {
-            if(!!pojo._id) {
-                pojo._id = new this.ObjectId();
-            }
-            return collection.update({ '_id': pojo._id }, pojo, {w:1});
-        }
+        return (updateID ?
+                collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1}) :
+                collection.save(pojo, {w:1})
+        );
         // ).then (function (error, count) {
         //     if (error instanceof Array)
         //         count = error[0]; // Don't know why things are returned this way

@@ -55,7 +55,7 @@
         "compile:tests": "tsc -p ./test/supertype/tsconfig.test.json",
         "compile:all": "npm run compile && npm run compile:tests",
         "prepublishOnly": "npm run compile",
-        "test": "nyc _mocha -- test/persist_banking.js -R spec",
+        "test": "mocha -- test/persist_idmap.js",
         "test:debug": "mocha test/**/*.js --inspect-brk=0.0.0.0:5858",
         "test:docker": "docker-compose up --build",
         "test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",
