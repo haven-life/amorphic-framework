@@ -68,7 +68,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.distinctFromMongoQuery = function(template, field, query) {
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
-        return collection._collection.distinct(field, query);
+        return collection.distinct(field, query);
     };
 
     PersistObjectTemplate.getPOJOFromMongoId = function (template, id, _cascade, _isTransient, idMap) {
