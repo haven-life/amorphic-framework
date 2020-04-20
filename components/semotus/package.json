@@ -2,7 +2,7 @@
 	"name": "@havenlife/semotus",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/selsamman/semotus",
-	"version": "3.2.0",
+	"version": "3.2.1",
 	"dependencies": {
 		"q": "1.x"
 	},
@@ -19,8 +19,8 @@
 		"@types/q": "*",
 		"chai": "3.x",
 		"eslint": "3.7.x",
-		"istanbul": "0.4.5",
-		"mocha": "5.2.0",
+		"nyc": "^15.0.1",
+		"mocha": "7.1.1",
 		"sinon": "1.15.x",
 		"underscore": "^1.9.1",
 		"ts-node": "^6.1.0",
@@ -33,7 +33,7 @@
 		"debugJSTests": "mocha --inspect-brk test/*.js",
 		"test:ts": "mocha -- test/supertype/semotus.js -R spec",
 		"test": "mocha -- test/types.js test/semotus.js",
-		"coverage": "istanbul cover _mocha -- test/supertype/semotus.js -R spec",
+		"coverage": "nyc mocha -- test/supertype/semotus.js -R spec",
 		"compile": "tsc",
 		"prepublishOnly": "npm run compile"
 	},
