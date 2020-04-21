@@ -50,12 +50,10 @@ module.exports = function (PersistObjectTemplate) {
             options.sort = {_id:1};
 
         if (typeof(options) === "function") {
-            const res =  await collection.find(query, undefined, options).toArray();
-            return res;
+            return collection.find(query, undefined, options).toArray();
         }
         else {
-            const res =  await collection.find(query, options).toArray();
-            return res;
+            return collection.find(query, options).toArray();
         }
     };
 
