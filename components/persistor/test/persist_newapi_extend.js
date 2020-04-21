@@ -17,7 +17,7 @@ var Employee, Person, Manager, empId, Address;
 var PersistObjectTemplate, ObjectTemplate;
 
 describe('persistor transaction checks', function () {
-    this.timeout(5000);
+    // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({
             client: 'pg',
