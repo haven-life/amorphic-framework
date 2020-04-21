@@ -159,8 +159,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {bool} isRefresh force load
          * @param {object} logger objecttemplate logger
          * @returns {object}
+         * @legacy Use persistorFetchById instead
          */
         template.getFromPersistWithId = async function (id, cascade, isTransient, idMap, isRefresh, logger) {
+            process.emitWarning('getFromPersistWithId: Use persistorFetchById for alternative approaches', 'PERSISTOR_LEGACY');
+
             (logger || PersistObjectTemplate.logger).debug({
                 component: 'persistor', module: 'api', activity: 'getFromPersistWithId',
                 data: { template: template.__name__, id: id }
@@ -197,7 +200,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {bool} options {@TODO}
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persistorFetchByQuery
+         * @legacy in favor of persistorFetchByQuery
          */
         template.getFromPersistWithQuery = async function (query, cascade, start, limit, isTransient, idMap, options, logger) {
             process.emitWarning('getFromPersistWithQuery: Use persistorFetchByQuery for alternative approaches', 'PERSISTOR_LEGACY');
@@ -233,7 +236,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {object} txn persistObjectTemplate transaciton object
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persitorDeleteByQuery
+         * @legacy in favor of persitorDeleteByQuery
          */
         template.deleteFromPersistWithQuery = async function (query, txn, logger) {
             process.emitWarning('deleteFromPersistWithQuery: Use persistorDeleteByQuery for alternative approaches', 'PERSISTOR_LEGACY');
@@ -400,13 +403,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         /**
-         * Delete objects given a json query
+         * Delete objects given id
          *
          * @param {string} id mongo style id
          * @param {object} txn persistObjectTemplate transaciton object
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persistorDeleteByQuery
+         * @legacy in favor of persistorDeleteByQuery
          */
         template.deleteFromPersistWithId = async function (id, txn, logger) {
             process.emitWarning('deleteFromPersistWithId: Use persistorDeleteByQuery for alternative approaches', 'PERSISTOR_LEGACY');
@@ -439,7 +442,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {json} query mongo style queries
          * @param {object} logger objecttemplate logger
          * @returns {Number}
-         * @deprecated in favor of persistorCountWithQuery
+         * @legacy in favor of persistorCountWithQuery
          */
         template.countFromPersistWithQuery = async function (query, logger) {
             process.emitWarning('countFromPersistWithQuery: Use persistorCountByQuery for alternative approaches', 'PERSISTOR_LEGACY');
@@ -732,7 +735,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         template.prototype.isStale = // Legacy
-            template.prototype.persistorIsState = function () {
+            template.prototype.persistorIsStale = function () {
                 var time = getTime();
                 var name = 'isStale';
                 var persistObjectTemplate = this.__objectTemplate__ || self;

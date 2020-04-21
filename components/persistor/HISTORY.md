@@ -2,6 +2,8 @@
 * Npm audit updated all modules
 * Updated Mongo and Knex modules to higher major versions, leading to breaking changes
 * Added process emit warnings for legacy calls in persistor
+* Added documentation in persistable.ts, comments, params, including @legacy and @async flags for most functions
+* Renamed persistorIsState to persistorIsStale
 ## 3.2.6
 * re throw errors in uploadObject for remote docs
 * log exceptions in downloadObject as errors instead of debug
