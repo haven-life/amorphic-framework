@@ -68,8 +68,10 @@ function setUpInjectObjectTemplate(appName, config, schema) {
 
     if (dbConfig.dbName && dbConfig.dbPath) {
         if (dbConfig.dbDriver === 'mongo') {
-            let MongoClient = require('mongodb-bluebird');
-            connectToDbIfNeedBe = MongoClient.connect(dbConfig.dbPath + dbConfig.dbName);
+            let MongoClient = require('mongodb');
+            connectToDbIfNeedBe = MongoClient.connect(dbConfig.dbPath + dbConfig.dbName).then(function(client) {
+                return client.db();
+            });
         }
         else if (dbConfig.dbDriver === 'knex') {
             let knex = require('knex')({

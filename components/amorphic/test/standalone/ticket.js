@@ -22,7 +22,7 @@ var projectSemotus;
 var Person = requires.person.Person;
 var Project = requires.project.Project;
 
-var db;
+var db, client;
 
 Person.inject(function personInject() {
     Person.sendEmail = function sendEmail(email, subject) {
@@ -55,9 +55,10 @@ describe('Ticket System Test Suite', function () {
     });
 
     it ('opens the database', function (done) {
-        var MongoClient = require('mongodb-bluebird');
-        MongoClient.connect('mongodb://'+mongoHost+':27017/testamorphic').then(function (dbopen) {
-            db = dbopen;
+        var MongoClient = require('mongodb');
+        MongoClient.connect('mongodb://'+mongoHost+':27017/testamorphic').then(function (clientParam) {
+            client = clientParam;
+            db = client.db();
             PersistObjectTemplate.setDB(db);
             done();
         });
@@ -249,7 +250,7 @@ describe('Ticket System Test Suite', function () {
 
     it ('closes the database', function (done) {
         this.timeout(10000);
-        db.close().then(function () {
+        client.close().then(function () {
             logMessage('ending ticket test');
             done();
         });
