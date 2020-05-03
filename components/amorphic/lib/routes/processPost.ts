@@ -4,7 +4,7 @@ import * as Logger from '../utils/logger';
 let logMessage = Logger.logMessage;
 import * as Bluebird from 'bluebird';
 import {StatsdHelper} from '@havenlife/supertype';
-import {ContinuedSession} from '../types/AmorphicTypes'
+import {ContinuedSessionRet, ExpressSession} from '../types/AmorphicTypes'
 import {Request, Response} from 'express';
 
 
@@ -19,13 +19,13 @@ import {Request, Response} from 'express';
 export async function processPost(req: Request, res: Response) {
 	let processPostStartTime = process.hrtime();
 
-	let session = req.session;
-	let path = url.parse(req.originalUrl, true).query.path;
+	let session: ExpressSession = req.session;
+	let path = url.parse(req.originalUrl, true).query.path as string;
 
 	try {
-		const serverSession: ContinuedSession = await establishServerSession(req, path, false, false, null);
+		const serverSession: ContinuedSessionRet = await establishServerSession(req, path, false, false, null);
 		let ourObjectTemplate = serverSession.objectTemplate;
-		let remoteSessionId = req.session.id;
+		let remoteSessionId = session.id;
 		if (typeof ourObjectTemplate.controller.processPost === 'function')  {
 			try {
 				const controllerResp = await ourObjectTemplate.controller.processPost(null, req.body, req);
@@ -66,7 +66,7 @@ export async function processPost(req: Request, res: Response) {
 			throw new Error('Not Accepting Posts');
 		}
 	} catch (error) {
-		logMessage('Error establishing session for processPost '+ req.session.id + '\n' + error.message + '\n' + error.stack);
+		logMessage('Error establishing session for processPost '+ session.id + '\n' + error.message + '\n' + error.stack);
 		res.writeHead(500, { 'Content-Type': 'text/plain' });
 		res.end('Internal Error');
 

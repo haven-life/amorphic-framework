@@ -40,7 +40,7 @@ export function processFile(req, resp, next, downloads) {
         setTimeout(function yz() {
             fs.unlink(file, function zy(err) {
                 if (err) {
-                    logMessage(err);
+                    logMessage(err.message);
                 }
                 else {
                     logMessage(file + ' deleted');

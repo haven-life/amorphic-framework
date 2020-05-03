@@ -41,7 +41,7 @@ export function processLoggingMessage(req: Request, res: Response) {
 	persistableSemotableTemplate.logger.setContextProps(message.loggingContext);
 
 	persistableSemotableTemplate.logger.setContextProps({
-		session: req.session.id,
+		session: session.id,
 		ipaddress:
 			String(req.headers['x-forwarded-for'] || req.connection.remoteAddress)
 				.split(',')[0]

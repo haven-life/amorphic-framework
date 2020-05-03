@@ -5,13 +5,13 @@ import {establishServerSession} from '../session/establishServerSession';
 import * as Logger from '../utils/logger';
 let log = Logger.log;
 import {StatsdHelper} from '@havenlife/supertype';
-import {ContinuedSession} from '../types/AmorphicTypes'
+import {ContinuedSessionRet} from '../types/AmorphicTypes'
 import {Request, Response} from 'express';
-
+import { nonObjTemplatelogLevel} from '../types/Constants';
 
 
 /**
- * Process JSON request message
+ * Process JSON request message, 99% communication in amorphic goes through this pathway
  *
  * @param {unknown} req unknown
  * @param {unknown} res unknown
@@ -23,30 +23,31 @@ export async function processMessage(req: Request, res: Response) {
     let session = req.session;
 
     let message = req.body;
-    let path = url.parse(req.originalUrl, true).query.path;
-    let sessionData = getSessionCache(path, req.session.id, false, sessions);
+    let path = url.parse(req.originalUrl, true).query.path as string;
 
     if (!message.sequence) {
-        log(1, req.session.id, 'ignoring non-sequenced message', nonObjTemplatelogLevel);
+        log(1, session.id, 'ignoring non-sequenced message', nonObjTemplatelogLevel);
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end('ignoring non-sequenced message');
 
         StatsdHelper.computeTimingAndSend(
             processMessageStartTime,
             'amorphic.webserver.process_message.response_time',
-            { result: 'failure' });
+            {result: 'failure'});
 
         return;
     }
+    else {
 
-    let expectedSequence = sessionData.sequence || message.sequence;
-    let newPage = message.type === 'refresh' || message.sequence !== expectedSequence;
-    let forceReset = message.type === 'reset';
+        let expectedSequence = session.sequence || message.sequence;
+        let newPage = message.type === 'refresh' || message.sequence !== expectedSequence;
+        let forceReset = message.type === 'reset';
 
-    establishServerSession(req, path, newPage, forceReset, message.rootId, sessions, controllers,
-    nonObjTemplatelogLevel)
-        .then(function kk(semotus) {
+        try {
+            // This should NEVER be the first spot we're hitting the session.
+            const amorphicSession: ContinuedSessionRet = await establishServerSession(req, path, newPage, forceReset, message.rootId);
             if (message.performanceLogging) {
+                // @ts-ignore
                 req.amorphicTracking.browser = message.performanceLogging;
             }
 
@@ -56,81 +57,83 @@ export async function processMessage(req: Request, res: Response) {
                 callContext += '.' + message.id + '[' + message.name + ']';
             }
 
-            let context = semotus.objectTemplate.logger.setContextProps({
+            let context = amorphicSession.objectTemplate.logger.setContextProps({
                 app: path,
                 message: callContext,
                 sequence: message.sequence,
-                expectedSequence: sessionData.sequence,
-                session: req.session.id,
+                expectedSequence: session.sequence,
+                session: session.id,
                 ipaddress: (String(req.headers['x-forwarded-for'] ||
-                req.connection.remoteAddress)).split(',')[0].replace(/(.*)[:](.*)/, '$2') ||
-            'unknown'
+                    req.connection.remoteAddress)).split(',')[0].replace(/(.*)[:](.*)/, '$2') ||
+                    'unknown'
             });
 
-            ++sessionData.sequence;
+            ++session.sequence; // @TODO: may be redundant with other line here
 
-            let ourObjectTemplate = semotus.objectTemplate;
-            let remoteSessionId = req.session.id;
-        
+            let ourObjectTemplate = amorphicSession.objectTemplate;
+            let remoteSessionId = session.id;
+
             let startMessageProcessing;
-
-        // If we expired just return a message telling the client to reset itself
-            if (semotus.newSession || newPage || forceReset) {
-                if (semotus.newSession) {
+            // If we expired just return a message telling the client to reset itself
+            if (amorphicSession.newSession || newPage || forceReset) {
+                if (amorphicSession.newSession) {
                     ourObjectTemplate.logger.info({
-                        component: 'amorphic',
-                        module: 'processMessage',
-                        activity: 'reset'
-                    }, remoteSessionId,
-                    'Force reset on ' + message.type + ' ' + 'new session' + ' [' + message.sequence + ']');
-                }
-                else {
+                            component: 'amorphic',
+                            module: 'processMessage',
+                            activity: 'reset'
+                        }, remoteSessionId,
+                        'Force reset on ' + message.type + ' ' + 'new session' + ' [' + message.sequence + ']');
+                } else {
                     ourObjectTemplate.logger.info({component: 'amorphic', module: 'processMessage', activity: 'reset'},
-                    remoteSessionId, 'Force reset on ' + message.type + ' ' +  ' [' + message.sequence + ']');
+                        remoteSessionId, 'Force reset on ' + message.type + ' ' + ' [' + message.sequence + ']');
                 }
 
-                semotus.save(path, session, req);
+                amorphicSession.save(path, session, req);
                 startMessageProcessing = process.hrtime();
 
-                let outbound = semotus.getMessage();
+                let outbound = amorphicSession.getMessage();
 
-                outbound.ver = semotus.appVersion;
+                outbound.ver = amorphicSession.appVersion;
                 ourObjectTemplate.logger.clearContextProps(context);
                 res.end(JSON.stringify(outbound));  // return a sync message assuming no queued messages
 
                 for (let prop in ourObjectTemplate.logger.context) {
+                    // @ts-ignore
                     req.amorphicTracking.loggingContext[prop] = ourObjectTemplate.logger.context[prop];
                 }
 
+                // @ts-ignore
                 req.amorphicTracking.addServerTask({name: 'Reset Processing'}, startMessageProcessing);
-                sessionData.sequence = message.sequence + 1;
+                session.sequence = message.sequence + 1; //@TODO: this _may_ be redundant
                 displayPerformance(req);
 
                 StatsdHelper.computeTimingAndSend(
                     processMessageStartTime,
                     'amorphic.webserver.process_message.response_time',
-                    { result: 'success' });
+                    {result: 'success'});
 
                 return;
             }
 
-        // When Semotus sends a message it will either be a response or
-        // a callback to the client.  In either case return a response and prevent
-        // any further messages from being generated as these will get handled on
-        // the next call into the server
+            // When Semotus sends a message it will either be a response or
+            // a callback to the client.  In either case return a response and prevent
+            // any further messages from being generated as these will get handled on
+            // the next call into the server
             startMessageProcessing = process.hrtime();
 
             let sendMessage = function surndMessage(message) {
                 ourObjectTemplate.setSession(remoteSessionId);
                 ourObjectTemplate.enableSendMessage(false);
+                // @ts-ignore
                 req.amorphicTracking.addServerTask({name: 'Request Processing'}, startMessageProcessing);
-                semotus.save(path, session, req);
-                message.ver = semotus.appVersion;
+                amorphicSession.save(path, session, req);
+                message.ver = amorphicSession.appVersion;
                 message.sessionExpired = ourObjectTemplate.sessionExpired;
 
                 let respstr = JSON.stringify(message);
 
                 for (let prop in ourObjectTemplate.logger.context) {
+                    // @ts-ignore
                     req.amorphicTracking.loggingContext[prop] = ourObjectTemplate.logger.context[prop];
                 }
 
@@ -142,7 +145,7 @@ export async function processMessage(req: Request, res: Response) {
                 StatsdHelper.computeTimingAndSend(
                     processMessageStartTime,
                     'amorphic.webserver.process_message.response_time',
-                    { result: 'success' });
+                    {result: 'success'});
             };
 
             ourObjectTemplate.incomingIP = (String(req.headers['x-forwarded-for'] ||
@@ -152,7 +155,7 @@ export async function processMessage(req: Request, res: Response) {
             ourObjectTemplate.enableSendMessage(true, sendMessage);
 
             try {
-                ourObjectTemplate.processMessage(message, null, semotus.restoreSession);
+                ourObjectTemplate.processMessage(message, null, amorphicSession.restoreSession);
             }
             catch (error) {
                 ourObjectTemplate.logger.info({
@@ -168,17 +171,17 @@ export async function processMessage(req: Request, res: Response) {
                 StatsdHelper.computeTimingAndSend(
                     processMessageStartTime,
                     'amorphic.webserver.process_message.response_time',
-                    { result: 'failure' });
+                    {result: 'failure'});
             }
-
-        }).catch(function failure(error) {
-            log(0, req.session.id, error.message + error.stack, nonObjTemplatelogLevel);
+        } catch (error) {
+            log(0, session.id, error.message + error.stack, nonObjTemplatelogLevel);
             res.writeHead(500, {'Content-Type': 'text/plain'});
             res.end(error.toString());
 
             StatsdHelper.computeTimingAndSend(
                 processMessageStartTime,
                 'amorphic.webserver.process_message.response_time',
-                { result: 'failure' });
-        }).done();
+                {result: 'failure'});
+        }
+    }
 }

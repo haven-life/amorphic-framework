@@ -5,7 +5,9 @@ let establishInitialServerSession = require('./establishInitialServerSession').e
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
-let nonObjTemplatelogLevel = require('../types/Constants').nonObjTemplatelogLevel;
+
+// @TODO: split initial and continued server session to completely different pathways
+
 
 /**
  * Sets up generic logging context with context passed from request
@@ -64,15 +66,10 @@ function establishServerSession(req, path, newPage, reset, newControllerId) {
     let establishInitialServerSessionTime = process.hrtime();
     let session = req.session;
 
-    // Don't need this anymore
-    // let serverSessionData = {sequence: 1, serializationTimeStamp: null, timeout: null, semotus: {}};
-    // This will be retrieved elsewhere
-
     if (newPage === 'initial') {
-        // serverSessionData.sequence = 1;
 
         // For a new page determine if a controller is to be omitted
-        if (config.appConfig.createControllerFor && !session.semotus) {
+        if (config.appConfig.createControllerFor && !session.afterInit) {
 
             let referer = '';
 

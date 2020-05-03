@@ -57,7 +57,7 @@ function establishContinuedServerSession(req, path, session, newControllerId, ne
 
     controller = getController(path, session, newPage, shouldReset, newControllerId, req);
     let ourObjectTemplate = getObjectTemplate(controller);
-    ourObjectTemplate.reqSession = req.session;
+    ourObjectTemplate.reqSession = session;
     controller.__request = req;
     controller.__sessionExpiration = sessionExpiration;
 

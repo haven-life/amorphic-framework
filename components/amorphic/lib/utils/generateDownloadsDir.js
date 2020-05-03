@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-let downloadDir;
+let downloadDir = '';
 
 /**
  * creates a location for amorphic file downloads in the
@@ -35,5 +35,5 @@ function getDownloads() {
 
 module.exports = {
     generateDownloadsDir: generateDownloadsDir,
-    getDownloads: downloadDir
+    getDownloads: getDownloads
 };
