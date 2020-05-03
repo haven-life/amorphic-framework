@@ -7,85 +7,33 @@ let setupLogger = Logger.setupLogger;
 let persistor = require('@havenlife/persistor');
 let semotus = require('@havenlife/semotus');
 let getTemplates = require('./getTemplates').getTemplates;
-let getSessionCache = require('./session/getSessionCache').getSessionCache;
 let decompressSessionData = require('./session/decompressSessionData').decompressSessionData;
 
 /**
  * Create a controller template that has a unique Semotus instance that is
  * for one unique session
  *
- * @param {unknown} path - unique path for application
- * @param {unknown} controllerPath - file path for controller objects
- * @param {unknown} initObjectTemplate - callback for dependency injection into controller
- * @param {unknown} expressSession - Express session object
- * @param {unknown} objectCacheExpiration - seconds to expire controller object cache
- * @param {unknown} sessionStore - session implementation
- * @param {Boolean|String} newPage - force returning everything since this is likely a session continuation on a
+ * @param {unknown} path - unique path for application - param
+ * @param {unknown} expressSession - Express session object - param
+ * @param {Boolean|String} newPage - force returning everything since this is likely a session continuation on a - param
  * new web page.
- * @param {unknown} reset - create new clean empty controller losing all data
- * @param {unknown} controllerId - unknown
- * @param {Object} req - Express request object.
- * @param {unknown} controllers unknown
- * @param {unknown} sessions unknown
+ * @param {unknown} reset - create new clean empty controller losing all data - param
+ * @param {unknown} controllerId - unknown - param
+ * @param {Object} req - Express request object. - param
  *
  * @returns {*}
  */
-function getController(path, controllerPath, initObjectTemplate, expressSession, objectCacheExpiration, sessionStore,
-                       newPage, reset, controllerId, req, controllers, nonObjTemplatelogLevel, sessions) {
+function getController(path, expressSession, newPage, reset, controllerId, req) {
     let applicationConfig = AmorphicContext.applicationConfig;
     let sessionId = expressSession.id;
-    let config = applicationConfig[path];
+    let config = AmorphicContext.getAppConfigByPath(path);
+    let controllerPath = AmorphicContext.getControllerPath(path); // file path for controller objects
 
-    // Manage the controller cache
-    if (!controllers[sessionId + path]) {
-        controllers[sessionId + path] = {};
-    }
+    let {initObjectTemplate } = config; // initObjectTemplate - Function that injects properties aka callback for dependency injection into controller - config
 
-    let cachedController = controllers[sessionId + path];
-
-    // Clear controller from cache if need be
-    if (reset || newPage) {
-        if (cachedController.timeout) {
-            clearTimeout(cachedController.timeout);
-        }
-
-        controllers[sessionId + path] = {};
-        cachedController = controllers[sessionId + path];
-
-        if (reset) { // Hard reset makes sure we create a new controller
-            expressSession.semotus.controllers[path] = null;
-        }
-    }
-
-    // We cache the controller object which will reference the object template and expire it
-    // as long as there are no pending calls.  Note that with a memory store session manager
-    // the act of referencing the session will expire it if needed
-    let timeoutAction = function teamOutAction() {
-        sessionStore.get(sessionId, function aa(_error, expressSession) {
-            if (!expressSession) {
-                log(1, sessionId, 'Session has expired', nonObjTemplatelogLevel);
-            }
-
-            if (!expressSession ||
-                cachedController.controller.__template__.objectTemplate.getPendingCallCount() === 0) {
-                controllers[sessionId + path] = null;
-                log(1, sessionId, 'Expiring controller cache for ' + path, nonObjTemplatelogLevel);
-            }
-            else {
-                cachedController.timeout = setTimeout(timeoutAction, objectCacheExpiration);
-                log(2, sessionId, 'Extending controller cache timeout because of pending calls for ' + path,
- -                    nonObjTemplatelogLevel);
-            }
-        });
-    };
-
-    // Return controller from the cache if possible regenerating timeout
-    if (cachedController.controller) {
-        clearTimeout(cachedController.timeout);
-        cachedController.timeout = setTimeout(timeoutAction, objectCacheExpiration);
-        log(2, sessionId, 'Extending controller cache timeout because of reference ', nonObjTemplatelogLevel);
-
-        return cachedController.controller;
+    // Originally cleared controller from cache if need be, but no more cache!
+    if (reset) { // Hard reset makes sure we create a new controller
+        expressSession.semotus.controllers[path] = null;
     }
 
     let matches = controllerPath.match(/(.*?)([0-9A-Za-z_]*)\.js$/);
@@ -100,8 +48,7 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
         injectTemplatesIntoCurrentSession(require('../index.js').amorphicStatic, persistableSemotableTemplate);
     }
 
-    setupLogger(persistableSemotableTemplate.logger, path, expressSession.semotus.loggingContext[path],
-        applicationConfig);
+    setupLogger(persistableSemotableTemplate.logger, path, expressSession.semotus.loggingContext[path], applicationConfig);
 
     // Inject into it any db or persist attributes needed for application
     initObjectTemplate(persistableSemotableTemplate);
@@ -114,8 +61,7 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     // Get the controller and all of it's dependent templates which will populate a
     // key value pairs where the key is the require prefix and and the value is the
     // key value pairs of each exported template
-	let ControllerTemplate = AmorphicContext.applicationTSController[path] ||
-		getTemplates(persistableSemotableTemplate, prefix, [prop + '.js'], config, path)[prop].Controller;
+	let ControllerTemplate = AmorphicContext.applicationTSController[path] || getTemplates(persistableSemotableTemplate, prefix, [prop + '.js'], config, path)[prop].Controller;
 
     if (!ControllerTemplate) {
         throw  new Error('Missing controller template in ' + prefix + prop + '.js');
@@ -124,6 +70,7 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     ControllerTemplate.objectTemplate = persistableSemotableTemplate;
 
     // Setup unique object template to manage a session
+    // Creates a semotus session for this given expressSession to only be used within semotus changetracking
     persistableSemotableTemplate.createSession('server', null, expressSession.id);
 
     let browser = ' - browser: ' + req.headers['user-agent'] + ' from: ' + (req.headers['x-forwarded-for'] ||
@@ -134,6 +81,7 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     let loggingDetails;
     let loggingMessage;
 
+    // No controller in the session
     if (!expressSession.semotus.controllers[path]) {
         if (controllerId) {
             // Since we are restoring we don't changes saved or going back to the browser
@@ -172,7 +120,6 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     }
     else {
         persistableSemotableTemplate.withoutChangeTracking(function cc() {
-            let sessionData = getSessionCache(path, sessionId, true, sessions);
             let unserialized = expressSession.semotus.controllers[path];
 
             controller = persistableSemotableTemplate.fromJSON(
@@ -182,16 +129,6 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
 
             if (config.appConfig.templateMode === 'typescript') {
                 persistableSemotableTemplate.sessionize(controller);
-            }
-
-            if (unserialized.serializationTimeStamp !== sessionData.serializationTimeStamp) {
-                persistableSemotableTemplate.logger.warn({
-                    component: 'amorphic',
-                    module: 'getController',
-                    activity: 'restore',
-                    savedAs: sessionData.serializationTimeStamp,
-                    foundToBe: unserialized.serializationTimeStamp
-                }, 'Session data not as saved');
             }
 
             // Make sure no duplicate ids are issued
@@ -217,10 +154,6 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
 
     persistableSemotableTemplate.controller = controller;
     controller.__sessionId = sessionId;
-
-    // Set it up in the cache
-    cachedController.controller = controller;
-    cachedController.timeout = setTimeout(timeoutAction, objectCacheExpiration);
 
     return controller;
 }

@@ -4,6 +4,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+let downloadDir;
+
 /**
  * creates a location for amorphic file downloads in the
  * system's temp directory and returns a string of the path to it.
@@ -12,7 +14,7 @@ const path = require('path');
  */
 function generateDownloadsDir() {
     // Create temporary directory for file uploads
-    let downloadDir = path.join(os.tmpdir(), 'download');
+    downloadDir = path.join(os.tmpdir(), 'download');
 
     if (!fs.existsSync(downloadDir)) {
         fs.mkdirSync(downloadDir);
@@ -27,6 +29,11 @@ function generateDownloadsDir() {
     return downloadDir;
 }
 
+function getDownloads() {
+    return downloadDir;
+}
+
 module.exports = {
-    generateDownloadsDir: generateDownloadsDir
+    generateDownloadsDir: generateDownloadsDir,
+    getDownloads: downloadDir
 };

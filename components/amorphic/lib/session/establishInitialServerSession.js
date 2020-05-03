@@ -9,25 +9,31 @@ let Bluebird = require('bluebird');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
- * Purpose unknown
+ * Initiates a server session if
+ *  * We are coming in from amorphicEntry, aka initial page
+ *  * We do not already have a session with semotus initialized in semotus
+ *  * We have marked createControllerFor, and set it to not equal 'yes'
+ *
+ *  This will initiate an amorphic session without a controller, so the client can initiate it first
+ *  @TODO: Deprecate this pathway. Have all controllers initialized on the server
  *
  * @param {Object} req - Express request object.
- * @param {String} controllerPath - The path to the main controller js file.
- * @param {Function} initObjectTemplate - Function that injects properties and functions onto each object template.
  * @param {String} path - The app name.
- * @param {unknown} appVersion unknown
- * @param {unknown} sessionExpiration unknown
  *
  * @returns {unknown} unknown
  */
-function establishInitialServerSession(req, controllerPath, initObjectTemplate, path, appVersion, sessionExpiration) {
+function establishInitialServerSession(req, path) {
+    let config = AmorphicContext.getAppConfigByPath(path);
 
     let establishInitialServerSessionTime = process.hrtime();
-
     let amorphicOptions = AmorphicContext.amorphicOptions;
-    let applicationConfig = AmorphicContext.applicationConfig;
     let applicationPersistorProps = AmorphicContext.applicationPersistorProps;
-    let config = applicationConfig[path];
+
+    let {sessionExpiration,
+        appVersion,
+        initObjectTemplate } = config; // initObjectTemplate - Function that injects properties and functions onto each object template.
+
+    let controllerPath = AmorphicContext.getControllerPath(path); // The path to the main controller js file.
 
     let match = controllerPath.match(/(.*?)([0-9A-Za-z_]*)\.js$/);
     let prop = match[2];
@@ -52,9 +58,7 @@ function establishInitialServerSession(req, controllerPath, initObjectTemplate, 
 
     return Bluebird.try(function h() {
 
-        statsdUtils.computeTimingAndSend(
-            establishInitialServerSessionTime,
-            'amorphic.session.establish_initial_server_session.response_time');
+        statsdUtils.computeTimingAndSend(establishInitialServerSessionTime, 'amorphic.session.establish_initial_server_session.response_time');
 
         return {
             appVersion: appVersion,

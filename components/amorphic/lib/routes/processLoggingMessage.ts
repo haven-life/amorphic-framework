@@ -1,12 +1,13 @@
-'use strict';
-
-let AmorphicContext = require('../AmorphicContext');
-let Logger = require('../utils/logger');
+import * as AmorphicContext from '../AmorphicContext';
+import * as persistor from '@havenlife/persistor';
+import * as semotus from '@havenlife/semotus'
+import * as url from 'url';
+import * as Logger from '../utils/logger';
 let getLoggingContext = Logger.getLoggingContext;
 let setupLogger = Logger.setupLogger;
-let url = require('url');
-let persistor = require('@havenlife/persistor');
-let semotus = require('@havenlife/semotus');
+import {Request, Response} from 'express';
+
+
 
 /**
  * Purpose unknown
@@ -14,23 +15,27 @@ let semotus = require('@havenlife/semotus');
  * @param {unknown} req unknown
  * @param {unknown} res unknown
  */
-function processLoggingMessage(req, res) {
+export function processLoggingMessage(req: Request, res: Response) {
 	let applicationConfig = AmorphicContext.applicationConfig;
 	let path = url.parse(req.originalUrl, true).query.path;
 	let session = req.session;
 	let message = req.body;
 
+	// @ts-ignore
 	let persistableSemotableTemplate = persistor(null, null, semotus);
 
 	if (!session.semotus) {
 		session.semotus = { controllers: {}, loggingContext: {} };
 	}
 
+	// @ts-ignore
 	if (!session.semotus.loggingContext[path]) {
+		// @ts-ignore
 		session.semotus.loggingContext[path] = getLoggingContext(path, null);
 	}
 
 	// TODO why can't appConfig be taken out here?
+	// @ts-ignore
 	setupLogger(persistableSemotableTemplate.logger, path, session.semotus.loggingContext[path], applicationConfig);
 
 	persistableSemotableTemplate.logger.setContextProps(message.loggingContext);
@@ -48,7 +53,3 @@ function processLoggingMessage(req, res) {
 	res.writeHead(200, { 'Content-Type': 'text/plain' });
 	res.end('');
 }
-
-module.exports = {
-	processLoggingMessage: processLoggingMessage
-};

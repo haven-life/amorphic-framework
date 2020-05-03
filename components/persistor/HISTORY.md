@@ -7,7 +7,7 @@
 ## 3.2.7
 * fix promise handling to re-enable rollback functionality
 ## 3.2.6
-* re throw errors in uploadObject for remote docs
+* re throw errors in uploadObject remote docs
 * log exceptions in downloadObject as errors instead of debug
 ## 3.2.5
 * use the OS temp dir for remote doc testing instead of project root dir

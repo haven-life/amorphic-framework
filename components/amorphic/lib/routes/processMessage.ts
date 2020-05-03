@@ -1,22 +1,22 @@
-'use strict';
-
-let url = require('url');
-let Logger = require('../utils/logger');
-let log = Logger.log;
 let getSessionCache = require('../session/getSessionCache').getSessionCache;
-let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let displayPerformance = require('../utils/displayPerformance').displayPerformance;
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+import * as url from 'url';
+import {establishServerSession} from '../session/establishServerSession';
+import * as Logger from '../utils/logger';
+let log = Logger.log;
+import {StatsdHelper} from '@havenlife/supertype';
+import {ContinuedSession} from '../types/AmorphicTypes'
+import {Request, Response} from 'express';
+
+
 
 /**
  * Process JSON request message
  *
  * @param {unknown} req unknown
  * @param {unknown} res unknown
- * @param {unknown} sessions unknown
- * @param {unknown} controllers unknown
  */
-function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers) {
+export async function processMessage(req: Request, res: Response) {
 
     let processMessageStartTime = process.hrtime();
 
@@ -31,7 +31,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end('ignoring non-sequenced message');
 
-        statsdUtils.computeTimingAndSend(
+        StatsdHelper.computeTimingAndSend(
             processMessageStartTime,
             'amorphic.webserver.process_message.response_time',
             { result: 'failure' });
@@ -106,7 +106,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 sessionData.sequence = message.sequence + 1;
                 displayPerformance(req);
 
-                statsdUtils.computeTimingAndSend(
+                StatsdHelper.computeTimingAndSend(
                     processMessageStartTime,
                     'amorphic.webserver.process_message.response_time',
                     { result: 'success' });
@@ -139,7 +139,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 res.end(respstr);
                 displayPerformance(req);
 
-                statsdUtils.computeTimingAndSend(
+                StatsdHelper.computeTimingAndSend(
                     processMessageStartTime,
                     'amorphic.webserver.process_message.response_time',
                     { result: 'success' });
@@ -165,7 +165,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 ourObjectTemplate.logger.clearContextProps(context);
                 res.end(error.toString());
 
-                statsdUtils.computeTimingAndSend(
+                StatsdHelper.computeTimingAndSend(
                     processMessageStartTime,
                     'amorphic.webserver.process_message.response_time',
                     { result: 'failure' });
@@ -176,13 +176,9 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
             res.writeHead(500, {'Content-Type': 'text/plain'});
             res.end(error.toString());
 
-            statsdUtils.computeTimingAndSend(
+            StatsdHelper.computeTimingAndSend(
                 processMessageStartTime,
                 'amorphic.webserver.process_message.response_time',
                 { result: 'failure' });
         }).done();
 }
-
-module.exports = {
-    processMessage: processMessage
-};

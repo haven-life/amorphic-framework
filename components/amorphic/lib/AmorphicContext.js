@@ -14,6 +14,15 @@ let applicationSource = {};
 let applicationSourceMap = {};
 let applicationTSController = {};
 
+function getAppConfigByPath(path) {
+    return applicationConfig[path];
+}
+
+function getControllerPath(path) {
+    let config = getAppConfigByPath(path);
+    return config.appPath + '/' + (config.appConfig.controller || 'controller.js')
+}
+
 module.exports = {
     amorphicOptions: amorphicOptions,
     appContext: appContext,
@@ -21,5 +30,7 @@ module.exports = {
     applicationPersistorProps: applicationPersistorProps,
     applicationSource: applicationSource,
     applicationSourceMap: applicationSourceMap,
-    applicationTSController: applicationTSController
+    applicationTSController: applicationTSController,
+    getAppConfigByPath: getAppConfigByPath,
+    getControllerPath: getControllerPath
 };

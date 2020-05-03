@@ -6,11 +6,13 @@ let establishServerSession = require('./session/establishServerSession').establi
 let displayPerformance = require('./utils/displayPerformance').displayPerformance;
 let Bluebird = require('bluebird');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let nonObjTemplatelogLevel = require('./types/Constants').nonObjTemplatelogLevel;
+
 
 /*
     Set up amorphic for the first time
  */
-function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
+function amorphicEntry(req, res, next) {
     let amorphicEntryTime = process.hrtime();
     let amorphicOptions;
     let applicationSource;
