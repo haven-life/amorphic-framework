@@ -3,16 +3,15 @@ import {establishServerSession} from '../session/establishServerSession';
 import {StatsdHelper} from '@havenlife/supertype';
 import * as Express from 'express';
 import {ContinuedSessionRet} from '../types/AmorphicTypes'
+import { Request, Response } from 'express';
 
 /**
  * Processes content requests to download resources from the server
  *
  * @param {unknown} req an
  * @param {unknown} res unknown
- * @param {unknown} controllers unknown
- * @param nonObjTemplatelogLevel
  */
-export async function processContentRequest(req: Express.Request, res: Express.Response) {
+export async function processContentRequest(req: Request, res: Response) {
     const processContentRequestTime = process.hrtime();
     const path = url.parse(req.originalUrl, true).query.path as string;
 

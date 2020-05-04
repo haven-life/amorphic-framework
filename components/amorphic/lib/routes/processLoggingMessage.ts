@@ -7,8 +7,6 @@ let getLoggingContext = Logger.getLoggingContext;
 let setupLogger = Logger.setupLogger;
 import {Request, Response} from 'express';
 
-
-
 /**
  * Purpose unknown
  *
@@ -17,25 +15,22 @@ import {Request, Response} from 'express';
  */
 export function processLoggingMessage(req: Request, res: Response) {
 	let applicationConfig = AmorphicContext.applicationConfig;
-	let path = url.parse(req.originalUrl, true).query.path;
+	let path = url.parse(req.originalUrl, true).query.path as string;
 	let session = req.session;
 	let message = req.body;
 
-	// @ts-ignore
-	let persistableSemotableTemplate = persistor(null, null, semotus);
+	let persistableSemotableTemplate = (persistor as any)(null, null, semotus);
 
+	// Should never actually execute this
 	if (!session.semotus) {
 		session.semotus = { controllers: {}, loggingContext: {} };
 	}
 
-	// @ts-ignore
 	if (!session.semotus.loggingContext[path]) {
-		// @ts-ignore
 		session.semotus.loggingContext[path] = getLoggingContext(path, null);
 	}
 
 	// TODO why can't appConfig be taken out here?
-	// @ts-ignore
 	setupLogger(persistableSemotableTemplate.logger, path, session.semotus.loggingContext[path], applicationConfig);
 
 	persistableSemotableTemplate.logger.setContextProps(message.loggingContext);

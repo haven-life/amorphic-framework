@@ -28,7 +28,7 @@ function establishContinuedServerSession(req, path, session, newControllerId, ne
     let establishContinuedServerSessionTime = process.hrtime();
 
     let applicationPersistorProps = AmorphicContext.applicationPersistorProps;
-    let config = amorphicContext.getAppConfigByPath(path);
+    let config = AmorphicContext.getAppConfigByPath(path);
 
     let sessionExpiration = config.sessionExpiration;
     let appVersion = config.appVersion;
@@ -40,14 +40,11 @@ function establishContinuedServerSession(req, path, session, newControllerId, ne
     let controller;
     let ret;
 
-    if (!session.semotus || !session.semotus.controllers[path] || reset || newControllerId) {
+    // Semotus Session initialized to empty set of controllers via amorphicEntry which should be the first stop here
+    if (!session.semotus.controllers[path] || reset || newControllerId) {
         shouldReset = true;
         // TODO what is newSession, why do this?
         newSession = !newControllerId;
-
-        if (!session.semotus) {
-            session.semotus = getDefaultSemotus();
-        }
 
         if (!session.semotus.loggingContext[path]) {
             let messageContext = req.body && req.body.loggingContext;
@@ -110,19 +107,13 @@ function establishContinuedServerSession(req, path, session, newControllerId, ne
     }
 
     return Bluebird.try(function g() {
+        console.log(session.sequence);
         statsdUtils.computeTimingAndSend(
             establishContinuedServerSessionTime,
             'amorphic.session.establish_continued_server_session.response_time');
 
         return ret;
     });
-}
-
-function getDefaultSemotus() {
-    return {
-        controllers: {},
-        loggingContext: {}
-    };
 }
 
 module.exports = {

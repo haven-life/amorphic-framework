@@ -2,6 +2,7 @@ version: '2'
 services:
   database-test:
     image: postgres:9.4-alpine
+    container_name: database-test
     ports:
       - '5432:5432'
     environment:
@@ -12,19 +13,31 @@ services:
 #    volumes:
 #      - ./.postgres:/var/lib/postgresql/data
   mongo:
+    container_name: mongo
     image: mongo:3.4
     ports:
       - '27017:27017'
 # uncomment to save data between tests
 #    volumes:
 #      - ./.mongo:/data/db
+  redis:
+    image: redis
+    container_name: redis
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server"]  # disable persistence
+    ports:
+      - '6379:6379'
   amorphic-test:
     build:
       context: .
     depends_on:
       - mongo
       - database-test
+      - redis
+    ports:
+      - '9220:9229'
+    volumes:
+      - ./:/app
     env_file:
       - ./test.env
-    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm test    
+    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- ./wait-for-it.sh redis:6379 -- npm test
  

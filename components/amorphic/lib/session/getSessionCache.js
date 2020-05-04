@@ -1,6 +1,6 @@
 'use strict';
 
-let amorphicContext = require('../AmorphicContext');
+let AmorphicContext = require('../AmorphicContext');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
@@ -61,7 +61,7 @@ function getSessionCache(path, sessionId, keepTimeout) {
         }
 
         amorphicSession.timeout = setTimeout(function jj() {
-        }, amorphicContext.amorphicOptions.sessionExpiration);
+        }, AmorphicContext.amorphicOptions.sessionExpiration);
 
         statsdUtils.computeTimingAndSend(
             getSessionCacheTime,

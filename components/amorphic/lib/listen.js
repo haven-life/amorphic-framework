@@ -11,6 +11,7 @@ let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@havenlife/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
+let RedisSetup = require('./RedisSetup');
 
 const packageVersions = resolveVersions([
 	'@havenlife/semotus',
@@ -85,8 +86,9 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 	};
 
 	if (sessionStore) {
-		sessionConfig['store'] = sessionStore;
+		sessionConfig['store'] = RedisSetup.setup(sessionStore);
 	}
+
 	// Initialize applications
 	let appList = amorphicOptions.appList;
 	let appStartList = amorphicOptions.appStartList;

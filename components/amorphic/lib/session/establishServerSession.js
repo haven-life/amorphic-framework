@@ -1,6 +1,6 @@
 'use strict';
 
-let amorphicContext = require('../AmorphicContext');
+let AmorphicContext = require('../AmorphicContext');
 let establishInitialServerSession = require('./establishInitialServerSession').establishInitialServerSession;
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
@@ -27,8 +27,10 @@ function setup(req, semotus) {
     }
 
     let message = req.body;
+
     if (message && semotus.objectTemplate && semotus.objectTemplate.logger) {
         let context = message && message.loggingContext;
+        semotus.objectTemplate.logger.context = semotus.objectTemplate.logger.context || {};
         semotus.objectTemplate.logger.setContextProps(context);
     }
 
@@ -58,7 +60,7 @@ function setup(req, semotus) {
  */
 function establishServerSession(req, path, newPage, reset, newControllerId) {
     // Retrieve configuration information
-    let config = amorphicContext.getAppConfigByPath(path);
+    let config = AmorphicContext.getAppConfigByPath(path);
     if (!config) {
         throw new Error('Semotus: establishServerSession called with a path of ' + path + ' which was not registered');
     }
@@ -68,8 +70,8 @@ function establishServerSession(req, path, newPage, reset, newControllerId) {
 
     if (newPage === 'initial') {
 
-        // For a new page determine if a controller is to be omitted
-        if (config.appConfig.createControllerFor && !session.afterInit) {
+        // For a new page determine if a controller is to be omitted, there should be no controller objects tied to this session
+        if (config.appConfig.createControllerFor && !session.semotus.controllers !== {}) {
 
             let referer = '';
 
@@ -92,7 +94,10 @@ function establishServerSession(req, path, newPage, reset, newControllerId) {
         establishInitialServerSessionTime,
         'amorphic.session.establish_server_session.response_time');
 
-    return establishContinuedServerSession(req, path, session, newControllerId, newPage, reset).then(setup.bind(this, req));
+    return establishContinuedServerSession(req, path, session, newControllerId, newPage, reset).then((result) => {
+        console.log(session.sequence);
+        return setup(req, result)
+    });
 }
 
 module.exports = {

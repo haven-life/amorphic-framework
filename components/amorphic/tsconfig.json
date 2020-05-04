@@ -1,6 +1,13 @@
 {
   "files": [
-    "./lib/AmorphicServer.ts"
+    "./lib/AmorphicServer.ts",
+    "./lib/amorphicEntry.ts",
+    "./lib/router.ts",
+    "./lib/RedisSetup.ts"
+  ],
+  "include": [
+    "./lib/routes/*.ts",
+    "./lib/types/*.ts"
   ],
   "compilerOptions": {
     "module": "commonjs",
@@ -9,13 +16,16 @@
       "dom",
       "es5",
       "es6",
-      "es2015.promise"
+      "es2015.promise",
+      "es7",
+      "ESNext"
     ],
     "outDir": "./dist",
     "rootDir": "./",
     "noImplicitAny": false,
     "sourceMap": true,
     "typeRoots": [
+      "./lib/types/custom.d.ts",
       "./node_modules/@types"
     ],
     "allowJs": true,

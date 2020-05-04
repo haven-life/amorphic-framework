@@ -5,7 +5,6 @@ import { processPost } from './routes/processPost';
 import { processLoggingMessage } from './routes/processLoggingMessage';
 import { processMessage } from './routes/processMessage';
 import { processFile } from './routes/processFile';
-import {nonObjTemplatelogLevel} from './types/Constants';
 import {getDownloads} from './utils/generateDownloadsDir';
 import {NextFunction, Request, Response} from 'express';
 
@@ -59,14 +58,14 @@ export function post(req: Request, res: Response, next: NextFunction) {
  * @param next
  */
 
-export function base(req: Request, res: Response, next: NextFunction) {
+export async function base(req: Request, res: Response, next: NextFunction) {
 
     if (req.originalUrl.match(/amorphic\/xhr\?path\=/)) {
         if (req.body.type === 'logging') {
             processLoggingMessage(req, res);
         }
         else {
-            processMessage(req, res);
+            return processMessage(req, res);
         }
     }
     else {

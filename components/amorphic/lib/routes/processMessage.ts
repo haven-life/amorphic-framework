@@ -9,12 +9,14 @@ import {ContinuedSessionRet} from '../types/AmorphicTypes'
 import {Request, Response} from 'express';
 import { nonObjTemplatelogLevel} from '../types/Constants';
 
-
+let sessions = [];
 /**
  * Process JSON request message, 99% communication in amorphic goes through this pathway
  *
  * @param {unknown} req unknown
  * @param {unknown} res unknown
+ *
+ * After initialServerSession, we hit this pathway as well
  */
 export async function processMessage(req: Request, res: Response) {
 
@@ -39,15 +41,22 @@ export async function processMessage(req: Request, res: Response) {
     }
     else {
 
+        // Coming from Establish Initial Server Session (which creates a different session Id apparently) -> so set it up for later
+        if (!session.sequence || !session.semotus) {
+            Object.assign(session, {sequence: 1, serializationTimeStamp: null, timeout: null, semotus:  {
+                    controllers: {},
+                    loggingContext: {}
+                }});
+        }
+
         let expectedSequence = session.sequence || message.sequence;
         let newPage = message.type === 'refresh' || message.sequence !== expectedSequence;
         let forceReset = message.type === 'reset';
 
         try {
-            // This should NEVER be the first spot we're hitting the session.
             const amorphicSession: ContinuedSessionRet = await establishServerSession(req, path, newPage, forceReset, message.rootId);
+
             if (message.performanceLogging) {
-                // @ts-ignore
                 req.amorphicTracking.browser = message.performanceLogging;
             }
 

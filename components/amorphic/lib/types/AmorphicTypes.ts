@@ -35,7 +35,12 @@ export interface ContinuedSessionRet extends InitialSessionRet {
     restoreSession: () => any;
 }
 
-export type ExpressSession = {
+// TypeGuard. Need to figure out how to clean up this jank
+export function isContinuedSession(ret: ContinuedSessionRet | InitialSessionRet): ret is ContinuedSessionRet {
+    return !!(ret as any).objectTemplate;
+}
+
+export interface ExpressSession {
     semotus?: {
         controllers: {[key: string]: {controller: any}};
         loggingContext: {[key: string]: any};
@@ -45,6 +50,20 @@ export type ExpressSession = {
     afterInit?: boolean; // to deal with initialserversession caveat
     id: string;
     file?: any; // ProcessFile
+    sequence: number; // instead of sequence in sessionData
 
-    sequence: number; // instead of
+    // Copied from Express - Session
+    regenerate(callback: (err: any) => void): void;
+    destroy(callback: (err: any) => void): void;
+    reload(callback: (err: any) => void): void;
+    save(callback: (err: any) => void): void;
+    touch(callback: (err: any) => void): void;
+    cookie: any;
 }
+
+// export function getDefaultSemotus() {
+//     return {
+//         controllers: {},
+//         loggingContext: {}
+//     };
+// }

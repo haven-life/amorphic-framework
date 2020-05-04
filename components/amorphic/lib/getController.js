@@ -32,6 +32,8 @@ function getController(path, expressSession, newPage, reset, controllerId, req) 
     let {initObjectTemplate } = config; // initObjectTemplate - Function that injects properties aka callback for dependency injection into controller - config
 
     // Originally cleared controller from cache if need be, but no more cache!
+
+    console.log(reset);
     if (reset) { // Hard reset makes sure we create a new controller
         expressSession.semotus.controllers[path] = null;
     }

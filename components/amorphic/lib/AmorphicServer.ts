@@ -8,7 +8,6 @@ import { post, upload, base, download } from './router';
 let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownloadsDir;
 let setupCustomRoutes = require('./setupCustomRoutes').setupCustomRoutes;
 let setupCustomMiddlewares = require('./setupCustomMiddlewares').setupCustomMiddlewares;
-import {nonObjTemplatelogLevel} from './types/Constants';
 
 
 import * as expressSession from 'express-session';
@@ -18,6 +17,7 @@ import * as fs from 'fs';
 import * as compression from 'compression';
 import * as http from 'http';
 import * as https from 'https';
+
 
 type Options = {
     amorphicOptions: any;

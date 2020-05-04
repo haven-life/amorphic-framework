@@ -55,7 +55,6 @@ function establishInitialServerSession(req, path) {
     }
 
     req.amorphicTracking.addServerTask({name: 'Creating Session without Controller'}, process.hrtime());
-    req.session.afterInit = true;
 
     return Bluebird.try(function h() {
 
