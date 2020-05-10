@@ -218,15 +218,13 @@ async function callIfValid(payload: ProcessCallPayload, isValid: boolean) {
 /**
  * Let the controller know that the method was completed and give it a chance to commit changes
  *
- * @param semotus
+ * @param payload
  * @param  returnValue unknown
- * @param remoteCall
- * @param callContext
  *
  * @returns
  */
 async function postCallHook(payload: ProcessCallPayload, returnValue) {
-    const {semotus, remoteCall, callContext, session, subscriptionId, remoteCallId, restoreSessionCallback} = payload;
+    const {semotus, remoteCall, callContext} = payload;
 
     if (semotus.controller && semotus.controller.postServerCall) {
         const hasChanges: boolean = remoteCall.changes.length > 2;
@@ -245,7 +243,7 @@ async function postCallHook(payload: ProcessCallPayload, returnValue) {
  * @param {unknown} ret unknown
  */
 function postCallSuccess(payload: ProcessCallPayload, ret): void {
-    const {semotus, remoteCall, callContext, session, subscriptionId, remoteCallId, restoreSessionCallback} = payload;
+    const {semotus, remoteCall, callContext, session, remoteCallId} = payload;
 
     semotus.logger.info(
         {
@@ -417,6 +415,10 @@ function packageChanges(semotus: Semotus, session: Session, message) {
 
     if (semotus.memSession && semotus.memSession.semotus && semotus.memSession.semotus.callStartTime) {
         semotus.memSession.semotus.callStartTime = 0;
+    }
+
+    if (semotus.controller && semotus.controller.inspectMessage) {
+        semotus.controller.inspectMessage(message);
     }
 
     session.sendMessage(message);

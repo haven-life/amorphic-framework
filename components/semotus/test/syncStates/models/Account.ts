@@ -39,6 +39,10 @@ export class Account extends Supertype {
             this.addCustomer(customer);
     };
 
+    equals(other: Account) {
+        return this.number === other.number && this.title === other.title;
+    }
+
     addCustomer(customer, relationship?) {
         var role = new Role(customer, this, relationship);
         this.roles.push(role);

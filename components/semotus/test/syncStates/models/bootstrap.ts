@@ -1,12 +1,16 @@
 declare function require(name: string);
 
 import {expect} from 'chai';
+import {Controller} from './Controller';
 
 export type retVal =
     {
-        client: Object;
-        server: Object;
+        client: Controller;
+        server: Controller;
     }
+
+export let ServerObjectTemplate = undefined;
+export let ClientObjectTemplate = undefined;
 
 /**
  * Bootstrap for Semotus tests. Create a server controller and a client controller
@@ -14,21 +18,19 @@ export type retVal =
 export function bootstrap(): retVal {
 
     // RemoteObjectTemplate will be used for server template creation
-    var RemoteObjectTemplate = require('../../dist/index.js');
-
-    var delay = require('../../dist/helpers/Utilities.js').delay;
+    var RemoteObjectTemplate = require('../../../dist');
 
     RemoteObjectTemplate.role = 'server';
     RemoteObjectTemplate._useGettersSetters = true;
     RemoteObjectTemplate.maxCallTime = 60 * 1000;
     RemoteObjectTemplate.__conflictMode__ = 'soft';
 
-    var ClientObjectTemplate = RemoteObjectTemplate._createObject();
+    ClientObjectTemplate = RemoteObjectTemplate._createObject();
     ClientObjectTemplate.role = 'client';
     ClientObjectTemplate._useGettersSetters = false;
     ClientObjectTemplate.__conflictMode__ = 'soft';
 
-    var ServerObjectTemplate = RemoteObjectTemplate._createObject();
+    ServerObjectTemplate = RemoteObjectTemplate._createObject();
     ServerObjectTemplate.role = 'server';
     ServerObjectTemplate._useGettersSetters = true;
     ServerObjectTemplate.maxCallTime = 60 * 1000;
@@ -55,11 +57,11 @@ export function bootstrap(): retVal {
     ServerObjectTemplate.enableSendMessage(true, sendToClient);
 
 
-// Create a client controller template with an objectTemplate that has a session.
+    // Create a client controller template with an objectTemplate that has a session.
     var ClientController = createController(ClientObjectTemplate, {});
 
-// Create a server controller template with an objectTemplate that has no session since the
-// session will be propagated with sessionize.
+    // Create a server controller template with an objectTemplate that has no session since the
+    // session will be propagated with sessionize.
     var ServerController = createController(RemoteObjectTemplate, ClientObjectTemplate.getClasses());
 
     expect(ClientController == ServerController).to.equal(false);
@@ -73,16 +75,16 @@ export function bootstrap(): retVal {
         for (var obj in toClear) {
             delete require['cache'][__dirname + '/' + obj + '.js'];
         }
-        return require('./models/Controller.js').Controller;
+        return require('./Controller.js').Controller;
     }
 
     var clientController = new ClientController();
     ClientObjectTemplate.controller = clientController;
 
-// Create the server controller with the same Id so they can sync up
+    // Create the server controller with the same Id so they can sync up
     var serverController = ServerObjectTemplate._createEmptyObject(ServerController, clientController.__id__);
 
-    ServerObjectTemplate.syncSession();
+    sync();
     ServerObjectTemplate.controller = serverController;
     ServerObjectTemplate.__changeTracking__ = true;
     ServerObjectTemplate.reqSession = {loggingID: 'test', semotus: {}};
@@ -90,4 +92,8 @@ export function bootstrap(): retVal {
     ServerObjectTemplate.logger.setLevel('info;activity:dataLogging');
 
     return {server: serverController, client: clientController};
+}
+
+export function sync() {
+    ServerObjectTemplate.syncSession(undefined);
 }

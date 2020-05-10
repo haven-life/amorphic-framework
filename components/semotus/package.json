@@ -29,7 +29,8 @@
 		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
 		"debugJSTests": "mocha --inspect-brk test/javascript/*.js",
 		"test:ts:compiled": "mocha test/supertype/semotus.js",
-		"test:ts": "ts-mocha -p ./src/tsconfig.json test/supertype/semotus.ts",
+		"test:ts": "ts-mocha -p ./src/tsconfig.json test/syncStates/BaseCases.ts",
+		"test:supertype": "ts-mocha -p ./src/tsconfig.json test/supertype/semotus.ts",
 		"test": "mocha -- test/types.js test/javascript/semotus.js",
 		"coverage": "nyc npm run test",
 		"coverage:ts": "nyc npm run test:ts",
@@ -37,7 +38,7 @@
 		"clean": "rm -rf ./dist",
 		"build": "npm run compileSrc && npm run compileTests && npm run copyStatics",
 		"compileSrc": "tsc -p ./src/tsconfig.json",
-		"compileTests": "tsc -p ./test/supertype/tsconfig.json",
+		"compileTests": "tsc -p ./test/syncStates/tsconfig.json",
 		"copyStatics": "cp ./exports.d.ts ./dist/index.d.ts",
 		"buildAndTest": "npm run build && npm run test:js && npm run test:ts:compiled"
 	},

@@ -27,4 +27,8 @@ export class Role extends Supertype {
         if (relationship)
             this.relationship = relationship;
     };
+
+    equals(other: Role) {
+        return this.relationship === other.relationship;
+    }
 }

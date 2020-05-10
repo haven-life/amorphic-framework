@@ -1,17 +1,28 @@
-import {bootstrap} from './bootstrap';
+import {bootstrap} from './models/bootstrap';
+import {Controller} from './models/Controller'
+import {expect} from 'chai';
+import {results} from './results/BaseCases';
 
 const ret = bootstrap();
 
-const client = ret.client;
-const server = ret.server;
+const client: Controller = ret.client;
+const server: Controller = ret.server;
 
 /**
  * Test cases for sync states. Tests basic object synchronization / sending of objects from server to client on initial loads
  */
 describe('Basic Test Cases: Initial Object Synchronization', () => {
-    describe('Scope is *', () => {
-        it('Default test: Returns all objects for all apps', () => {
-
+    describe('Scope is *', function () {
+        beforeEach(function () {
+            server.mockServerInit(); // Act as if we're initializing the server here
+        });
+        afterEach(async function () {
+            await server.reset('server', '*');
+        });
+        it.only('Default test: Returns all objects for all apps', async function () {
+            this.timeout(5000);
+            await client.mainFunc();
+            expect(server.allChanges).to.equal(results[0]);
         });
         it('Regardless of state should return everything (no app restriction)', () => {
 

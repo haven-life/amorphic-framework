@@ -84,6 +84,7 @@ describe('Typescript Banking Example', function () {
 		var date = new Date('2010-11-11T05:00:00.000Z');
 		var output = '';
 
+		console.log(serverController);
 		var sam = clientController.sam;
 		var oldSendToLog = sam.amorphic.logger;
 
@@ -92,8 +93,8 @@ describe('Typescript Banking Example', function () {
 			output += str.replace(/[\r\n ]/g, '');
 		};
 
-		sam.amorphic.logger.startContext({ name: 'supertype' });
-		sam.amorphic.logger.warn({ foo: 'bar1' }, 'Yippie');
+		sam.amorphic.logger.startContext({name: 'supertype'});
+		sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
 		var context = sam.amorphic.logger.setContextProps({ permFoo: 'permBar1' });
 		sam.amorphic.logger.warn({ foo: 'bar2' });
 		sam.amorphic.logger.clearContextProps(context);

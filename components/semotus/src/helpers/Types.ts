@@ -94,10 +94,17 @@ export interface RemoteableClass extends Supertype {
     __toServer__: boolean;
 }
 
-type ChangeString = { [key: string]: string };
+export type ChangeString = { [key: string]: string };
 type PreServerCallChanges = { [key: string]: boolean };
 
-type Controller = {
+export type ControllerSyncState = {
+    scope: '+' | '*' | '-'
+    state: string
+}
+
+export interface ISemotusController {
+    syncState?: ControllerSyncState
+
     /**
      * @server
      *
@@ -165,11 +172,16 @@ type Controller = {
      */
     preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate?: boolean): Promise<void>;
 
-
-    syncState?: {
-        scope: '+' | '*' | '-'
-        state: string
-    }
+    /**
+     * This is a handler that will only be used for testing and debugging purposes
+     *
+     * When this is used, allows us to inspect the message body before we send it out in 'packageChanges'
+     *
+     * DO NOT USE THIS IN PRODUCTION CODE
+     *
+     * @param message
+     */
+    inspectMessage?(message): any;
 }
 
 export interface Semotus {
@@ -237,7 +249,7 @@ export interface Semotus {
     sessions?: Sessions;
     nextSubscriptionId: number;
     nextSessionId: number;
-    controller: Controller;
+    controller: ISemotusController;
     changeString: string;
 
 

@@ -33,6 +33,17 @@ export class Address extends Supertype {
         this.lines = lines || [];
         this.customer = customer;
     }
+
+    equals(other: Address) {
+        const checkPrims = this.city === other.city && this.lines === other.lines && this.state === other.state && this.type === other.type;
+        let checkAccount = true;
+        if (this.account && other.account) {
+            checkAccount = this.account.equals(other.account);
+        } else if (this.account || other.account) {
+            checkAccount = false;
+        }
+        return checkPrims && checkAccount;
+    }
 }
 
 @supertypeClass({toClient: ['A', 'Both']})

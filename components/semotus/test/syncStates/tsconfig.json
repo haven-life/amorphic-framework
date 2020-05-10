@@ -1,4 +1,7 @@
 {
+  "exclude": [
+    "./models/semotus.ts"
+  ],
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",

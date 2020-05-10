@@ -1,4 +1,4 @@
-import {bootstrap} from './bootstrap';
+import {bootstrap} from './models/bootstrap';
 
 const ret = bootstrap();
 
@@ -32,15 +32,5 @@ describe('Super Advanced Test Cases: Change Synchronization from Client to Serve
         it('New syncState = {+, second}, after update, client tries to change object with state = first: Result = True', () => {
 
         });
-    });
-
-    it('', () => {
-
-    });
-    it('App B restriction, old syncState = {*}, new syncState = {+, first}: Should send all changed B objects except those with state = second', () => {
-
-    });
-    it('App B restriction, old syncState = {*}, new syncState = {-, second}: Should should return only changes on B objects with state = second', () => {
-
     });
 })
