@@ -2,7 +2,6 @@ import {property, remote, Supertype, supertypeClass} from '../../../dist';
 import {Customer} from './Customer';
 import {Account} from './Account';
 import {Address} from './Address';
-import {expect} from 'chai';
 
 var ObjectTemplate = require('../../../dist');
 var delay = require('../../../dist/helpers/Utilities.js').delay;
@@ -12,43 +11,10 @@ ObjectTemplate['toServerRuleSet'] = ['ServerRule'];
 
 @supertypeClass
 export class Controller extends Supertype {
-	@remote({
-		on: 'server'
-	})
-	mainFunc(...args): Promise<any> {
-		return ObjectTemplate.serverAssert();
-	}
-
-	@remote({
-		on: 'server',
-		serverValidation: async (controller: Controller, ...args: any[]) => {
-			controller.serverValidatorCounter = args.length;
-			if (args.length === 3 && args[0] === 'first' && args[1] === 'second' && args[2] === 'third') {
-				controller.argumentValidator = true;
-				await delay(1500);
-				return true;
-			}
-			controller.argumentValidator = false;
-			await delay(1500);
-			return false;
-		}
-	})
-	testServerValidation(firstArg, secondArg, thirdArg) {
-		return ObjectTemplate.serverAssert();
-	}
-
-	giveSamASecondAccount() {
-		var address = new Address(this.sam, ['Plantana']);
-		var samsNewAccount = new Account(1234, ['Sam Elsamman'], this.sam, address);
-		samsNewAccount.addCustomer(this.sam, 'sole');
-	}
-
 	@property()
 	sam: Customer;
-
 	@property()
 	karen: Customer;
-
 	@property()
 	ashling: Customer;
 
@@ -65,21 +31,14 @@ export class Controller extends Supertype {
 		ashling.referredBy = sam;
 		karen.referredBy = sam;
 
-		sam.local1 = 'foo';
-		sam.local2 = 'bar';
 
 		// Setup addresses
 		sam.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
 		sam.addAddress(['38 Haggerty Hill Rd', ''], 'Rhinebeck', 'NY', '12572');
 
-		sam.addresses[0].addReturnedMail(new Date());
-		sam.addresses[0].addReturnedMail(new Date());
-		sam.addresses[1].addReturnedMail(new Date());
-
 		karen.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
 		karen.addAddress(['38 Haggerty Hill Rd', ''], 'Rhinebeck', 'NY', '12572');
 
-		karen.addresses[0].addReturnedMail(new Date());
 
 		ashling.addAddress(['End of the Road', ''], 'Lexington', 'KY', '34421');
 
@@ -99,5 +58,19 @@ export class Controller extends Supertype {
 		this.sam = sam;
 		this.karen = karen;
 		this.ashling = ashling;
+	}
+
+	@remote({
+		on: 'server'
+	})
+	mainFunc(...args): Promise<any> {
+		return ObjectTemplate.serverAssert();
+	}
+
+
+	giveSamASecondAccount() {
+		var address = new Address(this.sam, ['Plantana']);
+		var samsNewAccount = new Account(1234, ['Sam Elsamman'], this.sam, address);
+		samsNewAccount.addCustomer(this.sam, 'sole');
 	}
 }
