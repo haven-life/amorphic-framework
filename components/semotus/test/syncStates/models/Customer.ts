@@ -1,4 +1,4 @@
-import {Supertype, supertypeClass, property} from '../../dist/index';
+import {Supertype, supertypeClass, property} from '../../../dist';
 import {Role} from './Role';
 import {Address} from './Address';
 
@@ -13,9 +13,6 @@ export class Customer extends Supertype {
     }
 
     @property()
-    email: string = '';
-
-    @property()
     firstName: string = '';
 
     @property()
@@ -23,21 +20,6 @@ export class Customer extends Supertype {
 
     @property()
     lastName: string = '';
-
-    @property()
-    local1: string = 'local1';
-
-    @property()
-    local2: string = 'local2';
-
-    @property()
-    nullNumber: number = null;
-
-    @property()
-    nullDate: Date = null;
-
-    @property()
-    nullString: string = null;
 
     @property({getType: () => {return Role}})
     roles:  Array<Role> = [];

@@ -1,12 +1,14 @@
-import {Supertype, supertypeClass, property} from '../../dist/index';
+import {Supertype, supertypeClass, property} from '../../../dist';
 import {Customer} from './Customer';
 import {Account} from './Account';
 
 @supertypeClass
 export class Address extends Supertype {
 
-    constructor (customer, lines?) {
+    constructor (customer, city?, state?, lines?) {
         super();
+        this.city = city;
+        this.state = state;
         this.lines = lines || [];
         this.customer   = customer;
     }
@@ -19,12 +21,6 @@ export class Address extends Supertype {
 
     @property()
     state: string = '';
-
-    @property()
-    postalCode:  string = '';
-
-    @property()
-    country: string = 'US';
 
     @property({getType: () => {return Customer}})
     customer: Customer;
