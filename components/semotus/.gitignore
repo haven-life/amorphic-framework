@@ -6,3 +6,10 @@ dist
 
 test/supertype/*.js
 test/supertype/*.js.map
+
+
+test/syncStates/*.js
+test/syncStates/*.js.map
+
+test/syncStates/**/*.js
+test/syncStates/**/*.js.map
