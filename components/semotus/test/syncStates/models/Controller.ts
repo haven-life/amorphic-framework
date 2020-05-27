@@ -74,11 +74,29 @@ export class Controller extends Supertype implements ISemotusController {
 		console.log('Controller sync state successfully set');
 	}
 
+	@remote({on: 'server'})
+	async setState2(role, scope, state?): Promise<any> {
+		console.log(`Role is: ${role}`);
+		console.log(`Setting syncState. Original value is ${JSON.stringify(this.syncState)}`);
+		this.syncState = {scope, state};
+		console.log('Controller sync state successfully set');
+	}
+
 	@remote({
 		on: 'server'
 	})
 	async mainFunc(...args): Promise<any> {
 		await delay(1000);
+		return;
+	}
+
+	@remote({
+		on: 'server'
+	})
+	async mainFunc2(...args): Promise<any> {
+		this.karen.middleName = 'dont change';
+		this.karen.addresses[3].type = 'something';
+		this.karen.addresses[0].type = 'nothing';
 		return;
 	}
 

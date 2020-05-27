@@ -29,7 +29,7 @@
 		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
 		"debugJSTests": "mocha --inspect-brk test/javascript/*.js",
 		"test:ts:compiled": "mocha test/supertype/semotus.js",
-		"test:ts": "ts-mocha -p ./src/tsconfig.json test/syncStates/BaseCases_BothApps.ts -t 100000",
+		"test:ts": "ts-mocha -p ./src/tsconfig.json test/syncStates/BaseCases_AppB.ts -t 100000",
 		"test:supertype": "ts-mocha -p ./src/tsconfig.json test/supertype/semotus.ts",
 		"test": "mocha -- test/types.js test/javascript/semotus.js",
 		"coverage": "nyc npm run test",

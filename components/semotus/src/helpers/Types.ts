@@ -103,6 +103,7 @@ export type ControllerSyncState = {
 }
 
 export interface ISemotusController {
+    __template__: any;
     syncState?: ControllerSyncState
 
     /**

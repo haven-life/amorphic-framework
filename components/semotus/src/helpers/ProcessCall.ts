@@ -112,7 +112,8 @@ function applyChangesAndValidateCall(payload: ProcessCallPayload): boolean {
 
     let changes = JSON.parse(remoteCall.changes);
 
-    if (semotus._applyChanges(changes, semotus.role === 'client', subscriptionId, callContext)) {
+    const res = semotus._applyChanges(changes, semotus.role === 'client', subscriptionId, callContext);
+    if (res) {
         const obj = session.objects[remoteCall.id];
 
         if (!obj) {

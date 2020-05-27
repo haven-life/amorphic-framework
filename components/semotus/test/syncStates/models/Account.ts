@@ -28,7 +28,7 @@ export class Account extends Supertype {
     })
     address: Address;
 
-    constructor(number, title, customer, address) {
+    constructor(number = 0, title = ['Dummy'], customer?, address?) {
         super();
         if (address) {
             this.address = address;

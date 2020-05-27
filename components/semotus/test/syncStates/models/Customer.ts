@@ -1,6 +1,7 @@
 import {property, Supertype, supertypeClass} from '../../../dist';
 import {Role} from './Role';
 import {Address, AddressA, AddressBFirstStage, AddressBSecondStage} from './Address';
+import {Account} from './Account';
 
 @supertypeClass
 export class Customer extends Supertype {
@@ -57,6 +58,7 @@ export class Customer extends Supertype {
         address.city = city;
         address.state = state;
         address.customer = this;
+        address.account = new Account(); // dummy account for test purposes
         this.addresses.push(address);
     }
 }

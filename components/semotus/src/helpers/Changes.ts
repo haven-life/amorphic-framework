@@ -69,6 +69,10 @@ function filterSyncStates(semotusClass: RemoteableClass, semotus: Semotus): bool
     const {scope, state} = semotus.controller.syncState;
     const syncStates: Array<string> = semotusClass.syncStates;
 
+    if (semotus.controller.__template__ === semotusClass) { // Don't filter out the controller
+        return false;
+    }
+
     if (scope === '-' || scope === '+') {
         return !hasState(state, syncStates, scope);
     }
@@ -203,6 +207,19 @@ export function generate(semotus: Semotus) {
 
     for (const obj in session.objects) {
         logChanges(session.objects[obj], semotus);
+    }
+}
+
+/**
+ * Delete session objects for tests, because unit tests for client object erroneously have server session objects
+ */
+export function clearClientSession(semotus: Semotus, controller) {
+    const session = Sessions.get(semotus);
+
+    for (const obj in session.objects) {
+        if (obj !== controller.__id__) {
+            delete session.objects[obj];
+        }
     }
 }
 
