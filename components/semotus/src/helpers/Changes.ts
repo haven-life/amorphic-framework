@@ -7,6 +7,34 @@ import * as Sessions from './Sessions';
 
 /**************************** Change Management Functions **********************************/
 
+function controllerHasSyncState(semotus: Semotus): boolean {
+    return !!(semotus.role === 'server' && semotus.controller && semotus.controller.syncState);
+}
+
+export function isIsolatedObject(semotus: Semotus, obj): boolean {
+    if (objectOnClientOnly(semotus, obj)) {
+        return true;
+    }
+    else if (objectOnServerOnly(semotus, obj)) {
+        return true;
+    }
+    else if (obj.__template__.syncStates && controllerHasSyncState(semotus)) {
+        return filterSyncStates(obj.__template__, semotus);
+    }
+    else {
+        return false;
+    }
+}
+
+export function objectOnClientOnly(semotus: Semotus, obj) {
+    return semotus.role == 'client' && obj.__template__.__toServer__ === false;
+}
+
+export function objectOnServerOnly(semotus: Semotus, obj) {
+    return semotus.role == 'server' && obj.__template__.__toClient__ === false;
+}
+
+
 /**
  * Helper method to check if the specified state exists in this array of syncStates
  * @param state
@@ -14,7 +42,7 @@ import * as Sessions from './Sessions';
  * @param scope
  */
 function hasState(state: string | undefined, syncStates: Array<string>, scope: '+' | '-') {
-    if (!!state) { // If the state is empty or undefined, will sync only semotusClass without syncStates, if state exists, will filter out all that do not have that state in their syncStates
+    if (!state) { // If the state is empty or undefined, will sync only semotusClass without syncStates, if state exists, will filter out all that do not have that state in their syncStates
         return syncStates.length === 0; // IF array is empty, THEN default state exists in array. ELSE IF array has any values, returns false
     }
     else {
@@ -52,6 +80,9 @@ function filterSyncStates(semotusClass: RemoteableClass, semotus: Semotus): bool
 /**
  * Helper function to determine if we should NOT create changes for the property this defineProperty metadata is associated with
  *
+ * No need to check syncStates here since this is only called when
+ * 1) Reading the static typescript
+ * 2) On the client side
  *
  * @param defineProperty
  * @param semotusClass
@@ -73,9 +104,6 @@ export function doNotChange(defineProperty, semotusClass:  RemoteableClass | und
         }
         else if (semotusClass.__toClient__ === false && semotus.role === 'server') {
             return true; // If we're trying to send property to the client from server, when the whole semotusClass has toClient == false;
-        }
-        else if (semotus.controller.syncState) { // We've set the syncState property on the controller, and we have a semotusClass
-            return filterSyncStates(semotusClass, semotus)
         }
     }
 
@@ -107,7 +135,7 @@ export function doNotAccept(defineProperty, semotusClass: RemoteableClass, semot
     else if (semotusClass.__toClient__ === false && semotus.role === 'client') {
         return true; // If we're trying to accept changes where semotusClass's toClient is false, but we're on the client
     }
-    else if (semotus.controller.syncState) { // We've set the syncState property on the controller, and we have a semotusClass
+    else if (controllerHasSyncState(semotus)) { // We've set the syncState property on the controller, and we have a semotusClass
         return filterSyncStates(semotusClass, semotus);
     }
 
@@ -189,6 +217,7 @@ export function generate(semotus: Semotus) {
  * @param semotus
  *
  * @private
+ * // ONLY CALLED FROM CLIENT
  */
 export function logChanges(obj, semotus: Semotus) {
     // Go through all the properties and transfer them to newly created object

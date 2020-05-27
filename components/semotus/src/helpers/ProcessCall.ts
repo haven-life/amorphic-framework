@@ -417,8 +417,9 @@ function packageChanges(semotus: Semotus, session: Session, message) {
         semotus.memSession.semotus.callStartTime = 0;
     }
 
+    // Inspect a copy of the message on the server only before sent out. Only for debug purposes
     if (semotus.controller && semotus.controller.inspectMessage) {
-        semotus.controller.inspectMessage(message);
+        semotus.controller.inspectMessage(Object.assign({}, message));
     }
 
     session.sendMessage(message);

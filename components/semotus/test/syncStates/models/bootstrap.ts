@@ -1,24 +1,29 @@
 declare function require(name: string);
 
 import {expect} from 'chai';
-import {Controller} from './Controller';
 
 export type retVal =
     {
-        client: Controller;
-        server: Controller;
+        client: any;
+        server: any;
     }
 
 export let ServerObjectTemplate = undefined;
 export let ClientObjectTemplate = undefined;
 
+function resetAppRuleSet(RemoteObjectTemplate, app) {
+    RemoteObjectTemplate['toClientRuleSet'] = [app];
+    RemoteObjectTemplate['toServerRuleSet'] = [app];
+}
+
 /**
  * Bootstrap for Semotus tests. Create a server controller and a client controller
  */
-export function bootstrap(): retVal {
+export function bootstrap(app): retVal {
 
     // RemoteObjectTemplate will be used for server template creation
     var RemoteObjectTemplate = require('../../../dist');
+    resetAppRuleSet(RemoteObjectTemplate, app);
 
     RemoteObjectTemplate.role = 'server';
     RemoteObjectTemplate._useGettersSetters = true;
@@ -62,7 +67,7 @@ export function bootstrap(): retVal {
 
     // Create a server controller template with an objectTemplate that has no session since the
     // session will be propagated with sessionize.
-    var ServerController = createController(RemoteObjectTemplate, ClientObjectTemplate.getClasses());
+    var ServerController = createController(ServerObjectTemplate, ClientObjectTemplate.getClasses());
 
     expect(ClientController == ServerController).to.equal(false);
 
@@ -96,4 +101,19 @@ export function bootstrap(): retVal {
 
 export function sync() {
     ServerObjectTemplate.syncSession(undefined);
+}
+
+export async function callBootstrap(app, scope?, state?) {
+    const ret = bootstrap(app);
+    const server = ret.server;
+    const client = ret.client;
+    return await setup(client, server, scope, state);
+}
+
+export async function setup(client, server, scope?, state?) {
+    if (scope) {
+        await server.setState('server', scope, state);
+    }
+    server.mockServerInit(); // Act as if we're initializing the server here
+    return {client, server};
 }

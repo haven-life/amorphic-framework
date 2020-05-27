@@ -68,6 +68,16 @@ declare var define;
 	RemoteObjectTemplate.maxClientSequence = 1;
 	RemoteObjectTemplate.nextObjId = 1;
 
+	RemoteObjectTemplate.syncState = '';
+
+	RemoteObjectTemplate.setSyncState = function (str) {
+		this.syncState = str;
+	}
+
+	RemoteObjectTemplate.getSyncState = function () {
+		return this.syncState;
+	}
+
 	/**
 	 * @TODELETE
 	 *
@@ -822,8 +832,10 @@ declare var define;
 		// Setter
 		const objectTemplate = this;
 
-        if (this._useGettersSetters && Changes.manage(defineProperty)) {
-            const createChanges = Changes.create(defineProperty, undefined, this);
+		// Only called on the server
+		if (this._useGettersSetters && Changes.manage(defineProperty)) {
+			// Determine initially if we should create changes for these properties
+			const createChanges = Changes.create(defineProperty, undefined, this);
 
 			defineProperty.set = (function set() {
 				// use a closure to record the property name which is not passed to the setter
@@ -999,15 +1011,8 @@ declare var define;
 		this.__changeTracking__ = prevChangeTracking;
 	};
 
-	function objectOnClientOnly(remoteObjectTemplate: Semotus, obj) {
-		return remoteObjectTemplate.role == 'client' && obj.__template__.__toServer__ === false;
-	}
-
-	function objectOnServerOnly(remoteObjectTemplate: Semotus, obj) {
-		return remoteObjectTemplate.role == 'server' && obj.__template__.__toClient__ === false;
-	}
-
 	/**
+	 *
 	 * Called from a setter when a value has changed. Record old and new values
 	 * changes are accumulated for each change subscriber.
 	 * The change structure in the subscription log is a key/value store
@@ -1017,6 +1022,9 @@ declare var define;
 	 * Note that objects created with RemoteObjectTemplate have and id and that
 	 * only the id is stored
 	 *
+	 * This is triggered either by property value changes directly (through setupProperty, through the decorator)
+	 * Or through LogChanges
+	 *
 	 * @param {unknown} obj the object instance
 	 * @param {unknown} prop the object property
 	 * @param {unknown} value the new value
@@ -1024,7 +1032,7 @@ declare var define;
 	 * @private
 	 */
 	RemoteObjectTemplate._changedValue = function changedValue(obj, prop, value) {
-		if (obj.__transient__ || objectOnClientOnly(this, obj) || objectOnServerOnly(this, obj)) {
+		if (obj.__transient__ || Changes.isIsolatedObject(this, obj)) {
 			return;
 		}
 
@@ -1075,7 +1083,7 @@ declare var define;
 	 * @private
 	 */
 	RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arrayRef, sessionId) {
-		if (obj.__transient__ || objectOnClientOnly(this, obj) || objectOnServerOnly(this, obj)) { // Should not be transported
+		if (obj.__transient__ || Changes.isIsolatedObject(this, obj)) { // Should not be transported
 			return;
 		}
 

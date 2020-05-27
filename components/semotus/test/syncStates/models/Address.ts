@@ -1,6 +1,7 @@
 import {property, Supertype, supertypeClass} from '../../../dist';
 import {Customer} from './Customer';
 import {Account} from './Account';
+import * as _ from 'underscore';
 
 @supertypeClass
 export class Address extends Supertype {
@@ -35,7 +36,7 @@ export class Address extends Supertype {
     }
 
     equals(other: Address) {
-        const checkPrims = this.city === other.city && this.lines === other.lines && this.state === other.state && this.type === other.type;
+        const checkPrims = this.city === other.city && _.isEqual(this.lines, other.lines) && this.state === other.state && this.type === other.type;
         let checkAccount = true;
         if (this.account && other.account) {
             checkAccount = this.account.equals(other.account);

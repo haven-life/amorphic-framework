@@ -185,6 +185,9 @@ export interface ISemotusController {
 }
 
 export interface Semotus {
+    setSyncState: (str) => void;
+    syncState: string;
+    getSyncState: () => any;
     maxCallTime: number;
     __dictionary__: any;
     memSession: { semotus: { callStartTime: number } };

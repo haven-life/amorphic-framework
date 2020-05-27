@@ -4,11 +4,7 @@ import {Customer, CustomerA, CustomerB} from './Customer';
 import {Account} from './Account';
 import {Address} from './Address';
 
-let ObjectTemplate = require('../../../dist');
 let delay = require('../../../dist/helpers/Utilities.js').delay;
-ObjectTemplate['toClientRuleSet'] = ['Both'];
-ObjectTemplate['toServerRuleSet'] = ['Both'];
-
 
 @supertypeClass
 export class Controller extends Supertype implements ISemotusController {
@@ -28,7 +24,7 @@ export class Controller extends Supertype implements ISemotusController {
 	}
 
 	mockServerInit() {
-		this.syncState = {scope: undefined, state: undefined};
+		// this.syncState = {scope: undefined, state: undefined};
 		// Setup customers and addresses
 		var sam = new CustomerA('Sam', 'M', 'Elsamman');
 		var karen = new CustomerB('Karen', 'M', 'Burke');
@@ -45,10 +41,9 @@ export class Controller extends Supertype implements ISemotusController {
 		sam.addAddress(['38 Haggerty Hill Rd', ''], 'Rhinebeck', 'NY', '12572');
 
 		karen.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028'); // first stage
-		karen.addAddress(['38 Haggerty Hill Rd', ''], 'Rhinebeck', 'NY', '12572'); // first stage
-		karen.addAddress(['SomeRandom Address here', ''], 'Town', 'HI', '00000'); // Second Stage
-		karen.addAddress(['Another random Address', ''], 'Second', 'Hola', '88888'); // Second Stage
-
+		karen.addAddress(['38 Haggerty Hill Rd'], 'Rhinebeck', 'NY', '12572'); // first stage
+		karen.addAddress(['SomeRandom Address here'], 'Town', 'HI', '00000'); // Second Stage
+		karen.addAddress(['Another random Address'], 'Second', 'Hola', '88888'); // Second Stage
 
 		ashling.addAddress(['End of the Road', ''], 'Lexington', 'KY', '34421');
 
@@ -71,13 +66,12 @@ export class Controller extends Supertype implements ISemotusController {
 	}
 
 	@remote({on: 'server'})
-	async reset(role, scope, state?): Promise<any> {
+	async setState(role, scope, state?): Promise<any> {
 		console.log(`Role is: ${role}`);
-		console.log(`Resetting syncState. Original value is ${JSON.stringify(this.syncState)}`);
-		this.syncState.scope = scope;
-		this.syncState.state = state || undefined;
+		console.log(`Setting syncState. Original value is ${JSON.stringify(this.syncState)}`);
+		this.syncState = {scope, state};
 		this.ashling = this.sam = this.karen = null;
-		console.log('Controller sync state successfully reset');
+		console.log('Controller sync state successfully set');
 	}
 
 	@remote({
@@ -92,8 +86,8 @@ export class Controller extends Supertype implements ISemotusController {
 		this.remoteChanges = changeString;
 	}
 
-	inspectMessage(message) {
-		this.allChanges = message.changes;
+	inspectMessage(messageCopy) {
+		this.allChanges = messageCopy.changes;
 	}
 
 	giveSamASecondAccount() {
@@ -105,5 +99,12 @@ export class Controller extends Supertype implements ISemotusController {
 	equals(other: Controller) {
 		// Always create them with serverInit
 		return this.sam.equals(other.sam) && this.ashling.equals(other.ashling) && this.karen.equals(other.karen);
+	}
+
+	@remote()
+	async reset() {
+		this.sam = null;
+		this.karen = null;
+		this.ashling = null;
 	}
 }

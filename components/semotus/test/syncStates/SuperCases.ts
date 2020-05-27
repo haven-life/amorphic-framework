@@ -1,6 +1,6 @@
 import {bootstrap} from './models/bootstrap';
 
-const ret = bootstrap();
+const ret = bootstrap('');
 
 const client = ret.client;
 const server = ret.server;

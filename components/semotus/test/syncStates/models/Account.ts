@@ -2,6 +2,7 @@ import {property, Supertype, supertypeClass} from '../../../dist';
 import {Role} from './Role';
 import {Address} from './Address';
 import {Credit, Debit, Transaction, Xfer} from './Transaction';
+import * as _ from 'underscore';
 
 @supertypeClass
 export class Account extends Supertype {
@@ -40,7 +41,7 @@ export class Account extends Supertype {
     };
 
     equals(other: Account) {
-        return this.number === other.number && this.title === other.title;
+        return this.number === other.number && _.isEqual(this.title, other.title);
     }
 
     addCustomer(customer, relationship?) {
