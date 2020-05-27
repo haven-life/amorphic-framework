@@ -67,11 +67,8 @@ export class Controller extends Supertype implements ISemotusController {
 
 	@remote({on: 'server'})
 	async setState(role, scope, state?): Promise<any> {
-		console.log(`Role is: ${role}`);
-		console.log(`Setting syncState. Original value is ${JSON.stringify(this.syncState)}`);
-		this.syncState = {scope, state};
+		this.setState2(role, scope, state);
 		this.ashling = this.sam = this.karen = null;
-		console.log('Controller sync state successfully set');
 	}
 
 	@remote({on: 'server'})
@@ -94,6 +91,9 @@ export class Controller extends Supertype implements ISemotusController {
 		on: 'server'
 	})
 	async mainFunc2(...args): Promise<any> {
+		this.sam = new CustomerA('yo', 'its', 'me');
+		this.sam.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
+
 		this.karen.middleName = 'dont change';
 		this.karen.addresses[3].type = 'something';
 		this.karen.addresses[0].type = 'nothing';
@@ -112,11 +112,6 @@ export class Controller extends Supertype implements ISemotusController {
 		var address = new Address(this.sam, ['Plantana']);
 		var samsNewAccount = new Account(1234, ['Sam Elsamman'], this.sam, address);
 		samsNewAccount.addCustomer(this.sam, 'sole');
-	}
-
-	equals(other: Controller) {
-		// Always create them with serverInit
-		return this.sam.equals(other.sam) && this.ashling.equals(other.ashling) && this.karen.equals(other.karen);
 	}
 
 	@remote()

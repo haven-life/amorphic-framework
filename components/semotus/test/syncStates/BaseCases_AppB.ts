@@ -3,7 +3,6 @@ import {bootstrap, setup} from './models/bootstrap';
 
 let Changes = require('../../dist/helpers/Changes');
 
-
 let server;
 let client;
 
@@ -82,43 +81,26 @@ describe('Basic Test Cases: Initial Object Synchronization', function () {
         });
     });
     describe('Scope is -', function () {
-        it.only('With app B restriction and state = second will only return B objects which syncState = second. Since we are starting from scratch, should have no objects', async function () {
+        it('With app B restriction and state = second will only return changed B objects which syncState = second.', async function () {
             // Should only retrieve Karen second stage addresses
             await setup(client, server, '*', 'second');
             await client.mainFunc();
-            client.karen.firstName = 'yo';
+            client.karen.middleName = 'yo';
             await client.setState2('server', '-', 'second');
             await client.mainFunc2();
-            // add assertion for messageCopy.changes here to make sure we are only getting addressess
+            // TODO: add assertion for messageCopy.changes here to make sure we are only getting addressess
 
-            expect(server.karen.firstName).to.equal(client.karen.firstName);
-            expect(client.sam.firstName).to.equal(undefined);
-            expect(client.sam.lastName).to.equal(undefined);
-            expect(client.sam.middleName).to.equal(undefined);
-            expect(client.ashling.firstName).to.equal('Ashling');
-            expect(client.ashling.lastName).to.equal('Burke');
-            expect(client.ashling.middleName).to.equal('');
-            expect(client.sam.addresses.length).to.equal(0);
-            expect(server.karen.firstName).to.equal(client.karen.firstName);
+            expect(server.karen.middleName).to.not.equal(client.karen.middleName);
+            expect(client.karen.middleName).to.equal('yo');
+            expect(server.karen.middleName).to.equal('dont change');
+            expect(client.karen.addresses[3].type).to.equal(server.karen.addresses[3].type);
+            expect(client.karen.addresses[0].type).to.not.equal(server.karen.addresses[0].type);
+            expect(client.karen.addresses[3].type).to.equal('something');
+            expect(server.karen.addresses[0].type).to.equal('nothing');
 
-            // At this moment, this will not remove the object references themselves, but they will be empty objects
-            expect(client.karen.addresses.length).to.equal(4);
-            expect(server.karen.addresses.length).to.equal(4);
-            expect(client.ashling.addresses.length).to.equal(1);
-
-            // Addresses and related properties on clients that are linked to Part 1 should be undefined
-            expect(server.karen.addresses[0].city).to.not.equal(client.karen.addresses[0].city);
-            expect(server.karen.addresses[1].city).to.not.equal(client.karen.addresses[1].city);
-
-            expect(client.karen.addresses[0].city).to.be.undefined;
-            expect(client.karen.addresses[1].city).to.be.undefined;
-            expect(client.karen.addresses[0].account).to.be.undefined;
-            expect(client.karen.addresses[1].account).to.be.undefined;
-            expect(client.karen.addresses[2].account).to.not.be.undefined;
-            expect(client.karen.addresses[2].account.title[0]).to.equal('Dummy');
-
-            expect(server.karen.addresses[2].city).to.equal(client.karen.addresses[2].city);
-            expect(server.karen.addresses[3].city).to.equal(client.karen.addresses[3].city);
+            expect(client.sam.firstName).to.not.equal(server.sam.firstName);
+            expect(client.sam.middleName).to.not.equal(server.sam.middleName);
+            expect(client.sam.lastName).to.not.equal(server.sam.lastName);
             // expect(server.allChanges).to.equal(resultsAppB[1]);
         });
     });
