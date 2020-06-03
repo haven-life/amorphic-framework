@@ -4,6 +4,6 @@ export type PersistorTransaction = {
     savedObjects: object,
     touchObjects: object,
     deletedObjects: object,
-    remoteObjects: Set<string> // identifiers for objects not stored directly in our db
+    remoteObjects: Map<string, string> // identifiers for objects not stored directly in our db. key -> S3VersionId
     deleteQueries: {}
 };

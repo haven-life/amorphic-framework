@@ -1,4 +1,4 @@
-import { RemoteDocService } from '../remote-doc/RemoteDocService';
+import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
 
 module.exports = function (PersistObjectTemplate) {
@@ -34,7 +34,7 @@ module.exports = function (PersistObjectTemplate) {
         var props = template.getProperties();
         var promises = [];
         var dataSaved = {};
-        let remoteUpdates: Array<Promise<any>> = [];
+        let remoteUpdateFns: Array<() => Promise<UploadDocumentResponse>> = [];
 
         obj._id = obj._id || this.createPrimaryKey(obj);
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
@@ -162,16 +162,8 @@ module.exports = function (PersistObjectTemplate) {
                     const bucket = this.bucketName;
 
                     try {
-                        if(txn) {
-                            if(txn.remoteObjects) {
-                                txn.remoteObjects.add(objectKey);
-                            } else {
-                                txn.remoteObjects = new Set(objectKey);
-                            }
-                        }
-
-                        // grab the document from remote store
-                        remoteUpdates.push(remoteDocService.uploadDocument(documentBody, objectKey, bucket));
+                        // push function to upload the document to remote store
+                        remoteUpdateFns.push(() => remoteDocService.uploadDocument(documentBody, objectKey, bucket));
 
                         // only place a reference to the remote object in the database itself - not the actual
                         // contents of the property.
@@ -216,9 +208,21 @@ module.exports = function (PersistObjectTemplate) {
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
 
         return Promise.all(promises) // update sql saves first
-            .then(() => {
-                return Promise.all(remoteUpdates);
-            }) // update remote objects second
+            .then(() => (
+                Promise.all(
+                    remoteUpdateFns.map(
+                        // We want to wait to execute remote updates until the sql has resolved
+                        remoteUpdateFn => remoteUpdateFn()
+                    )
+                ).then((updateData: Array<UploadDocumentResponse>) => {
+                    if (txn) {
+                        txn.remoteObjects = txn.remoteObjects || new Map();
+                        for (const update of updateData) {
+                            txn.remoteObjects.set(update.key, update.versionId);
+                        }
+                    }
+                })
+            )) // update remote objects second
             .then(function() {
                 return obj;
             });
