@@ -1,3 +1,6 @@
+## 4.1.0
+* Resolve bug with calls to uploadDocument where s3 documents would be erroneously uploaded
+* Fix s3 rollbacks to delete the object via its versionId rather than marking it as deleted
 ## 4.0.0
 * Npm audit updated all modules
 * Updated Mongo and Knex modules to higher major versions, leading to breaking changes
