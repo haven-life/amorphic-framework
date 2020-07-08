@@ -46,7 +46,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
      * @param {string} bucket - the name of the s3 bucket
      * @returns {Promise<S3.PutObjectOutput>} - standard aws result object following an s3 upload
      */
-    public async uploadDocument(s3ObjectToBeUploaded: string, key: string, bucket: string) {
+    public async uploadDocument(s3ObjectToBeUploaded: string, key: string, bucket: string): Promise<S3.PutObjectOutput> {
         const bucketParams: S3.PutObjectRequest = {
             Bucket: bucket,
             Key: key,
@@ -60,7 +60,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
                 if (err) {
                     reject(err.message);
                 } else {
-                    resolve();
+                    resolve(data);
                 }
             });
         });
@@ -99,13 +99,18 @@ export class S3RemoteDocClient implements RemoteDocClient {
      *
      * @param {string} key - the unique identifier for this item within its s3 bucket
      * @param {string} bucket - the name of the s3 bucket
+     * @param {string} versionId? - the versionId for the item in the case the bucket is versioned
      * @returns {Promise<any>}
      */
-    public async deleteDocument(key: string, bucket: string) {
+    public async deleteDocument(key: string, bucket: string, versionId?: string) {
         const params: S3.DeleteObjectRequest = {
             Bucket: bucket,
             Key: key
         };
+
+        if (versionId) {
+            params.VersionId = versionId;
+        }
 
         const s3Conn = await this.getConnection(bucket);
 

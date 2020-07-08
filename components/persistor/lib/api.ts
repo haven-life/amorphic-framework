@@ -1187,7 +1187,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             savedObjects: {},
             touchObjects: {},
             deletedObjects: {},
-            remoteObjects: new Set(),
+            remoteObjects: new Map(),
             deleteQueries: {}
         };
     };
@@ -1199,7 +1199,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             savedObjects: {},
             touchObjects: {},
             deletedObjects: {},
-            remoteObjects: new Set(),
+            remoteObjects: new Map(),
             deleteQueries: {}
         };
 
