@@ -29,6 +29,7 @@ describe('Basic Test Cases: Initial Object Synchronization', () => {
     describe('Scope is *', function () {
         it('Default test: Returns all objects for all apps', async function () {
             await setup(client, server, '*');
+            // Server.syncState = { scope: '*', state: undefined }
             await client.mainFunc();
             expect(server.karen.firstName).to.equal(client.karen.firstName);
             expect(server.sam.firstName).to.equal(client.sam.firstName);

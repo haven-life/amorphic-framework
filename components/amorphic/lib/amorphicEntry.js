@@ -71,7 +71,7 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
             amorphicEntryTime,
             'amorphic.session.amorphic_entry.response_time');
     }
-    else if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.js/)) {
+    else if (req.originalUrl.match(/([A-Za-z0-9d_-]*)\.js/)) {
         // This is where you come to when you hit the page the first time, like insurify's okta post.'
         let url = req.originalUrl;
         appName = RegExp.$1;

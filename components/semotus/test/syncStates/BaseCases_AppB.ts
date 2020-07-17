@@ -86,8 +86,8 @@ describe('Basic Test Cases: Initial Object Synchronization', function () {
             await setup(client, server, '*', 'second');
             await client.mainFunc();
             client.karen.middleName = 'yo';
-            await client.setState2('server', '-', 'second');
-            await client.mainFunc2();
+            await client.setStateNoReset('server', '-', 'second');
+            await client.alternateRemoteFunction();
             // TODO: add assertion for messageCopy.changes here to make sure we are only getting addressess
 
             expect(server.karen.middleName).to.not.equal(client.karen.middleName);

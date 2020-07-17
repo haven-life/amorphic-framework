@@ -281,7 +281,7 @@ function postCallSuccess(payload: ProcessCallPayload, ret): void {
  * @param changeString
  * @param session
  */
-async function resolveErrorHandler(logger, controller, type, remoteCall: RemoteCall, remoteCallId, callContext: CallContext, changeString, session: Session) {
+async function resolveErrorHandler(logger, controller: any, type, remoteCall: RemoteCall, remoteCallId, callContext: CallContext, changeString, session: Session) {
 
     if (controller && controller.postServerErrorHandler) {
         let errorType = type;

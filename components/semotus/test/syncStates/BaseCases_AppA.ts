@@ -50,12 +50,11 @@ describe('Basic Test Cases: Initial Object Synchronization', function () {
     });
     describe('Scope is -', function () {
         it('With app A restriction and state = second, should not return any changes (except refs on controller)', async function () {
-            // Should only retrieve Karen second stage addresses
             await setup(client, server, '*', 'second');
             await client.mainFunc();
-            await client.setState2('server', '-', 'second');
+            await client.setStateNoReset('server', '-', 'second');
             server.mockServerInit();
-            await client.mainFunc2();
+            await client.alternateRemoteFunction();
             // TODO: add assertion for messageCopy.changes here to make sure we are only getting addressess
 
             expect(server.karen.middleName).to.not.equal(client.karen.middleName);

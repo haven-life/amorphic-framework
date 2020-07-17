@@ -2,7 +2,7 @@ import {property, remote, Supertype, supertypeClass} from '../../../dist';
 import {CallContext, ChangeString, ControllerSyncState, ISemotusController} from '../../../src/helpers/Types'
 import {Customer, CustomerA, CustomerB} from './Customer';
 import {Account} from './Account';
-import {Address} from './Address';
+import {Address, AddressBSecondStage} from './Address';
 
 let delay = require('../../../dist/helpers/Utilities.js').delay;
 
@@ -67,12 +67,12 @@ export class Controller extends Supertype implements ISemotusController {
 
 	@remote({on: 'server'})
 	async setState(role, scope, state?): Promise<any> {
-		this.setState2(role, scope, state);
+		this.setStateNoReset(role, scope, state);
 		this.ashling = this.sam = this.karen = null;
 	}
 
 	@remote({on: 'server'})
-	async setState2(role, scope, state?): Promise<any> {
+	async setStateNoReset(role, scope, state?): Promise<any> {
 		console.log(`Role is: ${role}`);
 		console.log(`Setting syncState. Original value is ${JSON.stringify(this.syncState)}`);
 		this.syncState = {scope, state};
@@ -83,20 +83,23 @@ export class Controller extends Supertype implements ISemotusController {
 		on: 'server'
 	})
 	async mainFunc(...args): Promise<any> {
-		await delay(1000);
 		return;
 	}
 
 	@remote({
 		on: 'server'
 	})
-	async mainFunc2(...args): Promise<any> {
+	async alternateRemoteFunction(...args): Promise<any> {
 		this.sam = new CustomerA('yo', 'its', 'me');
 		this.sam.addAddress(['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
 
 		this.karen.middleName = 'dont change';
 		this.karen.addresses[3].type = 'something';
 		this.karen.addresses[0].type = 'nothing';
+
+		// This reassignment to the same property is the only way this object will be loaded into the session again
+		this.karen.addresses.push(new AddressBSecondStage(['Test', 'Apt 1E'], 'New York', 'NY', '10028'));
+		this.karen.roles = this.karen.roles;
 		return;
 	}
 

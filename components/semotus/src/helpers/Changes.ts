@@ -42,7 +42,8 @@ export function objectOnServerOnly(semotus: Semotus, obj) {
  * @param scope
  */
 function hasState(state: string | undefined, syncStates: Array<string>, scope: '+' | '-') {
-    if (!state) { // If the state is empty or undefined, will sync only semotusClass without syncStates, if state exists, will filter out all that do not have that state in their syncStates
+    // If the state is empty string, null, or undefined, will sync only semotusClass without syncStates, if state exists, will filter out all that do not have that state in their syncStates
+    if (!state) {
         return syncStates.length === 0; // IF array is empty, THEN default state exists in array. ELSE IF array has any values, returns false
     }
     else {
