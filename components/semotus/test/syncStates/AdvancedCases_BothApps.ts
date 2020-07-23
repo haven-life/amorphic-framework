@@ -8,6 +8,7 @@ let client;
 
 
 /**
+ * @TODO: WIP Tests for advanced use cases regarding sync states
  * Test cases for sync states. Tests basic object synchronization / sending of objects from server to client on initial loads
  */
 describe('Advanced Test Cases: Object Synchronization after mutation of syncState', function () {
