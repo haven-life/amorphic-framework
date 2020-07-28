@@ -71,8 +71,8 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
             amorphicEntryTime,
             'amorphic.session.amorphic_entry.response_time');
     }
-    else if (req.originalUrl.match(/([A-Za-z0-9d_-]*)\.js/)) {
-        // This is where you come to when you hit the page the first time, like insurify's okta post.'
+    else if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.js/)) {
+        // This is where you come to when you hit the page the first time
         let url = req.originalUrl;
         appName = RegExp.$1;
 
@@ -82,7 +82,7 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
         establishServerSession(req, appName, 'initial', false, null, sessions, controllers, nonObjTemplatelogLevel)
             .then(function a(session) {
                 let time = process.hrtime();
-                
+
                 if (req.method === 'POST' && session.objectTemplate.controller.processPost) {
                     
                     Bluebird.resolve(session.objectTemplate.controller.processPost(req.originalUrl, req.body, req))
