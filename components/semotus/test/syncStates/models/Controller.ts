@@ -1,5 +1,5 @@
 import {property, remote, Supertype, supertypeClass} from '../../../dist';
-import {CallContext, ChangeString, ControllerSyncState, ISemotusController} from '../../../src/helpers/Types'
+import {CallContext, ChangeString, ControllerSyncState} from '../../../src/helpers/Types'
 import {Customer, CustomerA, CustomerB} from './Customer';
 import {Account} from './Account';
 import {Address, AddressBSecondStage} from './Address';
@@ -7,7 +7,7 @@ import {Address, AddressBSecondStage} from './Address';
 let delay = require('../../../dist/helpers/Utilities.js').delay;
 
 @supertypeClass
-export class Controller extends Supertype implements ISemotusController {
+export class Controller extends Supertype {
 	@property()
 	sam: CustomerA; // Customer A
 	@property()
