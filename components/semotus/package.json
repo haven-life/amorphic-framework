@@ -1,12 +1,40 @@
 {
 	"name": "@havenlife/semotus",
+	"version": "4.0.0",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/semotus",
-	"version": "4.0.0",
+	"bugs": {
+		"url": "http://github.com/haven-life/semotus/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/haven-life/semotus.git"
+	},
 	"main": "dist/index.js",
 	"types": "dist/exports.d.ts",
-	"peerDependencies": {
-		"@havenlife/supertype": "3.3.*"
+	"directories": {},
+	"scripts": {
+		"build": "npm run compile:src && npm run compile:test:supertype && npm run compile:test:syncstates && npm run copyStatics",
+		"buildAndTest": "npm run build && npm run test:js && npm run test:ts:compiled",
+		"clean": "rm -rf ./dist",
+		"compile:src": "tsc -p ./src/tsconfig.json",
+		"compile:test:supertype": "tsc -p ./test/supertype/tsconfig.json",
+		"compile:test:syncstates": "tsc -p ./test/syncStates/tsconfig.json",
+		"copyStatics": "cp ./exports.d.ts ./dist/index.d.ts",
+		"coverage": "nyc npm run test",
+		"coverage:ts": "nyc npm run test:ts",
+		"debugJSTests": "mocha --inspect-brk test/javascript/*.js",
+		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
+		"prepublishOnly": "npm run build",
+		"setup": "npm install",
+		"test": "mocha -- test/types.js test/javascript/semotus.js",
+		"test:ts": "npm run test:ts:supertype && npm run test:ts:syncstates",
+		"test:ts:compiled": "mocha test/supertype/semotus.js",
+		"test:ts:supertype": "mocha -p ./test/supertype/tsconfig.json test/supertype/semotus.ts --require ts-node/register",
+		"test:ts:syncstates": "npm run test:ts:syncstates:a && npm run test:ts:syncstates:b && npm run test:ts:syncstates:both",
+		"test:ts:syncstates:a": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_AppA.js -t 100000",
+		"test:ts:syncstates:b": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_AppB.js -t 100000",
+		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
 		"@havenlife/supertype": "3.3.*",
@@ -15,43 +43,18 @@
 		"@types/node": "^7.0.65",
 		"chai": "3.x",
 		"eslint": "3.7.x",
-		"nyc": "^15.0.1",
 		"mocha": "7.1.1",
+		"nyc": "^15.0.1",
 		"sinon": "1.15.x",
-		"ts-mocha": "^6.0.0",
 		"ts-node": "^6.1.0",
 		"typescript": "3.5.2",
 		"underscore": "^1.9.1"
 	},
-	"scripts": {
-		"setup": "npm install",
-		"tsTests": "npm run compile && npm run tsTests",
-		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
-		"debugJSTests": "mocha --inspect-brk test/javascript/*.js",
-		"test:ts:compiled": "mocha test/supertype/semotus.js",
-		"test:ts": "ts-mocha -p ./src/tsconfig.json test/syncStates/AdvancedCases_BothApps.ts -t 100000",
-		"test:supertype": "ts-mocha -p ./src/tsconfig.json test/supertype/semotus.ts",
-		"test": "mocha -- test/types.js test/javascript/semotus.js",
-		"coverage": "nyc npm run test",
-		"coverage:ts": "nyc npm run test:ts",
-		"prepublishOnly": "npm run build",
-		"clean": "rm -rf ./dist",
-		"build": "npm run compileSrc && npm run compileTests && npm run copyStatics",
-		"compileSrc": "tsc -p ./src/tsconfig.json",
-		"compileTests": "tsc -p ./test/syncStates/tsconfig.json",
-		"copyStatics": "cp ./exports.d.ts ./dist/index.d.ts",
-		"buildAndTest": "npm run build && npm run test:js && npm run test:ts:compiled"
+	"peerDependencies": {
+		"@havenlife/supertype": "3.3.*"
 	},
-	"directories": {},
+	"optionalDependencies": {},
 	"engines": {
 		"node": ">=0.8.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/haven-life/semotus.git"
-	},
-	"bugs": {
-		"url": "http://github.com/haven-life/semotus/issues"
-	},
-	"optionalDependencies": {}
+	}
 }

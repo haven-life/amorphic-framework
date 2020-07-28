@@ -84,7 +84,6 @@ describe('Typescript Banking Example', function () {
 		var date = new Date('2010-11-11T05:00:00.000Z');
 		var output = '';
 
-		console.log(serverController);
 		var sam = clientController.sam;
 		var oldSendToLog = sam.amorphic.logger;
 
@@ -189,7 +188,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('throw an execption', function (done) {
 		RemoteObjectTemplate.serverAssert = function () {
 			throw 'get stuffed';
@@ -253,7 +251,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('change tracking to work with arrays', function (done) {
 		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
@@ -276,7 +273,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('check onclient rules', function (done) {
 		RemoteObjectTemplate.serverAssert = function () {
 			serverController.setAllClientRuleCheckFalgsonServer();
@@ -294,7 +290,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('check onserver rules', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -308,7 +303,6 @@ describe('Typescript Banking Example', function () {
 
 		clientController.mainFunc();
 	});
-
 	it('check serverValidationRules to succeed', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -320,7 +314,6 @@ describe('Typescript Banking Example', function () {
 
 		clientController.testServerValidation('first', 'second', 'third');
 	});
-
 	it('check serverValidationRules to fail', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -345,7 +338,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('Post server error handling works asynchronously', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -369,7 +361,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('Post server error handling can throw a new error', function (done) {
 
 		// For this test, you need to verify if the logs are correct, it should say
@@ -395,7 +386,6 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
-
 	it('Mocks Update Conflict and then retries three times (tries 4 times total) and postServerErrorHandler updates Update Conflict count and throws a log only error on 3rd time', function (done) {
 		this.timeout(8000);
 
