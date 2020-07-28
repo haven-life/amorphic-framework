@@ -9,8 +9,8 @@ module.exports = function (PersistObjectTemplate) {
         var db = this.getDB(this.getDBAlias(obj.__template__.__collection__)).connection;
         var collection = db.collection(this.dealias(obj.__template__.__collection__));
         return (updateID ?
-            collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1}) :
-            collection.save(pojo, {w:1})
+                collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1}) :
+                collection.save(pojo, {w:1})
         );
         // ).then (function (error, count) {
         //     if (error instanceof Array)
@@ -38,29 +38,35 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.deleteFromMongoQuery = function(template, query, _logger) {
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
-        return collection.remove(query, {w:1, fsync:true});
+        return collection.deleteMany(query, {w:1, fsync:true});
     };
 
-    PersistObjectTemplate.getPOJOFromMongoQuery = function(template, query, options, logger) {
+    PersistObjectTemplate.getPOJOFromMongoQuery = async function(template, query, options, logger) {
         (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'read'}, 'db.' + template.__collection__ + '.find({" + JSON.stringify(query) + "})');
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
         options = options || {};
         if (!options.sort)
             options.sort = {_id:1};
-        return collection.find(query, null, options);
+
+        if (typeof(options) === "function") {
+            return collection.find(query, undefined, options).toArray();
+        }
+        else {
+            return collection.find(query, options).toArray();
+        }
     };
 
     PersistObjectTemplate.countFromMongoQuery = function(template, query) {
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
-        return collection.count(query);
+        return collection.countDocuments(query);
     };
 
     PersistObjectTemplate.distinctFromMongoQuery = function(template, field, query) {
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
-        return collection._collection.distinct(field, query);
+        return collection.distinct(field, query);
     };
 
     PersistObjectTemplate.getPOJOFromMongoId = function (template, id, _cascade, _isTransient, idMap) {

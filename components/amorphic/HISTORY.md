@@ -1,3 +1,6 @@
+## 6.0.0
+* Updated Knex and Mongo in persistor to latest major versions
+* Bringing in all of persistor versions greater than or equal to 4.0.0
 ## 5.5.0
 * send app configs over to persistor for remote document config setup
 ## 5.4.0

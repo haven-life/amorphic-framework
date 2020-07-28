@@ -1,6 +1,5 @@
-import { RemoteDocService } from '../remote-doc/RemoteDocService';
+import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
-import * as uuidv4 from 'uuid/v4';
 
 module.exports = function (PersistObjectTemplate) {
 
@@ -35,7 +34,7 @@ module.exports = function (PersistObjectTemplate) {
         var props = template.getProperties();
         var promises = [];
         var dataSaved = {};
-        let remoteUpdates: Array<Promise<any>> = [];
+        let remoteUpdateFns: Array<() => Promise<UploadDocumentResponse>> = [];
 
         obj._id = obj._id || this.createPrimaryKey(obj);
         var pojo = {_template: obj.__template__.__name__, _id: obj._id};
@@ -147,7 +146,7 @@ module.exports = function (PersistObjectTemplate) {
                 dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
             } else if (defineProperty.isRemoteObject && defineProperty.isRemoteObject === true) {
-                const uniqueIdentifier = uuidv4();
+                const uniqueIdentifier = obj._id;
 
                 const remoteObject: string = obj[prop];
 
@@ -158,21 +157,13 @@ module.exports = function (PersistObjectTemplate) {
                     const documentBody = remoteObject;
 
                     // unique identifier to find the object we're saving in the remote store
-                    const objectKey = defineProperty.__remoteObjectKey__ || `${defineProperty.remoteKeyBase}-${uniqueIdentifier}`;
+                    const objectKey = `${defineProperty.remoteKeyBase}-${uniqueIdentifier}`;
 
                     const bucket = this.bucketName;
 
                     try {
-                        if(txn) {
-                            if(txn.remoteObjects) {
-                                txn.remoteObjects.add(objectKey);
-                            } else {
-                                txn.remoteObjects = new Set(objectKey);
-                            }
-                        }
-
-                        // grab the document from remote store
-                        remoteUpdates.push(remoteDocService.uploadDocument(documentBody, objectKey, bucket));
+                        // push function to upload the document to remote store
+                        remoteUpdateFns.push(() => remoteDocService.uploadDocument(documentBody, objectKey, bucket));
 
                         // only place a reference to the remote object in the database itself - not the actual
                         // contents of the property.
@@ -192,6 +183,8 @@ module.exports = function (PersistObjectTemplate) {
                                 message: 'there was a problem uploading the document'
                             }
                         });
+
+                        throw e;
                     }
                 } else if (remoteObject && !defineProperty.remoteKeyBase) {
                     throw new Error('RemoteObject missing unique identifier key for storage in decorator');
@@ -215,7 +208,21 @@ module.exports = function (PersistObjectTemplate) {
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
 
         return Promise.all(promises) // update sql saves first
-            .then(Promise.all(remoteUpdates)) // update remote objects second
+            .then(() => (
+                Promise.all(
+                    remoteUpdateFns.map(
+                        // We want to wait to execute remote updates until the sql has resolved
+                        remoteUpdateFn => remoteUpdateFn()
+                    )
+                ).then((updateData: Array<UploadDocumentResponse>) => {
+                    if (txn) {
+                        txn.remoteObjects = txn.remoteObjects || new Map();
+                        for (const update of updateData) {
+                            txn.remoteObjects.set(update.key, update.versionId);
+                        }
+                    }
+                })
+            )) // update remote objects second
             .then(function() {
                 return obj;
             });

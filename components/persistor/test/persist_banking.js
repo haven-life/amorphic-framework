@@ -231,23 +231,24 @@ var schema = {
     }
 }
 
-var MongoClient = require('mongodb-bluebird');
-var db;
+var MongoClient = require('mongodb');
+let db, client;
 
 function clearCollection(collectionName) {
     var collection = db.collection(collectionName);
-    return collection.remove({}, {w:1}).then (function () {
-        return collection.count()
+    return collection.deleteMany({}, {w:1}).then (function () {
+        return collection.countDocuments()
     });
 }
 
 describe('Banking Example JS', function () {
     after('close db connection', function() {
-        return db.close();
+        return client.close();
     });
     it ('opens the database', function () {
-        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (dbopen) {
-            db = dbopen;
+        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (clientParam){
+            client = clientParam;
+            db = client.db();
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
@@ -323,7 +324,7 @@ describe('Banking Example JS', function () {
     it('calling savePojoToMongo with null as pojo, ', function() {
         var custForSavePojo = new Customer();
 
-        db._collections.customer.createIndex({'firstName': 1}, {unique: true});
+        db.collection('customer').createIndex({'firstName': 1}, {unique: true});
         return PersistObjectTemplate.savePojoToMongo(custForSavePojo, {
             'firstName': 'custForSavePojo',
             'lastName': 'lastName'
@@ -334,7 +335,7 @@ describe('Banking Example JS', function () {
             });
         }).catch(function (e) {
             expect(e.message).to.contain('duplicate key error');
-            db._collections.customer.dropIndex({'firstName': 1});
+            db.collection('customer').dropIndex({'firstName': 1});
         })
     });
 
@@ -372,7 +373,7 @@ describe('Banking Example JS', function () {
             done(e)
         })
     });
-
+    //
     it('Can find debits and credits >= 200 with a $in', function (done) {
         Transaction.getFromPersistWithQuery({type: {$in: ['debit', 'credit']}, amount:{'$in': [200, 100], $gt: 100}}).then (function (transactions) {
             expect(transactions.length).to.equal(1);
@@ -746,7 +747,7 @@ describe('Banking Example JS', function () {
 
 
     it('closes the database', function (done) {
-        db.close().then(function () {
+        client.close().then(function () {
             done()
         });
     });
