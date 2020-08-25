@@ -1,14 +1,14 @@
 import { RemoteDocClient } from '../remote-doc-types/index';
 import { S3, AWSError } from 'aws-sdk';
 
-const AMZONE_S3_HOST = 'https://s3.amazonaws.com/';
+const AWS_S3_HOST = 'https://s3.amazonaws.com/';
 
 export class S3RemoteDocClient implements RemoteDocClient {
 
     private s3Host;
     private S3Instance: S3;
 
-    constructor(host = AMZONE_S3_HOST) {
+    constructor(host = AWS_S3_HOST) {
         this.s3Host = host;
     }
 
