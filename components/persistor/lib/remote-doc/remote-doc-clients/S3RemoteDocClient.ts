@@ -1,9 +1,16 @@
 import { RemoteDocClient } from '../remote-doc-types/index';
 import { S3, AWSError } from 'aws-sdk';
 
+const AMZONE_S3_HOST = 'https://s3.amazonaws.com/';
+
 export class S3RemoteDocClient implements RemoteDocClient {
 
+    private s3Host;
     private S3Instance: S3;
+
+    constructor(host = AMZONE_S3_HOST) {
+        this.s3Host = host;
+    }
 
     /**
      * establish connection to s3
@@ -14,7 +21,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
 
         if (!this.hasCredentials() || (this.hasCredentials() && !this.isCredentialsValid())) {
 
-            const endPoint = 'https://s3.amazonaws.com/' + bucket;
+            const endPoint = this.s3Host + bucket;
 
             let S3Instance = new S3({
                 endpoint: endPoint,
