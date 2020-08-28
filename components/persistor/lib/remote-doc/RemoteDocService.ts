@@ -10,11 +10,11 @@ export type UploadDocumentResponse = {
 export class RemoteDocService {
     private remoteDocClient: RemoteDocClient;
 
-    static new(remoteDocClient: string, remoteDocHost: string) {
+    static new(remoteDocClient: string, remoteDocHost?: string) {
         return new RemoteDocService().init(remoteDocClient, remoteDocHost);
     }
 
-    private init(remoteDocClient: string, remoteDocHost: string): this {
+    private init(remoteDocClient: string, remoteDocHost?: string): this {
         this.remoteDocClient = RemoteDocService.remoteDocClientFactory(remoteDocClient, remoteDocHost);
         return this;
     }
