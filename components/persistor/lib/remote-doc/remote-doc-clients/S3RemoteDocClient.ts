@@ -4,6 +4,11 @@ import { S3, AWSError } from 'aws-sdk';
 export class S3RemoteDocClient implements RemoteDocClient {
 
     private S3Instance: S3;
+    private S3Host: string;
+
+    constructor(remoteDocHost?: string) {
+        this.S3Host = remoteDocHost;
+    }
 
     /**
      * establish connection to s3
@@ -14,7 +19,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
 
         if (!this.hasCredentials() || (this.hasCredentials() && !this.isCredentialsValid())) {
 
-            const endPoint = 'https://s3.amazonaws.com/' + bucket;
+            const endPoint = `${this.S3Host}${bucket}`;
 
             let S3Instance = new S3({
                 endpoint: endPoint,

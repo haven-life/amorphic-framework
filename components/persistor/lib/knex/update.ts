@@ -160,6 +160,7 @@ module.exports = function (PersistObjectTemplate) {
                     const objectKey = `${defineProperty.remoteKeyBase}-${uniqueIdentifier}`;
 
                     const bucket = this.bucketName;
+                    const hostURL = this.remoteDocHostURL;
 
                     try {
                         // push function to upload the document to remote store
