@@ -3,6 +3,7 @@
  * with remote object storage using S3RemoteDocClient
  */
 
+const RemoteDocService = require('../dist/lib/remote-doc/RemoteDocService');
 const sinon = require('sinon');
 const S3RemoteDocClient = require('../dist/lib/remote-doc/remote-doc-clients/S3RemoteDocClient').S3RemoteDocClient;
 const expect = require('chai').expect;
@@ -67,7 +68,8 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
         });
         PersistObjectTemplate.setRemoteDocConnection({
             persistorBucketName: 'test-bucket-persistor',
-            persistorRemoteDocEnvironment: 'S3'
+            persistorRemoteDocEnvironment: 'S3',
+            persistorRemoteDocHostURL: 'https://localstack.com'
         });
         PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
         PersistObjectTemplate.setSchema(schema);
@@ -86,6 +88,14 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
         noBankingDocumentCustomer.setDirty();
         const result = await PersistObjectTemplate.end();
         expect(result).to.equal(true);
+    });
+
+    context('when setting up config values', () => {
+        it('transfers props to the base template', () => {
+            expect(PersistObjectTemplate.remoteDocHostURL).to.eql('https://localstack.com');
+            expect(PersistObjectTemplate.environment).to.eql('S3');
+            expect(PersistObjectTemplate.bucketName).to.eql('test-bucket-persistor');
+        });
     });
 
     context('when downloading an existing banking document', () => {

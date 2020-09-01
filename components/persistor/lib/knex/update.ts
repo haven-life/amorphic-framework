@@ -151,8 +151,7 @@ module.exports = function (PersistObjectTemplate) {
                 const remoteObject: string = obj[prop];
 
                 if (remoteObject && defineProperty.remoteKeyBase) {
-                    // remoteDocService = remoteDocService || RemoteDocService.new(this.environment);
-                    remoteDocService = RemoteDocService.new(this.environment);
+                    remoteDocService = RemoteDocService.new(this.environment, this.remoteDocHostURL);
                     // the contents of the object we want to save in the remote store
                     const documentBody = remoteObject;
 

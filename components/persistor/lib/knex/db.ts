@@ -1239,7 +1239,7 @@ module.exports = function (PersistObjectTemplate) {
                         },
                         `Rolling back transaction of remote keys`);
 
-                    let remoteDocService = RemoteDocService.new(this.environment);
+                    let remoteDocService = RemoteDocService.new(this.environment, this.remoteDocHostURL);
 
                     let toDeletePromiseArr = [];
 

@@ -4,10 +4,10 @@ import { S3, AWSError } from 'aws-sdk';
 export class S3RemoteDocClient implements RemoteDocClient {
 
     private S3Instance: S3;
-    private S3Host = 'https://s3.amazonaws.com/';
+    private S3Host: string;
 
     constructor(remoteDocHost?: string) {
-        this.S3Host = remoteDocHost;
+        this.S3Host = remoteDocHost || 'https://s3.amazonaws.com/';
     }
 
     /**
