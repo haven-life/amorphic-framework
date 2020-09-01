@@ -2,8 +2,6 @@
  * Banking example shows PersistObjectTemplate
  * with remote object storage using S3RemoteDocClient
  */
-
-const RemoteDocService = require('../dist/lib/remote-doc/RemoteDocService');
 const sinon = require('sinon');
 const S3RemoteDocClient = require('../dist/lib/remote-doc/remote-doc-clients/S3RemoteDocClient').S3RemoteDocClient;
 const expect = require('chai').expect;
