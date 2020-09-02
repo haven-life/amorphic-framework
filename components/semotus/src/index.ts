@@ -727,25 +727,14 @@ declare var define;
 				objectTemplate._queueRemoteCall(this.__id__, propertyName, deferred, arguments);
 
 				if (self.controller && self.controller.handleRemoteError) {
-					deferred.promise.originalThen = deferred.promise.then;
-					let handledRejection = false;
-
-					deferred.promise.then = function c(res, rej, not) {
-						if (rej) {
-							handledRejection = true;
-						}
-						return deferred.promise.originalThen(res, rej, not);
-					};
-
 					delay(0).then(function d() {
-						if (!handledRejection) {
 							return deferred.promise.then(null, function e(error) {
 								self.controller && self.controller.handleRemoteError(error);
 								return Promise.resolve(true);
 							});
-						}
 					});
 				}
+				
 				return deferred.promise;
 			};
 		}

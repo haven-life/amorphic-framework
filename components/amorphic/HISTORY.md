@@ -1,3 +1,5 @@
+## 7.0.0
+* Adding sync states logic in Semotus, see Semotus for relevant documentation
 ## 6.0.0
 * Updated Knex and Mongo in persistor to latest major versions
 * Bringing in all of persistor versions greater than or equal to 4.0.0

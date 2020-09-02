@@ -1,3 +1,7 @@
+## 4.0.0
+* Adding Sync State feature to limit object synchronization at stages in a session. See documentation in SyncStates.md
+## 3.3.0
+* Changed default reject handling behavior to always trigger handleRemoteError on any remote call error if it exists
 ## 3.2.1
 * Updated packages with npm audit for developer dependenceis (istanbul and mocha)
 ## 3.2.0
