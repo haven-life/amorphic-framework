@@ -1,3 +1,5 @@
+## 4.2.0
+* Make S3 url in persistor remote doc overridable.
 ## 4.1.0
 * Resolve bug with calls to uploadDocument where s3 documents would be erroneously uploaded
 * Fix s3 rollbacks to delete the object via its versionId rather than marking it as deleted

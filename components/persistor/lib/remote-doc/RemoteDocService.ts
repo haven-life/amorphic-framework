@@ -42,7 +42,7 @@ export class RemoteDocService {
             case 'local':
                 return new LocalStorageDocClient();
             default:
-                throw new Error('no remote client specified.');
+                return new S3RemoteDocClient(remoteDocClient);
         }
     }
 }
