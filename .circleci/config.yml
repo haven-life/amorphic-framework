@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:8.10.0
+      - image: circleci/node:latest
         environment:
           port: 3001
           dbUser: postgres
@@ -12,7 +12,7 @@ jobs:
 
       - image: circleci/mongo:latest
 
-      - image: circleci/postgres:latest
+      - image: circleci/postgres:9.5.9
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: test
