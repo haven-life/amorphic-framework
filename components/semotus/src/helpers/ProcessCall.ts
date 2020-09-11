@@ -1,7 +1,6 @@
 import {delay, getError, logTime} from './Utilities';
 import {CallContext, ProcessCallPayload, RemoteCall, Semotus, Session} from './Types';
 
-
 /**
  * We process the call the remote method in stages starting by letting the controller examine the
  * changes (preCallHook) and giving it a chance to refresh data if it needs to.  Then we apply any
@@ -14,7 +13,6 @@ import {CallContext, ProcessCallPayload, RemoteCall, Semotus, Session} from './T
  *
  * @returns {unknown} unknown
  */
-
 export async function processCall(payload: ProcessCallPayload, forceupdate?: boolean) {
 
     try {

@@ -14,7 +14,7 @@ This hypothetical example can be broken down into a few states:
     3. The user provides their email address and billing information (CC, etc.) and submits (order-placement)
     4. The user is brought to a confirmation page with the relevant order number and venue information and dates (confirmation)
     
-Let's say that step 4 in this example is the end state of an order, and the customer (given a link sent to their email) will be able to revisit that page at any point in the future for reference. In a conventional amorphic application with a single stateful session, unless we set the toClient property in the `supertypeClass` decorator on the `BillingInformation` class to `false`, once we've authenticated the customer, the server may try to sync over the `BillingInformation` object and details. At this stage of the order [`confirmation`], the client has no need for the `BillingInformation` details anymore as they *have already placed and processed their order*. In other words, `BillingInformation` is superfluous.
+Let's say that step 4 in this example is the end state of an order, and the customer (given a link sent to their email) will be able to revisit that page at any point in the future for reference. In a conventional amorphic application with a single stateful session, unless we set the toClient property in the `supertypeClass` decorator on the `PaymentInformation` class to `false`, once we've authenticated the customer, the server may try to sync over the `PaymentInformation` object and details. At this stage of the order [`confirmation`], the client has no need for the `PaymentInformation` details anymore as they *have already placed and processed their order*. In other words, `PaymentInformation` is superfluous.
 
 SyncStates enable us to avoid this issue by allowing us to leverage logical states of our application and filtering out objects dynamically based on the current state that we are in.
 
@@ -138,7 +138,6 @@ In this example, we could go about this a couple ways. The one I would choose wo
    	async setState(role, scope, state?): Promise<any> {
    		this.syncState = { scope: '-', state: 'confirmation'}
    		this.currentCustomer.name = 'yo'; 
-        this.currentCustomer.paymentInformation.locked = true;
    	}
 
    }

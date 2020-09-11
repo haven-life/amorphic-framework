@@ -11,7 +11,6 @@ import {Semotus, Subscription, Subscriptions} from './Types';
  *
  * @private
  */
-
 export function getSubscription(semotus: Semotus, subscriptionId?): Subscription {
     return Sessions.get(semotus).subscriptions[subscriptionId || 0];
 }

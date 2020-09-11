@@ -235,7 +235,7 @@ export function clearClientSession(semotus: Semotus, controller) {
  * @param semotus
  *
  * @private
- * // ONLY CALLED FROM CLIENT
+ * ONLY CALLED FROM CLIENT
  */
 export function logChanges(obj, semotus: Semotus) {
     // Go through all the properties and transfer them to newly created object

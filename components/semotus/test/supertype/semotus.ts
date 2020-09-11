@@ -232,7 +232,7 @@ describe('Typescript Banking Example', function () {
 			return delay(1000);
 		};
 		clientController.mainFunc().then(function () {
-			expect('Should not be here1').to.equal(false);
+			expect('Should not be here').to.equal(false);
 		});
 		clientController
 			.mainFunc()

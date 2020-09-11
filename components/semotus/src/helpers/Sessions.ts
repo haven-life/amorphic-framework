@@ -93,7 +93,6 @@ export function get(semotus: Semotus, _sid?): Session | null {
  * @param semotus
  * @param {unknown} sessionId unknown
  */
-
 export function sync(semotus: Semotus, sessionId) {
     get(semotus, sessionId);
     semotus.getChanges();

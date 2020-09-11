@@ -2,24 +2,28 @@ import {property, Supertype, supertypeClass} from '../../../dist';
 import {Role} from './Role';
 import {Address} from './Address';
 import {Credit, Debit, Transaction, Xfer} from './Transaction';
-import * as _ from 'underscore';
 
 @supertypeClass
 export class Account extends Supertype {
 
     @property({type: Transaction, fetch: true})
     transactions: Array<Transaction> = [];
+
     @property({type: Transaction, fetch: true})
     fromAccountTransactions: Array<Transaction> = [];
+
     @property()
     number: number;
+
     @property({type: String})
     title: Array<string>;
+
     @property({
         getType: () => {
             return Role
         }
     })
+
     roles: Array<Role> = [];
     @property({
         getType: () => {

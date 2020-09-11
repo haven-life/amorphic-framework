@@ -724,6 +724,8 @@ declare var define;
 					activity: 'pre',
 					data: {call: propertyName}
 				});
+
+				// @TODO: remove dependency on Q for future optimizations on FE (perhaps part of ESNext effort)
 				const deferred = Q.defer();
 				objectTemplate._queueRemoteCall(this.__id__, propertyName, deferred, arguments);
 
