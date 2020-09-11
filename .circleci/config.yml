@@ -10,7 +10,7 @@ jobs:
           mongoHost: localhost
           logLevel: info
 
-      - image: circleci/mongo:latest
+      - image: circleci/mongo:4.2.7
 
       - image: circleci/postgres:latest
         environment:
