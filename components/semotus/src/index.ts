@@ -28,7 +28,7 @@ import {property, remote, Supertype, supertypeClass} from './decorators';
 import {Bindable, Persistable, Remoteable} from './setupExtends';
 import * as Sessions from './helpers/Sessions';
 import * as Subscriptions from './helpers/Subscriptions';
-import {defer, delay} from './helpers/Utilities';
+import {delay} from './helpers/Utilities';
 import * as Changes from './helpers/Changes';
 import * as ChangeGroups from './helpers/ChangeGroups';
 import {processCall} from "./helpers/ProcessCall";
@@ -36,17 +36,18 @@ import {processCall} from "./helpers/ProcessCall";
 declare var define;
 
 // @TODO: Check if we attach Promise as a keyword in the webpack build
-(function(root, factory) {
+(function (root, factory) {
 	'use strict';
 	if (typeof define === 'function' && define.amd) {
-		define(['underscore', '@havenlife/supertype'], factory);
-	} else if (typeof exports === 'object') {
-		module.exports = factory(require('underscore'), require('@havenlife/supertype'));
-	} else {
-		root.RemoteObjectTemplate = factory(root._, root.ObjectTemplate);
+		define(['q', 'underscore', '@havenlife/supertype'], factory);
 	}
-})(this, function (_, SupertypeModule) {
-	'use strict';
+	else if (typeof exports === 'object') {
+		module.exports = factory(require('q'), require('underscore'), require('@havenlife/supertype'));
+	}
+	else {
+		root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);
+	}
+})(this, function (Q, _, SupertypeModule) {
 
 	var ObjectTemplate = SupertypeModule.default;
 	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject();
@@ -721,17 +722,17 @@ declare var define;
 					component: 'semotus',
 					module: 'setupFunction',
 					activity: 'pre',
-					data: { call: propertyName }
+					data: {call: propertyName}
 				});
-				const deferred = defer();
+				const deferred = Q.defer();
 				objectTemplate._queueRemoteCall(this.__id__, propertyName, deferred, arguments);
 
 				if (self.controller && self.controller.handleRemoteError) {
 					delay(0).then(function d() {
-							return deferred.promise.then(null, function e(error) {
-								self.controller && self.controller.handleRemoteError(error);
-								return Promise.resolve(true);
-							});
+						return deferred.promise.then(null, function e(error) {
+							self.controller && self.controller.handleRemoteError(error);
+							return Promise.resolve(true);
+						});
 					});
 				}
 				
