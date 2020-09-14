@@ -1133,6 +1133,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     PersistObjectTemplate.setRemoteDocConnection = function (options: RemoteDocConnectionOptions): void {
         this.bucketName = options.persistorBucketName;
         this.environment = options.persistorRemoteDocEnvironment;
+        this.remoteDocHostURL = options.persistorRemoteDocHostURL
     };
 
     /**

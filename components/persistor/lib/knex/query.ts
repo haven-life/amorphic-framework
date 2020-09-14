@@ -315,7 +315,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
                 else if (isRemoteDoc) {
-                    remoteDocService = remoteDocService || RemoteDocService.new(this.environment);
+                    remoteDocService = remoteDocService || RemoteDocService.new(this.environment, this.remoteDocHostURL);
                     // if we have a remote object type, fetch it and place it in the template
                     if (value && typeof value === 'string') {
                         try {

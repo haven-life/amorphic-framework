@@ -1,3 +1,5 @@
+## 4.2.0
+* config driven host URL name for remote document store
 ## 4.1.1
 * remove node warnings for legacy calls
 ## 4.1.0
