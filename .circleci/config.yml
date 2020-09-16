@@ -41,64 +41,64 @@ jobs:
       - run:
           name: Build packages
           command: npm run build
-    all_tests:
-      docker:
-        - image: circleci/node:lts
-          environment:
-            port: 3001
-            dbUser: postgres
-            dbName: test
-            mongoHost: localhost
-            logLevel: info
-        - image: circleci/mongo:4.2.7
-        - image: circleci/postgres:latest
-          environment:
-            POSTGRES_USER: postgres
-            POSTGRES_DB: test
-            POSTGRES_HOST_AUTH_METHOD: trust
-      steps:
-        - checkout
+  all_tests:
+    docker:
+      - image: circleci/node:lts
+        environment:
+        port: 3001
+        dbUser: postgres
+        dbName: test
+        mongoHost: localhost
+        logLevel: info
+      - image: circleci/mongo:4.2.7
+      - image: circleci/postgres:latest
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+          POSTGRES_HOST_AUTH_METHOD: trust
+    steps:
+      - checkout
 
-        # run javascript tests - Supertype!
-        - run:
-            name: Supertype JS Tests
-            command: npm run test:supertype
+      # run javascript tests - Supertype!
+      - run:
+          name: Supertype JS Tests
+          command: npm run test:supertype
 
-        # run typescript tests - Supertype!
-        - run:
-            name: Supertype TS Tests
-            command: npm run test:ts:supertype
+      # run typescript tests - Supertype!
+      - run:
+          name: Supertype TS Tests
+          command: npm run test:ts:supertype
 
-        # run javascript tests - Semotus!
-        - run:
-            name: Semotus JS Tests
-            command: npm run test:semotus
+      # run javascript tests - Semotus!
+      - run:
+          name: Semotus JS Tests
+          command: npm run test:semotus
 
-        # run typescript tests - Semotus!
-        - run:
-            name: Semotus TS Tests
-            command: npm run test:ts:semotus
+      # run typescript tests - Semotus!
+      - run:
+          name: Semotus TS Tests
+          command: npm run test:ts:semotus
 
 
-        # run javascript tests - Amorphic!
-        - run:
-            name: Amorphic JS Tests
-            command: npm run test:amorphic
+      # run javascript tests - Amorphic!
+      - run:
+          name: Amorphic JS Tests
+          command: npm run test:amorphic
 
-        # run typescript tests - Amorphic!
-        - run:
-            name: Amorphic TS Tests
-            command: npm run test:ts:amorphic
+      # run typescript tests - Amorphic!
+      - run:
+          name: Amorphic TS Tests
+          command: npm run test:ts:amorphic
 
-        #      # run javascript tests - Persistor!
-        - run:
-            name: Persistor JS Tests
-            command: npm run test:persistor
+      #      # run javascript tests - Persistor!
+      - run:
+          name: Persistor JS Tests
+          command: npm run test:persistor
 
-        # run typescript tests - Persistor!
-        - run:
-            name: Persistor TS Tests
-            command: npm run test:ts:persistor
+      # run typescript tests - Persistor!
+      - run:
+          name: Persistor TS Tests
+          command: npm run test:ts:persistor
 
 #      # run all js tests
 #      - run:
