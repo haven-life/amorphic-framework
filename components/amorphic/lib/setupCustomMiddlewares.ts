@@ -1,18 +1,16 @@
-'use strict';
+import * as fs from 'fs';
 
-const fs = require('fs');
-
-function setupCustomMiddlewares(filePath, router) {
+export async function setupCustomMiddlewares(filePath, router) {
     const middlewareFilePath = `${filePath}/middlewares/index.js`;
 
     let middlewares;
 
-    if(fs.existsSync(middlewareFilePath)) {
+    if (fs.existsSync(middlewareFilePath)) {
         middlewares = require(middlewareFilePath);
 
         const exportedMiddlewareFunctions = Object.keys(middlewares);
 
-        if(exportedMiddlewareFunctions.length === 0) {
+        if (exportedMiddlewareFunctions.length === 0) {
             console.warn('A custom middlewares file was defined, but no exported functions were found. Using default amorphic middlwares');
             return;
         }
@@ -21,7 +19,7 @@ function setupCustomMiddlewares(filePath, router) {
         for (const middlewareFunction of exportedMiddlewareFunctions) {
             if (typeof middlewares[middlewareFunction] === 'function') {
                 console.debug('Evaluating middleware: ' + middlewareFunction);
-                middlewares[middlewareFunction](router);
+                await middlewares[middlewareFunction](router);
             }
         }
 
@@ -31,7 +29,3 @@ function setupCustomMiddlewares(filePath, router) {
         return router;
     }
 }
-
-module.exports = {
-    setupCustomMiddlewares: setupCustomMiddlewares
-};

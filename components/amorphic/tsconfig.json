@@ -1,6 +1,8 @@
 {
   "files": [
-    "./lib/AmorphicServer.ts"
+    "./lib/AmorphicServer.ts",
+    "./lib/setupCustomMiddlewares.ts",
+    "./lib/setupCustomRoutes.ts"
   ],
   "compilerOptions": {
     "module": "commonjs",

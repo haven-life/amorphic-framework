@@ -9,12 +9,8 @@ let postRouter = require('./routers/postRouter').postRouter;
 let downloadRouter = require('./routers/downloadRouter').downloadRouter;
 let router = require('./routers/router').router;
 let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownloadsDir;
-let setupCustomRoutes = require('./setupCustomRoutes').setupCustomRoutes;
-let setupCustomMiddlewares = require('./setupCustomMiddlewares').setupCustomMiddlewares;
-
-let nonObjTemplatelogLevel = 1;
-
-
+import {setupCustomRoutes} from './setupCustomRoutes';
+import {setupCustomMiddlewares} from './setupCustomMiddlewares';
 import * as expressSession from 'express-session';
 import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
@@ -22,6 +18,9 @@ import * as fs from 'fs';
 import * as compression from 'compression';
 import * as http from 'http';
 import * as https from 'https';
+
+let nonObjTemplatelogLevel = 1;
+
 
 type Options = {
     amorphicOptions: any;
@@ -44,19 +43,29 @@ type ServerOptions = https.ServerOptions &
 //@TODO: Experiment with app.engine so we can have customizable SSR
 export class AmorphicServer {
     app: express.Express;
-    private serverMode: string;
     routers: { path: string; router: express.Router }[] = [];
+    private serverMode: string;
 
     /**
-    *
-    * @param preSessionInject - callback before server starts up
-    * @param postSessionInject - callback after server starts up
-    * @param appList - List of strings that are all the apps
-    * @param appStartList - List of strings that have the app names for start
-    * @param appDirectory - Location of the apps folder
-    * @param sessionConfig - Object containing the session config
-    */
-    static createServer(preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionConfig) {
+     *
+     * @param {express.Express} app, an instance of an express server
+     * @param {string} serverMode
+     */
+    constructor(app: express.Express, serverMode: string) {
+        this.app = app;
+        this.serverMode = serverMode;
+    }
+
+    /**
+     *
+     * @param preSessionInject - callback before server starts up
+     * @param postSessionInject - callback after server starts up
+     * @param appList - List of strings that are all the apps
+     * @param appStartList - List of strings that have the app names for start
+     * @param appDirectory - Location of the apps folder
+     * @param sessionConfig - Object containing the session config
+     */
+    static async createServer(preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionConfig) {
         const amorphicOptions = AmorphicContext.amorphicOptions;
         const mainApp = amorphicOptions.mainApp;
         const appConfig = AmorphicContext.applicationConfig[mainApp];
@@ -76,7 +85,7 @@ export class AmorphicServer {
 
         const apiPath = serverOptions && serverOptions.apiPath;
 
-        server.setupUserEndpoints(appDirectory, appList[mainApp], apiPath);
+        await server.setupUserEndpoints(appDirectory, appList[mainApp], apiPath);
 
         // for anything other than user only routes, set up our default amorphic router.
         if (server.serverMode !== 'api') {
@@ -115,16 +124,6 @@ export class AmorphicServer {
         AmorphicContext.appContext.server = http.createServer(server.app).listen(port);
 
         AmorphicContext.appContext.expressApp = server.app;
-    }
-
-    /**
-     *
-     * @param {express.Express} app, an instance of an express server
-     * @param {string} serverMode
-     */
-    constructor(app: express.Express, serverMode: string) {
-        this.app = app;
-        this.serverMode = serverMode;
     }
 
     /**
@@ -273,14 +272,14 @@ export class AmorphicServer {
      * for amorphic is for the '/amorphic' routes to run
      * @memberof AmorphicServer
      */
-    setupUserEndpoints(appDirectory: string, mainAppPath: string, apiPath = '/api') {
+    async setupUserEndpoints(appDirectory: string, mainAppPath: string, apiPath = '/api') {
         let filePath = this.getBaseControllerFilePath(appDirectory, mainAppPath);
-        let router = setupCustomMiddlewares(filePath, express.Router());
-        router = setupCustomRoutes(filePath, router);
+        let router = await setupCustomMiddlewares(filePath, express.Router());
+        router = await setupCustomRoutes(filePath, router);
 
         if (router) {
             this.app.use(apiPath, router);
-            this.routers.push({ path: apiPath, router: router });
+            this.routers.push({path: apiPath, router: router});
         }
     }
 

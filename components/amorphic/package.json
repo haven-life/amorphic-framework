@@ -4,7 +4,7 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "6.0.0",
+	"version": "6.1.0-beta.0",
 	"dependencies": {
 		"@havenlife/persistor": "4.x",
 		"@havenlife/semotus": "3.x",
@@ -51,7 +51,7 @@
 		"build": "npm run recreateDist && npm run copy && npm run compile",
 		"compile": "tsc -p ./tsconfig.json",
 		"compile:amorphic:tests": "tsc -p ./typescript_tests/tsconfig.test.json",
-		"copy": "cp *.js ./dist && cp index.* ./dist && cp -r ./lib ./dist && rm ./dist/lib/AmorphicServer.*",
+		"copy": "cp *.js ./dist && cp index.* ./dist && cp -r ./lib ./dist && rm ./dist/lib/AmorphicServer.* && rm ./dist/lib/setupCustom*.*",
 		"lint": "eslint .",
 		"prepublishOnly": "npm run build",
 		"recreateDist": "rm -rf ./dist/ && mkdir ./dist/",
