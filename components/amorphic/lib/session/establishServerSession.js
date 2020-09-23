@@ -1,11 +1,13 @@
 'use strict';
 
-let amorphicContext = require('../AmorphicContext');
-let getSessionCache = require('./getSessionCache').getSessionCache;
+let AmorphicContext = require('../AmorphicContext');
 let establishInitialServerSession = require('./establishInitialServerSession').establishInitialServerSession;
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+
+// @TODO: split initial and continued server session to completely different pathways
+
 
 /**
  * Sets up generic logging context with context passed from request
@@ -25,8 +27,10 @@ function setup(req, semotus) {
     }
 
     let message = req.body;
+
     if (message && semotus.objectTemplate && semotus.objectTemplate.logger) {
         let context = message && message.loggingContext;
+        semotus.objectTemplate.logger.context = semotus.objectTemplate.logger.context || {};
         semotus.objectTemplate.logger.setContextProps(context);
     }
 
@@ -52,39 +56,22 @@ function setup(req, semotus) {
  * new web page.
  * @param {unknown} reset - create new clean empty controller losing all data
  * @param {unknown} newControllerId - client is sending us data for a new controller that it has created
- * @param {unknown} sessions unknown
- * @param {unknown} controllers unknown
- *
  * @returns {Promise<Object>} Promise that resolves to server session object.
  */
-function establishServerSession(req, path, newPage, reset, newControllerId, sessions, controllers, nonObjTemplatelogLevel) {
-
-    let establishInitialServerSessionTime = process.hrtime();
-
-    let applicationConfig = amorphicContext.applicationConfig;
-
+function establishServerSession(req, path, newPage, reset, newControllerId) {
     // Retrieve configuration information
-    let config = applicationConfig[path];
-
+    let config = AmorphicContext.getAppConfigByPath(path);
     if (!config) {
         throw new Error('Semotus: establishServerSession called with a path of ' + path + ' which was not registered');
     }
 
-    let initObjectTemplate = config.initObjectTemplate;
-    let controllerPath = config.appPath + '/' + (config.appConfig.controller || 'controller.js');
-    let objectCacheExpiration = config.objectCacheExpiration;
-    let sessionExpiration = config.sessionExpiration;
-    let sessionStore = config.sessionStore;
-    let appVersion = config.appVersion;
+    let establishInitialServerSessionTime = process.hrtime();
     let session = req.session;
-    let sessionData = getSessionCache(path, req.session.id, false, sessions);
 
     if (newPage === 'initial') {
 
-        sessionData.sequence = 1;
-
-        // For a new page determine if a controller is to be omitted
-        if (config.appConfig.createControllerFor && !session.semotus) {
+        // For a new page determine if a controller is to be omitted, there should be no controller objects tied to this session
+        if (config.appConfig.createControllerFor && !session.semotus.controllers !== {}) {
 
             let referer = '';
 
@@ -96,12 +83,9 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
 
             if (!referer.match(createControllerFor) && createControllerFor !== 'yes') {
 
-                statsdUtils.computeTimingAndSend(
-                    establishInitialServerSessionTime,
-                    'amorphic.session.establish_server_session.response_time');
+                statsdUtils.computeTimingAndSend(establishInitialServerSessionTime, 'amorphic.session.establish_server_session.response_time');
 
-                return establishInitialServerSession(req, controllerPath, initObjectTemplate, path,
-                    appVersion, sessionExpiration);
+                return establishInitialServerSession(req, path);
             }
         }
     }
@@ -110,10 +94,10 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
         establishInitialServerSessionTime,
         'amorphic.session.establish_server_session.response_time');
 
-    return establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
-        sessionExpiration, session, sessionStore, newControllerId, objectCacheExpiration, newPage,
-        controllers, nonObjTemplatelogLevel, sessions, reset)
-        .then(setup.bind(this, req));
+    return establishContinuedServerSession(req, path, session, newControllerId, newPage, reset).then((result) => {
+        console.log(session.sequence);
+        return setup(req, result)
+    });
 }
 
 module.exports = {

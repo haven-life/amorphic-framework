@@ -113,7 +113,13 @@ module.exports.controller = function (objectTemplate, getTemplate) {
                 this.preServerCallObjects[templateName] = true;
             }
             return Bluebird.resolve()
-                .then(this.sam ? this.sam.refresh.bind(this.sam, null) : true)
+                .then(() => {
+                    console.log(sam.__version__);
+                    this.sam ? this.sam.refresh.bind(this.sam, null) : true
+                })
+                .then( () => {
+                    console.log(sam.__version__);
+                })
                 .then(this.karen ? this.karen.refresh.bind(this.karen, null) : true)
                 .then(this.ashling ? this.ashling.refresh.bind(this.ashling, null) : true)
                 .then(function () {

@@ -25,7 +25,7 @@ describe('toClient and toServer testing', function() {
     });
     after(afterEachDescribe);
 
-    it('should recieve a bunch of document.writes', function() {
+    it('should receive a bunch of document.writes', function() {
         return axios({
             method: 'post',
             url: 'http://localhost:3001/amorphic/init/app2.js'

@@ -2,17 +2,12 @@
 let AmorphicContext = require('./AmorphicContext');
 let Logger = require('./utils/logger');
 let logMessage = Logger.logMessage;
-let uploadRouter = require('./routers/uploadRouter').uploadRouter;
 let initializePerformance = require('./utils/initializePerformance').initializePerformance;
 let amorphicEntry = require('./amorphicEntry').amorphicEntry;
-let postRouter = require('./routers/postRouter').postRouter;
-let downloadRouter = require('./routers/downloadRouter').downloadRouter;
-let router = require('./routers/router').router;
+import { post, upload, base, download } from './router';
 let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownloadsDir;
 let setupCustomRoutes = require('./setupCustomRoutes').setupCustomRoutes;
 let setupCustomMiddlewares = require('./setupCustomMiddlewares').setupCustomMiddlewares;
-
-let nonObjTemplatelogLevel = 1;
 
 
 import * as expressSession from 'express-session';
@@ -22,6 +17,7 @@ import * as fs from 'fs';
 import * as compression from 'compression';
 import * as http from 'http';
 import * as https from 'https';
+
 
 type Options = {
     amorphicOptions: any;
@@ -180,10 +176,14 @@ export class AmorphicServer {
         const mainApp = amorphicOptions.mainApp;
         let appConfig = AmorphicContext.applicationConfig[mainApp];
         let reqBodySizeLimit = appConfig.reqBodySizeLimit || '50mb';
-        let controllers = {};
-        let sessions = {};
 
-        const downloads = generateDownloadsDir();
+        // For Sticky Session removal, we need to get rid of the controller stores AND the session stores
+        // We cannot pass them along to the different amorphic routes
+
+        // let controllers = {};
+        // let sessions = {};
+
+        generateDownloadsDir();
 
         /*
          * @TODO: make compression only process on amorphic specific routes
@@ -245,19 +245,19 @@ export class AmorphicServer {
         amorphicRouter.use(initializePerformance);
         amorphicRouter.use(cookieMiddleware)
             .use(expressSesh)
-            .use(uploadRouter.bind(null, downloads))
-            .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
+            .use(upload)
+            .use(download)
             .use(bodyLimitMiddleWare)
             .use(urlEncodedMiddleWare)
-            .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
-            .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
+            .use(post)
+            .use(amorphicEntry);
 
         if (postSessionInject) {
             postSessionInject.call(null, this.app);
         }
 
 
-        amorphicRouter.use(router.bind(null, sessions, nonObjTemplatelogLevel, controllers));
+        amorphicRouter.use(base);
         const amorphicPath = '/amorphic';
 
         this.app.use(`${amorphicPath}`, amorphicRouter);

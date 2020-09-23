@@ -1,20 +1,20 @@
-'use strict';
 
-let Logger = require('../utils/logger');
+import * as fs from 'fs';
+import * as Logger from '../utils/logger';
+import * as formidable from 'formidable';
+import {StatsdHelper} from '@havenlife/supertype';
+
 let logMessage = Logger.logMessage;
-let formidable = require('formidable');
-let fs = require('fs');
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
- * Purpose unknown
+ *  Process a file for upload to the amorphic server
  *
  * @param {unknown} req unknown
  * @param {unknown} resp unknown
  * @param {unknown} next unknown
  * @param {unknown} downloads unknown
  */
-function processFile(req, resp, next, downloads) {
+export function processFile(req, resp, next, downloads) {
     let processFileTime = process.hrtime();
 
     if (!downloads) {
@@ -24,7 +24,7 @@ function processFile(req, resp, next, downloads) {
         return;
     }
 
-    let form = new formidable.IncomingForm();
+    let form: any = new formidable.IncomingForm();
     form.uploadDir = downloads;
 
     form.parse(req, function ee(err, _fields, files) {
@@ -40,7 +40,7 @@ function processFile(req, resp, next, downloads) {
         setTimeout(function yz() {
             fs.unlink(file, function zy(err) {
                 if (err) {
-                    logMessage(err);
+                    logMessage(err.message);
                 }
                 else {
                     logMessage(file + ' deleted');
@@ -53,13 +53,9 @@ function processFile(req, resp, next, downloads) {
         resp.end('<html><body><script>parent.amorphic.prepareFileUpload(\'package\');' +
             'parent.amorphic.uploadFunction.call(null, "' +  fileName + '"' + ')</script></body></html>');
 
-        statsdUtils.computeTimingAndSend(
+        StatsdHelper.computeTimingAndSend(
             processFileTime,
             'amorphic.webserver.process_file.response_time',
             { result: 'success' });
     });
 }
-
-module.exports = {
-    processFile: processFile
-};

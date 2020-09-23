@@ -6,7 +6,7 @@ let compressSessionData = require('./compressSessionData').compressSessionData;
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 
 /**
- * Purpose unknown
+ * Saves the controller back to the express session again, express-session middleware handles saving to redis
  *
  * @param {String} path - The app name.
  * @param {unknown} session unknown
@@ -14,7 +14,7 @@ let statsdUtils = require('@havenlife/supertype').StatsdHelper;
  * @param {Object} req - Express request object.
  * @param {unknown} sessions unknown
  */
-function saveSession(path, session, controller, req, sessions) {
+function saveSession(path, session, controller, req) {
     let saveSessionTime = process.hrtime();
 
     let request = controller.__request;
@@ -34,11 +34,13 @@ function saveSession(path, session, controller, req, sessions) {
     }
 
     // Track the time of the last serialization to make sure it is valid
-    let sessionData = getSessionCache(path, ourObjectTemplate.controller.__sessionId, true, sessions);
-    sessionData.serializationTimeStamp = (new Date ()).getTime();
+    // let sessionData = getSessionCache(path, ourObjectTemplate.controller.__sessionId, true, sessions);
+    // sessionData.serializationTimeStamp = (new Date ()).getTime();
 
-    session.semotus.controllers[path] = {controller: compressSessionData(serialSession),
-        serializationTimeStamp: sessionData.serializationTimeStamp};
+    // @TODO: We only allow one app per session, why are we having multiple controllers per app?
+    session.semotus.controllers[path] = {
+        controller: compressSessionData(serialSession)
+    };
 
     session.semotus.lastAccess = new Date(); // Tickle it to force out cookie
 
@@ -59,9 +61,7 @@ function saveSession(path, session, controller, req, sessions) {
 
     controller.__request = request;
 
-    statsdUtils.computeTimingAndSend(
-        saveSessionTime,
-        'amorphic.session.save_session.response_time');
+    statsdUtils.computeTimingAndSend(saveSessionTime, 'amorphic.session.save_session.response_time');
 }
 
 module.exports = {

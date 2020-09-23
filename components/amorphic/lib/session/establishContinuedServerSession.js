@@ -7,7 +7,6 @@ let getController = require('../getController').getController;
 let getServerConfigString = require('../utils/getServerConfigString').getServerConfigString;
 let saveSession = require('./saveSession').saveSession;
 let restoreSession = require('./restoreSession').restoreSession;
-let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let Bluebird = require('bluebird');
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
@@ -16,32 +15,23 @@ let statsdUtils = require('@havenlife/supertype').StatsdHelper;
  * Continues an already establised session.
  *
  * @param {Object} req - Express request object.
- * @param {String} controllerPath - The path to the main controller js file.
- * @param {Function} initObjectTemplate - Function that injects properties and functions onto each object template.
- * @param {String} path - The app name.
- * @param {unknown} appVersion unknown
- * @param {unknown} sessionExpiration unknown
- * @param {unknown} session unknown
- * @param {unknown} sessionStore unknown
- * @param {unknown} newControllerId unknown
- * @param {unknown} objectCacheExpiration unknown
- * @param {unknown} newPage unknown
- * @param {unknown} controllers unknown
- * @param {unknown} sessions unknown
- * @param {unknown} reset unknown
+ * @param {String} controllerPath
+ * @param {String} path - The app name. - param
+ * @param {unknown} session unknown - param
+ * @param {unknown} newControllerId unknown - param
+ * @param {unknown} newPage unknown - param
+ * @param {unknown} reset unknown - param
  *
  * @returns {Object} unknown
  */
-function establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
-                                         sessionExpiration, session, sessionStore,
-                                         newControllerId, objectCacheExpiration, newPage,
-                                         controllers, nonObjTemplatelogLevel, sessions, reset) {
+function establishContinuedServerSession(req, path, session, newControllerId, newPage, reset) {
     let establishContinuedServerSessionTime = process.hrtime();
 
-    let applicationConfig = AmorphicContext.applicationConfig;
     let applicationPersistorProps = AmorphicContext.applicationPersistorProps;
+    let config = AmorphicContext.getAppConfigByPath(path);
 
-    let config = applicationConfig[path];
+    let sessionExpiration = config.sessionExpiration;
+    let appVersion = config.appVersion;
 
     newControllerId = newControllerId || null;
     // Create or restore the controller
@@ -50,14 +40,11 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
     let controller;
     let ret;
 
-    if (!session.semotus || !session.semotus.controllers[path] || reset || newControllerId) {
+    // Semotus Session initialized to empty set of controllers via amorphicEntry which should be the first stop here
+    if (!session.semotus.controllers[path] || reset || newControllerId) {
         shouldReset = true;
         // TODO what is newSession, why do this?
         newSession = !newControllerId;
-
-        if (!session.semotus) {
-            session.semotus = getDefaultSemotus();
-        }
 
         if (!session.semotus.loggingContext[path]) {
             let messageContext = req.body && req.body.loggingContext;
@@ -65,12 +52,9 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
         }
     }
 
-    controller = getController(path, controllerPath, initObjectTemplate, session, objectCacheExpiration, sessionStore, newPage, shouldReset, newControllerId, req, controllers, nonObjTemplatelogLevel, sessions);
-
-    let sessionData = getSessionCache(path, req.session.id, true, sessions);
+    controller = getController(path, session, newPage, shouldReset, newControllerId, req);
     let ourObjectTemplate = getObjectTemplate(controller);
-    ourObjectTemplate.memSession = sessionData;
-    ourObjectTemplate.reqSession = req.session;
+    ourObjectTemplate.reqSession = session;
     controller.__request = req;
     controller.__sessionExpiration = sessionExpiration;
 
@@ -106,11 +90,11 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
         },
 
         save: function surve(path, session, req) {
-            saveSession(path, session, controller, req, sessions);
+            saveSession(path, session, controller, req);
         },
 
         restoreSession: function rastaSess() {
-            return restoreSession(path, session, controller, sessions);
+            return restoreSession(path, session, controller);
         },
 
         getPersistorProps: function getPersistorProps() {
@@ -119,23 +103,17 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
     };
 
     if (newPage) {
-        saveSession(path, session, controller, req, sessions);
+        saveSession(path, session, controller, req);
     }
 
     return Bluebird.try(function g() {
+        console.log(session.sequence);
         statsdUtils.computeTimingAndSend(
             establishContinuedServerSessionTime,
             'amorphic.session.establish_continued_server_session.response_time');
 
         return ret;
     });
-}
-
-function getDefaultSemotus() {
-    return {
-        controllers: {},
-        loggingContext: {}
-    };
 }
 
 module.exports = {

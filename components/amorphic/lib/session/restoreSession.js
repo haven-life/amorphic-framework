@@ -1,6 +1,5 @@
 'use strict';
 
-let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let decompressSessionData = require('./decompressSessionData').decompressSessionData;
 let statsdUtils = require('@havenlife/supertype').StatsdHelper;
@@ -15,13 +14,12 @@ let statsdUtils = require('@havenlife/supertype').StatsdHelper;
  *
  * @returns {unknown} unknown
  */
-function restoreSession(path, session, controller, sessions) {
+function restoreSession(path, session, controller) {
     let restoreSessionTime = process.hrtime();
 
     let ourObjectTemplate = getObjectTemplate(controller);
 
     ourObjectTemplate.withoutChangeTracking(function callBack() {
-        let sessionData = getSessionCache(path, ourObjectTemplate.controller.__sessionId, true, sessions);
         // Will return in exising controller object because createEmptyObject does so
         let unserialized = session.semotus.controllers[path];
 
@@ -29,16 +27,6 @@ function restoreSession(path, session, controller, sessions) {
             decompressSessionData(unserialized.controller),
             controller.__template__
         );
-
-        if (unserialized.serializationTimeStamp !== sessionData.serializationTimeStamp) {
-            ourObjectTemplate.logger.warn({
-                component: 'amorphic',
-                module: 'restoreSession',
-                activity: 'restore',
-                savedAs: sessionData.serializationTimeStamp,
-                foundToBe: unserialized.serializationTimeStamp
-            }, 'Session data not as saved');
-        }
 
         if (session.semotus.objectMap && session.semotus.objectMap[path]) {
             ourObjectTemplate.objectMap = session.semotus.objectMap[path];
