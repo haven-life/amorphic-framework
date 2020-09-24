@@ -16,11 +16,10 @@ function secondEndpoint(expressRouter) {
 }
 
 function asyncEndpoint(expressRouter) {
-    Bluebird.delay(500).then(function () {
+    return Bluebird.delay(500).then(function () {
         expressRouter.get('/async', testService.bind(this))
+        return expressRouter;
     });
-
-    return expressRouter;
 }
 
 function middlewareTestEndpoint(expressRouter) {
