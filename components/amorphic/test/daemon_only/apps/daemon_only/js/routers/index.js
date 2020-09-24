@@ -1,4 +1,6 @@
 'use strict';
+let Bluebird = require('bluebird');
+
 
 // intake an express router object, mutate it with custom endpoints, send it back to amorphic to register.
 function firstEndpoint(expressRouter) {
@@ -13,12 +15,20 @@ function secondEndpoint(expressRouter) {
     return expressRouter;
 }
 
+function asyncEndpoint(expressRouter) {
+    Bluebird.delay(500).then(function () {
+        expressRouter.get('/async', testService.bind(this))
+    });
+
+    return expressRouter;
+}
+
 function middlewareTestEndpoint(expressRouter) {
     expressRouter.post('/middleware-endpoint', middlewareTestService.bind(this));
 }
 
 
-function testService (_req, res) {
+function testService(_req, res) {
     res.status(200).send('test API endpoint OK');
 }
 
