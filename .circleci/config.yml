@@ -1,6 +1,12 @@
 version: 2
-jobs:
-  build:
+
+#defaults: &defaults
+#  working_directory: ~/amorphic
+
+executors:
+  base_exec:
+    #    <<: *defaults
+    working_directory: ~/amorphic
     docker:
       - image: circleci/node:lts
         environment:
@@ -15,49 +21,109 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_DB: test
           POSTGRES_HOST_AUTH_METHOD: trust
+
+jobs:
+  checkout:
+    executor: base_exec
     steps:
       - checkout
-
-      # Download and cache dependencies
+      - save_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/circleci-demo-workflows
+  install:
+    executor: base_exec
+    steps:
+      # Restore checkout dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      # Restore cache from package-lock.json
+      - restore_cache:
+          keys:
+            - v1-bundle-{{ checksum "package-lock.json" }}
       - run:
           name: Install lerna
           command: npm install
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-
       - run:
           name: Install all modules
           command: npm run setup
+
+      # @TODO Make this simpler without the repetitive save_caaches
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-deps-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/amorphic/node_modules
+          key: v1-deps-amorphic-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/semotus/node_modules
+          key: v1-deps-semotus-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/persistor/node_modules
+          key: v1-deps-persistor-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/supertype/node_modules
+          key: v1-deps-supertype-{{ checksum "package-lock.json" }}
+
+  build:
+    executor: base_exec
+    steps:
+      - restore_cache:
+          paths:
+            - node_modules
+          key: v1-deps-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
+            - components/amorphic/node_modules
+          key: v1-deps-amorphic-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
+            - components/semotus/node_modules
+          key: v1-deps-semotus-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
+            - components/persistor/node_modules
+          key: v1-deps-persistor-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
+            - components/supertype/node_modules
+          key: v1-deps-supertype-{{ checksum "package-lock.json" }}
 
       # build for all packages
       - run:
           name: Build packages
           command: npm run build
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-deps-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/amorphic/node_modules
+          key: v1-deps-amorphic-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/semotus/node_modules
+          key: v1-deps-semotus-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/persistor/node_modules
+          key: v1-deps-persistor-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/supertype/node_modules
+          key: v1-deps-supertype-{{ checksum "package-lock.json" }}
+
   all_tests:
-    docker:
-      - image: circleci/node:lts
-        environment:
-        port: 3001
-        dbUser: postgres
-        dbName: test
-        mongoHost: localhost
-        logLevel: info
-      - image: circleci/mongo:4.2.7
-      - image: circleci/postgres:latest
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test
-          POSTGRES_HOST_AUTH_METHOD: trust
+    executor: base_exec
     steps:
-      - checkout
 
       # run javascript tests - Supertype!
       - run:
@@ -112,9 +178,17 @@ jobs:
 
 workflows:
   version: 2
-  build_and_test:
+  checkout:
+    jobs:
+      - checkout
+  install:
+    jobs:
+      - install
+  build:
     jobs:
       - build
+  test:
+    jobs:
       #      - supertype_tests:
       #          requires:
       #            - build
