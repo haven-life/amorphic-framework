@@ -177,28 +177,16 @@ jobs:
 #          command: npm run test:ts
 
 workflows:
-  version: 2
-  checkout:
+  version: 2.1
+  amorphic:
     jobs:
       - checkout
-  install:
-    jobs:
       - install
-  build:
-    jobs:
+        requires:
+          - checkout
       - build
-  test:
-    jobs:
-      #      - supertype_tests:
-      #          requires:
-      #            - build
-      #      - semotus_tests:
-      #          requires:
-      #            - build
-      #      - amorphic_tests:
-      #          requires:
-      #            - build
-      #      - persistor_tests:
-      #          requires:
-      #            - build
+        requires:
+          - build
       - all_tests
+        requires:
+          - build
