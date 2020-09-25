@@ -30,7 +30,7 @@ jobs:
       - save_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - ~/checked-out
+            - ~/amorphic
   install:
     executor: base_exec
     steps:
