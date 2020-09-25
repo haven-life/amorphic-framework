@@ -40,7 +40,7 @@ jobs:
           command: npm run build
 
       - save_cache:
-          key: components-{{ checksum "package-lock.json" }}
+          key: components-{{.Environment.CIRCLE_SHA1 }}
           paths:
             - ~/project
   #      - save_cache:
@@ -52,7 +52,7 @@ jobs:
     executor: base_exec
     steps:
       - restore_cache:
-          key: components-{{ checksum "package-lock.json" }}
+          key: components-{{.Environment.CIRCLE_SHA1 }}
           paths:
             - ~/project
       #      - restore_cache:
