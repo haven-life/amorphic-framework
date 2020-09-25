@@ -30,7 +30,7 @@ jobs:
       - save_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - ~/circleci-demo-workflows
+            - ~/checked-out
   install:
     executor: base_exec
     steps:
@@ -38,10 +38,6 @@ jobs:
       - restore_cache:
           keys:
             - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-      # Restore cache from package-lock.json
-      - restore_cache:
-          keys:
-            - v1-bundle-{{ checksum "package-lock.json" }}
       - run:
           name: Install lerna
           command: npm install
