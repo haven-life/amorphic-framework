@@ -186,7 +186,7 @@ workflows:
             - checkout
       - build:
           requires:
-            - build
+            - install
       - all_tests:
           requires:
             - build
