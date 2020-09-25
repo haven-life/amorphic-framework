@@ -38,37 +38,19 @@ jobs:
       - run:
           name: Build packages
           command: npm run build
-      # run javascript tests - Amorphic!
-      - run:
-          name: Amorphic JS Tests
-          command: npm run test:amorphic
 
-      # run typescript tests - Amorphic!
-      - run:
-          name: Amorphic TS Tests
-          command: npm run test:ts:amorphic
       - save_cache:
           key: components-{{.Environment.CIRCLE_SHA1 }}
           paths:
             - ~/project
-  #      - save_cache:
-  #          key: deps-{{ checksum "package-lock.json" }}
-  #          paths:
-  #            - node_modules
 
-  all_tests:
+  supertype_tests:
     executor: base_exec
     steps:
       - restore_cache:
           key: components-{{.Environment.CIRCLE_SHA1 }}
           paths:
             - ~/project
-      #      - restore_cache:
-      #          key: deps-{{ checksum "package-lock.json" }}
-      #          paths:
-      #            - node_modules
-
-
       # run javascript tests - Supertype!
       - run:
           name: Supertype JS Tests
@@ -79,6 +61,13 @@ jobs:
           name: Supertype TS Tests
           command: npm run test:ts:supertype
 
+  semotus_tests:
+    executor: base_exec
+    steps:
+      - restore_cache:
+          key: components-{{.Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/project
       # run javascript tests - Semotus!
       - run:
           name: Semotus JS Tests
@@ -89,7 +78,13 @@ jobs:
           name: Semotus TS Tests
           command: npm run test:ts:semotus
 
-
+  amorphic_tests:
+    executor: base_exec
+    steps:
+      - restore_cache:
+          key: components-{{.Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/project
       # run javascript tests - Amorphic!
       - run:
           name: Amorphic JS Tests
@@ -99,6 +94,63 @@ jobs:
       - run:
           name: Amorphic TS Tests
           command: npm run test:ts:amorphic
+
+  persistor_tests:
+    executor: base_exec
+    steps:
+      - restore_cache:
+          key: components-{{.Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/project
+      # run javascript tests - Persistor!
+      - run:
+          name: Persistor JS Tests
+          command: npm run test:persistor
+
+      # run typescript tests - Persistor!
+      - run:
+          name: Persistor TS Tests
+          command: npm run test:ts:persistor
+
+      #  all_tests:
+      #    executor: base_exec
+      #    steps:
+      #      - restore_cache:
+      #          key: components-{{.Environment.CIRCLE_SHA1 }}
+      #          paths:
+      #            - ~/project
+      #
+      #
+      #      # run javascript tests - Supertype!
+      #      - run:
+      #          name: Supertype JS Tests
+      #          command: npm run test:supertype
+      #
+      #      # run typescript tests - Supertype!
+      #      - run:
+      #          name: Supertype TS Tests
+      #          command: npm run test:ts:supertype
+      #
+      #      # run javascript tests - Semotus!
+      #      - run:
+      #          name: Semotus JS Tests
+      #          command: npm run test:semotus
+      #
+      #      # run typescript tests - Semotus!
+      #      - run:
+      #          name: Semotus TS Tests
+      #          command: npm run test:ts:semotus
+      #
+      #
+      #      # run javascript tests - Amorphic!
+      #      - run:
+      #          name: Amorphic JS Tests
+      #          command: npm run test:amorphic
+      #
+      #      # run typescript tests - Amorphic!
+      #      - run:
+      #          name: Amorphic TS Tests
+      #          command: npm run test:ts:amorphic
 
       #      # run javascript tests - Persistor!
       - run:
@@ -125,6 +177,15 @@ workflows:
   amorphic:
     jobs:
       - setup
-      - all_tests:
+      - supertype_tests:
+          requires:
+            - setup
+      - semotus_tests:
+          requires:
+            - setup
+      - amorphic_tests:
+          requires:
+            - setup
+      - persistor_tests:
           requires:
             - setup
