@@ -6,7 +6,7 @@ version: 2.1
 executors:
   base_exec:
     #    <<: *defaults
-    working_directory: ~/amorphic
+#    working_directory: ~/amorphic
     docker:
       - image: circleci/node:lts
         environment:
@@ -41,8 +41,8 @@ jobs:
 
       - save_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - ~/amorphic
+  #          paths:
+  #            - ~/amorphic
 
   all_tests:
     executor: base_exec
