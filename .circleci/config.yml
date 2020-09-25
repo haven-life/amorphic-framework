@@ -40,9 +40,13 @@ jobs:
           command: npm run build
 
       - save_cache:
-          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-  #          paths:
-  #            - ~/amorphic
+          key: components-{{ checksum "package-lock.json" }}
+          paths:
+            - components
+      - save_cache:
+          key: deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
 
   all_tests:
     executor: base_exec
