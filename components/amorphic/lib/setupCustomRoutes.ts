@@ -1,18 +1,16 @@
-'use strict';
+import * as fs from 'fs';
 
-const fs = require('fs');
-
-function setupCustomRoutes(filePath, router) {
+export async function setupCustomRoutes(filePath, router) {
     const routerFilePath = `${filePath}/routers/index.js`;
 
     let routers;
 
-    if(fs.existsSync(routerFilePath)) {
+    if (fs.existsSync(routerFilePath)) {
         routers = require(routerFilePath);
 
         const exportedRouterFunctions = Object.keys(routers);
 
-        if(exportedRouterFunctions.length === 0) {
+        if (exportedRouterFunctions.length === 0) {
             console.warn('A custom router file was defined, but no exported functions were found. Using default amorphic routes');
             return;
         }
@@ -22,7 +20,7 @@ function setupCustomRoutes(filePath, router) {
 
             if (typeof routers[routerFunction] === 'function') {
                 console.debug('Evaluating router: ' + routerFunction);
-                routers[routerFunction](router);
+                await routers[routerFunction](router);
             }
         }
 
@@ -32,7 +30,3 @@ function setupCustomRoutes(filePath, router) {
         return router;
     }
 }
-
-module.exports = {
-    setupCustomRoutes: setupCustomRoutes
-};
