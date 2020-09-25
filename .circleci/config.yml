@@ -38,7 +38,15 @@ jobs:
       - run:
           name: Build packages
           command: npm run build
+      # run javascript tests - Amorphic!
+      - run:
+          name: Amorphic JS Tests
+          command: npm run test:amorphic
 
+      # run typescript tests - Amorphic!
+      - run:
+          name: Amorphic TS Tests
+          command: npm run test:ts:amorphic
       - save_cache:
           key: components-{{.Environment.CIRCLE_SHA1 }}
           paths:
