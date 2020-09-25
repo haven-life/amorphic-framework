@@ -52,8 +52,14 @@ jobs:
     executor: base_exec
     steps:
       - restore_cache:
-          keys:
-            - v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: components-{{ checksum "package-lock.json" }}
+          paths:
+            - components
+      - restore_cache:
+          key: deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
 
       # run javascript tests - Supertype!
       - run:
