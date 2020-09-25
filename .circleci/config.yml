@@ -42,11 +42,11 @@ jobs:
       - save_cache:
           key: components-{{ checksum "package-lock.json" }}
           paths:
-            - components
-      - save_cache:
-          key: deps-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
+            - ~/project
+  #      - save_cache:
+  #          key: deps-{{ checksum "package-lock.json" }}
+  #          paths:
+  #            - node_modules
 
   all_tests:
     executor: base_exec
@@ -54,11 +54,11 @@ jobs:
       - restore_cache:
           key: components-{{ checksum "package-lock.json" }}
           paths:
-            - components
-      - restore_cache:
-          key: deps-{{ checksum "package-lock.json" }}
-          paths:
-            - node_modules
+            - - ~/project
+      #      - restore_cache:
+      #          key: deps-{{ checksum "package-lock.json" }}
+      #          paths:
+      #            - node_modules
 
 
       # run javascript tests - Supertype!
