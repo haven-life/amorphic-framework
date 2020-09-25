@@ -181,12 +181,12 @@ workflows:
   amorphic:
     jobs:
       - checkout
-      - install
-        requires:
-          - checkout
-      - build
-        requires:
-          - build
-      - all_tests
-        requires:
-          - build
+      - install:
+          requires:
+            - checkout
+      - build:
+          requires:
+            - build
+      - all_tests:
+          requires:
+            - build
