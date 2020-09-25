@@ -54,7 +54,7 @@ jobs:
       - restore_cache:
           key: components-{{ checksum "package-lock.json" }}
           paths:
-            - - ~/project
+            - ~/project
       #      - restore_cache:
       #          key: deps-{{ checksum "package-lock.json" }}
       #          paths:
