@@ -109,16 +109,32 @@ jobs:
           key: v1-deps-amorphic-{{ checksum "package-lock.json" }}
       - save_cache:
           paths:
+            - components/amorphic/dist
+          key: v1-built-amorphic-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
             - components/semotus/node_modules
           key: v1-deps-semotus-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/semotus/dist
+          key: v1-built-semotus-{{ checksum "package-lock.json" }}
       - save_cache:
           paths:
             - components/persistor/node_modules
           key: v1-deps-persistor-{{ checksum "package-lock.json" }}
       - save_cache:
           paths:
+            - components/persistor/dist
+          key: v1-built-persistor-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
             - components/supertype/node_modules
           key: v1-deps-supertype-{{ checksum "package-lock.json" }}
+      - save_cache:
+          paths:
+            - components/supertype/dist
+          key: v1-built-supertype-{{ checksum "package-lock.json" }}
 
   all_tests:
     executor: base_exec
@@ -136,16 +152,33 @@ jobs:
           key: v1-deps-amorphic-{{ checksum "package-lock.json" }}
       - restore_cache:
           paths:
+            - components/amorphic/dist
+          key: v1-built-amorphic-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
             - components/semotus/node_modules
           key: v1-deps-semotus-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
+            - components/semotus/dist
+          key: v1-built-semotus-{{ checksum "package-lock.json" }}
       - restore_cache:
           paths:
             - components/persistor/node_modules
           key: v1-deps-persistor-{{ checksum "package-lock.json" }}
       - restore_cache:
           paths:
+            - components/persistor/dist
+          key: v1-built-persistor-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
             - components/supertype/node_modules
           key: v1-deps-supertype-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          paths:
+            - components/supertype/dist
+          key: v1-built-supertype-{{ checksum "package-lock.json" }}
+
       # run javascript tests - Supertype!
       - run:
           name: Supertype JS Tests
