@@ -201,6 +201,4 @@ workflows:
       #      - persistor_tests:
       #          requires:
       #            - build
-      - all_tests:
-          requires:
-            - build
+      - all_tests
