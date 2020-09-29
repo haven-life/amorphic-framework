@@ -10,7 +10,7 @@
  *
  */
 
-import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import {PersistorTransaction, RemoteDocConnectionOptions} from './types';
 
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
@@ -56,7 +56,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 }
             }
         }
-    }
+    };
 
     /**
      * PUBLIC INTERFACE FOR TEMPLATES
@@ -67,7 +67,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this._prepareSchema(template);
         this._injectTemplateFunctions(template);
         this._injectObjectFunctions(template);
-    }
+    };
+
     PersistObjectTemplate._prepareSchema = function (template) {
         if (!this.schemaVerified) {
             this._verifySchema();
@@ -305,7 +306,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             let deleteQuery = dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query, options.logger) :
                 PersistObjectTemplate.deleteFromKnexByQuery(template, query, options.transaction, options.logger);
-            
+
             const name = 'persistorDeleteByQuery';
             return deleteQuery
                 .then(result => {
@@ -578,7 +579,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                                 template.createProperty(closureProp + 'Persistor', {
                                     type: Object, toClient: toClient,
                                     toServer: false, persist: false,
-                                    value: { isFetched: defineProperty.autoFetch ? false : true, isFetching: false }
+                                    value: {isFetched: !defineProperty.autoFetch, isFetching: false}
                                 });
                             }
                             if (!template.prototype[closureProp + 'Fetch'])
@@ -919,7 +920,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             configurable: true
         })
 
-        
+
         Object.defineProperty(template.prototype, 'objectTemplateName', {
             get: function () {
                 return (this.constructor && this.constructor.name) || template.__name__;

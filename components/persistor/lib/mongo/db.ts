@@ -1,3 +1,4 @@
+
 module.exports = function (PersistObjectTemplate) {
 
     /* Mongo implementation of save */
@@ -12,21 +13,7 @@ module.exports = function (PersistObjectTemplate) {
             collection.update(origVer  ? {__version__: origVer, _id: updateID} :  {_id: updateID}, pojo, {w:1}) :
             collection.save(pojo, {w:1})
         );
-        // ).then (function (error, count) {
-        //     if (error instanceof Array)
-        //         count = error[0]; // Don't know why things are returned this way
-        //     if (updateID && count == 0) {
-        //         obj.__version__ = origVer;
-        //         if (txn && txn.onUpdateConflict) {
-        //             txn.onUpdateCoxnflict(pojo)
-        //             txn.updateConflict =  new Error("Update Conflict");
-        //         } else
-        //             throw new Error("Update Conflict");
-        //     }
-        //     (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saved ' + obj.__template__.__name__ + " to " + obj.__template__.__collection__);
-        //     return true;
-        // }.bind(this));
-    }
+    };
 
     /**
      * Removes documents based on a query

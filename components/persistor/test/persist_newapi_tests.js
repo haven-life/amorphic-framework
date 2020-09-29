@@ -429,6 +429,7 @@ describe('persistor transaction checks', function () {
                         expect(Object.keys(changes.Employee[0])).to.contain('primaryKey');
                         expect(changes.Employee[0].properties[0].name).to.equal('homeAddress');
                         expect(changes.Employee[0].properties[1].name).to.equal('dob');
+                        expect(changes.Employee[0].properties.length).to.equal(4);
                         var empNew = new Employee();
                         empNew.setDirty(txn);
                     };

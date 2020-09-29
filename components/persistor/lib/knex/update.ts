@@ -1,5 +1,5 @@
-import { RemoteDocService } from '../remote-doc/RemoteDocService';
-import { PersistorTransaction } from '../types/PersistorTransaction';
+import {RemoteDocService} from '../remote-doc/RemoteDocService';
+import {PersistorTransaction} from '../types';
 import * as uuidv4 from 'uuid/v4';
 
 module.exports = function (PersistObjectTemplate) {
@@ -31,7 +31,7 @@ module.exports = function (PersistObjectTemplate) {
         var template = obj.__template__;
         var schema = template.__schema__;
         var templateName = template.__name__;
-        var isDocumentUpdate = obj.__version__ ? true : false;
+        var isDocumentUpdate = !!obj.__version__;
         var props = template.getProperties();
         var promises = [];
         var dataSaved = {};
@@ -115,7 +115,7 @@ module.exports = function (PersistObjectTemplate) {
                                     referencedObj.setDirty(txn);
                                 }
                             }
-                        })
+                        });
                         if (!referencedObj._id)
                             referencedObj._id = this.createPrimaryKey(referencedObj);
                     }.bind(this));
@@ -140,8 +140,12 @@ module.exports = function (PersistObjectTemplate) {
                     value.setDirty(txn);
                 }
 
-                pojo[foreignKey] =  value ? value._id : null
-                updatePersistorProp(obj, prop + 'Persistor', {isFetching: false, id: value ? value._id : null, isFetched: true})
+                pojo[foreignKey] = value ? value._id : null;
+                updatePersistorProp(obj, prop + 'Persistor', {
+                    isFetching: false,
+                    id: value ? value._id : null,
+                    isFetched: true
+                });
 
                 dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
@@ -163,11 +167,10 @@ module.exports = function (PersistObjectTemplate) {
 
                     try {
                         if(txn) {
-                            if(txn.remoteObjects) {
-                                txn.remoteObjects.add(objectKey);
-                            } else {
-                                txn.remoteObjects = new Set(objectKey);
+                            if (!txn.remoteObjects) {
+                                txn.remoteObjects = new Set(); // @TODO: Ask Nick if this works as intended
                             }
+                            txn.remoteObjects.add(objectKey);
                         }
 
                         // grab the document from remote store
@@ -202,7 +205,7 @@ module.exports = function (PersistObjectTemplate) {
                 pojo[prop] = obj[prop] ? obj[prop] : null;
                 log(defineProperty, pojo, prop);
             } else if (defineProperty.type == Boolean) {
-                pojo[prop] = obj[prop] == null ? null : (obj[prop] ? true : false);
+                pojo[prop] = obj[prop] == null ? null : !!obj[prop];
                 log(defineProperty, pojo, prop);
             }  else {
                 pojo[prop] = obj[prop];
@@ -241,4 +244,4 @@ module.exports = function (PersistObjectTemplate) {
                 obj[prop] = copyProps(obj[prop]);
         }
     }
-}
+};

@@ -1,4 +1,7 @@
-import {RemoteDocService} from "../remote-doc/RemoteDocService";
+import {DeleteQueries, PersistorTransaction} from '../types';
+import {LoggerHelpers} from '../LoggerHelpers';
+import {Transaction} from './commit/Transaction';
+
 
 module.exports = function (PersistObjectTemplate) {
 
@@ -249,13 +252,16 @@ module.exports = function (PersistObjectTemplate) {
         return knex.delete();
     };
 
-    PersistObjectTemplate.deleteFromKnexByQuery = async function (template, queryOrChains, txn, _logger) {
+    PersistObjectTemplate.deleteFromKnexByQuery = async function (template, queryOrChains, txn: PersistorTransaction, _logger) {
         if (!txn) {
             return PersistObjectTemplate.deleteFromKnexQuery(template, queryOrChains, txn, _logger);
         }
-        var deleteQueries = txn ? txn.deleteQueries : this.deleteQueries;
-        var deleteQuery = {name: template.__name__, template: template, queryOrChains: queryOrChains};
-        deleteQueries[template.__name__] = deleteQuery;
+        var deleteQueries: DeleteQueries = txn ? txn.deleteQueries : this.deleteQueries;
+        deleteQueries[template.__name__] = {
+            __name__: template.__name__,
+            __template__: template,
+            queryOrChains: queryOrChains
+        };
         txn.deleteQueries = deleteQueries;
     };
 
@@ -1116,231 +1122,41 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         return traverse(statement, query)
-    }
+    };
 
 
-    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChanges) {
+    // Start the knex transaction
+    // We generate SQLs to save and to Delete and touches
+    // Each save / delete is done in 2 stages
+    // 1) We iterate through the objects and check to see if the version of any dirty / deleted objects are outdated
+    //    if so, we set an update conflict flag to `True` on the transaction. @TODO: Perhaps should throw an error
+    //    instead so we can stop generating random SQLS and end early
+    // 2) As we iterate through the objects in the first step, we generate SQL statements / attach them to the knex
+    //    transaction
+    // 3) We identify which properties are changed, for change tracking purposes
+    // 4) We commit / finish the transaction
+    PersistObjectTemplate._commitKnex = async function _commitKnex(txn: PersistorTransaction, logger, notifyChanges) {
         logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
-        var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
-        var dirtyObjects = persistorTransaction.dirtyObjects;
-        var touchObjects = persistorTransaction.touchObjects;
-        var savedObjects = persistorTransaction.savedObjects;
-        var deletedObjects = persistorTransaction.deletedObjects;
-        var deleteQueries = persistorTransaction.deleteQueries;
-        var innerError;
-        var changeTracking;
+        const knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
+        let innerError;
 
-        // Start the knext transaction
-        return knex.transaction(function(knexTransaction) {
-            persistorTransaction.knex = knexTransaction;
-
-
-            Promise.resolve(true)
-                .then(processPreSave.bind(this))
-                .then(processSaves.bind(this))
-                .then(processDeletes.bind(this))
-                .then(processDeleteQueries.bind(this))
-                .then(processTouches.bind(this))
-                .then(processPostSave.bind(this))
-                .then(processCommit.bind(this))
-                .catch(rollback.bind(this));
-
-            function processPreSave() {
-                return persistorTransaction.preSave
-                    ? persistorTransaction.preSave.call(persistorTransaction, persistorTransaction, logger)
-                    : true
-            }
-
-            // Walk through the dirty objects
-            function processSaves() {
-                return Promise.map(_.toArray(dirtyObjects), function (obj) {
-                    delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
-                    return callSave(obj).then(generateChanges.bind(this, obj, obj.__version__ === 1 ? 'insert' : 'update'));
-                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
-                    if (_.toArray(dirtyObjects). length > 0) {
-                        return processSaves.call(this);
-                    }
-                });
-
-                function callSave(obj) {
-                    return (obj.__template__ && obj.__template__.__schema__
-                        ?  obj.persistSave(persistorTransaction, logger)
-                        : Promise.resolve(true));
-                }
-            }
-
-
-            function processDeletes() {
-                return Promise.map(_.toArray(deletedObjects), function (obj) {
-                    delete deletedObjects[obj.__id__];  // Once scheduled for update remove it.
-                    return callDelete(obj).then(generateChanges.bind(this, obj, 'delete'));
-                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
-                    if (_.toArray(deletedObjects). length > 0) {
-                        return processDeletes.call(this);
-                    }
-                });
-
-                function callDelete(obj) {
-                    return (obj.__template__ && obj.__template__.__schema__
-                        ?  obj.persistDelete(persistorTransaction, logger)
-                        : Promise.resolve(true))
-                }
-            }
-
-            function processDeleteQueries() {
-                return Promise.map(_.toArray(deleteQueries), function (obj) {
-                    delete deleteQueries[obj.name];  // Once scheduled for update remove it.
-                    return (obj.template && obj.template.__schema__
-                        ?  PersistObjectTemplate.deleteFromKnexQuery(obj.template, obj.queryOrChains, persistorTransaction, logger)
-                        : true)
-                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
-                    if (_.toArray(deleteQueries). length > 0) {
-                        return processDeleteQueries.call(this);
-                    }
-                });
-            }
-
-
-            function processPostSave() {
-                return persistorTransaction.postSave ?
-                    persistorTransaction.postSave(persistorTransaction, logger, changeTracking) :
-                    true;
-            }
-
-            // And we are done with everything
-            function processCommit() {
-                this.dirtyObjects = {};
-                this.savedObjects = {};
-                if (persistorTransaction.updateConflict) {
-                    throw 'Update Conflict';
-                }
-                return knexTransaction.commit();
-            }
-
-            // Walk through the touched objects
-            function processTouches() {
-                return Promise.map(_.toArray(touchObjects), function (obj) {
-                    return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
-                        ?  obj.persistTouch(persistorTransaction, logger)
-                        : true)
-                }.bind(this))
-            }
-
-            async function rollback (err) {
-                const deadlock = err.toString().match(/deadlock detected$/i);
-                persistorTransaction.innerError = err;
-                innerError = deadlock ? new Error('Update Conflict') : err;
-
-                if (persistorTransaction.remoteObjects && persistorTransaction.remoteObjects.size > 0) {
-                    (logger || this.logger).info({
-                            component: 'persistor',
-                            module: 'api',
-                            activity: 'end'
-                        },
-                        `Rolling back transaction of remote keys`);
-
-                    let remoteDocService = RemoteDocService.new(this.environment);
-
-                    let toDeletePromiseArr = [];
-
-                    // create our `delete functions` to be run later.
-                    // also put them in one place => toDeletePromiseArr.
-                    for (const key of persistorTransaction.remoteObjects) {
-                        toDeletePromiseArr.push(async () => {
-                            try {
-                                await remoteDocService.deleteDocument(key, this.bucketName);
-                            } catch (e) {
-                                (logger || this.logger).error({
-                                    component: 'persistor',
-                                    module: 'api',
-                                    activity: 'end',
-                                    error: e},
-                                    'unable to rollback remote document with key:' + key + ' and bucket: ', this.bucketName);
-                            }
-                        });
-                    }
-
-                    // fire off our delete requests in parallel
-                    await Promise.all(toDeletePromiseArr);
-                }
-
-                return knexTransaction.rollback(innerError).then(() => {
-                    (logger || this.logger).debug({
-                        component: 'persistor',
-                        module: 'api',
-                        activity: 'end'},
-                        'transaction rolled back ' + innerError.message + (deadlock ? ' from deadlock' : ''));
-                });
-            }
-
-            function generateChanges(obj, action) {
-                var objChanges;
-
-                if (notifyChanges && obj.__template__ && obj.__template__.__schema__ && obj.__template__.__schema__.enableChangeTracking) {
-                    changeTracking = changeTracking || {};
-                    changeTracking[obj.__template__.__name__] = changeTracking[obj.__template__.__name__] || [];
-                    changeTracking[obj.__template__.__name__].push(objChanges = {
-                        table: obj.__template__.__table__,
-                        primaryKey: obj._id,
-                        action: action,
-                        properties: []
-                    });
-                    if (action === 'update' || action === 'delete') {
-                        var props = obj.__template__.getProperties();
-                        for (var prop in props) {
-                            var propType = props[prop];
-                            if (isOnetoManyRelationsOrPersistorProps(prop, propType)) {
-                                continue;
-                            }
-                            generatePropertyChanges(prop, obj);
-                        }
-                    }
-                }
-
-                function isOnetoManyRelationsOrPersistorProps(propName, propType) {
-                    return (propType.type === Array && propType.of.isObjectTemplate) ||
-                        (prop.match(/Persistor$/) && typeof props[propName.replace(/Persistor$/, '')] === 'object');
-                }
-
-                function generatePropertyChanges(prop, obj) {
-                    //When the property type is not an object template, need to compare the values.
-                    //for date and object types, need to compare the stringified values.
-                    var oldKey = '_ct_org_' + prop;
-                    if (!props[prop].type.isObjectTemplate && (obj[oldKey] !== obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
-                        JSON.stringify(obj[oldKey]) !== JSON.stringify(obj[prop]))))  {
-                        addChanges(prop, obj[oldKey], obj[prop], prop);
-                    }
-                    //For one to one relations, we need to check the ids associated to the parent record.
-                    else if (props[prop].type.isObjectTemplate && obj[prop + 'Persistor'] && obj['_ct_org_' + prop] !== obj[prop + 'Persistor'].id) {
-                        addChanges(prop, obj[oldKey], obj[prop + 'Persistor'].id, getColumnName(prop, obj));
-                    }
-                }
-
-                function getColumnName(prop, obj) {
-                    var schema = obj.__template__.__schema__;
-                    if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw  new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
-                    return schema.parents[prop].id;
-                }
-
-                function addChanges(prop, originalValue, newValue, columnName) {
-                    objChanges.properties.push({
-                        name: prop,
-                        originalValue: originalValue,
-                        newValue: newValue,
-                        columnName: columnName
-                    });
-                }
-            }
-        }.bind(this)).then(function () {
-            (logger || this.logger).debug({component: 'persistor', module: 'api'}, 'end - transaction completed');
+        // Apparently it seems like Knex takes an async callback, and implicitly waits for it to trigger knex.commit.
+        // This is confusing behavior
+        try {
+            innerError = await knex.transaction((knexTxn) => Transaction.transaction(this, notifyChanges, txn, knexTxn, logger)); // @TODO: Is Knex.transaction async?
+            LoggerHelpers.debug(this, logger, {component: 'persistor', module: 'api'}, 'End - transaction completed');
             return true;
-        }.bind(this)).catch(function (e) {
-            var err = e || innerError;
+        } catch (e) {
+            const err = e || innerError;
             if (err && err.message && err.message != 'Update Conflict') {
-                (logger || this.logger).error({component: 'persistor', module: 'api', activity: 'end', error: err.message + err.stack}, 'transaction ended with error');
-            } //@TODO: Why throw error in all cases but log only in some cases
-            throw (e || innerError);
-        }.bind(this))
+                LoggerHelpers.error(this, logger, {
+                    component: 'persistor',
+                    module: 'api',
+                    activity: 'end',
+                    error: err.message + err.stack
+                }, 'Transaction ended with error');
+            }
+            throw err;
+        }
     }
 };
