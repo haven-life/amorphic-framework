@@ -1,3 +1,7 @@
+## 3.3.0
+* Changed default reject handling behavior to always trigger handleRemoteError on any remote call error if it exists
+## 3.2.1
+* Updated packages with npm audit for developer dependenceis (istanbul and mocha)
 ## 3.2.0
 * Updated some packages (using npm audit)
 * Added an async postServerErrorHandler callback on the controller for verifying errors on remote functions parameters are the errorType (sync, response, error), the remoteCall Id, the object instance for the function that's called the function name, the call context, and the list of changes for the object (same format as postServerCall's changes), in that order.

@@ -290,7 +290,7 @@ module.exports = function (PersistObjectTemplate) {
                     var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : '') || '';
 
                     if (enableChangeTracking) {
-                        obj['_ct_org_' + prop] = foreignId;
+                        obj['_ct_org_' + prop] = foreignId !== '' ? foreignId : null;
                     }
                     // Return copy if already there
                     var cachedObject = idMap[foreignId];
@@ -315,7 +315,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
                 else if (isRemoteDoc) {
-                    remoteDocService = remoteDocService || RemoteDocService.new(this.environment);
+                    remoteDocService = remoteDocService || RemoteDocService.new(this.environment, this.remoteDocHostURL);
                     // if we have a remote object type, fetch it and place it in the template
                     if (value && typeof value === 'string') {
                         try {
@@ -325,12 +325,12 @@ module.exports = function (PersistObjectTemplate) {
                                 obj[prop] = document;
                             });
                         } catch (e) {
-                            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
+                            (logger || this.logger).error({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
                                 data: `there was a problem downloading the remote object from source. Error: ${e}.`});
                             obj[prop] = null;
                         }
                     } else {
-                        (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
+                        (logger || this.logger).error({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
                             data: 'there was a problem. remote object key must be a string' });
                         obj[prop] = null;
                     }

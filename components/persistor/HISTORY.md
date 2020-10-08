@@ -1,6 +1,33 @@
+## 4.2.0
+* config driven host URL name for remote document store
+## 4.1.1
+* remove node warnings for legacy calls
+## 4.1.0
+* Resolve bug with calls to uploadDocument where s3 documents would be erroneously uploaded
+* Fix s3 rollbacks to delete the object via its versionId rather than marking it as deleted
+## 4.0.0
+* Npm audit updated all modules
+* Updated Mongo and Knex modules to higher major versions, leading to breaking changes
+* Added process emit warnings for legacy calls in persistor
+* Added documentation in persistable.ts, comments, params, including @legacy and @async flags for most functions
+* Renamed persistorIsState to persistorIsStale
+## 3.2.7
+* fix promise handling to re-enable rollback functionality
+## 3.2.6
+* re throw errors in uploadObject for remote docs
+* log exceptions in downloadObject as errors instead of debug
+## 3.2.5
+* use the OS temp dir for remote doc testing instead of project root dir
+* use the amorphic object id as the unique identifier in S3
+## 3.2.4
+* use a more unique keyname for remote doc configs
+## 3.2.3
+* Audit fixes.
+## 3.2.2
+* updating order of operations for multisource rollbacks
+* fixing default method of authentication with aws
 ## 3.2.1
 * changing field returned for objectTemplateName to make sure it is returned even when object is not persisted
-
 ## 3.2.0
 * enable remote storage of data properties (knex path only).
 * local FS and amazon S3 supported out of the box for non-db storage location.
@@ -44,7 +71,7 @@
 * The previous version of persistor was not publishing correctly/publishing incorrect files, this change fixes that
 ## 2.8.0
 * Marking API calls as async to fix the issues observed in Zone interception.
-* removed istanbul and included nyc for code coverage. 
+* removed istanbul and included nyc for code coverage.
 * converting preliminary to typescript
 * adding persist banking typescript tests to circle ci
 ## 2.7.0

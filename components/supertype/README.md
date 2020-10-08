@@ -1,6 +1,3 @@
-[![CircleCI](https://circleci.com/gh/haven-life/supertype.svg?style=shield)](https://circleci.com/gh/haven-life/supertype)
-[![npm version](https://badge.fury.io/js/supertype.svg)](https://badge.fury.io/js/supertype)
-
 # SuperType
 ## Description
 

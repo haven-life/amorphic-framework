@@ -34,7 +34,7 @@ var schema = {
 
 
 
-describe('Banking from pgsql Example', function () {
+describe('Banking from pgsql Example one-to-manychecks typescript', function () {
     var knex;
 
         before('arrange', function () {

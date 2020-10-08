@@ -160,6 +160,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {bool} isRefresh force load
          * @param {object} logger objecttemplate logger
          * @returns {object}
+         * @legacy Use persistorFetchById instead
          */
         template.getFromPersistWithId = async function (id, cascade, isTransient, idMap, isRefresh, logger) {
             (logger || PersistObjectTemplate.logger).debug({
@@ -198,7 +199,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {bool} options {@TODO}
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persistorFetchWithQuery
+         * @legacy in favor of persistorFetchByQuery
          */
         template.getFromPersistWithQuery = async function (query, cascade, start, limit, isTransient, idMap, options, logger) {
             (logger || PersistObjectTemplate.logger).debug({
@@ -232,7 +233,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {object} txn persistObjectTemplate transaciton object
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persitorDeleteByQuery
+         * @legacy in favor of persitorDeleteByQuery
          */
         template.deleteFromPersistWithQuery = async function (query, txn, logger) {
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
@@ -261,7 +262,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {json} options @todo
          * @returns {*}
          */
-        template.persistorFetchById = async function (id, options) { // @TODO: Legacy
+        template.persistorFetchById = async function (id, options) {
             const time = getTime();
 
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
@@ -397,13 +398,13 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         /**
-         * Delete objects given a json query
+         * Delete objects given id
          *
          * @param {string} id mongo style id
          * @param {object} txn persistObjectTemplate transaciton object
          * @param {object} logger objecttemplate logger
          * @returns {object}
-         * @deprecated in favor of persistorDeleteByQuery
+         * @legacy in favor of persistorDeleteByQuery
          */
         template.deleteFromPersistWithId = async function (id, txn, logger) {
             const time = getTime();
@@ -435,7 +436,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {json} query mongo style queries
          * @param {object} logger objecttemplate logger
          * @returns {Number}
-         * @deprecated in favor of persistorCountWithQuery
+         * @legacy in favor of persistorCountWithQuery
          */
         template.countFromPersistWithQuery = async function (query, logger) {
             const time = getTime();
@@ -705,7 +706,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             };
 
-        // Legacy
         template.prototype.setDirty = function (txn, onlyIfChanged, cascade, logger) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate.setDirty(this, txn, onlyIfChanged, !cascade, logger);
@@ -723,7 +723,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         };
 
         template.prototype.isStale = // Legacy
-            template.prototype.persistorIsState = function () {
+            template.prototype.persistorIsStale = function () {
                 var time = getTime();
                 var name = 'isStale';
                 var persistObjectTemplate = this.__objectTemplate__ || self;
@@ -1132,8 +1132,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * object storage functionality. if enabled, config
      */
     PersistObjectTemplate.setRemoteDocConnection = function (options: RemoteDocConnectionOptions): void {
-        this.bucketName = options.bucketName;
-        this.environment = options.environment;
+        this.bucketName = options.persistorBucketName;
+        this.environment = options.persistorRemoteDocEnvironment;
+        this.remoteDocHostURL = options.persistorRemoteDocHostURL
     };
 
     /**
@@ -1169,7 +1170,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             savedObjects: {},
             touchObjects: {},
             deletedObjects: {},
-            remoteObjects: new Set(),
+            remoteObjects: new Map(),
             deleteQueries: {}
         };
     };
@@ -1181,7 +1182,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             savedObjects: {},
             touchObjects: {},
             deletedObjects: {},
-            remoteObjects: new Set(),
+            remoteObjects: new Map(),
             deleteQueries: {}
         };
 

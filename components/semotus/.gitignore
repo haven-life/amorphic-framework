@@ -3,5 +3,5 @@ npm-debug.log
 coverage
 .idea
 
-test/**/*.js
-test/**/*.js.map
+test/supertype/*.js
+test/supertype/*.js.map

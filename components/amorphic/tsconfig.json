@@ -1,0 +1,24 @@
+{
+  "files": [
+    "./lib/AmorphicServer.ts"
+  ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "es5",
+      "es2015.promise"
+    ],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}

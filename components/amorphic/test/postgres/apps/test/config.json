@@ -1,0 +1,13 @@
+{
+  "createControllerFor": "#",
+  "ver":          "0",
+  "modules":      {},
+  "dbName" : "test",
+  "dbDriver" : "knex",
+  "dbType" : "pg",
+  "dbPath": "127.0.0.1",
+  "dbUser": "postgres",
+  "dbPassword": "postgres",
+  "keepOriginalIdForSavedObjects": "yes",
+  "amorphicEnableStatsd": true
+}

@@ -1,4 +1,5 @@
 export type RemoteDocConnectionOptions = {
-    bucketName: string,
-    environment: string
+    persistorBucketName: string,
+    persistorRemoteDocEnvironment: string,
+    persistorRemoteDocHostURL: string
 }

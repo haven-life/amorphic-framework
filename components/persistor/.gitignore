@@ -6,3 +6,5 @@ download
 coverage
 dist
 .nyc_output
+test/supertype/*.js
+lib/persistable.js

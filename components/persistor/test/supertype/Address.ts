@@ -28,7 +28,7 @@ export class Address extends Persistable(Supertype) {
     @property()
     country: string = 'US';
 
-    @property({getType: () => {return Customer}})
+    @property({getType: () => Customer})
     customer: Customer;
 
     @property()
