@@ -5,7 +5,7 @@ export type PersistorTransaction = {
     savedObjects: object;
     touchObjects: object;
     deletedObjects: object;
-    remoteObjects: Set<string>; // identifiers for objects not stored directly in our db
+    remoteObjects: Map<string, string>; // identifiers for objects not stored directly in our db
     deleteQueries: DeleteQueries | {};
     postSave?: (txn: PersistorTransaction, logger: any, changeTracking: any) => Promise<any>;
     innerError?: Error;

@@ -1,4 +1,3 @@
-import { RemoteDocService } from '../remote-doc/RemoteDocService';
 import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
 
@@ -166,13 +165,6 @@ module.exports = function (PersistObjectTemplate) {
                     const bucket = this.bucketName;
 
                     try {
-                        if(txn) {
-                            if (!txn.remoteObjects) {
-                                txn.remoteObjects = new Set(); // @TODO: Ask Nick if this works as intended
-                            }
-                            txn.remoteObjects.add(objectKey);
-                        }
-
                         // push function to upload the document to remote store
                         remoteUpdateFns.push(() => remoteDocService.uploadDocument(documentBody, objectKey, bucket));
 

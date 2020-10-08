@@ -1,7 +1,7 @@
 export { Supertype } from './Supertype';
 import { ObjectTemplate } from './ObjectTemplate';
 
-import 'reflect-metadata';
+import * as Reflect from 'reflect-metadata';
 
 /**
     * 

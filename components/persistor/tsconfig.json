@@ -2,8 +2,7 @@
     "compilerOptions": {
         "outDir": "./dist",
         "rootDir": "./",
-        "downlevelIteration": true,
-        "importHelpers": true
+        "downlevelIteration": true
     },
     "extends": "./tsconfig.base.json",
     "include": [
