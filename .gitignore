@@ -5,3 +5,6 @@ download
 coverage
 .DS_Store
 .sonarlint
+
+./test/**/*.js
+./test/**/*.js.map
