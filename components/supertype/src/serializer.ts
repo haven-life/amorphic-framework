@@ -18,7 +18,7 @@ export function toJSONString(obj, cb?) {
             if (key === '__objectTemplate__' || key === 'amorphic') {
                 return null;
             }
-            if (value && value.__template__ && value.__id__) {
+            if (value && value.constructor && value.__id__) {
                 if (idMap[value.__id__]) {
                     value = { __id__: value.__id__.toString() };
                 }

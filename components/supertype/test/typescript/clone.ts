@@ -76,12 +76,12 @@ it('can clone', function () {
     var relationship;
     var calledForTopLeve = false;
     var main2 = main.createCopy(function (obj, prop, template) {
-        console.log(template.__name__);
-        switch (template.__name__) {
+        console.log(template.name);
+        switch (template.name) {
         case 'Main':
             return null; // Clone normally
         }
-        switch (obj.__template__.__name__ + '.' + prop) {
+        switch (obj.constructor.name + '.' + prop) {
         case 'Main.subA':
             return undefined;  // Don't clone
         case 'Main.subsA':

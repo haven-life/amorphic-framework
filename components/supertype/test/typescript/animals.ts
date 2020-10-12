@@ -20,7 +20,8 @@ describe('Freeze Dried Arks', function () {
     var ark1;
     var ark2;
 
-    it ('has parent an children classes', function () {
+    it ('has parent and children classes', function () {
+        console.log('here');
         expect(Animal.amorphicChildClasses.length).to.equal(2);
         expect(Animal.amorphicChildClasses[0]).to.equal(Lion);
         expect(Animal.amorphicChildClasses[1]).to.equal(Bear);
@@ -35,8 +36,8 @@ describe('Freeze Dried Arks', function () {
         expect(Bear.amorphicProperties.isMammal).to.equal(undefined);
         expect(Bear.amorphicGetProperties().isMammal.type).to.equal(Boolean);
         expect(Animal.amorphicProperties.isMammal.type).to.equal(Boolean);
-        expect(Animal.amorphicClassName).to.equal('Animal');
-        expect(Bear.amorphicClassName).to.equal('Bear');
+        expect(Animal.name).to.equal('Animal');
+        expect(Bear.name).to.equal('Bear');
         expect(Bear.amorphicStatic).to.equal(Bear['__objectTemplate__']);
         expect(amorphicStatic).to.equal(Bear['__objectTemplate__']);
     });
@@ -44,10 +45,10 @@ describe('Freeze Dried Arks', function () {
         var ark = new Ark();
         expect(ark.amorphicGetPropertyValues('size').length).to.equal(2);
         expect(ark.amorphicGetPropertyDescriptions('size').s).to.equal('small');
-        expect(ark.__template__.__name__).to.equal('Ark');
-        expect(ark.amorphicClass.__name__).to.equal('Ark');
-        expect(ark.amorphicClass.amorphicClassName).to.equal('Ark');
-        expect(ark.amorphicGetClassName()).to.equal('Ark');
+        expect(ark.constructor.name).to.equal('Ark');
+        expect(ark.constructor.name).to.equal('Ark');
+        expect(ark.constructor.name).to.equal('Ark');
+        expect(ark.constructor.name).to.equal('Ark');
     });
     it ('create the arc', function (done) {
         Ark.createProperty('foo', {isLocal: true, type: String, value: 'foo'});
@@ -64,7 +65,7 @@ describe('Freeze Dried Arks', function () {
         ark2 = new Ark();
         ark2.board(new Lion());
         ark2.board(new Bear());
-        expect(ark1.__template__.__name__).to.equal('Ark');
+        expect(ark1.constructor.name).to.equal('Ark');
         expect(ark1.animals[0].canRoar()).to.equal(true);
         expect(ark1.animals[1].canHug()).to.equal(true);
         expect(ark1.animals[0].legs).to.equal(4);

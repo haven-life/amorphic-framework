@@ -31,5 +31,5 @@ export { StatsdHelper } from './StatsdHelper';
 
 export { amorphicStatic, SupertypeSession };
 export { SupertypeLogger } from './SupertypeLogger';
-export { Supertype } from './Supertype';
+export { Supertype, AmorphicPropertyDescriptor, AmorphicPropertyDescriptorSet } from './Supertype';
 export { supertypeClass, property, remote } from './decorators';
