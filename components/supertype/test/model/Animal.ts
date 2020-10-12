@@ -1,4 +1,4 @@
-import {Supertype, supertypeClass, property} from '../../../dist/index';
+import {Supertype, supertypeClass, property} from '../../dist';
 import {Ark} from './Ark';
 
 @supertypeClass({toServer: true, toClient: true})

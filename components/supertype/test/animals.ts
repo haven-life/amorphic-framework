@@ -6,7 +6,7 @@ import {AnimalContainer} from "./model/Ark";
 import {Lion} from "./model/Lion";
 import {Bear} from "./model/Bear";
 import {Animal} from "./model/Animal";
-import {amorphicStatic} from "../../dist/index";
+import {amorphicStatic} from "../dist";
 
 
 describe('AnimalContainer', function () {

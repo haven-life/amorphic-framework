@@ -1,3 +1,8 @@
+## 4.0.0
+* Deprecating Javascript (Non-TS) Supertype pathway. SO LONG! FAREWELL! GOODBYE!
+* Adding comments and typing for Supertype methods and properties
+* Enabling Supertype to compile ESNext tests and models 
+* Removing amorphicClass, amorphicClassName, and deprecating __template__, which should only be used for amorphic internal components. Leverage constructor instead
 ## 3.3.1
 * Npm audit for developer dependencies
 ## 3.3.0
