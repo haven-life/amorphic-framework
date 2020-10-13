@@ -1,13 +1,12 @@
 var expect = require('chai').expect;
-var Q = require('q');
 var _ = require('underscore');
 var fs = require('fs');
 
-var ClientObjectTemplate = require('../index.js')._createObject();
+var ClientObjectTemplate = require('../../dist')._createObject();
 ClientObjectTemplate.role = 'client';
 ClientObjectTemplate._useGettersSetters = false;
 
-var ServerObjectTemplate = require('../index.js')._createObject();
+var ServerObjectTemplate = require('../../dist')._createObject();
 ServerObjectTemplate.role = 'server';
 ServerObjectTemplate._useGettersSetters = true;
 
