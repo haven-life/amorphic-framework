@@ -27,37 +27,48 @@ function processFile(req, resp, next, downloads) {
     let form = new formidable.IncomingForm();
     form.uploadDir = downloads;
 
-    form.parse(req, function ee(err, _fields, files) {
-        if (err) {
+    try {
+        form.parse(req, function ee(err, _fields, files) {
+            if (err) {
+                logMessage(err);
+            }
+
+            let file = files.file.path;
+            resp.writeHead(200, {'content-type': 'text/html'});
+            logMessage(file);
+      
+            setTimeout(function yz() {
+                fs.unlink(file, function zy(err) {
+                    if (err) {
+                        logMessage(err);
+                    }
+                    else {
+                        logMessage(file + ' deleted');
+                    }
+                });
+            }, 60000);
+
+            let fileName = files.file.name;
+            req.session.file = file;
+            resp.end('<html><body><script>parent.amorphic.prepareFileUpload(\'package\');' +
+                'parent.amorphic.uploadFunction.call(null, "' +  fileName + '"' + ')</script></body></html>');
+
+            statsdUtils.computeTimingAndSend(
+                processFileTime,
+                'amorphic.webserver.process_file.response_time',
+                { result: 'success' });
+        });
+    } catch (error) {
+            resp.writeHead(500, {'Content-Type': 'text/plain'});
+            resp.end(error.toString());
             logMessage(err);
-        }
-
-        resp.writeHead(200, {'content-type': 'text/html'});
-
-        let file = files.file.path;
-        logMessage(file);
-
-        setTimeout(function yz() {
-            fs.unlink(file, function zy(err) {
-                if (err) {
-                    logMessage(err);
-                }
-                else {
-                    logMessage(file + ' deleted');
-                }
-            });
-        }, 60000);
-
-        let fileName = files.file.name;
-        req.session.file = file;
-        resp.end('<html><body><script>parent.amorphic.prepareFileUpload(\'package\');' +
-            'parent.amorphic.uploadFunction.call(null, "' +  fileName + '"' + ')</script></body></html>');
-
-        statsdUtils.computeTimingAndSend(
-            processFileTime,
-            'amorphic.webserver.process_file.response_time',
-            { result: 'success' });
-    });
+            statsdUtils.computeTimingAndSend(
+                processFileTime,
+                'amorphic.webserver.process_file.response_time',
+                { result: 'Invalid request parameters' }
+            );
+            return;
+    }
 }
 
 module.exports = {
