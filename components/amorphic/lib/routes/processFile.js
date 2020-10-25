@@ -26,9 +26,8 @@ function processFile(req, resp, next, downloads) {
 
     let form = new formidable.IncomingForm();
     form.uploadDir = downloads;
-
-    try {
-        form.parse(req, function ee(err, _fields, files) {
+    form.parse(req, function ee(err, _fields, files) {
+        try {
             if (err) {
                 logMessage(err);
             }
@@ -36,7 +35,7 @@ function processFile(req, resp, next, downloads) {
             let file = files.file.path;
             resp.writeHead(200, {'content-type': 'text/html'});
             logMessage(file);
-      
+        
             setTimeout(function yz() {
                 fs.unlink(file, function zy(err) {
                     if (err) {
@@ -56,9 +55,8 @@ function processFile(req, resp, next, downloads) {
             statsdUtils.computeTimingAndSend(
                 processFileTime,
                 'amorphic.webserver.process_file.response_time',
-                { result: 'success' });
-        });
-    } catch (error) {
+                { result: 'success' });   
+        } catch (error) {
             resp.writeHead(500, {'Content-Type': 'text/plain'});
             resp.end(error.toString());
             logMessage(err);
@@ -68,7 +66,8 @@ function processFile(req, resp, next, downloads) {
                 { result: 'Invalid request parameters' }
             );
             return;
-    }
+        }
+    });
 }
 
 module.exports = {
