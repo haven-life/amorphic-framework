@@ -32,8 +32,6 @@ function processFile(req, resp, next, downloads) {
             logMessage(err);
         }
 
-        resp.writeHead(200, {'content-type': 'text/html'});
-
         if (!files || !files.file) {
             resp.writeHead(400, {'Content-Type': 'text/plain'});
             resp.end(error.toString());
@@ -45,7 +43,9 @@ function processFile(req, resp, next, downloads) {
             );
             return;
         }
-        
+
+        resp.writeHead(200, {'content-type': 'text/html'});
+
         let file = files.file.path;
         logMessage(file);
 
