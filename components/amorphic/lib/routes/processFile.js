@@ -26,10 +26,13 @@ function processFile(req, resp, next, downloads) {
 
     let form = new formidable.IncomingForm();
     form.uploadDir = downloads;
+
     form.parse(req, function ee(err, _fields, files) {
         if (err) {
             logMessage(err);
         }
+
+        resp.writeHead(200, {'content-type': 'text/html'});
 
         if (!files || !files.file) {
             resp.writeHead(400, {'Content-Type': 'text/plain'});
@@ -42,11 +45,10 @@ function processFile(req, resp, next, downloads) {
             );
             return;
         }
-
+        
         let file = files.file.path;
-        resp.writeHead(200, {'content-type': 'text/html'});
         logMessage(file);
-    
+
         setTimeout(function yz() {
             fs.unlink(file, function zy(err) {
                 if (err) {
@@ -66,7 +68,7 @@ function processFile(req, resp, next, downloads) {
         statsdUtils.computeTimingAndSend(
             processFileTime,
             'amorphic.webserver.process_file.response_time',
-            { result: 'success' });   
+            { result: 'success' });
     });
 }
 
