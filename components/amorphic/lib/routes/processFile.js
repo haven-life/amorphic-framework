@@ -34,7 +34,7 @@ function processFile(req, resp, next, downloads) {
 
         if (!files || !files.file) {
             resp.writeHead(400, {'Content-Type': 'text/plain'});
-            resp.end(error.toString());
+            resp.end('Invalid request parameters');
             logMessage(err);
             statsdUtils.computeTimingAndSend(
                 processFileTime,
