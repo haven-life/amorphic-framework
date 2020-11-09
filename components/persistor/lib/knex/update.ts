@@ -140,7 +140,7 @@ module.exports = function (PersistObjectTemplate) {
                     value.setDirty(txn);
                 }
 
-                pojo[foreignKey] = value ? value._id : null;
+                pojo[foreignKey] = value?._id;
                 updatePersistorProp(obj, prop + 'Persistor', {
                     isFetching: false,
                     id: value ? value._id : null,
