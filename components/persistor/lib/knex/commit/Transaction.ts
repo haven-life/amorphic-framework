@@ -123,7 +123,6 @@ export namespace Transaction {
             innerError = err;
         }
 
-        // @TODO: What if knex rollback fails? But S3 Works out?
         if (txn.remoteObjects && txn.remoteObjects.size > 0) {
             await RollbackS3.rollbackS3(persistorDef, logger, txn);
         }

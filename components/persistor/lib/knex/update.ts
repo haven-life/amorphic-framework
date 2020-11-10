@@ -254,4 +254,4 @@ module.exports = function (PersistObjectTemplate) {
                 obj[prop] = copyProps(obj[prop]);
         }
     }
-};
+}

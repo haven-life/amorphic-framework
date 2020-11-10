@@ -1143,7 +1143,7 @@ module.exports = function (PersistObjectTemplate) {
         // Apparently it seems like Knex takes an async callback, and implicitly waits for it to trigger knex.commit.
         // This is confusing behavior
         try {
-            innerError = await knex.transaction((knexTxn) => Transaction.transaction(this, notifyChanges, txn, knexTxn, logger)); // @TODO: Is Knex.transaction async?
+            innerError = await knex.transaction((knexTxn) => Transaction.transaction(this, notifyChanges, txn, knexTxn, logger));
             LoggerHelpers.debug(this, logger, {component: 'persistor', module: 'api'}, 'End - transaction completed');
             return true;
         } catch (e) {
