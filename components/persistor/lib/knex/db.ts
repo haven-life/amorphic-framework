@@ -1,7 +1,8 @@
 import {DeleteQueries, PersistorTransaction} from '../types';
 import {LoggerHelpers} from '../LoggerHelpers';
 import {Transaction} from './commit/Transaction';
-
+import { Helpers } from './Helpers';
+import { MongoQuery } from './mongoQuery/MongoQuery';
 
 module.exports = function (PersistObjectTemplate) {
 
@@ -40,7 +41,7 @@ module.exports = function (PersistObjectTemplate) {
             if (typeof(queryOrChains) == 'function')
                 queryOrChains(select);
             else if (queryOrChains)
-                select = this.convertMongoQueryToChains(tableName, select, queryOrChains);
+                select = MongoQuery.convertMongoQueryToChains(tableName, select, queryOrChains);
 
         // Convert mongo style sort
         if (options && options.sort) {
@@ -104,12 +105,12 @@ module.exports = function (PersistObjectTemplate) {
                 template = template.__parent__;
 
             asStandard(template, this.dealias(template.__table__));
-            _.each(getPropsRecursive(template), function (defineProperties, prop) {
+            _.each(Helpers.getPropsRecursive(template), function (defineProperties, prop) {
                 as(template, this.dealias(template.__table__), prop, defineProperties)
             }.bind(this));
             _.each(joins, function (join) {
                 asStandard(join.template, join.alias);
-                _.each(getPropsRecursive(join.template), function (defineProperties, prop) {
+                _.each(Helpers.getPropsRecursive(join.template), function (defineProperties, prop) {
                     as(join.template, join.alias, prop, defineProperties)
                 })
             }.bind(this));
@@ -169,7 +170,7 @@ module.exports = function (PersistObjectTemplate) {
         if (typeof(queryOrChains) == 'function')
             queryOrChains(knex);
         else if (queryOrChains)
-            (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
+            (MongoQuery.convertMongoQueryToChains)(tableName, knex, queryOrChains);
 
         return knex.count('_id').then(function (ret) {
             return ret[0].count * 1;
@@ -247,7 +248,7 @@ module.exports = function (PersistObjectTemplate) {
         if (typeof(queryOrChains) == 'function')
             queryOrChains(knex);
         else if (queryOrChains)
-            (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
+            (MongoQuery.convertMongoQueryToChains)(tableName, knex, queryOrChains);
 
         return knex.delete();
     };
@@ -396,7 +397,7 @@ module.exports = function (PersistObjectTemplate) {
             throw new Error(template.__name__ + ' is missing a schema entry');
         }
 
-        var props = getPropsRecursive(template);
+        var props = Helpers.getPropsRecursive(template);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
         var schema = template.__schema__;
         var _newFields = {};
@@ -573,7 +574,7 @@ module.exports = function (PersistObjectTemplate) {
                             _newFields[prop] = props[prop];
                         }
                         else {
-                            if (!iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
+                            if (!Helpers.iscompatible(props[prop].type.name, info[propToColumnName(prop)].type)) {
                                 throw new Error('Changing the type of ' + prop + ' on ' + table
                                     + ', changing types for the fields is not allowed, please use scripts to make these changes');
                             }
@@ -826,37 +827,6 @@ module.exports = function (PersistObjectTemplate) {
             })
     }
 
-
-
-    function iscompatible(persistortype, pgtype) {
-        switch (persistortype) {
-        case 'String':
-        case 'Object':
-        case 'Array':
-            return pgtype.indexOf('text') > -1;
-        case 'Number':
-            return pgtype.indexOf('double precision') > -1;
-        case 'Boolean':
-            return pgtype.indexOf('bool') > -1;
-        case 'Date':
-            return pgtype.indexOf('timestamp') > -1;
-        default:
-            return pgtype.indexOf('text') > -1; // Typed objects have no name
-        }
-    }
-
-    function getPropsRecursive(template, map?) {
-        map = map || {};
-        _.map(template.getProperties(), function (val, prop) {
-            map[prop] = val
-        });
-        template = template.__children__;
-        template.forEach(function (template) {
-            getPropsRecursive(template, map);
-        });
-        return map;
-    }
-
     PersistObjectTemplate.persistTouchKnex = function(obj, txn, logger) {
         (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'pre',
             data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
@@ -946,184 +916,6 @@ module.exports = function (PersistObjectTemplate) {
             }
         }
     };
-
-    /**
-     * Drop table if exists, just a wrapper method on Knex library.
-     * @param {object} template super type
-     * @param {string} tableName table to drop
-     * @returns {*}
-     */
-    PersistObjectTemplate.dropKnexTable = function (template, tableName) {
-        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
-        tableName = tableName ? tableName : this.dealias(template.__table__);
-
-        return knex.schema.dropTableIfExists(tableName);
-    };
-
-    /**
-     * Take a query object like {$or: [{type: 'foo'}, {x: {$gt: 4}, y: {$lte: 6}}]}
-     * which could also be expressed as: {$or: [{type: 'foo'}, {$and: [{x: {$gt: 4}}, {y: {$lte: 6}}]}]}
-     * and append to a knex statement like knex('table').select('*') these chains ...
-     * .where('type', '=', 'foo').orWhere(function () {
-     *    this.where(x, '>', 4).andWhere(y, '<=', 6)
-     * });
-     *
-     * {$or: [{type: 'foo', subtype: 'bar'}, {$or:[{x: {$gt: 4}}, {x: 9}], y: {$lte: 6}}]}
-     * .where('type', '=', 'foo').orWhere(function () {
-     *    this.where(function () {
-     *      this.where(x, '>', 4).orWhere(x, '=' 9)
-     *    }).andWhere(y, '<=', 6)
-     * });     *
-     * @param {string} alias db alias name used when setting the database client object
-     * @param {string} statement knex query
-     * @param {object} query mongo style query object
-     * @returns {*}
-     */
-    PersistObjectTemplate.convertMongoQueryToChains = function (alias, statement, query) {
-
-        /**
-         * Traverse an object and produce a promise chain of where and andWhere
-         * @param {object} statement knex query
-         * @param {object} query mongo style query object
-         * @returns {*}
-         */
-        function traverse(statement, query) {
-            var firstProp = true;
-            for (var prop in query) {
-                var params = processProp(statement, prop, query[prop]);
-                statement = firstProp ?
-                    (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                        statement.where(params[0])) :
-                    (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
-                        statement.andWhere(params[0]));
-                firstProp = false;
-            }
-            return statement;
-        }
-
-        function processProp(_statement, prop, value) {
-            if (value instanceof Array)
-                return processArrayProp(prop, value);
-            else
-                return processNonArrayProp(prop, value)
-        }
-
-        function processArrayProp(prop, value) {
-            return [function () {
-                var firstProp;
-                var statement = this;
-                if (prop.toLowerCase() == '$and') {
-                    firstProp = true;
-                    _.each(value, function (obj) {
-                        var params = processObject(statement, obj);
-                        statement = firstProp ?
-                            (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                                statement.where(params[0])) :
-                            (params.length > 1 ? statement.andWhere(params[0], params[1], params[2]) :
-                                statement.andWhere(params[0]));
-                        firstProp = false;
-                    });
-                } else if (prop.toLowerCase() == '$or') {
-                    firstProp = true;
-                    _.each(value, function (obj) {
-                        var params = processObject(statement, obj);
-                        statement = firstProp ?
-                            (params.length > 1 ? statement.where(params[0], params[1], params[2]) :
-                                statement.where(params[0])) :
-                            (params.length > 1 ? statement.orWhere(params[0], params[1], params[2]) :
-                                statement.andWhere(params[0]));
-                        firstProp = false
-                    });
-                } else if (prop.toLowerCase() == '$in')
-                    statement = statement.whereIn(value);
-                else if (prop.toLowerCase() == '$nin')
-                    statement = statement.whereNotIn(value);
-                else
-                    throw 'Don\'t support ' + prop + ':' + JSON.stringify(value)
-            }];
-        }
-
-        /**
-         * Process an array element of a $or or $and.  This will result in either three parameters in
-         * the form of prop, compare operator, value or a single parameter which is a function that
-         * will chain together a nested expression.
-         * @param {object} statement knex query object
-         * @param {object} obj object of supertype
-         * @returns {Function}
-         */
-        function processObject(statement, obj) {
-            var propCount = 0;
-            var singleProp;
-
-            // Do we have more than one prop
-            for (var prop in obj) {
-                singleProp = prop;
-                ++propCount;
-            }
-
-            // If so fetch the 3 parameters for a where, orWhere or andWhere chain
-            // Otherwise return a function that will chain sub-ordinate clauses
-            if (propCount == 1)
-                return processProp(statement, singleProp, obj[singleProp]);
-            else
-                return [function () {
-                    traverse(statement, obj)
-                }]
-        }
-
-        function processNonArrayProp(prop, value) {
-            var params = [];
-            if (value instanceof Date || typeof(value) == 'string' || typeof(value) == 'number') {
-                params[0] = alias + '.' + prop;
-                params[1] = '=';
-                params[2] = value;
-            } else
-                for (var subProp in value) {
-                    params[0] = alias + '.' + prop;
-                    params[2] = value[subProp];
-                    if (subProp.toLowerCase() == '$eq')
-                        params[1] = '=';
-                    else if (subProp.toLowerCase() == '$gt')
-                        params[1] = '>';
-                    else if (subProp.toLowerCase() == '$gte')
-                        params[1] = '>=';
-                    else if (subProp.toLowerCase() == '$lt')
-                        params[1] = '<';
-                    else if (subProp.toLowerCase() == '$lte')
-                        params[1] = '<=';
-                    else if (subProp.toLowerCase() == '$ne')
-                        params[1] = '!=';
-                    else if (subProp.toLowerCase() == '$in') {
-                        (function () {
-                            var attr = params[0];
-                            var values = params[2];
-                            params = [function () {
-                                this.whereIn(attr, values)
-                            }];
-                        })()
-                    }
-                    else if (subProp.toLowerCase() == '$nin')
-                        (function () {
-                            var attr = params[0];
-                            var values = params[2];
-                            params = [function () {
-                                this.whereNotIn(attr, values)
-                            }];
-                        })()
-                    else if (subProp.toLowerCase() == '$regex') {
-                        params[1] = value.$options && value.$options.match(/i/) ? '~*' : '~';
-                        delete value['$options']
-                        if (params[2] && params[2].source)
-                            params[2] = params[2].source;
-                    } else
-                        throw 'Can\'t handle ' + prop + ':' + JSON.stringify((value));
-                }
-            return params;
-        }
-
-        return traverse(statement, query)
-    };
-
 
     // Start the knex transaction
     // We generate SQLs to save and to Delete and touches
