@@ -14,7 +14,7 @@
         "@types/mocha": "^2.2.39",
         "@types/node": "^11.11.6",
         "chai": "*",
-        "eslint": "3.7.x",
+        "eslint": "4.18.x",
         "mocha": "7.1.1",
         "nyc": "^15.0.1",
         "sinon": "1.15.x",
