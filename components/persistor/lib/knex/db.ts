@@ -2,7 +2,7 @@ import {DeleteQueries, PersistorTransaction} from '../types';
 import {LoggerHelpers} from '../LoggerHelpers';
 import {Transaction} from './commit/Transaction';
 import { Helpers } from './Helpers';
-import { MongoQuery } from './mongoQuery/MongoQuery';
+import { MongoQuery } from './MongoQuery';
 
 module.exports = function (PersistObjectTemplate) {
 
