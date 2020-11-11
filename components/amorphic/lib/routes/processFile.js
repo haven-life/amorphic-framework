@@ -32,6 +32,18 @@ function processFile(req, resp, next, downloads) {
             logMessage(err);
         }
 
+        if (!files || !files.file) {
+            resp.writeHead(400, {'Content-Type': 'text/plain'});
+            resp.end('Invalid request parameters');
+            logMessage(err);
+            statsdUtils.computeTimingAndSend(
+                processFileTime,
+                'amorphic.webserver.process_file.response_time',
+                { result: 'Invalid request parameters, file or path params cannot be blank' }
+            );
+            return;
+        }
+
         resp.writeHead(200, {'content-type': 'text/html'});
 
         let file = files.file.path;
