@@ -1,3 +1,7 @@
+## 4.3.0
+* separate out logic into separate classes
+* add typing to transaction logic
+* documentation updates
 ## 4.2.0
 * config driven host URL name for remote document store
 ## 4.1.1
