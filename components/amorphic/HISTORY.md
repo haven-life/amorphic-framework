@@ -1,3 +1,5 @@
+## 6.0.1
+* Handle null pointer exception when path or file params are undefined. 
 ## 6.0.0
 * Updated Knex and Mongo in persistor to latest major versions
 * Bringing in all of persistor versions greater than or equal to 4.0.0
