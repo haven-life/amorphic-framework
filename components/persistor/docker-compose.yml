@@ -1,33 +1,34 @@
 version: '2'
 services:
-  database-test:
-    image: postgres:9.4-alpine
+  postgres:
+    image: circleci/postgres:latest
     ports:
       - 5432
     environment:
-      - POSTGRES_USER=persistor
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=persistor
       - POSTGRES_DB=test
-# uncomment to save data between tests
-#    volumes:
-#      - ./.postgres:/var/lib/postgresql/data
+      - POSTGRES_HOST_AUTH_METHOD=trust
+  # uncomment to save data between tests
+  #    volumes:
+  #      - ./.postgres:/var/lib/postgresql/data
   mongo:
-    image: mongo:3.4
+    image: circleci/mongo:3.4
     ports:
       - 27017
-# uncomment to save data between tests
-#    volumes:
-#      - ./.mongo:/data/db
-  persistor-test:
+  # uncomment to save data between tests
+  #    volumes:
+  #      - ./.mongo:/data/db
+  persistor:
     build:
       context: .
     depends_on:
       - mongo
-      - database-test
-    volumes:
-      - ./:/app
+      - postgres
     environment:
       - logLevel=info
+    volumes:
+      - ./:/app
     env_file:
       - ./test.env
-    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test
+    command: ./wait-for-it.sh postgres:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test

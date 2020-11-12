@@ -917,6 +917,19 @@ module.exports = function (PersistObjectTemplate) {
         }
     };
 
+    /**
+     * Drop table if exists, just a wrapper method on Knex library.
+     * @param {object} template super type
+     * @param {string} tableName table to drop
+     * @returns {*}
+     */
+    PersistObjectTemplate.dropKnexTable = function (template, tableName) {
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
+        tableName = tableName ? tableName : this.dealias(template.__table__);
+
+        return knex.schema.dropTableIfExists(tableName);
+    };
+
     // Start the knex transaction
     // We generate SQLs to save and to Delete and touches
     // Each save / delete is done in 2 stages
