@@ -31,4 +31,4 @@ services:
       - ./:/app
     env_file:
       - ./test.env
-    command: ./wait-for-it.sh postgres:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test
+    command: ./wait-for-it.sh postgres:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test:compiled:js
