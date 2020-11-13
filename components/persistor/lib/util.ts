@@ -1,3 +1,5 @@
+import * as Knex from 'knex';
+
 module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
@@ -123,8 +125,11 @@ module.exports = function (PersistObjectTemplate) {
             return true;
     };
 
-    /* Mongo implementation of open */
-    PersistObjectTemplate.getDB = function(alias)
+    /* Mongo implementation of open
+    *  @TODO: Need to fix type for connection
+    *
+    */
+    PersistObjectTemplate.getDB = function(alias): {connection: Knex<any, unknown[]>; type: string}
     {
         if (!this._db)
             throw  new Error('You must do PersistObjectTempate.setDB()');
@@ -134,11 +139,11 @@ module.exports = function (PersistObjectTemplate) {
         return this._db[alias || '__default__'];
     };
 
-    PersistObjectTemplate.dealias = function (collection) {
+    PersistObjectTemplate.dealias = function (collection: string): string {
         return collection.replace(/\:.*/, '').replace(/.*\//, '')
     };
 
-    PersistObjectTemplate.getDBAlias = function (collection) {
+    PersistObjectTemplate.getDBAlias = function (collection: string): string {
         if (!collection)
             return '__default__';
         return collection.match(/(.*)\//) ? RegExp.$1 : '__default__'

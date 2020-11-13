@@ -1,6 +1,6 @@
 import * as _ from 'underscore';
 
-export namespace Helpers {
+export namespace DbHelpers {
     export function iscompatible(persistortype, pgtype) {
         switch (persistortype) {
             case 'String':
