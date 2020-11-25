@@ -1,3 +1,5 @@
+## 4.4.0
+* Reverting changes to persistor 4.3.0
 ## 4.3.0
 * separate out logic into separate classes
 * add typing to transaction logic
