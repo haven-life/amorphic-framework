@@ -798,12 +798,7 @@ declare var define;
 	 *
 	 * @private
 	 */
-	RemoteObjectTemplate._setupProperty = function setupProperty(
-		propertyName,
-		defineProperty,
-		objectProperties,
-		defineProperties
-	) {
+	RemoteObjectTemplate._setupProperty = function setupProperty(propertyName, defineProperty, objectProperties, defineProperties) {
 		//determine whether value needs to be re-initialized in constructor
 		let value = null;
 
@@ -865,34 +860,26 @@ declare var define;
 		// Setter
 		const objectTemplate = this;
 
-		// Only called on the server
+		// Only called on the server for server managed Getters and setters
 		if (this._useGettersSetters && Changes.manage(defineProperty)) {
 			// Determine initially if we should create changes for these properties
 			const createChanges = Changes.create(defineProperty, undefined, this);
 
-			defineProperty.set = (function set() {
-				return function f(value) {
+			defineProperty.set = function serverManagedSetter(value) {
 					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
 					// Sessionize reference if it is missing an __objectTemplate__
-					if (
-						defineProperty.type &&
-						defineProperty.type.isObjectTemplate &&
-						value &&
-						!value.__objectTemplate__
-					) {
+					if (defineProperty.type && defineProperty.type.isObjectTemplate && value && !value.__objectTemplate__) {
 						currentObjectTemplate.sessionize(value, this);
 					}
 
 					// When we assign an array go through the values and attempt to sessionize
 					if (defineProperty.of && defineProperty.of.isObjectTemplate && value instanceof Array) {
-						value.forEach(
-							function(value) {
-								if (!value.__objectTemplate__) {
-									currentObjectTemplate.sessionize(value, this);
-								}
-							}.bind(this)
-						);
+						value.forEach((value) => {
+							if (!value.__objectTemplate__) {
+								currentObjectTemplate.sessionize(value, this);
+							}
+						});
 					}
 
 					if (userSetter) {
@@ -915,12 +902,9 @@ declare var define;
 						this[`__${propertyName}`] = value;
 					}
 				};
-			})();
 
 			// Getter
-			defineProperty.get = (function g() {
-
-				return function z() {
+			defineProperty.get = function serverManagedGetter() {
 					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
 					if (!defineProperty.isVirtual && this[`__${propertyName}`] instanceof Array) {
@@ -933,11 +917,9 @@ declare var define;
 						return this[`__${propertyName}`];
 					}
 				};
-			})();
-		} else if (defineProperty.userGet || defineProperty.userSet) {
-			defineProperty.set = (function h() {
-
-				return function i(value) {
+		}
+		else if (defineProperty.userGet || defineProperty.userSet) {
+			defineProperty.set = function userDefinedGet(value) {
 					if (userSetter) {
 						value = userSetter.call(this, value);
 					}
@@ -946,30 +928,28 @@ declare var define;
 						this[`__${propertyName}`] = value;
 					}
 				};
-			})();
 
-			defineProperty.get = (function j() {
-
-				return function k() {
-					if (userGetter) {
-						if (defineProperty.isVirtual) {
-							return userGetter.call(this, undefined);
-						}
-
-						return userGetter.call(this, this[`__${propertyName}`]);
-					} else {
-						return this[`__${propertyName}`];
+			defineProperty.get = function userDefinedSet() {
+				if (userGetter) {
+					if (defineProperty.isVirtual) {
+						return userGetter.call(this, undefined);
 					}
-				};
-			})();
+
+					return userGetter.call(this, this[`__${propertyName}`]);
+				}
+				else {
+					return this[`__${propertyName}`];
+				}
+			}
 
 			if (!defineProperty.isVirtual) {
-				defineProperties[`__${propertyName}`] = { enumerable: false, writable: true };
+				defineProperties[`__${propertyName}`] = {enumerable: false, writable: true};
 			}
 
 			delete defineProperty.value;
 			delete defineProperty.writable;
-		} else {
+		}
+		else {
 			if (objectProperties) {
 				objectProperties[`__${propertyName}`] = objectProperties[propertyName];
 			}
