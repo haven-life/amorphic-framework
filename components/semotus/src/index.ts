@@ -857,6 +857,8 @@ declare var define;
 		// In the case where there are now getters and setters, the __prop represents
 		// the original value
 
+		// Setter
+		const objectTemplate = this;
 
 		// Only called on the server for server managed Getters and setters
 		if (this._useGettersSetters && Changes.manage(defineProperty)) {
@@ -864,18 +866,18 @@ declare var define;
 			const createChanges = Changes.create(defineProperty, undefined, this);
 
 			defineProperty.set = function serverManagedSetter(value) {
-					const amorphicRef = this.amorphic ? this.amorphic : RemoteObjectTemplate;
+					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
 					// Sessionize reference if it is missing an __objectTemplate__
 					if (defineProperty.type && defineProperty.type.isObjectTemplate && value && !value.__objectTemplate__) {
-						amorphicRef.sessionize(value, this);
+						currentObjectTemplate.sessionize(value, this);
 					}
 
 					// When we assign an array go through the values and attempt to sessionize
 					if (defineProperty.of && defineProperty.of.isObjectTemplate && value instanceof Array) {
 						value.forEach((value) => {
 							if (!value.__objectTemplate__) {
-								amorphicRef.sessionize(value, this);
+								currentObjectTemplate.sessionize(value, this);
 							}
 						});
 					}
@@ -889,9 +891,9 @@ declare var define;
 					const hasChanged = oldShadowedValue !== newValue;
 
 					if (!defineProperty.isVirtual && this.__id__ && createChanges && hasChanged ) {
-						amorphicRef._changedValue(this, propertyName, value);
+						currentObjectTemplate._changedValue(this, propertyName, value);
 
-						if (amorphicRef.__changeTracking__) {
+						if (currentObjectTemplate.__changeTracking__) {
 							this.__changed__ = true;
 						}
 					}
@@ -903,10 +905,10 @@ declare var define;
 
 			// Getter
 			defineProperty.get = function serverManagedGetter() {
-					const amorphicRef = this.amorphic ? this.amorphic : RemoteObjectTemplate;
+					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
 					if (!defineProperty.isVirtual && this[`__${propertyName}`] instanceof Array) {
-						amorphicRef._referencedArray(this, propertyName, this[`__${propertyName}`]);
+						currentObjectTemplate._referencedArray(this, propertyName, this[`__${propertyName}`]);
 					}
 
 					if (userGetter) {
