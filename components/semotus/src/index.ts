@@ -866,7 +866,7 @@ declare var define;
 			const createChanges = Changes.create(defineProperty, undefined, this);
 
 			defineProperty.set = function serverManagedSetter(value) {
-					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
+					const currentObjectTemplate = this.amorphic ? this.amorphic : objectTemplate;
 
 					// Sessionize reference if it is missing an __objectTemplate__
 					if (defineProperty.type && defineProperty.type.isObjectTemplate && value && !value.__objectTemplate__) {
@@ -905,7 +905,7 @@ declare var define;
 
 			// Getter
 			defineProperty.get = function serverManagedGetter() {
-					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
+					const currentObjectTemplate = this.amorphic ? this.amorphic : objectTemplate;
 
 					if (!defineProperty.isVirtual && this[`__${propertyName}`] instanceof Array) {
 						currentObjectTemplate._referencedArray(this, propertyName, this[`__${propertyName}`]);
