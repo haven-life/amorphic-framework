@@ -94,7 +94,7 @@ declare var define;
 		let extraID = '';
 
 		if (this.reqSession && this.reqSession.loggingID) {
-			extraID = '-' + this.reqSession.loggingID;
+			extraID = `-${this.reqSession.loggingID}`;
 		}
 
 		const t = new Date();
@@ -110,7 +110,7 @@ declare var define;
 			':' +
 			t.getMilliseconds();
 
-		const message = time + '(' + this.currentSession + extraID + ') ' + 'RemoteObjectTemplate:' + data;
+		const message = `${time}(${this.currentSession}${extraID}) RemoteObjectTemplate:${data}`;
 
 		this.logger.info(message);
 	};
@@ -453,7 +453,7 @@ declare var define;
 						activity: 'post',
 						data: { last_object_ref: objectKey, last_prop_ref: propKey }
 					},
-					'Error serializing session ' + e.message + e.stack
+					`Error serializing session ${e.message} ${e.stack}`
 				);
 				return null;
 			}
@@ -571,7 +571,7 @@ declare var define;
 			a += Object.keys(arrays).length;
 		}
 
-		return a + ' arrays ' + c + ' changes ';
+		return `${a} arrays ${c} changes `;
 	};
 
 	/**
@@ -589,7 +589,7 @@ declare var define;
 
 		if (!obj.__id__) {
 			// If this comes from a delayed sessionize call don't change the id
-			const objectId = this.nextDispenseId || this.role + '-' + template.__name__ + '-' + this.nextObjId++;
+			const objectId = this.nextDispenseId || `${this.role}-${template.__name__}-${this.nextObjId++}`;
 			obj.__id__ = objectId;
 		}
 		this.nextDispenseId = null;
@@ -801,7 +801,7 @@ declare var define;
 		// One property for real name which will have a getter and setter
 		// and another property for the actual value __propertyname
 		defineProperties[propertyName] = defineProperty;
-		defineProperties['__' + propertyName] = { enumerable: false, writable: true };
+		defineProperties[`__${propertyName}`] = { enumerable: false, writable: true };
 
 		// Move user getters and setters to their own property
 		if (defineProperty.get && !defineProperty.userGet && !defineProperty.definePropertyProcessed) {
@@ -864,7 +864,7 @@ declare var define;
 						!defineProperty.isVirtual &&
 						this.__id__ &&
 						createChanges &&
-						transform(this['__' + prop]) !== transform(value)
+						transform(this[`__${prop}`]) !== transform(value)
 					) {
 						RemoteObjectTemplate._changedValue(this, prop, value);
 
@@ -874,7 +874,7 @@ declare var define;
 					}
 
 					if (!defineProperty.isVirtual) {
-						this['__' + prop] = value;
+						this[`__${prop}`] = value;
 					}
 				};
 
@@ -910,9 +910,9 @@ declare var define;
 							return JSON.stringify(data);
 						}
 					} catch (e) {
-						objectTemplate.logger.error(
+						RemoteObjectTemplate.logger.error(
 							{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: prop } },
-							'caught exception trying to stringify ' + prop
+							`Caught exception trying to stringify ${prop}`
 						);
 						return data;
 					}
@@ -927,14 +927,14 @@ declare var define;
 				return function z() {
 					// const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
-					if (!defineProperty.isVirtual && this['__' + prop] instanceof Array) {
-						RemoteObjectTemplate._referencedArray(this, prop, this['__' + prop]);
+					if (!defineProperty.isVirtual && this[`__${prop}`] instanceof Array) {
+						RemoteObjectTemplate._referencedArray(this, prop, this[`__${prop}`]);
 					}
 
 					if (userGetter) {
-						return userGetter.call(this, this['__' + prop]);
+						return userGetter.call(this, this[`__${prop}`]);
 					} else {
-						return this['__' + prop];
+						return this[`__${prop}`];
 					}
 				};
 			})();
@@ -949,7 +949,7 @@ declare var define;
 					}
 
 					if (!defineProperty.isVirtual) {
-						this['__' + prop] = value;
+						this[`__${prop}`] = value;
 					}
 				};
 			})();
@@ -964,22 +964,22 @@ declare var define;
 							return userGetter.call(this, undefined);
 						}
 
-						return userGetter.call(this, this['__' + prop]);
+						return userGetter.call(this, this[`__${prop}`]);
 					} else {
-						return this['__' + prop];
+						return this[`__${prop}`];
 					}
 				};
 			})();
 
 			if (!defineProperty.isVirtual) {
-				defineProperties['__' + propertyName] = { enumerable: false, writable: true };
+				defineProperties[`__${propertyName}`] = { enumerable: false, writable: true };
 			}
 
 			delete defineProperty.value;
 			delete defineProperty.writable;
 		} else {
 			if (objectProperties) {
-				objectProperties['__' + propertyName] = objectProperties[propertyName];
+				objectProperties[`__${propertyName}`] = objectProperties[propertyName];
 			}
 		}
 
@@ -1040,7 +1040,7 @@ declare var define;
 
 				// Get normalized values substituting ids for ObjectTemplate objects
 				const newValue = this._convertValue(value);
-				const oldValue = this._convertValue(obj['__' + prop]);
+				const oldValue = this._convertValue(obj[`__${prop}`]);
 
 				// Create a new key in the change group if needed
 				if (!changeGroup[obj.__id__]) {
@@ -1120,7 +1120,7 @@ declare var define;
 		}
 
 		function processChangeGroup(changeGroup) {
-			const key = obj.__id__ + '/' + prop;
+			const key = `${obj.__id__}/${prop}`;
 
 			// Only record the value on the first reference
 			if (!changeGroup[key]) {
@@ -1136,7 +1136,7 @@ declare var define;
 								old[ix] = elem.__id__;
 							} else {
 								// values start with an = to distinguish from ids
-								old[ix] = '=' + JSON.stringify(elem);
+								old[ix] = `=${JSON.stringify(elem)}`;
 							}
 						}
 					}
@@ -1184,7 +1184,7 @@ declare var define;
 					let curr;
 
 					if (this._useGettersSetters) {
-						curr = obj['__' + prop];
+						curr = obj[`__${prop}`];
 					} else {
 						curr = obj[prop];
 					}
@@ -1209,7 +1209,7 @@ declare var define;
 						let currValue = undefined;
 
 						if (typeof curr[ix] !== 'undefined' && curr[ix] != null) {
-							currValue = curr[ix].__id__ || '=' + JSON.stringify(curr[ix]);
+							currValue = curr[ix].__id__ || `=${JSON.stringify(curr[ix])}`;
 						}
 
 						const origValue = orig[ix];
@@ -1246,11 +1246,11 @@ declare var define;
 
 						// Update previous value since change has been recorded
 						if (!this._useGettersSetters) {
-							if (!obj['__' + prop]) {
-								obj['__' + prop] = [];
+							if (!obj[`__${prop}`]) {
+								obj[`__${prop}`] = [];
 							}
 
-							obj['__' + prop][ix] = obj[prop][ix];
+							obj[`__${prop}`][ix] = obj[prop][ix];
 						}
 					}
 				}
@@ -1289,7 +1289,7 @@ declare var define;
 					let curr;
 
 					if (this._useGettersSetters) {
-						curr = obj['__' + prop];
+						curr = obj[`__${prop}`];
 					} else {
 						curr = obj[prop];
 					}
@@ -1312,7 +1312,7 @@ declare var define;
 						let currValue = undefined;
 
 						if (typeof curr[ix] !== 'undefined' && curr[ix] != null) {
-							currValue = curr[ix].__id__ || '=' + JSON.stringify(curr[ix]);
+							currValue = curr[ix].__id__ || `=${JSON.stringify(curr[ix])}`;
 						}
 
 						const origValue = orig[ix];
@@ -1433,7 +1433,7 @@ declare var define;
 				} else {
 					this.logger.error(
 						{ component: 'semotus', module: 'applyChanges', activity: 'processing' },
-						'Could not find template for ' + objId
+						`Could not find template for ${objId}`
 					);
 				}
 			}
@@ -1472,7 +1472,7 @@ declare var define;
 				this._deleteChanges();
 				this.logger.error(
 					{ component: 'semotus', module: 'applyChanges', activity: 'processing' },
-					'Could not apply changes to ' + objId
+					`Could not apply changes to ${objId}`
 				);
 				this.changeString = {};
 				return 0;
@@ -1562,8 +1562,8 @@ declare var define;
 					if (!(obj[prop] instanceof Array)) {
 						obj[prop] = [];
 					}
-					if (!this._useGettersSetters && !(obj['__' + prop] instanceof Array)) {
-						obj['__' + prop] = [];
+					if (!this._useGettersSetters && !(obj[`__${prop}`] instanceof Array)) {
+						obj[`__${prop}`] = [];
 					}
 
 					let length;
@@ -1614,7 +1614,7 @@ declare var define;
 					obj[prop] = null;
 
 					if (!this._useGettersSetters) {
-						obj['__' + prop] = null;
+						obj[`__${prop}`] = null;
 					}
 				}
 			} else {
@@ -1707,7 +1707,7 @@ declare var define;
 		} catch (e) {
 			this.logger.error(
 				{ component: 'semotus', module: 'applyPropertyChange', activity: 'processing' },
-				'Could not apply change to ' + obj.__template__.__name__ + '.' + prop + ' based on property definition'
+				`Could not apply change to ${obj.__template__.__name__}.${prop} based on property definition`
 			);
 
 			return false;
@@ -1821,10 +1821,10 @@ declare var define;
 				obj[prop][ix] = newValue;
 
                 if (!this._useGettersSetters && Changes.manage(defineProperty)) {
-					if (!obj['__' + prop]) {
-						obj['__' + prop] = [];
+					if (!obj[`__${prop}`]) {
+						obj[`__${prop}`] = [];
 					}
-					obj['__' + prop][ix] = newValue;
+					obj[`__${prop}`][ix] = newValue;
 				}
 
 				if (this.__changeTracking__) {
@@ -1834,7 +1834,7 @@ declare var define;
 				obj[prop] = newValue;
 
                 if (!this._useGettersSetters && Changes.manage(defineProperty)) {
-					obj['__' + prop] = newValue;
+					obj[`__${prop}`] = newValue;
 				}
 			}
 		}
@@ -1842,10 +1842,10 @@ declare var define;
 		let logValue;
 
 		if (objId) {
-			logValue = '{' + objId + '}';
+			logValue = `{${objId}}`;
 		} else {
 			if (newValue instanceof Array) {
-				logValue = '[' + newValue.length + ']';
+				logValue = `[${newValue.length}]`;
 			} else {
 				logValue = newValue;
 			}
@@ -1935,11 +1935,11 @@ declare var define;
 	 */
 	RemoteObjectTemplate._createEmptyObject = function createEmptyObject(template, objId, defineProperty, isTransient) {
 		if (!objId) {
-			throw new Error('_createEmptyObject called for ' + template.__name__ + ' without objId parameter');
+			throw new Error(`_createEmptyObject called for ${template.__name__} without objId parameter`);
 		}
 
 		if (!template.__children__) {
-			throw new Error('_createEmptyObject called for incorrectly defined template ' + objId);
+			throw new Error(`_createEmptyObject called for incorrectly defined template ${objId}`);
 		}
 
 		template = this._resolveSubClass(template, objId, defineProperty);
