@@ -822,7 +822,7 @@ declare var define;
 		// the original value
 
 		// Setter
-		// const objectTemplate = this;
+		const objectTemplate = this;
 
 		// Only called on the server
 		if (this._useGettersSetters && Changes.manage(defineProperty)) {
@@ -834,6 +834,7 @@ declare var define;
 				const prop = propertyName;
 
 				return function f(value) {
+					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
 					// Sessionize reference if it is missing an __objectTemplate__
 					if (
@@ -842,7 +843,7 @@ declare var define;
 						value &&
 						!value.__objectTemplate__
 					) {
-						RemoteObjectTemplate.sessionize(value, this);
+						currentObjectTemplate.sessionize(value, this);
 					}
 
 					// When we assign an array go through the values and attempt to sessionize
@@ -850,7 +851,7 @@ declare var define;
 						value.forEach(
 							function(value) {
 								if (!value.__objectTemplate__) {
-									RemoteObjectTemplate.sessionize(value, this);
+									currentObjectTemplate.sessionize(value, this);
 								}
 							}.bind(this)
 						);
@@ -866,9 +867,9 @@ declare var define;
 						createChanges &&
 						transform(this[`__${prop}`]) !== transform(value)
 					) {
-						RemoteObjectTemplate._changedValue(this, prop, value);
+						currentObjectTemplate._changedValue(this, prop, value);
 
-						if (RemoteObjectTemplate.__changeTracking__) {
+						if (currentObjectTemplate.__changeTracking__) {
 							this.__changed__ = true;
 						}
 					}
@@ -910,7 +911,7 @@ declare var define;
 							return JSON.stringify(data);
 						}
 					} catch (e) {
-						RemoteObjectTemplate.logger.error(
+						objectTemplate.logger.error(
 							{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: prop } },
 							`Caught exception trying to stringify ${prop}`
 						);
@@ -925,10 +926,10 @@ declare var define;
 				const prop = propertyName;
 
 				return function z() {
-					// const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
+					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
 					if (!defineProperty.isVirtual && this[`__${prop}`] instanceof Array) {
-						RemoteObjectTemplate._referencedArray(this, prop, this[`__${prop}`]);
+						currentObjectTemplate._referencedArray(this, prop, this[`__${prop}`]);
 					}
 
 					if (userGetter) {
@@ -984,7 +985,7 @@ declare var define;
 		}
 
 		// Setters and Getters cannot have value or be writable
-        if (this._useGettersSetters && Changes.manage(defineProperty)) {
+		if (this._useGettersSetters && Changes.manage(defineProperty)) {
 			delete defineProperty.value;
 			delete defineProperty.writable;
 		}
