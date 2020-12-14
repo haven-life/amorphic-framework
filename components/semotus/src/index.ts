@@ -743,6 +743,47 @@ declare var define;
 		}
 	};
 
+	function transform(data, defineProperty) {
+		try {
+			if (defineProperty.type == String || defineProperty.type == Number || !data) {
+				return data;
+			}
+
+			if (defineProperty.type == Date) {
+				return data.getTime();
+			}
+
+			if (defineProperty.type == Array) {
+				if (defineProperty.of.isObjectTemplate) {
+					if (data.length) {
+						let digest = '';
+
+						for (var ix = 0; ix < data.length; ++ix) {
+							digest += data[ix].__id__;
+						}
+
+						return digest;
+					} else {
+						return '[]';
+					}
+				} else {
+					return JSON.stringify(data);
+				}
+			} else if (defineProperty.type.isObjectTemplate) {
+				return data.__id__;
+			} else {
+				return JSON.stringify(data);
+			}
+		} catch (e) {
+			RemoteObjectTemplate.logger.error(
+				{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: prop } },
+				`Caught exception trying to stringify ${prop}`
+			);
+			return data;
+		}
+	}
+
+
 	/**
 	 * Overridden method in ObjectTemplate that creates a structure initialize a property in constructor
 	 * and adds any getters and setters to the property so changes can be tracked
@@ -830,9 +871,6 @@ declare var define;
 			const createChanges = Changes.create(defineProperty, undefined, this);
 
 			defineProperty.set = (function set() {
-				// use a closure to record the property name which is not passed to the setter
-				const prop = propertyName;
-
 				return function f(value) {
 					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
@@ -861,13 +899,8 @@ declare var define;
 						value = userSetter.call(this, value);
 					}
 
-					if (
-						!defineProperty.isVirtual &&
-						this.__id__ &&
-						createChanges &&
-						transform(this[`__${prop}`]) !== transform(value)
-					) {
-						currentObjectTemplate._changedValue(this, prop, value);
+					if (!defineProperty.isVirtual && this.__id__ && createChanges && transform(this[`__${propertyName}`], defineProperty) !== transform(value, defineProperty)) {
+						currentObjectTemplate._changedValue(this, propertyName, value);
 
 						if (currentObjectTemplate.__changeTracking__) {
 							this.__changed__ = true;
@@ -875,74 +908,30 @@ declare var define;
 					}
 
 					if (!defineProperty.isVirtual) {
-						this[`__${prop}`] = value;
+						this[`__${propertyName}`] = value;
 					}
 				};
-
-				function transform(data) {
-					try {
-						if (defineProperty.type == String || defineProperty.type == Number || !data) {
-							return data;
-						}
-
-						if (defineProperty.type == Date) {
-							return data.getTime();
-						}
-
-						if (defineProperty.type == Array) {
-							if (defineProperty.of.isObjectTemplate) {
-								if (data.length) {
-									let digest = '';
-
-									for (var ix = 0; ix < data.length; ++ix) {
-										digest += data[ix].__id__;
-									}
-
-									return digest;
-								} else {
-									return '[]';
-								}
-							} else {
-								return JSON.stringify(data);
-							}
-						} else if (defineProperty.type.isObjectTemplate) {
-							return data.__id__;
-						} else {
-							return JSON.stringify(data);
-						}
-					} catch (e) {
-						objectTemplate.logger.error(
-							{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: prop } },
-							`Caught exception trying to stringify ${prop}`
-						);
-						return data;
-					}
-				}
 			})();
 
 			// Getter
 			defineProperty.get = (function g() {
-				// use closure to record property name which is not passed to the getter
-				const prop = propertyName;
 
 				return function z() {
 					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
-					if (!defineProperty.isVirtual && this[`__${prop}`] instanceof Array) {
-						currentObjectTemplate._referencedArray(this, prop, this[`__${prop}`]);
+					if (!defineProperty.isVirtual && this[`__${propertyName}`] instanceof Array) {
+						currentObjectTemplate._referencedArray(this, propertyName, this[`__${propertyName}`]);
 					}
 
 					if (userGetter) {
-						return userGetter.call(this, this[`__${prop}`]);
+						return userGetter.call(this, this[`__${propertyName}`]);
 					} else {
-						return this[`__${prop}`];
+						return this[`__${propertyName}`];
 					}
 				};
 			})();
 		} else if (defineProperty.userGet || defineProperty.userSet) {
 			defineProperty.set = (function h() {
-				// use a closure to record the property name which is not passed to the setter
-				const prop = propertyName;
 
 				return function i(value) {
 					if (userSetter) {
@@ -950,14 +939,12 @@ declare var define;
 					}
 
 					if (!defineProperty.isVirtual) {
-						this[`__${prop}`] = value;
+						this[`__${propertyName}`] = value;
 					}
 				};
 			})();
 
 			defineProperty.get = (function j() {
-				// Use closure to record property name which is not passed to the getter
-				const prop = propertyName;
 
 				return function k() {
 					if (userGetter) {
@@ -965,9 +952,9 @@ declare var define;
 							return userGetter.call(this, undefined);
 						}
 
-						return userGetter.call(this, this[`__${prop}`]);
+						return userGetter.call(this, this[`__${propertyName}`]);
 					} else {
-						return this[`__${prop}`];
+						return this[`__${propertyName}`];
 					}
 				};
 			})();
