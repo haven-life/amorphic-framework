@@ -743,7 +743,7 @@ declare var define;
 		}
 	};
 
-	function transform(data, defineProperty) {
+	function transform(data, defineProperty, propertyName) {
 		try {
 			if (defineProperty.type == String || defineProperty.type == Number || !data) {
 				return data;
@@ -776,8 +776,8 @@ declare var define;
 			}
 		} catch (e) {
 			RemoteObjectTemplate.logger.error(
-				{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: prop } },
-				`Caught exception trying to stringify ${prop}`
+				{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: propertyName } },
+				`Caught exception trying to stringify ${propertyName}`
 			);
 			return data;
 		}
@@ -899,7 +899,11 @@ declare var define;
 						value = userSetter.call(this, value);
 					}
 
-					if (!defineProperty.isVirtual && this.__id__ && createChanges && transform(this[`__${propertyName}`], defineProperty) !== transform(value, defineProperty)) {
+					const oldShadowedValue = transform(this[`__${propertyName}`], defineProperty, propertyName);
+					const newValue = transform(value, defineProperty, propertyName);
+					const hasChanged = oldShadowedValue !== newValue;
+
+					if (!defineProperty.isVirtual && this.__id__ && createChanges && hasChanged ) {
 						currentObjectTemplate._changedValue(this, propertyName, value);
 
 						if (currentObjectTemplate.__changeTracking__) {
