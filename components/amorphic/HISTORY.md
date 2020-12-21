@@ -1,4 +1,6 @@
 ## 7.0.1
+* Updating persistor version
+## 7.0.1
 * Handle null pointer exception when path or file params are undefined.
 ## 7.0.0
 * Adding sync states logic in Semotus, see Semotus for relevant documentation
