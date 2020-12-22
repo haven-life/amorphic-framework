@@ -1,6 +1,7 @@
 import * as serializer from './serializer';
 import { SupertypeLogger } from './SupertypeLogger';
 import { StatsdClientInterface } from './StatsdClientInterface';
+import {AppConfigs} from './SupertypeConfigBuilder';
 export type CreateTypeForName = {
     name?: string;
     toClient?: boolean;
@@ -123,6 +124,7 @@ export class ObjectTemplate {
     static __injections__: Function[];
     static __toClient__: boolean;
     static __statsdClient__: StatsdClientInterface;
+    static config: AppConfigs;
     static amorphicStatic = ObjectTemplate;
 
     /**
@@ -148,6 +150,29 @@ export class ObjectTemplate {
      */
     static set statsdClient(statsClient: StatsdClientInterface) {
         this.amorphicStatic.__statsdClient__ = statsClient;
+    }
+
+    /**
+     * Gets the config on this amorphicStatic property
+     *
+     *
+     * @static
+     * @type {(AppConfigs | undefined)}
+     * @memberof ObjectTemplate
+     */
+    static getConfig(): AppConfigs {
+        return this.amorphicStatic.config;
+    }
+
+    /**
+     * Sets configs onto this amorphicStatic property
+     *
+     * @static
+     * @type {(AppConfigs | undefined)}
+     * @memberof ObjectTemplate
+     */
+    static setConfig(configs: AppConfigs) {
+        this.amorphicStatic.config = configs;
     }
 
     /**

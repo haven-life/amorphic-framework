@@ -7,15 +7,18 @@
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
         "@types/reflect-metadata": "^0.1.0",
-        "reflect-metadata": "^0.1.12"
+        "reflect-metadata": "^0.1.12",
+        "nconf": "^0.11.0"
     },
     "devDependencies": {
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
+        "@types/nconf": "^0.10.0",
         "@types/node": "^11.11.6",
         "chai": "*",
         "eslint": "3.7.x",
         "mocha": "7.1.1",
+        "mock-fs": "4.4.1",
         "nyc": "^15.0.1",
         "sinon": "1.15.x",
         "ts-node": "^8.9.0",
