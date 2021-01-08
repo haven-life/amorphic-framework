@@ -1,3 +1,4 @@
+import { CacheProvider } from './../cacheProvider';
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
 
 module.exports = function (PersistObjectTemplate) {
@@ -66,6 +67,10 @@ module.exports = function (PersistObjectTemplate) {
             data: {template: template.__name__, query: queryOrChains}});
 
         var selectString = select.toString();
+        const cachedPojo = CacheProvider.get(selectString);
+        if (cachedPojo)
+            return Promise.resolve(cachedPojo);
+
         if (map && map[selectString])
             return new Promise(function (resolve) {
                 map[selectString].push(resolve);
@@ -78,9 +83,9 @@ module.exports = function (PersistObjectTemplate) {
             (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
                 data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
+                CacheProvider.set(selectString, res);
                 map[selectString].forEach(function(resolve) {
-                    //console.log('Consolidated request for ' + selectString);
-                    resolve(res)
+                    resolve(res);
                 });
                 delete map[selectString];
             }
@@ -355,6 +360,10 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function logSuccess() {
+            var cachedObject = CacheProvider.getCachedObject(obj._id);
+            if (!cachedObject) {
+                CacheProvider.set(obj._id, obj);
+            }
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
                 data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
         }

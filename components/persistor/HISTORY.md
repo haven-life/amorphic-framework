@@ -1,3 +1,6 @@
+## 5.1.0
+* Adding caching to persistor, this will reduce unnecessary db round-trips, 
+* data still gets saved to DB, but we maintain a single copy in memory and this object properties will be updated if different fetch spec is provided. 
 ## 4.4.0
 * Reverting changes to persistor 4.3.0
 ## 4.3.0
