@@ -1,3 +1,4 @@
+import { CacheProvider } from '../cacheprovider';
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
 
 module.exports = function (PersistObjectTemplate) {
@@ -201,7 +202,8 @@ module.exports = function (PersistObjectTemplate) {
                 throw new Error('Missing _template on ' + template.__name__ + ' row ' + pojo[prefix + '_id']);
             var persistTemplate = (template.__schema__ && template.__schema__.subsetOf) ?
               null : this.__dictionary__[pojo[prefix + '_template']]
-            var obj = establishedObj || idMap[pojo[prefix + '_id']] ||
+            var cachedObject = pojo[prefix + '_id'] && CacheProvider.getCachedObject(pojo[prefix + '_id']) ;
+            var obj = establishedObj || idMap[pojo[prefix + '_id']] || cachedObject ||
               this._createEmptyObject(persistTemplate || template,
                 this.getObjectId(persistTemplate || template, pojo, prefix), defineProperty, isTransient);
 
@@ -214,10 +216,16 @@ module.exports = function (PersistObjectTemplate) {
                 obj._id = pojo[prefix + '_id'];
                 obj._template = pojo[prefix + '_template'];
             }.bind(this));
+            if (!establishedObj && !!cachedObject && allRequiredChildrenAvailableInCache(cachedObject, cascade))
+                return Promise.resolve(cachedObject);
+
             if (!establishedObj && idMap[obj._id] && allRequiredChildrenAvailableInCache(idMap[obj._id], cascade))
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
+            if (!!obj._id) {
+                CacheProvider.set(obj._id, obj);
+            }
             //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
             if (pojo[prefix + '__version__'])
                 this.withoutChangeTracking(function () {
@@ -520,6 +528,9 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             function allRequiredChildrenAvailableInCache(cachedObject, fetchSpec) {
+                if (!fetchSpec) {
+                    return true;
+                }
                 return Object.keys(fetchSpec).reduce(function(loaded, currentObj) {
                     return loaded && (!fetchSpec[currentObj] ||
                         (cachedObject[currentObj + 'Persistor'] && cachedObject[currentObj + 'Persistor'].isFetched))

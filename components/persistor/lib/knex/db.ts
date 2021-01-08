@@ -1,3 +1,4 @@
+import { CacheProvider } from './../cacheprovider';
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
 
 module.exports = function (PersistObjectTemplate) {
@@ -72,15 +73,19 @@ module.exports = function (PersistObjectTemplate) {
             });
         if (map)
             map[selectString] = [];
+        const cachedPojo = CacheProvider.get(selectString);
+        if (cachedPojo)
+            return Promise.resolve(cachedPojo);
 
         return select.then(processResults.bind(this), processError.bind(this));
         function processResults(res) {
             (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
                 data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
+                CacheProvider.set(selectString, res);
                 map[selectString].forEach(function(resolve) {
                     //console.log('Consolidated request for ' + selectString);
-                    resolve(res)
+                    resolve(res);
                 });
                 delete map[selectString];
             }

@@ -205,7 +205,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         expect(jointAccount.getBalance()).to.equal(125);
     });
 
-    it('check server side fetch property..', function () {
+    it('supertype check server side fetch property..', function () {
         return samsAccount['addressFetch'](0, 1).then(function(address) {
             expect(address.street).to.not.equal('');
         })
