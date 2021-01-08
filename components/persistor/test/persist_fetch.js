@@ -50,7 +50,7 @@ describe('persistor transaction checks', function () {
     beforeEach('arrange', function () {
         ObjectTemplate = require('@havenlife/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
+        schema.cacheSupport = false;
         schema.Employee = {};
         schema.Address = {};
         schema.Phone = {};

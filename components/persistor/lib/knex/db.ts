@@ -67,16 +67,17 @@ module.exports = function (PersistObjectTemplate) {
             data: {template: template.__name__, query: queryOrChains}});
 
         var selectString = select.toString();
+        const cachedPojo = CacheProvider.get(selectString);
+        if (cachedPojo)
+            return Promise.resolve(cachedPojo);
+
         if (map && map[selectString])
             return new Promise(function (resolve) {
                 map[selectString].push(resolve);
             });
         if (map)
             map[selectString] = [];
-        const cachedPojo = CacheProvider.get(selectString);
-        if (cachedPojo)
-            return Promise.resolve(cachedPojo);
-
+    
         return select.then(processResults.bind(this), processError.bind(this));
         function processResults(res) {
             (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
@@ -353,8 +354,8 @@ module.exports = function (PersistObjectTemplate) {
                     activity: 'saveKnexPojo',
                     error,
                     data: {
-                        template: obj.__template__.__name__, 
-                        _id: obj._id, 
+                        template: obj.__template__.__name__,
+                        _id: obj._id,
                         __version__: pojo.__version__
                     }
                 }
@@ -378,6 +379,10 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function logSuccess() {
+            var cachedObject = CacheProvider.getCachedObject(obj._id);
+            if (!cachedObject) {
+                CacheProvider.set(obj._id, obj);
+            }
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
                 data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
         }

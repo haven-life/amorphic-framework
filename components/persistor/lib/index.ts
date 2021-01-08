@@ -72,7 +72,6 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     require('./knex/query.js')(PersistObjectTemplate);
     require('./knex/update.js')(PersistObjectTemplate);
     require('./knex/db.js')(PersistObjectTemplate);
-    require('./cacheprovider.js').CacheProvider.initialize();
     objectTemplate = PersistObjectTemplate;
 
     return  PersistObjectTemplate;

@@ -20,6 +20,7 @@ describe('persistor transaction checks', function () {
     before('drop schema table once per test suit', function() {
         knex = knexInit({
             client: 'pg',
+            debug: true,
             connection: {
                 host: process.env.dbPath,
                 database: process.env.dbName,
@@ -45,7 +46,7 @@ describe('persistor transaction checks', function () {
     beforeEach('arrange', function () {
         ObjectTemplate = require('@havenlife/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
+        schema.cacheSupport = true;
         schema.Employee = {};
         schema.EmployeeRef = {};
         schema.Department = {};
@@ -172,6 +173,10 @@ describe('persistor transaction checks', function () {
     it('load intermediate objects first and then try to load the parents ', function () {
         return Role.getFromPersistWithId(roleId, {employee: { fetch: { department: { fetch: { manager: { fetch: { roles: true }}}}, referral: { fetch: { friend: 'recursive:employee'}}}}}).then(function (role) {
             expect(role.employee.department.manager.roles.length).is.equal(2);
+            role.employee.name = 'changing...';
+            return Role.getFromPersistWithId(roleId, {employee: { fetch: { department: { fetch: { manager: { fetch: { roles: true }}}}, referral: { fetch: { friend: 'recursive:employee'}}}}}).then(function (role) {
+                expect(role.employee.department.manager.roles.length).is.equal(2);
+            });
         });
     });
 

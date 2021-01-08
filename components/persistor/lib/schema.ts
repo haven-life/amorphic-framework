@@ -5,6 +5,7 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.setSchema = function (schema) {
         this._schema = schema;
+        require('./cacheprovider.js').CacheProvider.initialize(schema.cacheSupport);
     }
 
     PersistObjectTemplate.appendSchema = function (schema) {

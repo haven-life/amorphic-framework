@@ -216,8 +216,12 @@ module.exports = function (PersistObjectTemplate) {
                 obj._id = pojo[prefix + '_id'];
                 obj._template = pojo[prefix + '_template'];
             }.bind(this));
-            if (!establishedObj && !!cachedObject && allRequiredChildrenAvailableInCache(cachedObject, cascade))
-                return Promise.resolve(cachedObject);
+            if (!!cachedObject && allRequiredChildrenAvailableInCache(cachedObject, cascade)) {
+                idMap[obj._id] = obj;
+                console.log('returned from the cache...', obj._id);
+                return Promise.resolve(obj);
+            }
+
 
             if (!establishedObj && idMap[obj._id] && allRequiredChildrenAvailableInCache(idMap[obj._id], cascade))
                 return Promise.resolve(idMap[obj._id]);

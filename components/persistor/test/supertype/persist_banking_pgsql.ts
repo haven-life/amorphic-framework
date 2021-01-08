@@ -299,7 +299,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             })
     });
 
-    it('Transactions have accounts fetched', function (done) {
+    it('supertype Transactions have accounts fetched', function (done) {
         Xfer.getFromPersistWithQuery({type: 'xfer'}).then (function (transactions) {
             expect(transactions.length).to.equal(2);
             expect(!!transactions[0].account._id).to.equal(true);
@@ -572,7 +572,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             expect(transactions.length).to.equal(4);
         });
     });
-    it('sam looks good on fresh fetch', function (done) {
+    it('supertype sam looks good on fresh fetch', function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
             expect(customer.nullNumber).to.equal(null);
             expect(customer.nullString).to.equal(null);
