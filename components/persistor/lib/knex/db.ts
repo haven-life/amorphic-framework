@@ -79,7 +79,6 @@ module.exports = function (PersistObjectTemplate) {
                 data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
                 map[selectString].forEach(function(resolve) {
-                    //console.log('Consolidated request for ' + selectString);
                     resolve(res)
                 });
                 delete map[selectString];
@@ -333,13 +332,31 @@ module.exports = function (PersistObjectTemplate) {
                 .update(pojo)
                 .then(checkUpdateResults.bind(this))
                 .then(logSuccess.bind(this)))
+                .catch(revertVersion.bind(this));
         } else {
             return Promise.resolve(knex
                 .insert(pojo)
                 .then(logSuccess.bind(this)));
         }
 
-
+        function revertVersion(error) {
+            (logger || this.logger).error(
+                {
+                    component: 'persistor',
+                    module: 'db',
+                    activity: 'saveKnexPojo',
+                    error,
+                    data: {
+                        template: obj.__template__.__name__,
+                        _id: obj._id,
+                        __version__: pojo.__version__
+                    }
+                }
+            );
+            //If there is an error with updates, revert the version value to the original version.
+            obj.__version__ = origVer;
+            throw error;
+        }
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
                 (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'updateConflict',
