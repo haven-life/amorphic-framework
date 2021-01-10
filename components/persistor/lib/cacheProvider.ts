@@ -12,13 +12,10 @@ export class BaseCache {
 export class Cache extends BaseCache{
     constructor(timeToLive: number) {
         super();
-        console.log('loading cache pro');
-        this.cache = new NodeCache({useClones: false});
-        console.log('loading cache pro 1');
         this.ttl = timeToLive;
+        this.cache = new NodeCache({useClones: false});
     }
     public set(key: string, value: any) { 
-        
         this.cache.set(key, value, this.ttl);
     }
 

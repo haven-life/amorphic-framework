@@ -218,7 +218,8 @@ module.exports = function (PersistObjectTemplate) {
             }.bind(this));
             if (!!cachedObject && allRequiredChildrenAvailableInCache(cachedObject, cascade)) {
                 idMap[obj._id] = obj;
-                console.log('returned from the cache...', obj._id);
+                (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
+                            data: 'returned from the cache ' + obj._id});
                 return Promise.resolve(obj);
             }
 
