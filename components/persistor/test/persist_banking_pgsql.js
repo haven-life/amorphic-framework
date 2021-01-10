@@ -231,7 +231,6 @@ Account.mixin({
 
 
 var schema = {
-    cacheSupport: false,
     Customer: {
         documentOf: 'pg/customer',
         children: {
