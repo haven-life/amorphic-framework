@@ -32,6 +32,9 @@ function processFile(req, resp, next, downloads) {
             logMessage(err);
         }
         try {
+            let file = files.file.path;
+            logMessage(file);
+
             setTimeout(function yz() {
                 fs.unlink(file, function zy(err) {
                     if (err) {

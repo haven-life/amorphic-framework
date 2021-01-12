@@ -756,7 +756,7 @@ describe('error handling upload api', function() {
     it('should handle trying to upload no filename', function () {
         return axios({
             method: 'post',
-            url: 'amorphic/xhr?path=test&file='
+            url: 'http://localhost:3001/amorphic/xhr?path=test&file='
         }).then(function(res) {
             expect(res.status).to.equal(400);
             expect(res.data).to.equal('Invalid request parameters');
@@ -766,7 +766,7 @@ describe('error handling upload api', function() {
     it('should handle trying to upload a file with garbage payload', function() {
         return axios({
             method: 'post',
-            url: 'amorphic/xhr?path=test&file=notARealFile',
+            url: 'http://localhost:3001/amorphic/xhr?path=test&file=notARealFile',
             data: '{hello my name is shanks! }'
         }).then(function(res) {
             expect(res.status).to.equal(400);
