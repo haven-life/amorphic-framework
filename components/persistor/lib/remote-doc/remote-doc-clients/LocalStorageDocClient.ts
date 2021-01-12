@@ -39,7 +39,7 @@ export class LocalStorageDocClient implements RemoteDocClient {
                 if(err) {
                     reject(err);
                 }
-                resolve();
+                resolve(undefined);
             });
         });
     };
@@ -61,7 +61,7 @@ export class LocalStorageDocClient implements RemoteDocClient {
                 if(data) {
                     resolve(data.toString());
                 } else {
-                    resolve();
+                    resolve(undefined);
                 }
             });
         });
@@ -80,7 +80,7 @@ export class LocalStorageDocClient implements RemoteDocClient {
                 if (err) {
                     reject(err);
                 }
-                resolve();
+                resolve(undefined);
             });
         });
     };
