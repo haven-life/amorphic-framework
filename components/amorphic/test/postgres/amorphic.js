@@ -49,22 +49,22 @@ const sendToLog = SupertypeSession.logger.sendToLog;
 require('../../client.js');
 
 function afterEachDescribe(done) {
-	if (amorphicContext.appContext.server) {
-		amorphicContext.appContext.server.close();
-	}
-	// reset the session statsd client
-	SupertypeSession.statsdClient = undefined;
-	done();
+    if (amorphicContext.appContext.server) {
+        amorphicContext.appContext.server.close();
+    }
+    // reset the session statsd client
+    SupertypeSession.statsdClient = undefined;
+    done();
 }
 function beforeEachDescribe(done, appName, createControllerFor, sourceMode, statsClient) {
-	process.env.createControllerFor = createControllerFor;
-	process.env.sourceMode = sourceMode || 'debug';
-	amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
+    process.env.createControllerFor = createControllerFor;
+    process.env.sourceMode = sourceMode || 'debug';
+    amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
 
-	// need to inject the amorphicStatic send to log because due to loading up both client and server in the same module resolution
-	// we override our sendToLog with the the clients sometimes
-	serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, sendToLog, statsClient);
-	var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
+    // need to inject the amorphicStatic send to log because due to loading up both client and server in the same module resolution
+    // we override our sendToLog with the the clients sometimes
+    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, sendToLog, statsClient);
+    var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     var controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
     controllerRequires = require(controllerRequiresPath).controller(RemoteObjectTemplate, function () {
@@ -135,7 +135,7 @@ describe('First Group of Tests', function () {
             serverController.sam.roles[0].account.listTransactions();
             serverController.sam.roles[1].account.listTransactions();
             expect(serverController.sam.roles[0].account.getBalance() +
-                  serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                serverController.sam.roles[1].account.getBalance()).to.equal(225);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
         };
         clientController.clearDB().then(function () {
@@ -150,12 +150,12 @@ describe('First Group of Tests', function () {
             serverController.sam.roles[0].account.listTransactions();
             serverController.sam.roles[1].account.listTransactions();
             expect(serverController.sam.roles[0].account.getBalance() +
-                  serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                serverController.sam.roles[1].account.getBalance()).to.equal(225);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
         };
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                serverController.sam.roles[1].account.getBalance()).to.equal(225);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
             done();
         }).catch(function(e) {
@@ -169,11 +169,11 @@ describe('First Group of Tests', function () {
         };
         PostCallAssert = function () {
             expect(serverController.__template__.__objectTemplate__.currentTransaction.touchObjects[serverController.sam.roles[0].account.__id__])
-               .to.equal(serverController.sam.roles[0].account);
+                .to.equal(serverController.sam.roles[0].account);
         };
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance() +
-                  serverController.sam.roles[1].account.getBalance()).to.equal(226);
+                serverController.sam.roles[1].account.getBalance()).to.equal(226);
             done();
         }).catch(function(e) {
             done(e);
@@ -187,14 +187,14 @@ describe('First Group of Tests', function () {
         PostCallAssert = function () {
         };
         clientController.mainFunc()
-           .then(function () {
-               expect('Should not be here').to.equal(false);
-           }, function (e) {
-               expect(e.message).to.equal('get stuffed');
-               done();
-           }).catch(function(e) {
-               done(e);
-           });
+            .then(function () {
+                expect('Should not be here').to.equal(false);
+            }, function (e) {
+                expect(e.message).to.equal('get stuffed');
+                done();
+            }).catch(function(e) {
+            done(e);
+        });
     });
 
     it("can get it's data freshened", function (done) {
@@ -297,11 +297,11 @@ describe('First Group of Tests', function () {
         };
         PostCallAssert = function () {
             expect(serverController.__template__.__objectTemplate__.currentTransaction.touchObjects[serverController.sam.roles[0].account.__id__])
-               .to.equal(serverController.sam.roles[0].account);
+                .to.equal(serverController.sam.roles[0].account);
         };
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(226);
+                serverController.sam.roles[1].account.getBalance()).to.equal(226);
             PostCallAssert = function () {};
             done();
         }).catch(function(e) {
@@ -322,7 +322,7 @@ describe('Second Group of Tests', function () {
             serverController.sam.roles[0].account.listTransactions();
             serverController.sam.roles[1].account.listTransactions();
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                serverController.sam.roles[1].account.getBalance()).to.equal(225);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
         };
         clientController.clearDB().then(function () {
@@ -337,12 +337,12 @@ describe('Second Group of Tests', function () {
             serverController.sam.roles[0].account.listTransactions();
             serverController.sam.roles[1].account.listTransactions();
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                serverController.sam.roles[1].account.getBalance()).to.equal(225);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
         };
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                serverController.sam.roles[1].account.getBalance()).to.equal(225);
             expect(serverController.preServerCallObjects['Controller']).to.equal(true);
             done();
         }).catch(function(e) {
@@ -357,11 +357,11 @@ describe('Second Group of Tests', function () {
         };
         PostCallAssert = function () {
             expect(serverController.__template__.__objectTemplate__.currentTransaction.touchObjects[serverController.sam.roles[0].account.__id__])
-               .to.equal(serverController.sam.roles[0].account);
+                .to.equal(serverController.sam.roles[0].account);
         };
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(226);
+                serverController.sam.roles[1].account.getBalance()).to.equal(226);
             done();
         }).catch(function(e) {
             done(e);
@@ -374,14 +374,14 @@ describe('Second Group of Tests', function () {
         PostCallAssert = function () {
         };
         clientController.mainFunc()
-           .then(function () {
-               expect('Should not be here').to.equal(false);
-           }, function (e) {
-               expect(e.message).to.equal('get stuffed');
-               done();
-           }).catch(function(e) {
-               done(e);
-           });
+            .then(function () {
+                expect('Should not be here').to.equal(false);
+            }, function (e) {
+                expect(e.message).to.equal('get stuffed');
+                done();
+            }).catch(function(e) {
+            done(e);
+        });
     });
     it('block calls', function (done) {
         this.timeout(6000);
@@ -410,8 +410,8 @@ describe('Second Group of Tests', function () {
                     done();
                 };
             }).catch(function(e) {
-                done(e);
-            });
+            done(e);
+        });
         Bluebird.delay(100).then(function () {
             RemoteObjectTemplate._getSession().sendMessageEnabled = true; // Force duplicate message
             clientController.mainFunc()
@@ -420,8 +420,8 @@ describe('Second Group of Tests', function () {
                 }, function (e) {
                     expect('Should not be here').to.equal(false);
                 }).catch(function(e) {
-                    done(e);
-                });
+                done(e);
+            });
         });
     });
 
@@ -521,18 +521,18 @@ describe('Second Group of Tests', function () {
         };
         PostCallAssert = function () {
             expect(serverController.__template__.__objectTemplate__.currentTransaction.touchObjects[serverController.sam.roles[0].account.__id__])
-               .to.equal(serverController.sam.roles[0].account);
+                .to.equal(serverController.sam.roles[0].account);
         };
         clientController.mainFunc().then(function () {
             expect(serverController.sam.roles[0].account.getBalance() +
-               serverController.sam.roles[1].account.getBalance()).to.equal(226);
+                serverController.sam.roles[1].account.getBalance()).to.equal(226);
             done();
         }).catch(function(e) {
             done(e);
         });
     });
 
-   //Internal Routes (aka used by client.js)
+    //Internal Routes (aka used by client.js)
     it('should ignore a non-sequenced post message', function() {
         return axios({
             method: 'post',
@@ -576,7 +576,7 @@ describe('Second Group of Tests', function () {
                 return true;
             }
         }).then(function(res) {
-           //TODO: Add a test later for the specific res.data message being sent back unfortunately that is currently a server stack trace
+            //TODO: Add a test later for the specific res.data message being sent back unfortunately that is currently a server stack trace
             expect(res.status).to.equal(500);
             expect(res.statusText).to.equal('Internal Server Error');
         });
@@ -619,7 +619,7 @@ describe('third group of tests', function() {
         });
     });
 
-   // WORK IN PROGRESS
+    // WORK IN PROGRESS
     it('should handle a post request with a processPost function', function() {
         return axios({
             method: 'post',
@@ -678,7 +678,7 @@ describe('processLoggingMessage', function() {
         };
 
         expect(amorphic._post.calledOnce).to.be.true;
-		expect(amorphic._post.calledWith(url, sinon.match(payload))).to.be.true;
+        expect(amorphic._post.calledWith(url, sinon.match(payload))).to.be.true;
     });
 });
 
@@ -745,6 +745,36 @@ describe('source mode prod testing', function () {
     });
 });
 
+describe('error handling upload api', function() {
+    before(function(done) {
+        return beforeEachDescribe(done, 'test', 'yes', 'prod');
+    });
+
+    after(afterEachDescribe);
+
+
+    it('should handle trying to upload no filename', function () {
+        return axios({
+            method: 'post',
+            url: 'amorphic/xhr?path=test&file='
+        }).then(function(res) {
+            expect(res.status).to.equal(400);
+            expect(res.data).to.equal('Invalid request parameters');
+        });
+    });
+
+    it('should handle trying to upload a file with garbage payload', function() {
+        return axios({
+            method: 'post',
+            url: 'amorphic/xhr?path=test&file=notARealFile',
+            data: {'hello my name is shanks'}
+        }).then(function(res) {
+            expect(res.status).to.equal(400);
+            expect(res.data).to.equal('Invalid request parameters');
+        });
+    });
+});
+
 describe('statsd module enabled', function () {
 
     const statsModule = {
@@ -805,7 +835,7 @@ describe('amorphic api enabled', function () {
                 assert.strictEqual(response.status, 200, 'The response code was 200');
             });
     });
-    
+
 });
 
 // TODO HL-16449 refactor testing suite, re-add statsd module disabled unit test.

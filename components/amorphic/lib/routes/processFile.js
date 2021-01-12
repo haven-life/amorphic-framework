@@ -31,8 +31,28 @@ function processFile(req, resp, next, downloads) {
         if (err) {
             logMessage(err);
         }
+        try {
+            setTimeout(function yz() {
+                fs.unlink(file, function zy(err) {
+                    if (err) {
+                        logMessage(err);
+                    }
+                    else {
+                        logMessage(file + ' deleted');
+                    }
+                });
+            }, 60000);
 
-        if (!files || !files.file) {
+            let fileName = files.file.name;
+            req.session.file = file;
+            resp.writeHead(200, {'content-type': 'text/html'});
+            resp.end('<html><body><script>parent.amorphic.prepareFileUpload(\'package\');' +
+                'parent.amorphic.uploadFunction.call(null, "' +  fileName + '"' + ')</script></body></html>');
+            statsdUtils.computeTimingAndSend(
+                processFileTime,
+                'amorphic.webserver.process_file.response_time',
+                { result: 'success' });
+        } catch (err) {
             resp.writeHead(400, {'Content-Type': 'text/plain'});
             resp.end('Invalid request parameters');
             logMessage(err);
@@ -41,34 +61,7 @@ function processFile(req, resp, next, downloads) {
                 'amorphic.webserver.process_file.response_time',
                 { result: 'Invalid request parameters, file or path params cannot be blank' }
             );
-            return;
         }
-
-        resp.writeHead(200, {'content-type': 'text/html'});
-
-        let file = files.file.path;
-        logMessage(file);
-
-        setTimeout(function yz() {
-            fs.unlink(file, function zy(err) {
-                if (err) {
-                    logMessage(err);
-                }
-                else {
-                    logMessage(file + ' deleted');
-                }
-            });
-        }, 60000);
-
-        let fileName = files.file.name;
-        req.session.file = file;
-        resp.end('<html><body><script>parent.amorphic.prepareFileUpload(\'package\');' +
-            'parent.amorphic.uploadFunction.call(null, "' +  fileName + '"' + ')</script></body></html>');
-
-        statsdUtils.computeTimingAndSend(
-            processFileTime,
-            'amorphic.webserver.process_file.response_time',
-            { result: 'success' });
     });
 }
 
