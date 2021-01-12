@@ -10,6 +10,7 @@ var Customer = PersistObjectTemplate.create('Customer', {
 });
 
 var schema = {
+    cacheSettinigs: { timeToLive: 30 },
     Customer: {
         documentOf: 'customer_idmap',
         children: {

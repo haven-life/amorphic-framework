@@ -37,6 +37,7 @@ describe('persistor transaction checks', function () {
     beforeEach('arrange', function () {
         ObjectTemplate = require('@havenlife/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+        schema.cacheSettinigs = { timeToLive: 30 };
         schema.Person = {};
         schema.Person.table =  'tx_person';
         schema.Person.documentOf =  'tx_person';

@@ -48,7 +48,6 @@ describe('persistor transaction checks', function () {
     beforeEach('arrange', function () {
         ObjectTemplate = require('@havenlife/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
         schema.Employee = {};
         schema.Address = {};
         schema.Phone = {};
@@ -181,7 +180,7 @@ describe('persistor transaction checks', function () {
             knex.schema.dropTableIfExists(schemaTable)]);
     });
 
-    it('persistorFetchById without fetch spec should not return the records', function () {
+    it('new api persistorFetchById without fetch spec should not return the records', function () {
         return Employee.persistorFetchById(empId, { fetch: {homeAddress: false}, enableChangeTracking: true})
             .then(function(employee) {
                 expect(employee.homeAddress).is.equal(null);

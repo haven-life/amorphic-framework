@@ -45,7 +45,7 @@ describe('persistor transaction checks', function () {
     beforeEach('arrange', function () {
         ObjectTemplate = require('@havenlife/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
+        schema.cacheSettings = { timeToLive: 30};
         schema.Employee = {};
         schema.EmployeeRef = {};
         schema.Department = {};
@@ -172,6 +172,12 @@ describe('persistor transaction checks', function () {
     it('load intermediate objects first and then try to load the parents ', function () {
         return Role.getFromPersistWithId(roleId, {employee: { fetch: { department: { fetch: { manager: { fetch: { roles: true }}}}, referral: { fetch: { friend: 'recursive:employee'}}}}}).then(function (role) {
             expect(role.employee.department.manager.roles.length).is.equal(2);
+            role.employee.name = 'changing...';
+            
+            return Role.getFromPersistWithId(roleId, {employee: { fetch: { department: { fetch: { manager: { fetch: { roles: true }}}}, referral: { fetch: { friend: 'recursive:employee'}}}}}).then(function (role) {
+                //If fetched from the cache, its value reflect the in-memory value..
+                expect(role.employee.name).is.equal('changing...');
+            });
         });
     });
 

@@ -508,6 +508,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     });
     it('Accounts sloppily replace addresses', function (done) {
         sam.primaryAddresses.splice(0, 1);
+        sam.middleName = 'Ravi M';
         sam.addAddress('primary', ['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
         Promise.resolve()
             .then(function () {
