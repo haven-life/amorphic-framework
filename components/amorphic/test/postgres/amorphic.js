@@ -767,7 +767,7 @@ describe('error handling upload api', function() {
         return axios({
             method: 'post',
             url: 'amorphic/xhr?path=test&file=notARealFile',
-            data: {'hello my name is shanks'}
+            data: '{hello my name is shanks! }'
         }).then(function(res) {
             expect(res.status).to.equal(400);
             expect(res.data).to.equal('Invalid request parameters');
