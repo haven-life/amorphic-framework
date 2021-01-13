@@ -27,9 +27,10 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
     let sessionData = getSessionCache(path, req.session.id, false, sessions);
 
     if (!message.sequence) {
-        log(1, req.session.id, 'ignoring non-sequenced message', nonObjTemplatelogLevel);
+        const invalidSequence = 'Invalid or no sequence number detected. Ignoring message - will not process this message';
+        log(1, req.session.id, invalidSequence, nonObjTemplatelogLevel);
         res.writeHead(500, {'Content-Type': 'text/plain'});
-        res.end('ignoring non-sequenced message');
+        res.end(invalidSequence);
 
         statsdUtils.computeTimingAndSend(
             processMessageStartTime,
