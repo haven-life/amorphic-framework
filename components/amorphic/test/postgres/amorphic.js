@@ -545,7 +545,7 @@ describe('Second Group of Tests', function () {
             }
         }).then(function(res) {
             expect(res.status).to.equal(500);
-            expect(res.data).to.equal('ignoring non-sequenced message');
+            expect(res.data).to.equal('Invalid or no sequence number detected. Ignoring message - will not process this message');
         });
     });
 
@@ -756,7 +756,11 @@ describe('error handling upload api', function() {
     it('should handle trying to upload no filename', function () {
         return axios({
             method: 'post',
-            url: 'http://localhost:3001/amorphic/xhr?path=test&file='
+            url: 'http://localhost:3001/amorphic/xhr?path=test&file=',
+
+            validateStatus: function (status) {
+                return true;
+            }
         }).then(function(res) {
             expect(res.status).to.equal(400);
             expect(res.data).to.equal('Invalid request parameters');
@@ -767,7 +771,10 @@ describe('error handling upload api', function() {
         return axios({
             method: 'post',
             url: 'http://localhost:3001/amorphic/xhr?path=test&file=notARealFile',
-            data: '{hello my name is shanks! }'
+            data: '{hello my name is shanks! }',
+            validateStatus: function (status) {
+                return true;
+            }
         }).then(function(res) {
             expect(res.status).to.equal(400);
             expect(res.data).to.equal('Invalid request parameters');
