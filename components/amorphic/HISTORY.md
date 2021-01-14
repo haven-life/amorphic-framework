@@ -1,5 +1,8 @@
-## 7.0.2
+<<<<<<< HEAD
+## 7.1.1
 * Added bug handling and better errors for uploads
+## 7.1.0
+* Updating persistor version
 ## 7.0.1
 * Handle null pointer exception when path or file params are undefined.
 ## 7.0.0

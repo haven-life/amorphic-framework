@@ -1,3 +1,5 @@
+## 5.0.0
+* Persistor should set the version back to the original value when there is an error in the SQL.
 ## 4.4.0
 * Reverting changes to persistor 4.3.0
 ## 4.3.0
