@@ -1,3 +1,5 @@
+## 7.0.2
+* Added bug handling and better errors for uploads
 ## 7.0.1
 * Handle null pointer exception when path or file params are undefined.
 ## 7.0.0
