@@ -202,8 +202,8 @@ module.exports = function (PersistObjectTemplate) {
                 throw new Error('Missing _template on ' + template.__name__ + ' row ' + pojo[prefix + '_id']);
             var persistTemplate = (template.__schema__ && template.__schema__.subsetOf) ?
               null : this.__dictionary__[pojo[prefix + '_template']]
-            var cachedObject = pojo[prefix + '_id'] && CacheProvider.getCachedObject(pojo[prefix + '_id']) ;
-            var obj = establishedObj || idMap[pojo[prefix + '_id']] || cachedObject ||
+            var globalCachedObject = pojo[prefix + '_id'] && CacheProvider.get(pojo[prefix + '_id']) ;
+            var obj = establishedObj || idMap[pojo[prefix + '_id']] || globalCachedObject ||
               this._createEmptyObject(persistTemplate || template,
                 this.getObjectId(persistTemplate || template, pojo, prefix), defineProperty, isTransient);
 
@@ -216,8 +216,9 @@ module.exports = function (PersistObjectTemplate) {
                 obj._id = pojo[prefix + '_id'];
                 obj._template = pojo[prefix + '_template'];
             }.bind(this));
-            if (!!cachedObject && allRequiredChildrenAvailableInCache(cachedObject, cascade)) {
+            if (!!globalCachedObject && allRequiredChildrenAvailableInCache(globalCachedObject, cascade)) {
                 idMap[obj._id] = obj;
+                console.log('returninig from cache...', obj._id);
                 (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
                             data: 'returned from the cache ' + obj._id});
                 return Promise.resolve(obj);
@@ -228,9 +229,7 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
-            if (!!obj._id) {
-                CacheProvider.set(obj._id, obj);
-            }
+            
             if (pojo[prefix + '__version__'])
                 this.withoutChangeTracking(function () {
                     obj.__version__ = pojo[prefix + '__version__'];
@@ -348,7 +347,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
                 else {
-                    if (typeof(pojo[prefix + prop]) != 'undefined') {
+                    if (!globalCachedObject && typeof(pojo[prefix + prop]) != 'undefined') {
                         value = pojo[prefix + prop];
                         this.withoutChangeTracking(function () {
                             if (type == Date)
@@ -376,6 +375,9 @@ module.exports = function (PersistObjectTemplate) {
                         }.bind(this));
                     }
                 }
+            }
+            if (!!obj._id) {
+                CacheProvider.set(obj._id, obj);
             }
             if (topLevel)
                 return this.resolveRecursiveRequests(requests, obj);
@@ -531,13 +533,14 @@ module.exports = function (PersistObjectTemplate) {
 
             }
 
-            function allRequiredChildrenAvailableInCache(cachedObject, fetchSpec) {
+            function allRequiredChildrenAvailableInCache(loadedObj, fetchSpec) {
                 if (!fetchSpec) {
                     return true;
                 }
-                return Object.keys(fetchSpec).reduce(function(loaded, currentObj) {
-                    return loaded && (!fetchSpec[currentObj] ||
-                        (cachedObject[currentObj + 'Persistor'] && cachedObject[currentObj + 'Persistor'].isFetched))
+                return Object.keys(fetchSpec).reduce(function (loaded, currentKey) {
+                    var currLevelLoaded = loaded && (!fetchSpec[currentKey] ||
+                        (loadedObj[currentKey + 'Persistor'] && loadedObj[currentKey + 'Persistor'].isFetched));
+                    return currLevelLoaded && allRequiredChildrenAvailableInCache(loadedObj[currentKey], fetchSpec[currentKey].fetch);
                 }, true);
             }
         };

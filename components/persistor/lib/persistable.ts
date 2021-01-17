@@ -78,6 +78,8 @@ export class Persistor extends SupertypeSession {
     connect (connect : any, schema : any) : any {}
     dropAllTables () : any {}
     syncAllTables () : any {}
+    static flushCache () : any | undefined {return undefined};
+
     onAllTables (callback : Function, concurrency? : number) : any {}
 
     debugInfo : any

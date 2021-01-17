@@ -5,8 +5,9 @@ export class BaseCache {
     protected ttl = 0;
     constructor() {}
     public set(key: string, value: any) { }
+    public delete(key: string) { }
+    public flush() { }
     public get(key: string) { }
-    public getCachedObject(key: string) { }
 }
 
 export class Cache extends BaseCache{
@@ -19,13 +20,18 @@ export class Cache extends BaseCache{
         this.cache.set(key, value, this.ttl);
     }
 
+    public delete(key: string) { 
+        this.cache.del(key);
+    }
+
+    public flush() { 
+        this.cache.flushAll();
+    }
+
     public get(key: string) { 
         return this.cache.get(key);
     }
 
-    public getCachedObject(key: string) { 
-        return this.cache.get(key);
-    }
 }
 
 export type CacheSettings = {
@@ -45,12 +51,15 @@ export class CacheProvider {
     public static set(key: string, value: any) {
         this.cache.set(key, value);
     }
+    public static delete(key: string) { 
+        this.cache.delete(key);
+    }
 
+    public static flush() { 
+        this.cache.flush();
+    }
     public static get(key: string) {
         return this.cache.get(key);
     }
 
-    public static getCachedObject(key: string) {
-        return this.cache.get(key);
-    }
 }

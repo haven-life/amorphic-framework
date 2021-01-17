@@ -52,7 +52,8 @@ describe('persistor transaction checks', function () {
         };
         Person = PersistObjectTemplate.create('Person', {
             firstName: {type: String},
-            lastName: {type: String}
+            lastName: {type: String},
+            age: { type: Number}
         });
 
         Address = PersistObjectTemplate.create('Address', {
@@ -148,6 +149,26 @@ describe('persistor transaction checks', function () {
         function checkSubTypes(persons) {
             expect(persons[0].manager).not.equal(undefined);
             expect(persons[1].address).not.equal(undefined);
+        }
+    });
+
+    it('version should be reverted', function() {
+        return loadPersons()
+            .then(persistSaveToGenerateException);
+           
+        function loadPersons() {
+            return Person.persistorFetchByQuery({}, {fetch: {manager: true, address: true}})
+        }
+
+        function persistSaveToGenerateException(persons) {
+            var person = persons[0];
+            person.age = 'to throw error';
+            return person.persistSave().should.be.rejectedWith(Error, 'invalid input syntax for type double precision:')
+                .then(() => {
+                    expect(person.__version__).to.equal('1');
+                    person.age = 10;
+                    return person.persistSave().should.eventually.be.fulfilled;
+                });
         }
     });
 });

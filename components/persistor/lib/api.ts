@@ -11,6 +11,8 @@
  */
 
 import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import { CacheProvider } from './cacheProvider'
+
 
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
@@ -1231,6 +1233,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this.performInjections(); // Normally done by getTemplates
         return connection;
     }
+    PersistObjectTemplate.flushCache = function() {
+        CacheProvider.flush();
+    }
 
     /**
      * Mostly used for unit testing.  Drops all tables for templates that have a schema
@@ -1267,5 +1272,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         }
         return Promise.map(templates, action, { concurrency: concurrency || 1 });
     }
+
+    
 
 };

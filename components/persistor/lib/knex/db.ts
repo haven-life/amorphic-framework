@@ -67,6 +67,7 @@ module.exports = function (PersistObjectTemplate) {
             data: {template: template.__name__, query: queryOrChains}});
 
         var selectString = select.toString();
+        
         const cachedPojo = CacheProvider.get(selectString);
         if (cachedPojo)
             return Promise.resolve(cachedPojo);
@@ -338,18 +339,43 @@ module.exports = function (PersistObjectTemplate) {
                 .update(pojo)
                 .then(checkUpdateResults.bind(this))
                 .then(logSuccess.bind(this)))
+                .then(checkAndUpdateCache.bind(this))
+                .catch(revertVersion.bind(this));
         } else {
             return Promise.resolve(knex
                 .insert(pojo)
-                .then(logSuccess.bind(this)));
+                .then(logSuccess.bind(this))
+                .then(checkAndUpdateCache.bind(this)));
         }
 
-
+        function revertVersion(error) {
+            if (error.message === 'Update Conflict') {
+                throw error;
+            }
+            
+            (logger || this.logger).error(
+                {
+                    component: 'persistor',
+                    module: 'db',
+                    activity: 'saveKnexPojo',
+                    error,
+                    data: {
+                        template: obj.__template__.__name__,
+                        _id: obj._id,
+                        __version__: pojo.__version__
+                    }
+                }
+            );
+            //If there is an error with updates, revert the version value to the original version.
+            obj.__version__ = origVer;
+            throw error;
+        }
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
                 (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'updateConflict',
                     data: {txn: (txn ? txn.id : '-#-'), id: obj.__id__, __version__: origVer}});
                 obj.__version__ = origVer;
+                CacheProvider.flush();
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
                     txn.updateConflict =  true;
@@ -359,11 +385,57 @@ module.exports = function (PersistObjectTemplate) {
             }
         }
 
-        function logSuccess() {
-            var cachedObject = CacheProvider.getCachedObject(obj._id);
+        function checkAndUpdateCache() {
+            var cachedObject = CacheProvider.get(obj._id);
             if (!cachedObject) {
+                console.log('updating cache...', obj._id);
                 CacheProvider.set(obj._id, obj);
             }
+            updateParentReferences();
+            (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'caching',
+                data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
+        }
+
+        function updateParentReferences() {
+            var parents =  obj.__template__.__schema__.parents;
+            Object.keys(parents || []).forEach(parent => {
+                if (!obj[parent]) {
+                    return;
+                }
+                var parentProp = obj.__template__.props[parent];
+                if (parentProp.type.isObjectTemplate) {
+                    var children = parentProp.type.__schema__.children;
+                    var childKeys = Object.keys(children || []).filter(key => children[key].id === parents[parent].id)
+                    childKeys.forEach(childKey => {
+                        var currentChild = children[childKey];
+                        filterAndUpdateParent(parent, childKey, currentChild);
+                    })
+                } 
+            });
+        }
+
+        function filterAndUpdateParent(parent, childKey, currentChild) {
+            if (obj[parent].__template__.props[childKey].of.__name__ !== obj.__template__.__name__) {
+                return;
+            }
+
+            if(currentChild.filter && 
+                currentChild.filter['property'] && 
+                currentChild.filter['value']) {
+                if (obj[currentChild.filter['property']] !== currentChild.filter['value']) {
+                    return;
+                }
+            }
+            if (!obj[parent][childKey]) {
+                obj[parent][childKey] = [];
+            }
+            var found = obj[parent][childKey].filter(o => o._id === obj._id);
+            if (found.length === 0) {
+                obj[parent][childKey].push(obj);
+            }
+        }
+
+        function logSuccess() {
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
                 data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
         }
