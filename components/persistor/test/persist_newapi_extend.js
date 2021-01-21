@@ -16,7 +16,7 @@ var schemaTable = 'index_schema_history';
 var Employee, Person, Manager, empId, Address;
 var PersistObjectTemplate, ObjectTemplate;
 
-describe('persistor transaction checks', function () {
+describe('persist newapi extend', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({

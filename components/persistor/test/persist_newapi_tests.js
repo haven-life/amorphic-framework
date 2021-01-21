@@ -16,11 +16,12 @@ var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role;
 var PersistObjectTemplate, ObjectTemplate;
 
-describe('persistor transaction checks', function () {
+describe('persist newapi tests', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({
             client: 'pg',
+            debug: true,
             connection: {
                 host: process.env.dbPath,
                 database: process.env.dbName,
@@ -412,8 +413,11 @@ describe('persistor transaction checks', function () {
         emp1.isMarried = true;
 
         var tx =  PersistObjectTemplate.beginTransaction();
+        tx.postSave = function(txn, _logger, changes, queries) {
+            expect(queries.length).to.equal(1);
+        }
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
-            return PersistObjectTemplate.commit({transaction: tx}).then(function() {
+            return PersistObjectTemplate.commit({transaction: tx, notifyQueries: true}).then(function() {
                 return Employee.persistorFetchByQuery({name: 'LoadObjectForNotificationCheck'}, {enableChangeTracking: true}).then(function(employees) {
                     expect(employees.length).to.equal(1);
                     var emp = employees[0];
@@ -425,7 +429,7 @@ describe('persistor transaction checks', function () {
                     emp.setDirty(innerTxn);
 
 
-                    innerTxn.postSave = function(txn, _logger, changes) {
+                    innerTxn.postSave = function(txn, _logger, changes, queries) {
                         expect(Object.keys(changes)).to.contain('Employee');
                         expect(Object.keys(changes.Employee[0])).to.contain('primaryKey');
                         expect(changes.Employee[0].properties[0].name).to.equal('homeAddress');
@@ -433,7 +437,7 @@ describe('persistor transaction checks', function () {
                         var empNew = new Employee();
                         empNew.setDirty(txn);
                     };
-                    return PersistObjectTemplate.commit({transaction: innerTxn, notifyChanges: true});
+                    return PersistObjectTemplate.commit({transaction: innerTxn, notifyChanges: true, notifyQueries: true});
                 });
             });
         })
@@ -480,7 +484,7 @@ describe('persistor transaction checks', function () {
             var tx =  PersistObjectTemplate.beginTransaction();
             add.persistDelete({transaction: tx});
             emp.persistDelete({transaction: tx});
-            return PersistObjectTemplate.commit({transaction: tx, notifyChanges: notifyChanges});
+            return PersistObjectTemplate.commit({transaction: tx, notifyChanges: notifyChanges, notifyQueries: true});
         }
 
         function createFKs() {

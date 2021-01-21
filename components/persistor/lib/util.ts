@@ -235,6 +235,9 @@ module.exports = function (PersistObjectTemplate) {
                     },
                     'notifyChanges': {
                         type: ['boolean', 'null', 'undefined']
+                    },
+                    'notifyQueries': {
+                        type: ['boolean', 'null', 'undefined']
                     }
                 }
             },

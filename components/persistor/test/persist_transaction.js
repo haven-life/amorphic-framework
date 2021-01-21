@@ -15,7 +15,7 @@ var schema = {};
 var schemaTable = 'index_schema_history';
 
 
-describe('persistor transaction checks', function () {
+describe('persist transaction', function () {
     before('arrange', function (done) {
         knex = knexInit({
             client: 'pg',
