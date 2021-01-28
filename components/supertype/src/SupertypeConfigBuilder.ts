@@ -31,11 +31,11 @@ export class SupertypeConfigBuilder {
             }
 
             if (envName) {
-                this.nconfProvider.file('root_env', `${rootDir}/config_${envName}.json`);
+                loadConfigFile(this.nconfProvider, 'root_env', rootDir, `config_${envName}.json`);
             }
+            loadConfigFile(this.nconfProvider, 'root_secure', rootDir, `config_secure.json`);
+            loadConfigFile(this.nconfProvider, 'root', rootDir, `config.json`);
 
-            this.nconfProvider.file('root_secure', `${rootDir}/config_secure.json`);
-            this.nconfProvider.file('root', `${rootDir}/config.json`);
 
             configStore['root'] = this.nconfProvider;
 
@@ -58,24 +58,36 @@ function buildAppSpecificConfigStore(app: string, rootDir: string, envName?: str
 
     // Load the new app environment values into the config
     if(envName) {
-        appCfgApi.file('app_env', `${appPath}/config_${envName}.json`);
+        loadConfigFile(appCfgApi, 'app_env', appPath, `config_${envName}.json`);
     }
-    appCfgApi.file('app_secure', `${appPath}/config_secure.json`);
-    appCfgApi.file('app', `${appPath}/config.json`);
+    loadConfigFile(appCfgApi, 'app_secure', appPath, `config_secure.json`);
+    loadConfigFile(appCfgApi, 'app', appPath, `config.json`);
+
 
     // Load the common folder configs to this config provider
     if(envName) {
-        appCfgApi.file('common_env', `${appCommonPath}/config_${envName}.json`);
+        loadConfigFile(appCfgApi, 'common_env', appCommonPath, `config_${envName}.json`);
     }
-    appCfgApi.file('common_secure', `${appCommonPath}/config_secure.json`);
-    appCfgApi.file('common', `${appCommonPath}/config.json`);
+    loadConfigFile(appCfgApi, 'common_secure', appCommonPath, `config_secure.json`);
+    loadConfigFile(appCfgApi, 'common', appCommonPath, `config.json`);
 
     // Load the root values here too
     if(envName) {
-        appCfgApi.file('root_env', `${rootDir}/config_${envName}.json`);
+        loadConfigFile(appCfgApi, 'root_env', rootDir, `config_${envName}.json`);
     }
-    appCfgApi.file('root_secure', `${rootDir}/config_secure.json`);
-    appCfgApi.file('root', `${rootDir}/config.json`);
+
+    loadConfigFile(appCfgApi, 'root_secure', rootDir, `config_secure.json`);
+    loadConfigFile(appCfgApi, 'root', rootDir, `config.json`);
 
     return appCfgApi;
+}
+
+
+function loadConfigFile(config: nconf.Provider, name: string, appPath: string, fileName: string) {
+    try {
+        config.file(name, `${appPath}/${fileName}`);
+    }
+    catch (err) {
+        console.debug(`Error loading ${appPath}/${fileName} to config`);
+    }
 }

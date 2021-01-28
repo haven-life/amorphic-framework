@@ -2,8 +2,7 @@
 
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
-let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
-let ConfigApi = require('./utils/configBuilder').ConfigAPI;
+let SupertypeConfigBuilder = require('@havenlife/supertype').SupertypeConfigBuilder;
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
@@ -46,9 +45,15 @@ function resolveVersions(packages) {
  * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient) {
-	let builder = new ConfigBuilder(new ConfigApi());
-	let configStore = builder.build(appDirectory);
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configs) {
+	let configStore;
+	if (!configs) {
+		configStore = new SupertypeConfigBuilder().build(appDirectory);
+	}
+	else {
+		configStore = configs;
+	}
+
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
 	if (typeof sendToLogFunction === 'function') {
@@ -56,7 +61,13 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 		SupertypeSession.logger.setLogger(sendToLogFunction);
 	}
 
-	buildStartUpParams(configStore);
+	try {
+		buildStartUpParams(configStore);
+	}
+	catch (e) {
+		console.error(`Propagating error: ${e}`);
+		throw new Error('Unable to build startup params, possibly due to malformed configStore passed in');
+	}
 
 	// fetch main app after building startup configs, which populates 'mainApp' field.
 	const mainApp = AmorphicContext.amorphicOptions.mainApp;

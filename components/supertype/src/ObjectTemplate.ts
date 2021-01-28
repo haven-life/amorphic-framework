@@ -124,7 +124,6 @@ export class ObjectTemplate {
     static __injections__: Function[];
     static __toClient__: boolean;
     static __statsdClient__: StatsdClientInterface;
-    static config: AppConfigs;
     static amorphicStatic = ObjectTemplate;
 
     /**
