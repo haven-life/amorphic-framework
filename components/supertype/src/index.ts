@@ -31,6 +31,6 @@ export { StatsdHelper } from './StatsdHelper';
 
 export { amorphicStatic, SupertypeSession };
 export { SupertypeLogger } from './SupertypeLogger';
-export { SupertypeConfigBuilder, AppConfigs } from './SupertypeConfigBuilder';
+export { SupertypeConfig, AppConfigs } from './SupertypeConfig';
 export { Supertype } from './Supertype';
 export { supertypeClass, property, remote } from './decorators';

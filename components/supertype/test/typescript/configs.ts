@@ -1,32 +1,27 @@
 import {expect} from 'chai';
 var mockfs = require('mock-fs');
 import {Provider} from 'nconf';
-import * as nconf from 'nconf';
+let nconf = require('nconf');
 
 
-import {AppConfigs, SupertypeConfigBuilder} from "../../dist/index";
+import {AppConfigs, SupertypeConfig} from "../../dist/index";
 
-describe('SupertypeConfigBuilder', function() {
+describe('SupertypeConfig', function() {
 
     describe('validation', function() {
         it('should throw if null or "" path is used as root', function() {
-            var builder = new SupertypeConfigBuilder();
-            expect(builder.build.bind(builder, undefined)).to.throw('Valid root path expected. rootDir[undefined]');
-            expect(builder.build.bind(builder, null)).to.throw('Valid root path expected. rootDir[null]');
-            expect(builder.build.bind(builder, '')).to.throw('Valid root path expected. rootDir[]');
+            expect(SupertypeConfig.build.bind(SupertypeConfig,undefined)).to.throw('Valid root path expected. rootDir[undefined]');
+            expect(SupertypeConfig.build.bind(SupertypeConfig,null)).to.throw('Valid root path expected. rootDir[null]');
+            expect(SupertypeConfig.build.bind(SupertypeConfig,'')).to.throw('Valid root path expected. rootDir[]');
         });
     });
 
     describe('empty application list', function() {
 
-        let myCfg, builder;
+        let myCfg;
         beforeEach(function() {
-            // myCfg = new nconf.Provider().argv().env({separator: '__'});
-            // // seed the file api before mocking
-            // myCfg.file('foo', 'bar.json');
-            builder = new SupertypeConfigBuilder();
-            builder.nconfProvider.file('foo', 'bar.json');
-            myCfg = builder.nconfProvider;
+            myCfg = new SupertypeConfig();
+            myCfg.loadFile('foo', 'bar.json');
         });
 
         it('should return the global "root" config and all available configs', function() {
@@ -40,7 +35,7 @@ describe('SupertypeConfigBuilder', function() {
                     })
                 }
             });
-            const configStore = builder.build('/my/root');
+            const configStore = SupertypeConfig.build('/my/root');
 
             const props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(2);
@@ -48,7 +43,6 @@ describe('SupertypeConfigBuilder', function() {
             expect(props[1]).to.equal('customer');
 
             expect(configStore['root']).to.not.be.null;
-            expect(configStore['root']).to.deep.equal(myCfg);
         });
 
         afterEach(function() {
@@ -59,9 +53,8 @@ describe('SupertypeConfigBuilder', function() {
     describe('single application not in the list', function() {
         let myCfg, builder;
         beforeEach(function() {
-            builder = new SupertypeConfigBuilder();
-            builder.nconfProvider.file('foo', 'bar.json');
-            myCfg = builder.nconfProvider;
+            myCfg = new SupertypeConfig();
+            myCfg.loadFile('foo', 'bar.json');
         });
 
         it('should return the "root" config and all available configs', function() {
@@ -76,7 +69,7 @@ describe('SupertypeConfigBuilder', function() {
                     })
                 }
             });
-            var configStore = builder.build('/my/root');
+            var configStore = SupertypeConfig.build('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(2);
@@ -84,7 +77,6 @@ describe('SupertypeConfigBuilder', function() {
             expect(props[1]).to.equal('app1');
 
             expect(configStore['root']).to.not.be.null;
-            expect(configStore['root']).to.deep.equal(myCfg);
 
             expect(configStore['app1']).to.not.be.null;
 
@@ -98,12 +90,7 @@ describe('SupertypeConfigBuilder', function() {
 
     describe('single application in the list', function() {
 
-        let myCfg, builder;
-        beforeEach(function() {
-            builder = new SupertypeConfigBuilder();
-            builder.nconfProvider.file('foo', 'bar.json');
-            myCfg = builder.nconfProvider;
-        });
+        let myCfg;
 
         it('should return "root" and all available configs including startup app', function() {
             mockfs({
@@ -119,7 +106,7 @@ describe('SupertypeConfigBuilder', function() {
                     })
                 }
             });
-            var configStore = builder.build('/my/root');
+            var configStore = SupertypeConfig.build('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(4);
@@ -129,7 +116,6 @@ describe('SupertypeConfigBuilder', function() {
             expect(props[3]).to.equal('app3');
 
             expect(configStore['root']).to.not.be.null;
-            expect(configStore['root']).to.deep.equal(myCfg);
 
             expect(configStore['app1']).to.not.be.null;
             //without overrides it will be same as root config
@@ -159,7 +145,7 @@ describe('SupertypeConfigBuilder', function() {
                     })
                 }
             });
-            var configStore = builder.build('/my/root');
+            var configStore = SupertypeConfig.build('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(4);
@@ -197,7 +183,7 @@ describe('SupertypeConfigBuilder', function() {
                     })
                 }
             });
-            var configStore = builder.build('/my/root');
+            var configStore = SupertypeConfig.build('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(4);
@@ -219,13 +205,6 @@ describe('SupertypeConfigBuilder', function() {
 
 
     describe('multiple applications in the list', function() {
-        let myCfg, builder;
-        beforeEach(function() {
-            builder = new SupertypeConfigBuilder();
-            builder.nconfProvider.file('foo', 'bar.json');
-            myCfg = builder.nconfProvider;
-        });
-
         it('should return "root" and all of avaible configured apps, not just what is starting up', function() {
             mockfs({
                 '/my/root': {
@@ -265,7 +244,7 @@ describe('SupertypeConfigBuilder', function() {
                     })
                 }
             });
-            var configStore = builder.build('/my/root');
+            var configStore = SupertypeConfig.build('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(6);

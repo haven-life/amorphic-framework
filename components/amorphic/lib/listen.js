@@ -2,7 +2,7 @@
 
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
-let SupertypeConfigBuilder = require('@havenlife/supertype').SupertypeConfigBuilder;
+let SupertypeConfig = require('@havenlife/supertype').SupertypeConfig;
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
@@ -48,7 +48,7 @@ function resolveVersions(packages) {
 function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configs) {
 	let configStore;
 	if (!configs) {
-		configStore = new SupertypeConfigBuilder().build(appDirectory);
+		configStore = SupertypeConfig.build(appDirectory);
 	}
 	else {
 		configStore = configs;

@@ -1,7 +1,7 @@
 import * as serializer from './serializer';
 import { SupertypeLogger } from './SupertypeLogger';
 import { StatsdClientInterface } from './StatsdClientInterface';
-import {AppConfigs} from './SupertypeConfigBuilder';
+import {AppConfigs, SupertypeConfig} from './SupertypeConfig';
 export type CreateTypeForName = {
     name?: string;
     toClient?: boolean;
@@ -126,6 +126,10 @@ export class ObjectTemplate {
     static __statsdClient__: StatsdClientInterface;
     static amorphicStatic = ObjectTemplate;
 
+    // Nconf is the SupertypeConfig object for this app, and configStore is the list of AppConfigs
+    // This property is initialized in Amorphic, not in Supertype
+    static config: { nconf: SupertypeConfig, configStore: AppConfigs};
+
     /**
      * Gets the statsDClient
      *
@@ -149,29 +153,6 @@ export class ObjectTemplate {
      */
     static set statsdClient(statsClient: StatsdClientInterface) {
         this.amorphicStatic.__statsdClient__ = statsClient;
-    }
-
-    /**
-     * Gets the config on this amorphicStatic property
-     *
-     *
-     * @static
-     * @type {(AppConfigs | undefined)}
-     * @memberof ObjectTemplate
-     */
-    static getConfig(): AppConfigs {
-        return this.amorphicStatic.config;
-    }
-
-    /**
-     * Sets configs onto this amorphicStatic property
-     *
-     * @static
-     * @type {(AppConfigs | undefined)}
-     * @memberof ObjectTemplate
-     */
-    static setConfig(configs: AppConfigs) {
-        this.amorphicStatic.config = configs;
     }
 
     /**
@@ -1107,6 +1088,8 @@ export class ObjectTemplate {
     static createLogger(): SupertypeLogger {
         return new SupertypeLogger();
     }
+
+    static setConfig()
 
 
 }

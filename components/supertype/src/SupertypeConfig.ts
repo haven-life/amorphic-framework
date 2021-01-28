@@ -6,40 +6,73 @@ function createNewNConfProvider(): Provider {
     return new nconf.Provider().argv().env({separator: '__'});
 }
 
-export interface AppConfigs {[appName: string]: Provider}
+export interface AppConfigs {[appName: string]: SupertypeConfig};
 
 /**
  * Deprecating loadFile for just 'file'
  */
-export class SupertypeConfigBuilder {
+export class SupertypeConfig {
 
-    nconfProvider: Provider;
+    internalConfigStore: Provider;
     constructor() {
-        this.nconfProvider = createNewNConfProvider();
+        this.internalConfigStore = createNewNConfProvider();
     }
 
-    build(rootDir: string): AppConfigs {
+    /**
+     * Gets a value with a key
+     *
+     * @param key
+     * @returns {*}
+     */
+    get(key) {
+        return this.internalConfigStore.get(key);
+    }
+
+    /**
+     * Sets a value with a key
+     *
+     * @param key
+     * @param value
+     * @returns {*}
+     */
+    set(key, value) {
+        return this.internalConfigStore.set(key, value);
+    }
+
+    /**
+     * Load a configuration file into store
+     *
+     * @param fileKey
+     * @param file
+     */
+    loadFile(fileKey, file) {
+        this.internalConfigStore.file(fileKey, file);
+    };
+
+
+    static build(rootDir: string): AppConfigs {
+        const rootConfig = new SupertypeConfig();
         if (!rootDir) {
             throw new Error(`Valid root path expected. rootDir[${rootDir}]`);
         }
         else {
             const configStore: AppConfigs = {};
-            let envName = this.nconfProvider.get('APP_ENV');
+            let envName = rootConfig.internalConfigStore.get('APP_ENV');
 
             if (envName) {
                 envName = envName.toLowerCase();
             }
 
             if (envName) {
-                loadConfigFile(this.nconfProvider, 'root_env', rootDir, `config_${envName}.json`);
+                loadConfigFile(rootConfig.internalConfigStore, 'root_env', rootDir, `config_${envName}.json`);
             }
-            loadConfigFile(this.nconfProvider, 'root_secure', rootDir, `config_secure.json`);
-            loadConfigFile(this.nconfProvider, 'root', rootDir, `config.json`);
+            loadConfigFile(rootConfig.internalConfigStore, 'root_secure', rootDir, `config_secure.json`);
+            loadConfigFile(rootConfig.internalConfigStore, 'root', rootDir, `config.json`);
 
 
-            configStore['root'] = this.nconfProvider;
+            configStore['root'] = rootConfig;
 
-            const appList = this.nconfProvider.get('applications') || {};
+            const appList = rootConfig.internalConfigStore.get('applications') || {};
 
             for (let appKey in appList) {
                 configStore[appKey] = buildAppSpecificConfigStore(appList[appKey], rootDir, envName);
@@ -50,11 +83,12 @@ export class SupertypeConfigBuilder {
     }
 }
 
-function buildAppSpecificConfigStore(app: string, rootDir: string, envName?: string): Provider {
+function buildAppSpecificConfigStore(app: string, rootDir: string, envName?: string): SupertypeConfig {
     const appPath = `${rootDir}/${app}`; // Location of the App relative to root
     const appCommonPath = `${rootDir}/apps/common`; // Location of the common folder relative to root
 
-    const appCfgApi = createNewNConfProvider();
+    const config = new SupertypeConfig();
+    const appCfgApi = config.internalConfigStore;
 
     // Load the new app environment values into the config
     if(envName) {
@@ -79,7 +113,7 @@ function buildAppSpecificConfigStore(app: string, rootDir: string, envName?: str
     loadConfigFile(appCfgApi, 'root_secure', rootDir, `config_secure.json`);
     loadConfigFile(appCfgApi, 'root', rootDir, `config.json`);
 
-    return appCfgApi;
+    return config;
 }
 
 
