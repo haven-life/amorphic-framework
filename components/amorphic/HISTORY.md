@@ -1,3 +1,5 @@
+## 7.1.1
+* Added bug handling and better errors for uploads
 ## 7.1.0
 * Updating persistor version
 ## 7.0.1
