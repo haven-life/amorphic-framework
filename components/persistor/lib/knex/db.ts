@@ -84,7 +84,7 @@ module.exports = function (PersistObjectTemplate) {
             (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
                 data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
-                CacheProvider.set(selectString, res);
+                CacheProvider.set(selectString, res, 5);
                 map[selectString].forEach(function(resolve) {
                     resolve(res);
                 });
@@ -389,7 +389,8 @@ module.exports = function (PersistObjectTemplate) {
             var cachedObject = CacheProvider.get(obj._id);
             if (!cachedObject) {
                 console.log('updating cache...', obj._id);
-                CacheProvider.set(obj._id, obj);
+                CacheProvider.set(obj._id, obj, obj.__template__.__schema__.ttl
+                    );
             }
             updateParentReferences();
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'caching',
@@ -415,7 +416,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function filterAndUpdateParent(parent, childKey, currentChild) {
-            if (obj[parent].__template__.props[childKey].of.__name__ !== obj.__template__.__name__) {
+            if (!obj[parent].__template__.props[childKey] || obj[parent].__template__.props[childKey].of.__name__ !== obj.__template__.__name__) {
                 return;
             }
 

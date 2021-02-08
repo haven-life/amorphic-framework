@@ -1,7 +1,14 @@
 {
     "compilerOptions": {
         "outDir": "./dist",
-        "rootDir": "./"
+        "rootDir": "./",
+        "sourceMap": true,
+        "lib": [
+            "dom",
+            "es6",
+            "es2015.promise",
+            "es2017"
+        ],
     },
     "extends": "./tsconfig.base.json",
     "include": [

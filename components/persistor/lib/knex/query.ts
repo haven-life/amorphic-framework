@@ -377,7 +377,7 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
             if (!!obj._id) {
-                CacheProvider.set(obj._id, obj);
+                CacheProvider.set(obj._id, obj, obj.__template__.__schema__.ttl);
             }
             if (topLevel)
                 return this.resolveRecursiveRequests(requests, obj);
@@ -538,7 +538,7 @@ module.exports = function (PersistObjectTemplate) {
                     return true;
                 }
                 return Object.keys(fetchSpec).reduce(function (loaded, currentKey) {
-                    var currLevelLoaded = loaded && (!fetchSpec[currentKey] ||
+                    var currLevelLoaded = loaded && !!loadedObj && (!fetchSpec[currentKey] ||
                         (loadedObj[currentKey + 'Persistor'] && loadedObj[currentKey + 'Persistor'].isFetched));
                     return currLevelLoaded && allRequiredChildrenAvailableInCache(loadedObj[currentKey], fetchSpec[currentKey].fetch);
                 }, true);

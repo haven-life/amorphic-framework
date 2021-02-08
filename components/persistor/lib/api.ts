@@ -1237,6 +1237,10 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         CacheProvider.flush();
     }
 
+    PersistObjectTemplate.persistorCacheKey = function() {
+        return CacheProvider.getPersistorCacheKey();
+    }
+
     /**
      * Mostly used for unit testing.  Drops all tables for templates that have a schema
      * @returns {*|Array}

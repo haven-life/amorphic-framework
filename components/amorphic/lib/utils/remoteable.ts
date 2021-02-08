@@ -28,6 +28,7 @@ export class amorphicStatic {
     static getClasses(): any {};
     static syncAllTables(): any {};
     static getInstance(): any {};
+    static persistorCacheKey(): any {};
 }
 
 export function Remoteable<BC extends Constructable<{}>>(Base: BC) {
