@@ -4,9 +4,9 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "7.1.1",
+	"version": "7.2.0-beta4",
 	"dependencies": {
-		"@havenlife/persistor": "5.x",
+		"@havenlife/persistor": "5.1.0-beta4",
 		"@havenlife/semotus": "4.x",
 		"@havenlife/supertype": "3.x",
 		"amorphic-bindster": "2.0.*",

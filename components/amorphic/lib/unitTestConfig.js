@@ -4,7 +4,7 @@ let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
 let ConfigApi = require('./utils/configBuilder').ConfigAPI;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;
-
+let fs = require('fs');
 /**
  * Connect to the database
  *
@@ -28,8 +28,26 @@ function startup(configPath, schemaPath) {
     config.configStore = configStore;
 
     let schema = JSON.parse((readFile(schemaPath + '/schema.json')).toString());
+    
+    var files = fs.readdirSync(schemaPath);
+    var dbDrivers = [];
+    schema = files.reduce((result, file) => {
+        var prefix = file.match(/(.*)_schema.json/);
+        if (!prefix) {
+            return result;
+        }
+        schema = JSON.parse(String(fs.readFileSync(`${schemaPath}/${file}`)));
+        dbDrivers.push(prefix[1]);
+        Object.keys(schema).forEach(ele => {
+            schema[ele]['table'] = `${prefix[1]}/${schema[ele].table}` ; 
+        });
+        Object.assign(result, schema);
+        return result;
+    }, schema);
 
-    return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema)
+
+
+    return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema, dbDrivers)
         .then (function a(injectObjectTemplate) {
             return injectObjectTemplate(this);
         }.bind(this))

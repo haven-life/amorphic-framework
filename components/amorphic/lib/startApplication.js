@@ -61,15 +61,28 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
  *
  * @returns {Function} A bound function to be used when loading templates.
  */
-function setUpInjectObjectTemplate(appName, config, schema) {
+function setUpInjectObjectTemplate(appName, config, schema, dbDrivers) {
     let amorphicOptions = AmorphicContext.amorphicOptions || {};
-    let dbConfig = buildDbConfig(appName, config);
+    let dbConfig = buildDbConfig(appName, config, dbDrivers);
     let connectToDbIfNeedBe = Bluebird.resolve(false); // Default to no need.
+    let driverConfig = {};
+    
+    let clientList =Object.keys(dbConfig).reduce((p, key) => {
+        return _setUpDbClient(appName, dbConfig[key]).then(client => {
+            driverConfig[key] = client;
+            return driverConfig;
+        })
+    }, {});
 
+    return Promise.resolve(clientList)
+        .then(returnBoundInjectTemplate.bind(this, amorphicOptions, config, dbConfig, schema));
+}
+
+function _setUpDbClient(appName, dbConfig) {
     if (dbConfig.dbName && dbConfig.dbPath) {
         if (dbConfig.dbDriver === 'mongo') {
             let MongoClient = require('mongodb');
-            connectToDbIfNeedBe = MongoClient.connect(dbConfig.dbPath + dbConfig.dbName).then(function(client) {
+            return MongoClient.connect(dbConfig.dbPath + dbConfig.dbName).then(function(client) {
                 return client.db();
             });
         }
@@ -92,12 +105,9 @@ function setUpInjectObjectTemplate(appName, config, schema) {
                 acquireConnectionTimeout: dbConfig.dbConnectionTimeout
             });
 
-            connectToDbIfNeedBe = Bluebird.resolve(knex); // require('knex') is a synchronous call that already connects
+            return Promise.resolve(knex); // require('knex') is a synchronous call that already connects
         }
     }
-
-    return connectToDbIfNeedBe
-        .then(returnBoundInjectTemplate.bind(this, amorphicOptions, config, dbConfig, schema));
 }
 
 /**
@@ -108,20 +118,29 @@ function setUpInjectObjectTemplate(appName, config, schema) {
  *
  * @returns {Object} An object containing all the dbconfig options.
  */
-function buildDbConfig(appName, config) {
+function buildDbConfig(appName, config, dbConfigs) {
+    var dbDriverConfigs = {};
+    dbDriverConfigs['__default__'] = _buildConfig(appName, config, '');
+    return dbConfigs.reduce((driverConfigs, cfgKey) => {
+        driverConfigs[cfgKey] = _buildConfig(appName, config, cfgKey);
+        return driverConfigs;
+    }, dbDriverConfigs)
+}
+
+function _buildConfig(appName, config, alias ) {
     var dbDriver = fetchFromConfig(appName, config, 'dbDriver') || 'knex';
     var defaultPort = dbDriver === 'mongo' ? 27017 : 5432;
     return {
-        dbName:         fetchFromConfig(appName, config, 'dbName'),
-        dbPath:         fetchFromConfig(appName, config, 'dbPath'),
+        dbName:         fetchFromConfig(appName, config, alias + 'dbName'),
+        dbPath:         fetchFromConfig(appName, config, alias + 'dbPath'),
         dbDriver:       dbDriver,
-        dbType:         fetchFromConfig(appName, config, 'dbType')        || 'knex',
-        dbUser:         fetchFromConfig(appName, config, 'dbUser')        || 'nodejs',
-        dbPassword:     fetchFromConfig(appName, config, 'dbPassword')    || null,
+        dbType:         fetchFromConfig(appName, config, alias + 'dbType')        || 'knex',
+        dbUser:         fetchFromConfig(appName, config, alias + 'dbUser')        || 'nodejs',
+        dbPassword:     fetchFromConfig(appName, config, alias + 'dbPassword')    || null,
         dbConnections:  parseInt(fetchFromConfig(appName, config, 'dbConnections')) || 20,
         dbConcurrency:  parseInt(fetchFromConfig(appName, config, 'dbConcurrency')) || 5,
         dbConnectionTimeout: parseInt(fetchFromConfig(appName, config, 'dbConnectionTimeout')) || 60000,
-        dbPort: fetchFromConfig(appName, config, 'dbPort') || defaultPort,
+        dbPort: fetchFromConfig(appName, config, alias + 'dbPort') || defaultPort,
         knexDebug: fetchFromConfig(appName, config, 'knexDebug') || false
     };
 }
@@ -168,9 +187,11 @@ function returnBoundInjectTemplate(amorphicOptions, config, dbConfig, schema, db
  * @param {String} schema - The app schema.
  * @param {Object} objectTemplate - Object template passed in later.
  */
-function injectObjectTemplate(amorphicOptions, config, dbConfig, db, schema, objectTemplate) {
-    if (dbConfig && db) {
-        objectTemplate.setDB(db, dbConfig.dbDriver);
+function injectObjectTemplate(amorphicOptions, config, dbConfigs, db, schema, objectTemplate) {
+    if (dbConfigs && db) {
+        Object.keys(dbConfigs).forEach(key => {
+            objectTemplate.setDB(db[key], dbConfigs[key].dbDriver, key)
+        })
         objectTemplate.setSchema(schema);
         objectTemplate.setRemoteDocConnection(config);
     }

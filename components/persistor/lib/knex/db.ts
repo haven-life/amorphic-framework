@@ -1137,8 +1137,34 @@ module.exports = function (PersistObjectTemplate) {
 
 
     PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChanges) {
-        logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
-        var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
+        function getKnexFromCurrent(template) {
+            var keys = Object.keys(template.dirtyObjects);
+            if (keys.length > 0) {
+                var table = template.dirtyObjects[keys[0]].__template__.__table__;
+                return this.getDB(this.getDBAlias(table)).connection;
+            } 
+
+            keys = Object.keys(template.touchObjects);
+            if (keys.length > 0) {
+                var table = template.touchObjects[keys[0]].__template__.__table__;
+                return this.getDB(this.getDBAlias(table)).connection;
+            } 
+
+            keys = Object.keys(template.savedObjects);
+            if (keys.length > 0) {
+                var table = template.savedObjects[keys[0]].__template__.__table__;
+                return this.getDB(this.getDBAlias(table)).connection;
+            } 
+
+            keys = Object.keys(template.deletedObjects);
+            if (keys.length > 0) {
+                var table = template.deletedObjects[keys[0]].__template__.__table__;
+                return this.getDB(this.getDBAlias(table)).connection;
+            } 
+            return this.getDB(this.getDBAlias(table)).connection;
+        }
+        logger.debug({ component: 'persistor', module: 'api', activity: 'commit' }, 'end of transaction ');
+        var knex = getKnexFromCurrent.call(this, persistorTransaction);
         var dirtyObjects = persistorTransaction.dirtyObjects;
         var touchObjects = persistorTransaction.touchObjects;
         var savedObjects = persistorTransaction.savedObjects;
