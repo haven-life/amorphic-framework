@@ -1,7 +1,7 @@
 {
-  "dependencies": {},
   "description": "Typescript contracts for amorphic dependency injection",
   "name": "@havenlife-public/amorphic-contracts",
-  "scripts": {},
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "license": "MIT",
+  "types": "index.d.ts"
 }
