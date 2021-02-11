@@ -8,6 +8,10 @@ export interface Config {
     buildConfig(configRootDirectory: string, merge: boolean): any
 }
 
+export interface ApplicationNameToConfigMap {
+    [appName: string]: Config
+}
+
 /**
  * monitoring module
  */
