@@ -3,16 +3,16 @@ var mockfs = require('mock-fs');
 import {Provider} from 'nconf';
 let nconf = require('nconf');
 
-
-import {AppConfigs, SupertypeConfig} from "../../dist/index";
+import {ApplicationNameToConfigMap} from '@havenlife-public/amorphic-contracts';
+import {BuildSupertypeConfig, SupertypeConfig} from "../../dist/index";
 
 describe('SupertypeConfig', function() {
 
     describe('validation', function() {
         it('should throw if null or "" path is used as root', function() {
-            expect(SupertypeConfig.build.bind(SupertypeConfig,undefined)).to.throw('Valid root path expected. rootDir[undefined]');
-            expect(SupertypeConfig.build.bind(SupertypeConfig,null)).to.throw('Valid root path expected. rootDir[null]');
-            expect(SupertypeConfig.build.bind(SupertypeConfig,'')).to.throw('Valid root path expected. rootDir[]');
+            expect(BuildSupertypeConfig.bind(BuildSupertypeConfig,undefined)).to.throw('Valid root path expected. rootDir[undefined]');
+            expect(BuildSupertypeConfig.bind(BuildSupertypeConfig,null)).to.throw('Valid root path expected. rootDir[null]');
+            expect(BuildSupertypeConfig.bind(BuildSupertypeConfig,'')).to.throw('Valid root path expected. rootDir[]');
         });
     });
 
@@ -35,7 +35,7 @@ describe('SupertypeConfig', function() {
                     })
                 }
             });
-            const configStore = SupertypeConfig.build('/my/root');
+            const configStore = BuildSupertypeConfig('/my/root');
 
             const props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(2);
@@ -69,7 +69,7 @@ describe('SupertypeConfig', function() {
                     })
                 }
             });
-            var configStore = SupertypeConfig.build('/my/root');
+            var configStore = BuildSupertypeConfig('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(2);
@@ -106,7 +106,7 @@ describe('SupertypeConfig', function() {
                     })
                 }
             });
-            var configStore = SupertypeConfig.build('/my/root');
+            var configStore = BuildSupertypeConfig('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(4);
@@ -145,7 +145,7 @@ describe('SupertypeConfig', function() {
                     })
                 }
             });
-            var configStore = SupertypeConfig.build('/my/root');
+            var configStore = BuildSupertypeConfig('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(4);
@@ -183,7 +183,7 @@ describe('SupertypeConfig', function() {
                     })
                 }
             });
-            var configStore = SupertypeConfig.build('/my/root');
+            var configStore = BuildSupertypeConfig('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(4);
@@ -244,7 +244,7 @@ describe('SupertypeConfig', function() {
                     })
                 }
             });
-            var configStore = SupertypeConfig.build('/my/root');
+            var configStore = BuildSupertypeConfig('/my/root');
 
             var props = Object.getOwnPropertyNames(configStore);
             expect(props.length).to.equal(6);
