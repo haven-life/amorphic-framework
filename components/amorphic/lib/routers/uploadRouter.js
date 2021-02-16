@@ -12,8 +12,14 @@ let processFile = require('../routes/processFile').processFile;
  * @param {unknown} next unknown
  */
 function uploadRouter(downloads, req, res, next) {
-    if (req.originalUrl.match(/amorphic\/xhr\?path\=/) && url.parse(req.originalUrl, true).query.file && req.method === 'POST') {
-        processFile(req, res, next, downloads);
+    if (req.originalUrl.match(/amorphic\/xhr\?path\=/) && req.method === 'POST') {
+        const query = url.parse(req.originalUrl, true).query;
+        if (Object.hasOwnProperty.call(query, 'file')) {
+            processFile(req, res, next, downloads);
+        }
+        else {
+            next();
+        }
     }
     else {
         next();

@@ -1,17 +1,16 @@
 import * as nconf from 'nconf';
 import {Provider} from 'nconf';
+import {Config, ApplicationNameToConfigMap} from '@havenlife-public/amorphic-contracts';
 
 
 function createNewNConfProvider(): Provider {
     return new nconf.Provider().argv().env({separator: '__'});
 }
 
-export interface AppConfigs {[appName: string]: SupertypeConfig};
-
 /**
  * Deprecating loadFile for just 'file'
  */
-export class SupertypeConfig {
+export class SupertypeConfig implements Config {
 
     internalConfigStore: Provider;
     constructor() {
@@ -50,7 +49,7 @@ export class SupertypeConfig {
     };
 
 
-    static build(rootDir: string): AppConfigs {
+    static build(rootDir: string): ApplicationNameToConfigMap {
         const rootConfig = new SupertypeConfig();
         if (!rootDir) {
             throw new Error(`Valid root path expected. rootDir[${rootDir}]`);
