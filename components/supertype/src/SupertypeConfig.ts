@@ -47,38 +47,41 @@ export class SupertypeConfig implements Config {
     loadFile(fileKey, file) {
         this.internalConfigStore.file(fileKey, file);
     };
+}
 
+/**
+ * Same type as the AmorphicConfigBuilder build function as specified in amorphic-contracts
+ * @param rootDir
+ */
+export function BuildSupertypeConfig(rootDir: string): ApplicationNameToConfigMap {
+    const rootConfig = new SupertypeConfig();
+    if (!rootDir) {
+        throw new Error(`Valid root path expected. rootDir[${rootDir}]`);
+    }
+    else {
+        const configStore: ApplicationNameToConfigMap = {};
+        let envName = rootConfig.internalConfigStore.get('APP_ENV');
 
-    static buildConfig(rootDir: string): ApplicationNameToConfigMap {
-        const rootConfig = new SupertypeConfig();
-        if (!rootDir) {
-            throw new Error(`Valid root path expected. rootDir[${rootDir}]`);
+        if (envName) {
+            envName = envName.toLowerCase();
         }
-        else {
-            const configStore: ApplicationNameToConfigMap = {};
-            let envName = rootConfig.internalConfigStore.get('APP_ENV');
 
-            if (envName) {
-                envName = envName.toLowerCase();
-            }
-
-            if (envName) {
-                loadConfigFile(rootConfig.internalConfigStore, 'root_env', rootDir, `config_${envName}.json`);
-            }
-            loadConfigFile(rootConfig.internalConfigStore, 'root_secure', rootDir, `config_secure.json`);
-            loadConfigFile(rootConfig.internalConfigStore, 'root', rootDir, `config.json`);
-
-
-            configStore['root'] = rootConfig;
-
-            const appList = rootConfig.internalConfigStore.get('applications') || {};
-
-            for (let appKey in appList) {
-                configStore[appKey] = buildAppSpecificConfigStore(appList[appKey], rootDir, envName);
-            }
-
-            return configStore;
+        if (envName) {
+            loadConfigFile(rootConfig.internalConfigStore, 'root_env', rootDir, `config_${envName}.json`);
         }
+        loadConfigFile(rootConfig.internalConfigStore, 'root_secure', rootDir, `config_secure.json`);
+        loadConfigFile(rootConfig.internalConfigStore, 'root', rootDir, `config.json`);
+
+
+        configStore['root'] = rootConfig;
+
+        const appList = rootConfig.internalConfigStore.get('applications') || {};
+
+        for (let appKey in appList) {
+            configStore[appKey] = buildAppSpecificConfigStore(appList[appKey], rootDir, envName);
+        }
+
+        return configStore;
     }
 }
 
