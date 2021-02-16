@@ -48,7 +48,7 @@ function resolveVersions(packages) {
 function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configs) {
 	let configStore;
 	if (!configs) {
-		configStore = SupertypeConfig.build(appDirectory);
+		configStore = SupertypeConfig.buildConfig(appDirectory);
 	}
 	else {
 		configStore = configs;

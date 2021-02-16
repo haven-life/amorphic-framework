@@ -49,13 +49,13 @@ export class SupertypeConfig implements Config {
     };
 
 
-    static build(rootDir: string): ApplicationNameToConfigMap {
+    static buildConfig(rootDir: string): ApplicationNameToConfigMap {
         const rootConfig = new SupertypeConfig();
         if (!rootDir) {
             throw new Error(`Valid root path expected. rootDir[${rootDir}]`);
         }
         else {
-            const configStore: AppConfigs = {};
+            const configStore: ApplicationNameToConfigMap = {};
             let envName = rootConfig.internalConfigStore.get('APP_ENV');
 
             if (envName) {
