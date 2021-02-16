@@ -1,7 +1,7 @@
 import * as serializer from './serializer';
 import { SupertypeLogger } from './SupertypeLogger';
 import { StatsdClientInterface } from './StatsdClientInterface';
-import {AppConfigs, SupertypeConfig} from './SupertypeConfig';
+import {Config, ApplicationNameToConfigMap} from '@havenlife-public/amorphic-contracts';
 export type CreateTypeForName = {
     name?: string;
     toClient?: boolean;
@@ -128,7 +128,7 @@ export class ObjectTemplate {
 
     // Nconf is the SupertypeConfig object for this app, and configStore is the list of AppConfigs
     // This property is initialized in Amorphic, not in Supertype
-    static config: { nconf: SupertypeConfig, configStore: AppConfigs};
+    static config: { nconf: Config, configStore: ApplicationNameToConfigMap};
 
     /**
      * Gets the statsDClient
