@@ -1089,9 +1089,6 @@ export class ObjectTemplate {
         return new SupertypeLogger();
     }
 
-    static setConfig()
-
-
 }
 
 
