@@ -68,9 +68,12 @@ module.exports = function (PersistObjectTemplate) {
 
         var selectString = select.toString();
         
-        const cachedPojo = CacheProvider.get(selectString);
-        if (cachedPojo)
+        const cachedPojo = template && template.__schema__.enableCache && CacheProvider.get(selectString);
+        if (cachedPojo) {
+            console.log('srk loading sql result from cache', selectString, joins);
             return Promise.resolve(cachedPojo);
+        }
+            
 
         if (map && map[selectString])
             return new Promise(function (resolve) {
@@ -84,7 +87,11 @@ module.exports = function (PersistObjectTemplate) {
             (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
                 data: {count: res.length, template: template.__name__, query: queryOrChains}});
             if (map && map[selectString]) {
-                CacheProvider.set(selectString, res, 5);
+                if (template.__schema__.enableCache) {
+                    console.log('srk setting sql result to cache', selectString, res);
+                    CacheProvider.set(selectString, res);
+                }
+                
                 map[selectString].forEach(function(resolve) {
                     resolve(res);
                 });
@@ -386,11 +393,13 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function checkAndUpdateCache() {
+            if (!obj.__template__.__schema__.enableCache) {
+                return;
+            }
             var cachedObject = CacheProvider.get(obj._id);
             if (!cachedObject) {
                 console.log('updating cache...', obj._id);
-                CacheProvider.set(obj._id, obj, obj.__template__.__schema__.ttl
-                    );
+                CacheProvider.set(obj._id, obj);
             }
             updateParentReferences();
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'caching',

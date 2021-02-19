@@ -51,7 +51,9 @@ describe('persistor transaction checks', function () {
         schema.Department = {};
         schema.Role = {};
         schema.Role.table = 'tx_role';
+        schema.Role.enableCache = true;
         schema.Employee.table = 'tx_employee';
+        schema.Employee.enableCache = true;
         schema.EmployeeRef.table = 'tx_employee_ref';
         schema.Department.table = 'tx_department';
         schema.Employee.parents = {

@@ -80,8 +80,6 @@ export class Persistor extends SupertypeSession {
     syncAllTables () : any {}
     static flushCache () : any | undefined {return undefined};
 
-    static persistorCacheKey(): any {};
-
     onAllTables (callback : Function, concurrency? : number) : any {}
 
     debugInfo : any

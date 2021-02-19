@@ -202,7 +202,7 @@ module.exports = function (PersistObjectTemplate) {
                 throw new Error('Missing _template on ' + template.__name__ + ' row ' + pojo[prefix + '_id']);
             var persistTemplate = (template.__schema__ && template.__schema__.subsetOf) ?
               null : this.__dictionary__[pojo[prefix + '_template']]
-            var globalCachedObject = pojo[prefix + '_id'] && CacheProvider.get(pojo[prefix + '_id']) ;
+            var globalCachedObject = pojo[prefix + '_id'] && template.__schema__.enableCache && CacheProvider.get(pojo[prefix + '_id']) ;
             var obj = establishedObj || idMap[pojo[prefix + '_id']] || globalCachedObject ||
               this._createEmptyObject(persistTemplate || template,
                 this.getObjectId(persistTemplate || template, pojo, prefix), defineProperty, isTransient);
@@ -218,7 +218,7 @@ module.exports = function (PersistObjectTemplate) {
             }.bind(this));
             if (!!globalCachedObject && allRequiredChildrenAvailableInCache(globalCachedObject, cascade)) {
                 idMap[obj._id] = obj;
-                console.log('returninig from cache...', obj._id);
+                console.log('returning from cache...', obj._id);
                 (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
                             data: 'returned from the cache ' + obj._id});
                 return Promise.resolve(obj);
@@ -376,8 +376,9 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
             }
-            if (!!obj._id) {
-                CacheProvider.set(obj._id, obj, obj.__template__.__schema__.ttl);
+            if (obj.__template__.__schema__.enableCache && !!obj._id) {
+                console.log('updating cache...', obj._id);
+                CacheProvider.set(obj._id, obj);
             }
             if (topLevel)
                 return this.resolveRecursiveRequests(requests, obj);

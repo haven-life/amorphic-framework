@@ -1,60 +1,38 @@
-import 'zone.js';
-
-const hitPersistorCtxKey = '#hit-persistor-ctx';
+import * as NodeCache from 'node-cache';  
 
 export class BaseCache {
     protected cache = null;
     protected ttl = 0;
-    protected persistorCtx = null;
-    protected get currentCtx() {
-        return Zone.current.get(hitPersistorCtxKey) || undefined;
-    }
-    
     constructor() {}
-    public set(key: string, value: any, ttl: number) { }
+    public set(key: string, value: any) { }
     public delete(key: string) { }
     public flush() { }
     public get(key: string) { }
 }
 
-
-
 export class Cache extends BaseCache{
     constructor(timeToLive: number) {
         super();
         this.ttl = timeToLive;
-        // this.cache = new NodeCache({useClones: false});
-        // persistorCtx
-        // this.cache.on( "del", function( key, value ){
-        //     console.log('removing from the cache...', key);
-        // });
+        this.cache = new NodeCache({useClones: false});
+        this.cache.on()
     }
-    public set(key: string, value: any, ttl) { 
-        if (this.currentCtx) {
-            this.currentCtx[key] = value;
-        }
-            
-        // this.cache.set(key, value, ttl || this.ttl);
+    public set(key: string, value: any) { 
+        this.cache.set(key, value, this.ttl);
     }
 
     public delete(key: string) { 
-        // delete this.currentCtx[key];
-        // this.cache.del(key);
+        this.cache.del(key);
     }
 
     public flush() { 
-        if (this.currentCtx) {
-            var localCtx = this.currentCtx;
-            localCtx = {};
-        }
+        this.cache.flushAll();
     }
 
     public get(key: string) { 
-        if (this.currentCtx) {
-            return this.currentCtx[key];
-        } 
-        // return this.cache.get(key);
+        return this.cache.get(key);
     }
+
 }
 
 export type CacheSettings = {
@@ -71,8 +49,8 @@ export class CacheProvider {
         this.cache = new Cache(cacheSettings.timeToLive);
     }
 
-    public static set(key: string, value: any, ttl?: number) {
-        this.cache.set(key, value, ttl);
+    public static set(key: string, value: any) {
+        this.cache.set(key, value);
     }
     public static delete(key: string) { 
         this.cache.delete(key);
@@ -85,10 +63,4 @@ export class CacheProvider {
         return this.cache.get(key);
     }
 
-    public static async sleep(ttl: number) {
-        await new Promise(resolve => setTimeout(resolve, ttl)); 
-    }
-    public static getPersistorCacheKey() { 
-        return hitPersistorCtxKey;
-    }
 }
