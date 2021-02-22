@@ -340,21 +340,24 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function revertVersion(error) {
-            (logger || this.logger).error(
-                {
-                    component: 'persistor',
-                    module: 'db',
-                    activity: 'saveKnexPojo',
-                    error,
-                    data: {
-                        template: obj.__template__.__name__,
-                        _id: obj._id,
-                        __version__: pojo.__version__
+            if (error.message !== 'Update Conflict') {
+                (logger || this.logger).error(
+                    {
+                        component: 'persistor',
+                        module: 'db',
+                        activity: 'saveKnexPojo',
+                        error,
+                        data: {
+                            template: obj.__template__.__name__,
+                            _id: obj._id,
+                            __version__: pojo.__version__
+                        }
                     }
-                }
-            );
-            //If there is an error with updates, revert the version value to the original version.
-            obj.__version__ = origVer;
+                );
+                //If there is an error with updates, revert the version value to the original version.
+                obj.__version__ = origVer;
+            }
+            
             throw error;
         }
         function checkUpdateResults(countUpdated) {
