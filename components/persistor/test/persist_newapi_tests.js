@@ -414,7 +414,7 @@ describe('persist newapi tests', function () {
 
         var tx =  PersistObjectTemplate.beginTransaction();
         tx.postSave = function(txn, _logger, changes, queries) {
-            expect(queries.length).to.equal(1);
+            expect(queries.length).to.equal(3);
         }
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
             return PersistObjectTemplate.commit({transaction: tx, notifyQueries: true}).then(function() {
