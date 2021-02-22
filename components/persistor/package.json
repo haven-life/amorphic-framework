@@ -41,7 +41,7 @@
     },
     "directories": {},
     "engines": {
-        "node": ">=0.8.0"
+        "node": ">=12.x"
     },
     "repository": {
         "type": "git",

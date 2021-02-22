@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:8.10.0
+      - image: cimg/node:12.20.2
         environment:
           port: 3001
           dbUser: postgres
