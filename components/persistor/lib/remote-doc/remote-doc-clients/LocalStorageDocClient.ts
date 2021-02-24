@@ -31,9 +31,12 @@ export class LocalStorageDocClient implements RemoteDocClient {
      * @param {string} obj
      * @param {string} key
      * @param {string} bucket
+     * @param {string} contentType
      * @returns {Promise<any>}
+     *
+     * @TODO add content type into local testing solution
      */
-    public async uploadDocument(obj: string, key: string, bucket: string) {
+    public async uploadDocument(obj: string, key: string, bucket: string, contentType: string) {
         return new Promise((resolve, reject) => {
             fs.writeFile(this.fileBaseDirectory + bucket + '_' +  key + '.txt', obj, (err: NodeJS.ErrnoException) => {
                 if(err) {

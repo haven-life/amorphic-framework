@@ -8,6 +8,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
 
     constructor(remoteDocHost?: string) {
         this.S3Host = remoteDocHost || 'https://s3.amazonaws.com/';
+
     }
 
     /**
@@ -49,13 +50,17 @@ export class S3RemoteDocClient implements RemoteDocClient {
      * @param s3ObjectToBeUploaded - the specific item being uploaded to s3
      * @param {string} key - the unique identifier for this item within its s3 bucket
      * @param {string} bucket - the name of the s3 bucket
+     * @param {string} contentType - the mime type of the content being uploaded
      * @returns {Promise<S3.PutObjectOutput>} - standard aws result object following an s3 upload
      */
-    public async uploadDocument(s3ObjectToBeUploaded: string, key: string, bucket: string): Promise<S3.PutObjectOutput> {
+    public async uploadDocument(s3ObjectToBeUploaded: S3.Body, key: string, bucket: string, contentType?: string): Promise<S3.PutObjectOutput> {
+
+        console.warn("we are about to upload with params", key, bucket, contentType);
         const bucketParams: S3.PutObjectRequest = {
             Bucket: bucket,
             Key: key,
-            Body: s3ObjectToBeUploaded
+            Body: s3ObjectToBeUploaded,
+            ContentType: contentType ? contentType : 'application/octet-stream'
         };
 
         const s3Conn = await this.getConnection(bucket);
@@ -70,6 +75,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
             });
         });
     };
+
 
     /**
      * download s3 object by key.
