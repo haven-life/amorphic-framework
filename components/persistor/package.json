@@ -14,8 +14,7 @@
         "q": "1.x",
         "tv4": "^1.2.7",
         "underscore": "1.x",
-        "uuid": "3.3.3",
-        "file-type": "16.2.0"
+        "uuid": "3.3.3"
     },
     "peerDependencies": {
         "@havenlife/supertype": "3.x"

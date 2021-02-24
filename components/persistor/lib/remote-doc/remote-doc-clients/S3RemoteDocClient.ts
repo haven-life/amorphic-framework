@@ -8,7 +8,6 @@ export class S3RemoteDocClient implements RemoteDocClient {
 
     constructor(remoteDocHost?: string) {
         this.S3Host = remoteDocHost || 'https://s3.amazonaws.com/';
-
     }
 
     /**
@@ -55,7 +54,6 @@ export class S3RemoteDocClient implements RemoteDocClient {
      */
     public async uploadDocument(s3ObjectToBeUploaded: S3.Body, key: string, bucket: string, contentType?: string): Promise<S3.PutObjectOutput> {
 
-        console.warn("we are about to upload with params", key, bucket, contentType);
         const bucketParams: S3.PutObjectRequest = {
             Bucket: bucket,
             Key: key,

@@ -8,7 +8,7 @@ const expect = require('chai').expect;
 const AssertionError = require('chai').AssertionError;
 const ObjectTemplate = require('@havenlife/supertype').default;
 const PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-const logLevel = 'debug';
+const logLevel = process.env.logLevel || 'debug';
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
