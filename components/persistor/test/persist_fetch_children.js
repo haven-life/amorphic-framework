@@ -15,7 +15,7 @@ var schema = {};
 var schemaTable = 'index_schema_history';
 var Employee, Department, Role, roleId, EmployeeRef;
 var PersistObjectTemplate, ObjectTemplate;
-describe('persistor transaction checks', function () {
+describe('persistor fetch children', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({

@@ -245,6 +245,9 @@ module.exports = function (PersistObjectTemplate) {
         else if (queryOrChains)
             (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
 
+        if (txn && txn.knex && txn.queriesToNotify) {
+            txn.queriesToNotify.push(knex.delete().toString());
+        }
         return knex.delete();
     };
 
@@ -276,6 +279,9 @@ module.exports = function (PersistObjectTemplate) {
         knex = knex.andWhere(foreignKey, obj._id);
         knex = (filterKey ? knex.andWhere(filterKey, filterValue) : knex);
         //console.log(knex.toSQL().sql + ' ? = ' + (filterValue || '') + ' ? = ' + obj._id + ' ? = ' + goodList.join(','))
+        if (txn && txn.knex && txn.queriesToNotify) {
+            txn.queriesToNotify.push(knex.delete().toString());
+        }
         knex = knex.delete().then(function (res) {
             if (res)
                 (logger || this.logger).debug({component: 'persistor', module: 'db.knexPruneOrphans', activity: 'post',
@@ -300,6 +306,10 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         if (txn && txn.knex) {
             knex.transacting(txn.knex);
+            if (txn.queriesToNotify) {
+                txn.queriesToNotify.push(knex.where({_id: id}).delete().toString());
+            }
+            
         }
         return knex.where({_id: id}).delete();
     };
@@ -326,35 +336,45 @@ module.exports = function (PersistObjectTemplate) {
         if (txn && txn.knex) {
             knex.transacting(txn.knex)
         }
+        var sqlToRun;
         if (updateID) {
+            sqlToRun = knex
+            .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
+            .update(pojo).toString();
             return Promise.resolve(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
                 .then(checkUpdateResults.bind(this))
-                .then(logSuccess.bind(this)))
-                .catch(revertVersion.bind(this));
+                .then(logSuccessAndTrack.bind(this))
+                .catch(revertVersion.bind(this)));
         } else {
+            sqlToRun = knex
+            .insert(pojo).toString();
             return Promise.resolve(knex
                 .insert(pojo)
-                .then(logSuccess.bind(this)));
+                .then(logSuccessAndTrack.bind(this)));
         }
 
         function revertVersion(error) {
-            (logger || this.logger).error(
-                {
-                    component: 'persistor',
-                    module: 'db',
-                    activity: 'saveKnexPojo',
-                    error,
-                    data: {
-                        template: obj.__template__.__name__,
-                        _id: obj._id,
-                        __version__: pojo.__version__
+            if (error.message !== 'Update Conflict') {
+                (logger || this.logger).error(
+                    {
+                        component: 'persistor',
+                        module: 'db',
+                        activity: 'saveKnexPojo',
+                        error,
+                        data: {
+                            template: obj.__template__.__name__,
+                            _id: obj._id,
+                            __version__: pojo.__version__
+                        }
                     }
-                }
-            );
-            //If there is an error with updates, revert the version value to the original version.
-            obj.__version__ = origVer;
+                );
+                //If there is an error with updates, revert the version value to the original version.
+                obj.__version__ = origVer;
+            }
+
+            
             throw error;
         }
         function checkUpdateResults(countUpdated) {
@@ -365,15 +385,19 @@ module.exports = function (PersistObjectTemplate) {
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
                     txn.updateConflict =  true;
+                    return;
                 } else {
                     throw new Error('Update Conflict');
                 }
             }
         }
 
-        function logSuccess() {
+        function logSuccessAndTrack() {
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
                 data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
+            if (txn && txn.knex && txn.queriesToNotify) {
+                txn.queriesToNotify.push(sqlToRun);
+            }
         }
     }
 
@@ -1136,7 +1160,7 @@ module.exports = function (PersistObjectTemplate) {
     }
 
 
-    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChanges) {
+    PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChanges, notifyQueries) {
         logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
         var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction.dirtyObjects;
@@ -1147,6 +1171,9 @@ module.exports = function (PersistObjectTemplate) {
         var innerError;
         var changeTracking;
 
+        if (!notifyQueries) {
+            persistorTransaction.queriesToNotify = null;
+        }
         // Start the knext transaction
         return knex.transaction(function(knexTransaction) {
             persistorTransaction.knex = knexTransaction;
@@ -1220,7 +1247,7 @@ module.exports = function (PersistObjectTemplate) {
 
             function processPostSave() {
                 return persistorTransaction.postSave ?
-                    persistorTransaction.postSave(persistorTransaction, logger, changeTracking) :
+                    persistorTransaction.postSave(persistorTransaction, logger, changeTracking, persistorTransaction.queriesToNotify) :
                     true;
             }
 

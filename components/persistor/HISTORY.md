@@ -1,5 +1,7 @@
 ## 5.2.0
 * adding content type property on the template to inform remote doc interactions
+## 5.1.0
+* commit calls track the sqls issued on the database and provide the details in postSave event handler.
 ## 5.0.0
 * Persistor should set the version back to the original value when there is an error in the SQL.
 ## 4.4.0
