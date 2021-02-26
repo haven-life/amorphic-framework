@@ -19,8 +19,8 @@ export class RemoteDocService {
         return this;
     }
 
-    public async uploadDocument(base64: string, key: string, bucket: string): Promise<UploadDocumentResponse|any> {
-        const uploadDocumentResponse = await this.remoteDocClient.uploadDocument(base64, key, bucket);
+    public async uploadDocument(base64: string, key: string, bucket: string, contentType: string): Promise<UploadDocumentResponse|any> {
+        const uploadDocumentResponse = await this.remoteDocClient.uploadDocument(base64, key, bucket, contentType);
         return {
             key,
             versionId: (uploadDocumentResponse || {}).VersionId

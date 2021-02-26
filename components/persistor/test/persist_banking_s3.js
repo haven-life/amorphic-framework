@@ -14,6 +14,8 @@ PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
 PersistObjectTemplate.logger.setLevel(logLevel);
 
+const sandbox = sinon.createSandbox();
+
 const Customer = PersistObjectTemplate.create('Customer', {
     init: function (bankingDocumentValue) {
         this.bankingDocument = bankingDocumentValue;
@@ -23,6 +25,10 @@ const Customer = PersistObjectTemplate.create('Customer', {
         isRemoteObject: true,
         remoteKeyBase: 'test-remote-key',
         value: null
+    },
+    bankingDocument_RemoteMIMEType: {
+        type: String,
+        value: 'application/pdf'
     }
 });
 
@@ -123,7 +129,7 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
             });
 
             it('returns null for the remote field and logs error', async () => {
-                const fetchedBankDocCust = await Customer.getFromPersistWithId(bankingDocumentCustomer._id)
+                const fetchedBankDocCust = await Customer.getFromPersistWithId(bankingDocumentCustomer._id);
                 expect(fetchedBankDocCust.bankingDocument).to.eql(null);
             });
         });
@@ -136,7 +142,7 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
             });
 
             it('should match the remote', async () => {
-                const fetchedBankDocCust = await Customer.getFromPersistWithId(bankingDocumentCustomer._id)
+                const fetchedBankDocCust = await Customer.getFromPersistWithId(bankingDocumentCustomer._id);
                 expect(fetchedBankDocCust.bankingDocument).to.eql(bankingDocumentData);
             });
         });
@@ -157,10 +163,16 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
                 sinon.replace(S3RemoteDocClient.prototype, 'uploadDocument', () => (
                     Promise.resolve()
                 ));
+
+                sandbox.spy(S3RemoteDocClient.prototype, 'uploadDocument');
             });
 
-            it('should save to remote store', async () => {
-                let fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id)
+            afterEach(() => {
+                sandbox.restore();
+            });
+
+            it('should send with correct mime type', async () => {
+                let fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
 
                 const txn = PersistObjectTemplate.begin();
                 fetchedNoBankDocCust.bankingDocument = bankingDocumentStr;
@@ -168,7 +180,22 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
 
                 await PersistObjectTemplate.end(txn);
 
-                fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id)
+                fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                expect(S3RemoteDocClient.prototype.uploadDocument.calledOnce).to.eql(true);
+                expect(S3RemoteDocClient.prototype.uploadDocument.getCall(0).args.length).to.eql(4);
+                expect(S3RemoteDocClient.prototype.uploadDocument.getCall(0).args[3]).to.eql('application/pdf');
+            });
+
+            it('should save to remote store', async () => {
+                let fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+
+                const txn = PersistObjectTemplate.begin();
+                fetchedNoBankDocCust.bankingDocument = bankingDocumentStr;
+                fetchedNoBankDocCust.setDirty();
+
+                await PersistObjectTemplate.end(txn);
+
+                fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
                 expect(fetchedNoBankDocCust.bankingDocument).to.eql(bankingDocumentStr);
             });
         });
@@ -186,7 +213,7 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
                 let fetchedNoBankDocCust;
 
                 try {
-                    fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id)
+                    fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
                     const txn = PersistObjectTemplate.begin();
                     fetchedNoBankDocCust.bankingDocument = 'this should have rolled back';
                     fetchedNoBankDocCust.setDirty();
