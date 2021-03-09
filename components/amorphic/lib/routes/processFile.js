@@ -47,10 +47,8 @@ function processFile(req, resp, next, downloads) {
         // there was an error attempting to parse the form. log it out, and send back an error response.
         if (err) {
             logMessage(err);
-
             resp.writeHead(500, {'Content-Type': 'text/plain'});
             resp.end('unable to parse form');
-            logMessage(err);
             statsdUtils.computeTimingAndSend(
                 processFileTime,
                 'amorphic.webserver.process_file.response_time',
