@@ -27,7 +27,7 @@ function processFile(req, resp, next, downloads) {
     let form = new formidable.IncomingForm();
     form.uploadDir = downloads;
 
-    let isFormParserInErrorState = false;
+    let callbackExecuted = false;
 
     /**
      * in error state, due to the event emitter pattern being used in our form library,
@@ -39,21 +39,29 @@ function processFile(req, resp, next, downloads) {
      * we don't need to worry about this issue in a success condition.
      */
     form.parse(req, function ee(err, _fields, files) {
-        if (err || isFormParserInErrorState) {
-            isFormParserInErrorState = true;
+        // we've already run this callback once - don't run a second time
+        if (callbackExecuted) {
+            return;
+        }
+
+        // there was an error attempting to parse the form. log it out, and send back an error response.
+        if (err) {
             logMessage(err);
 
-            resp.status(500);
+            resp.writeHead(500, {'Content-Type': 'text/plain'});
             resp.end('unable to parse form');
             logMessage(err);
             statsdUtils.computeTimingAndSend(
                 processFileTime,
                 'amorphic.webserver.process_file.response_time',
-                { result: 'there was an error parsing the form' }
+                { result: 'there was an error wp' }
             );
+
+            callbackExecuted = true;
 
             return;
         }
+
         try {
             let file = files.file.path;
             logMessage(file);
