@@ -27,10 +27,39 @@ function processFile(req, resp, next, downloads) {
     let form = new formidable.IncomingForm();
     form.uploadDir = downloads;
 
+    let callbackExecuted = false;
+
+    /**
+     * in error state, due to the event emitter pattern being used in our form library,
+     * this gets called twice => once on "error" and once more on "end".
+     *
+     * to make sure that we haven't already tried to execute this code before if we're in an error
+     * state, keep a boolean switch saying whether this code has been hit yet or not.
+     *
+     * we don't need to worry about this issue in a success condition.
+     */
     form.parse(req, function ee(err, _fields, files) {
+        // we've already run this callback once - don't run a second time
+        if (callbackExecuted) {
+            return;
+        }
+
+        // there was an error attempting to parse the form. log it out, and send back an error response.
         if (err) {
             logMessage(err);
+            resp.writeHead(500, {'Content-Type': 'text/plain'});
+            resp.end('unable to parse form');
+            statsdUtils.computeTimingAndSend(
+                processFileTime,
+                'amorphic.webserver.process_file.response_time',
+                { result: 'there was an error wp' }
+            );
+
+            callbackExecuted = true;
+
+            return;
         }
+
         try {
             let file = files.file.path;
             logMessage(file);

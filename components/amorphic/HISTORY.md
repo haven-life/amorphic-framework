@@ -1,5 +1,7 @@
 ## 8.0.0
 * Updating for injectable config, and config is now in supertype
+## 7.1.2
+* ensure we don't call logic to send response twice on form parsing error condition 
 ## 7.1.1
 * Added bug handling and better errors for uploads
 ## 7.1.0
