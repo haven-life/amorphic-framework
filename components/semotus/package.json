@@ -1,5 +1,5 @@
 {
-	"name": "@havenlife-public/semotus",
+	"name": "@havenlife-public-public/semotus",
 	"version": "4.0.0",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",
@@ -37,7 +37,7 @@
 		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
-		"@havenlife/supertype": "3.3.*",
+		"@havenlife-public/supertype": "3.3.*",
 		"@types/chai": "^3.4.34",
 		"@types/mocha": "^2.2.39",
 		"@types/node": "^7.0.65",
@@ -51,7 +51,7 @@
 		"underscore": "^1.9.1"
 	},
 	"peerDependencies": {
-		"@havenlife/supertype": "3.3.*"
+		"@havenlife-public/supertype": "3.3.*"
 	},
 	"dependencies": {
 		"q": "1.x"

@@ -1,8 +1,8 @@
-export { Supertype } from '@havenlife/supertype';
-export { Persistable, ContainsPersistable, Persistor } from '@havenlife/persistor';
+export { Supertype } from '@havenlife-public/supertype';
+export { Persistable, ContainsPersistable, Persistor } from '@havenlife-public/persistor';
 export { Remoteable, amorphicStatic } from './lib/utils/remoteable';
 export { Bindable } from 'amorphic-bindster';
-import { Persistor } from '@havenlife/persistor';
+import { Persistor } from '@havenlife-public/persistor';
 export { IAmorphicAppController } from './lib/types/IAmorphicAppController';
 
 // This class is for Amorphic unit tests

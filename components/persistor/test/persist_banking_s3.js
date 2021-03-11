@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const S3RemoteDocClient = require('../dist/lib/remote-doc/remote-doc-clients/S3RemoteDocClient').S3RemoteDocClient;
 const expect = require('chai').expect;
 const AssertionError = require('chai').AssertionError;
-const ObjectTemplate = require('@havenlife/supertype').default;
+const ObjectTemplate = require('@havenlife-public/supertype').default;
 const PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 const logLevel = process.env.logLevel || 'debug';
 

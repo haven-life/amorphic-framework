@@ -1,4 +1,4 @@
-import {Supertype} from '@havenlife/supertype';
+import {Supertype} from '@havenlife-public/supertype';
 
 export type Subscription = {
     role: string;

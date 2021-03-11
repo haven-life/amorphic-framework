@@ -5,7 +5,7 @@ let getSessionCache = require('./getSessionCache').getSessionCache;
 let establishInitialServerSession = require('./establishInitialServerSession').establishInitialServerSession;
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@havenlife-public/supertype').StatsdHelper;
 
 /**
  * Sets up generic logging context with context passed from request

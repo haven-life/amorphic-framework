@@ -1,5 +1,5 @@
-import {SupertypeSession, SupertypeLogger} from '@havenlife/supertype';
-import {Persistor} from '@havenlife/persistor';
+import {SupertypeSession, SupertypeLogger} from '@havenlife-public/supertype';
+import {Persistor} from '@havenlife-public/persistor';
 type Constructable<BC> = new (...args: any[]) => BC;
 
 export class AmorphicSession extends SupertypeSession {

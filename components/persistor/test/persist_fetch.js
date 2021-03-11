@@ -48,7 +48,7 @@ describe('persist fetch', function () {
         return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = require('@havenlife/supertype').default;
+        ObjectTemplate = require('@havenlife-public/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};

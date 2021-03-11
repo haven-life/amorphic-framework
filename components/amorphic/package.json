@@ -1,14 +1,14 @@
 {
-	"name": "@havenlife-public/amorphic",
+	"name": "@havenlife-public-public/amorphic",
 	"description": "Front to back isomorphic framework for developing applications with node.js and mongoDB",
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"version": "7.1.2",
 	"dependencies": {
-		"@havenlife/persistor": "5.x",
-		"@havenlife/semotus": "4.x",
-		"@havenlife/supertype": "3.3.x",
+		"@havenlife-public/persistor": "5.x",
+		"@havenlife-public/semotus": "4.x",
+		"@havenlife-public/supertype": "3.3.x",
 		"amorphic-bindster": "2.0.*",
 		"bluebird": "3.5.1",
 		"chalk": "2.4.1",
@@ -22,7 +22,7 @@
 		"uglify-js": "2.7.5"
 	},
 	"devDependencies": {
-		"@havenlife/semotus": "4.x",
+		"@havenlife-public/semotus": "4.x",
 		"@types/chai": "4.0.4",
 		"@types/compression": "0.0.36",
 		"@types/cookie-parser": "1.4.1",

@@ -3,7 +3,7 @@
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let decompressSessionData = require('./decompressSessionData').decompressSessionData;
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@havenlife-public/supertype').StatsdHelper;
 
 /**
  * Purpose unknown

@@ -19,8 +19,8 @@ var CookieJar = xhrc.CookieJar;
 
 // Create global variables for the benefit of client.js
 PostCallAssert = function () {};
-ObjectTemplate = require('@havenlife/supertype').default;
-RemoteObjectTemplate = require('@havenlife/semotus')._createObject();
+ObjectTemplate = require('@havenlife-public/supertype').default;
+RemoteObjectTemplate = require('@havenlife-public/semotus')._createObject();
 RemoteObjectTemplate.role = 'client';
 RemoteObjectTemplate._useGettersSetters = false;
 Bluebird = require('bluebird');
@@ -42,7 +42,7 @@ var controllerRequires;
 var Controller;
 var serverAmorphic = require('../../dist/index.js');
 var amorphicContext = require('../../dist/lib/AmorphicContext');
-const SupertypeSession = require('@havenlife/supertype').SupertypeSession;
+const SupertypeSession = require('@havenlife-public/supertype').SupertypeSession;
 const sendToLog = SupertypeSession.logger.sendToLog;
 
 // Fire up amorphic as the client

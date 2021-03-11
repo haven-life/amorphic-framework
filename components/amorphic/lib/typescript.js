@@ -1,7 +1,7 @@
 'use strict';
 
 let unitTestConfig = require('./unitTestConfig');  // TODO: This seems like the wrong way to go about this.
-let SupertypeDefinition = require('@havenlife/supertype');
+let SupertypeDefinition = require('@havenlife-public/supertype');
 // Passed the main index export.  Will bind the decorators to either Persistor or Semotus
 function bindDecorators (objectTemplate) {
 
