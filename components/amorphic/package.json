@@ -1,5 +1,5 @@
 {
-	"name": "amorphic",
+	"name": "@havenlife-public/amorphic",
 	"description": "Front to back isomorphic framework for developing applications with node.js and mongoDB",
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
