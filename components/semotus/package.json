@@ -1,5 +1,5 @@
 {
-	"name": "@havenlife/semotus",
+	"name": "@havenlife-public/semotus",
 	"version": "4.0.0",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",

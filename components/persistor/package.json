@@ -1,5 +1,5 @@
 {
-    "name": "@havenlife/persistor",
+    "name": "@havenlife-public/persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from MongoDB or SQL databases",
     "homepage": "https://github.com/haven-life/persistor",
     "version": "5.2.0",
