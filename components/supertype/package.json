@@ -1,5 +1,5 @@
 {
-    "name": "@havenlife-public/supertype",
+    "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
     "version": "3.3.1",
     "main": "dist/index.js",
