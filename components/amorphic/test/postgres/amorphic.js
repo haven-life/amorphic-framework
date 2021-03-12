@@ -549,7 +549,7 @@ describe('Second Group of Tests', function () {
         });
     });
 
-    it('should establish a session for a request with a sequnce number in the payload', function () {
+    it('should establish a session for a request with a sequence number in the payload', function () {
         return axios({
             method: 'post',
             url: 'http://localhost:3001/amorphic/xhr?path=test',
@@ -646,6 +646,26 @@ describe('third group of tests', function() {
         }).then(function(res) {
             expect(res.status).to.equal(200);
             expect(res.data).to.equal('hellooooo');
+        });
+    });
+
+    it('should be able to read cookies that I set on the front end', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/init/config.js',
+            data: {
+                test: 'hellooo',
+                testCookie: true
+            },
+            headers: {
+                Cookie: "cookie1=Cookie1; cookie2=Cookie2; cookie3=Cookie3;"
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(res.data).to.not.equal(false);
+            expect(res.data.cookie1).to.equal('Cookie1');
+            expect(res.data.cookie2).to.equal('Cookie2');
+            expect(res.data.cookie3).to.equal('Cookie3');
         });
     });
 
