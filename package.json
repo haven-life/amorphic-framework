@@ -14,8 +14,8 @@
     "test:ts:semotus": "lerna run test:ts --scope=@haventech/semotus",
     "test:persistor": "lerna run test --stream --scope=@haventech/persistor",
     "test:ts:persistor": "lerna run test:ts --scope=@haventech/persistor",
-    "test:amorphic": "lerna run test --scope=amorphic",
-    "test:ts:amorphic": "lerna run test:ts --scope=amorphic",
+    "test:amorphic": "lerna run test --scope=@haventech/amorphic",
+    "test:ts:amorphic": "lerna run test:ts --scope=@haventech/amorphic",
     "lint": "lerna run lint"
   },
   "devDependencies": {
