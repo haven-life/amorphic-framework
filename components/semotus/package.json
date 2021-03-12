@@ -37,10 +37,10 @@
 		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
-		"@haventech/supertype": "3.3.*",
+		"@haventech/supertype": "^3.3.1",
 		"@types/chai": "^3.4.34",
 		"@types/mocha": "^2.2.39",
-		"@types/node": "^7.0.65",
+		"@types/node": "^7.10.14",
 		"chai": "3.x",
 		"eslint": "3.7.x",
 		"mocha": "7.1.1",
@@ -48,7 +48,7 @@
 		"sinon": "1.15.x",
 		"ts-node": "^6.1.0",
 		"typescript": "3.5.2",
-		"underscore": "^1.9.1"
+		"underscore": "^1.12.0"
 	},
 	"peerDependencies": {
 		"@haventech/supertype": "3.3.*"
