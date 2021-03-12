@@ -3,7 +3,7 @@
 // TODO: Make a SessionUtils
 let AmorphicContext = require('../AmorphicContext');
 let zlib = require('zlib');
-let statsdUtils = require('@havenlife-public/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /*
  * Compress session data

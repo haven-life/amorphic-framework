@@ -39,10 +39,10 @@ declare var define;
 (function (root, factory) {
 	'use strict';
 	if (typeof define === 'function' && define.amd) {
-		define(['q', 'underscore', '@havenlife-public/supertype'], factory);
+		define(['q', 'underscore', '@haventech/supertype'], factory);
 	}
 	else if (typeof exports === 'object') {
-		module.exports = factory(require('q'), require('underscore'), require('@havenlife-public/supertype'));
+		module.exports = factory(require('q'), require('underscore'), require('@haventech/supertype'));
 	}
 	else {
 		root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);

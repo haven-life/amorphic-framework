@@ -8,15 +8,15 @@ let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
 let AmorphicServer = require('./AmorphicServer').AmorphicServer;
-let SupertypeSession = require('@havenlife-public/supertype').SupertypeSession;
+let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
 
 const packageVersions = resolveVersions([
-	'@havenlife-public/semotus',
-	'@havenlife-public/supertype',
-	'@havenlife-public/persistor',
-	'@havenlife-public/bindster'
+	'@haventech/semotus',
+	'@haventech/supertype',
+	'@haventech/persistor',
+	'@haventech/bindster'
 ]);
 
 packageVersions['amorphic'] = require('../../package.json').version;

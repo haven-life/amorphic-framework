@@ -1,12 +1,12 @@
 'use strict';
 
 let AmorphicContext = require('../AmorphicContext');
-let persistor = require('@havenlife-public/persistor');
-let semotus = require('@havenlife-public/semotus');
+let persistor = require('@haventech/persistor');
+let semotus = require('@haventech/semotus');
 let getTemplates = require('../getTemplates').getTemplates;
 let getServerConfigString = require('../utils/getServerConfigString').getServerConfigString;
 let Bluebird = require('bluebird');
-let statsdUtils = require('@havenlife-public/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
  * Purpose unknown

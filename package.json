@@ -1,5 +1,5 @@
 {
-  "name": "@havenlife-public/amorphic-framework",
+  "name": "@haventech/amorphic-framework",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,12 +8,12 @@
     "build": "lerna run prepublishOnly",
     "test": "lerna run test",
     "test:ts": "lerna run test:ts",
-    "test:supertype": "lerna run test --scope=@havenlife-public/supertype",
-    "test:ts:supertype": "lerna run test:ts --scope=@havenlife-public/supertype",
-    "test:semotus": "lerna run test --scope=@havenlife-public/semotus",
-    "test:ts:semotus": "lerna run test:ts --scope=@havenlife-public/semotus",
-    "test:persistor": "lerna run test --stream --scope=@havenlife-public/persistor",
-    "test:ts:persistor": "lerna run test:ts --scope=@havenlife-public/persistor",
+    "test:supertype": "lerna run test --scope=@haventech/supertype",
+    "test:ts:supertype": "lerna run test:ts --scope=@haventech/supertype",
+    "test:semotus": "lerna run test --scope=@haventech/semotus",
+    "test:ts:semotus": "lerna run test:ts --scope=@haventech/semotus",
+    "test:persistor": "lerna run test --stream --scope=@haventech/persistor",
+    "test:ts:persistor": "lerna run test:ts --scope=@haventech/persistor",
     "test:amorphic": "lerna run test --scope=amorphic",
     "test:ts:amorphic": "lerna run test:ts --scope=amorphic",
     "lint": "lerna run lint"

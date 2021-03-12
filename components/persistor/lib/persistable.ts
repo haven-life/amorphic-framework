@@ -1,4 +1,4 @@
-import {SupertypeSession} from '@havenlife-public/supertype';
+import {SupertypeSession} from '@haventech/supertype';
 type Constructable<BC> = new (...args: any[]) => BC;
 
 

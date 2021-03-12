@@ -1,6 +1,6 @@
 import * as nconf from 'nconf';
 import {Provider} from 'nconf';
-import {Config, ApplicationNameToConfigMap} from '@havenlife-public-public/amorphic-contracts';
+import {Config, ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 
 
 function createNewNConfProvider(): Provider {

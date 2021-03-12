@@ -3,7 +3,7 @@ var mockfs = require('mock-fs');
 import {Provider} from 'nconf';
 let nconf = require('nconf');
 
-import {ApplicationNameToConfigMap} from '@havenlife-public-public/amorphic-contracts';
+import {ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 import {BuildSupertypeConfig, SupertypeConfig} from "../../dist/index";
 
 describe('SupertypeConfig', function() {

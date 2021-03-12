@@ -2,8 +2,8 @@
 
 var expect = require('chai').expect;
 var fs = require('fs');
-var ObjectTemplate = require('@havenlife-public/supertype').default;
-var PersistObjectTemplate = require('@havenlife-public/persistor')(ObjectTemplate, null, ObjectTemplate);
+var ObjectTemplate = require('@haventech/supertype').default;
+var PersistObjectTemplate = require('@haventech/persistor')(ObjectTemplate, null, ObjectTemplate);
 var amorphic = require('../../dist/index.js');
 var logMessage = require('../../dist/lib/utils/logger').logMessage;
 var nconf = require('nconf');
