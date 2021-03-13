@@ -1,6 +1,5 @@
 'use strict';
 
-let Config = require('@havenlife-public/amorphic-contracts').Config;
 let SuperTypeConfig = require('@havenlife/supertype').SupertypeConfig;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;

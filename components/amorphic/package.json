@@ -8,8 +8,7 @@
 	"dependencies": {
 		"@havenlife-public/amorphic-contracts": "^0.2.0",
 		"@havenlife/persistor": "5.x",
-		"@havenlife/semotus": "4.x",
-		"@havenlife/supertype": "3.3.x",
+		"@havenlife/supertype": "^3.4.0",
 		"amorphic-bindster": "2.0.*",
 		"bluebird": "3.5.1",
 		"chalk": "2.4.1",
@@ -23,7 +22,7 @@
 		"uglify-js": "2.7.5"
 	},
 	"devDependencies": {
-		"@havenlife/semotus": "4.x",
+		"@havenlife/semotus": "^4.0.0",
 		"@types/chai": "4.0.4",
 		"@types/compression": "0.0.36",
 		"@types/cookie-parser": "1.4.1",

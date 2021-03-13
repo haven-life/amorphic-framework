@@ -2,8 +2,6 @@
 
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
-let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
-let ConfigApi = require('./utils/configBuilder').ConfigAPI;
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
@@ -11,8 +9,7 @@ let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@havenlife/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
-let Config = require('@havenlife-public/amorphic-contracts').Config;
-let SuperTypeConfig = require('@havenlife/supertype').SupertypeConfig;
+let SuperTypeConfig = require('@havenlife/supertype').SuperTypeConfig;
 
 const packageVersions = resolveVersions([
 	'@havenlife/semotus',
