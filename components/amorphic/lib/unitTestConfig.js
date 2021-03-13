@@ -1,7 +1,7 @@
 'use strict';
 
-let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
-let ConfigApi = require('./utils/configBuilder').ConfigAPI;
+let Config = require('@havenlife-public/amorphic-contracts').Config;
+let SuperTypeConfig = require('@havenlife/supertype').SupertypeConfig;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;
 
@@ -13,15 +13,15 @@ let readFile = require('./utils/readFile').readFile;
  *
  * @returns {unknown} unknown.
  */
-function startup(configPath, schemaPath) {
+function startup(configPath, schemaPath, configBuilder = null) {
     if (!configPath) {
         throw new Error('startup(configPath, schemaPath?) called without a config path');
     }
 
     schemaPath = schemaPath || configPath;
 
-    let builder = new ConfigBuilder(new ConfigApi());
-    let configStore = builder.build(configPath);
+	let builder = configBuilder != null ? configBuilder : new SuperTypeConfig();
+	let configStore = builder.build(appDirectory);
     let config = configStore['root'].get();
 
     config.nconf = configStore['root']; // Global config

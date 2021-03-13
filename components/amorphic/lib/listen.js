@@ -11,6 +11,8 @@ let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@havenlife/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
+let Config = require('@havenlife-public/amorphic-contracts').Config;
+let SuperTypeConfig = require('@havenlife/supertype').SupertypeConfig;
 
 const packageVersions = resolveVersions([
 	'@havenlife/semotus',
@@ -46,8 +48,8 @@ function resolveVersions(packages) {
  * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient) {
-	let builder = new ConfigBuilder(new ConfigApi());
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configBuilder = null) {
+	let builder = configBuilder != null ? configBuilder : new SuperTypeConfig();
 	let configStore = builder.build(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
