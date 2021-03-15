@@ -1,3 +1,7 @@
+## 8.0.0
+* Allowing for passing of a Config Store instead of using the internal config builder
+* Will use the new SuperTypeBuilder if one is not provided
+
 ## 7.1.3
 * Adding unit test for cookies
 ## 7.1.2
