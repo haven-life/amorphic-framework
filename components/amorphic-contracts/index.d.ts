@@ -9,7 +9,6 @@ export interface Config {
     get(key: string): any
     set(key: string, value: any): any
     loadFile(fileKey: string, file: string): any
-    build(configRootDirectory: string, merge?: boolean): ApplicationNameToConfigMap
 }
 
 /**

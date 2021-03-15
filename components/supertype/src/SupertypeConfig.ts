@@ -47,10 +47,6 @@ export class SupertypeConfig implements Config {
     loadFile(fileKey, file) {
         this.internalConfigStore.file(fileKey, file);
     };
-
-    build(configRootDirectory: string, merge?: boolean): ApplicationNameToConfigMap {
-        return BuildSupertypeConfig(configRootDirectory);
-    }
 }
 
 /**
