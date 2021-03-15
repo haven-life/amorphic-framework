@@ -14,7 +14,7 @@ import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
 
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
-    let supertypeRequire = require('@havenlife/supertype');
+    let supertypeRequire = require('@haventech/supertype');
     let statsDHelper = supertypeRequire.StatsdHelper;
 
     var Promise = require('bluebird');

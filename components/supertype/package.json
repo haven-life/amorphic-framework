@@ -1,5 +1,5 @@
 {
-    "name": "@havenlife/supertype",
+    "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
     "version": "3.4.0",
     "main": "dist/index.js",
@@ -11,7 +11,7 @@
         "nconf": "^0.11.0"
     },
     "devDependencies": {
-        "@havenlife-public/amorphic-contracts": "^0.2.0",
+        "@haventech/amorphic-contracts": "^0.2.0",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
         "@types/nconf": "^0.10.0",

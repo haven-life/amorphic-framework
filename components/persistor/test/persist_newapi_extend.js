@@ -35,7 +35,7 @@ describe('persist newapi extend', function () {
         return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = require('@havenlife/supertype').default;
+        ObjectTemplate = require('@haventech/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
         schema.Person = {};
         schema.Person.table =  'tx_person';
