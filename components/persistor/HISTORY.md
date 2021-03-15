@@ -1,3 +1,5 @@
+## 5.2.1
+* return the remote document content in its original format
 ## 5.2.0
 * adding content type property on the template to inform remote doc interactions
 ## 5.1.0
