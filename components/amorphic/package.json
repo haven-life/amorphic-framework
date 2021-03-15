@@ -6,7 +6,6 @@
 	"types": "dist/index.d.ts",
 	"version": "7.1.3",
 	"dependencies": {
-		"@havenlife-public/amorphic-contracts": "^0.2.0",
 		"@havenlife/persistor": "5.x",
 		"@havenlife/supertype": "^3.4.0",
 		"amorphic-bindster": "2.0.*",
