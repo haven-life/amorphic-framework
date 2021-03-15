@@ -50,9 +50,9 @@ Run all the tests:
 
     $ npm test
 
-Run a specific test (in this case, config test):
+Run a specific test (in this case, daemon test):
 
-    $ npm run test:config
+    $ npm run test:daemon
 
 ## License
 

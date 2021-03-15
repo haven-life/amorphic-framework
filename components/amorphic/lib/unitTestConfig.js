@@ -1,6 +1,6 @@
 'use strict';
 
-let SuperTypeConfig = require('@havenlife/supertype').SupertypeConfig;
+let BuildSupertypeConfig = require('@havenlife/supertype').BuildSupertypeConfig;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;
 
@@ -12,15 +12,14 @@ let readFile = require('./utils/readFile').readFile;
  *
  * @returns {unknown} unknown.
  */
-function startup(configPath, schemaPath, configBuilder = null) {
+function startup(configPath, schemaPath, configStore = null) {
     if (!configPath) {
         throw new Error('startup(configPath, schemaPath?) called without a config path');
     }
 
     schemaPath = schemaPath || configPath;
 
-	let builder = configBuilder != null ? configBuilder : new SuperTypeConfig();
-	let configStore = builder.build(appDirectory);
+	configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);
     let config = configStore['root'].get();
 
     config.nconf = configStore['root']; // Global config

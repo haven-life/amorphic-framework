@@ -59,7 +59,6 @@
 		"test:docker": "docker-compose up --build",
 		"test:trace": "nyc npm run test",
 		"test:debug": "mocha --inspect test/*",
-		"test:config": "mocha test/config",
 		"test:daemon": "mocha test/daemon/*",
 		"test:daemon_auto": "mocha test/daemon_auto/*",
 		"test:postgres": "mocha test/postgres",
