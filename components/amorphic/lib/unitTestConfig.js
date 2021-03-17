@@ -1,6 +1,6 @@
 'use strict';
 
-let BuildSupertypeConfig = require('@havenlife/supertype').BuildSupertypeConfig;
+let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;
 

@@ -9,7 +9,7 @@ let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
-let BuildSupertypeConfig = require('@havenlife/supertype').BuildSupertypeConfig;
+let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 
 const packageVersions = resolveVersions([
 	'@haventech/semotus',
