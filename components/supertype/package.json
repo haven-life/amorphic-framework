@@ -6,12 +6,12 @@
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
+        "@havenlife-public/amorphic-contracts": "^0.2.0",
         "@types/reflect-metadata": "^0.1.0",
-        "reflect-metadata": "^0.1.12",
-        "nconf": "^0.11.0"
+        "nconf": "^0.11.0",
+        "reflect-metadata": "^0.1.12"
     },
     "devDependencies": {
-        "@havenlife-public/amorphic-contracts": "^0.2.0",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
         "@types/nconf": "^0.10.0",
