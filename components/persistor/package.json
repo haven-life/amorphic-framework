@@ -1,8 +1,8 @@
 {
-    "name": "@havenlife/persistor",
+    "name": "@haventech/persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from MongoDB or SQL databases",
     "homepage": "https://github.com/haven-life/persistor",
-    "version": "5.2.0",
+    "version": "5.2.1",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
@@ -17,10 +17,10 @@
         "uuid": "3.3.3"
     },
     "peerDependencies": {
-        "@havenlife/supertype": "3.x"
+        "@haventech/supertype": "3.x"
     },
     "devDependencies": {
-        "@havenlife/supertype": "3.x",
+        "@haventech/supertype": "3.x",
         "@types/bluebird": "*",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",

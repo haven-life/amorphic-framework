@@ -5,7 +5,7 @@ let logMessage = require('./utils/logger').logMessage;
 let establishServerSession = require('./session/establishServerSession').establishServerSession;
 let displayPerformance = require('./utils/displayPerformance').displayPerformance;
 let Bluebird = require('bluebird');
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /*
     Set up amorphic for the first time

@@ -42,7 +42,7 @@ For example, we may choose to model our classes in objects like the following
 
 *Controller*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@havenlife/amorphic';
+   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
    import {Customer} from './Customer';
    
    let delay = require('../../../dist/helpers/Utilities.js').delay;
@@ -65,7 +65,7 @@ For example, we may choose to model our classes in objects like the following
 
 *Customer*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@havenlife/amorphic';
+   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
    import {PaymentInformation} from './PaymentInformation';
    
    let delay = require('../../../dist/helpers/Utilities.js').delay;
@@ -91,7 +91,7 @@ For example, we may choose to model our classes in objects like the following
 
 *Payment Information*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@havenlife/amorphic';
+   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
    import {PaymentInformation} from './PaymentInformation';
    
    let delay = require('../../../dist/helpers/Utilities.js').delay;
@@ -116,7 +116,7 @@ In this example, we could go about this a couple ways. The one I would choose wo
 
 **Controller (modified)**
 ```
-   import {property, remote, Supertype, supertypeClass} from '@havenlife/amorphic';
+   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
    import {Customer} from './Customer';
    
    let delay = require('../../../dist/helpers/Utilities.js').delay;
@@ -145,7 +145,7 @@ In this example, we could go about this a couple ways. The one I would choose wo
 
 *Customer (modified)*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@havenlife/amorphic';
+   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
    import {PaymentInformation} from './PaymentInformation';
    
    let delay = require('../../../dist/helpers/Utilities.js').delay;

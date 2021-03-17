@@ -5,7 +5,7 @@
  */
 
 var expect = require('chai').expect;
-var ObjectTemplate = require('@havenlife/supertype').default;
+var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
 /*
