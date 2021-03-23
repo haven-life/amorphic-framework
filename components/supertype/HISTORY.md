@@ -1,3 +1,5 @@
+## 3.4.1
+* Added amorphic-contracts to regular dependencies
 ## 3.4.0
 * Moved Config module to supertype from amorphic
 ## 3.3.1
