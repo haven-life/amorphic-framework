@@ -15,6 +15,14 @@ module.exports.controller = function(objectTemplate, getTemplate) {
         mainFunc: {on: 'server', body: function () {
 				return serverAssert();
         }},
+		onContentRequest: {
+        	on: 'server',
+			body: function (req, res) {
+        		console.warn("we are getting run here!");
+				this.__getResponseObj().cookie('iamthecookiemonster', 'megacookie');
+				res.status(200).send('all good here');
+			}
+		},
 		conflictData: { type: String, value: 'initial' },
 		someData: { type: String, value: 'A' },
 		sam: { type: Customer, fetch: true },

@@ -23,7 +23,7 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 	let session = req.session;
 	let path = url.parse(req.originalUrl, true).query.path;
 
-	establishServerSession(req, path, false, false, null, sessions, controllers, nonObjTemplatelogLevel)
+	establishServerSession(req, path, false, false, null, sessions, controllers, nonObjTemplatelogLevel, res)
 		.then(function ff(semotus) {
 			let ourObjectTemplate = semotus.objectTemplate;
 			let remoteSessionId = req.session.id;
