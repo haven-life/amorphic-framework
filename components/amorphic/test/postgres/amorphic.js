@@ -670,25 +670,10 @@ describe('third group of tests', function() {
     });
 
     it('should be able to mutate cookies on the back end', function() {
-
-        // some of the tests depend on the controller not having a process post method.
-        // we're going to jankily and dynamically add it on at the last minute because we need it
-        // serverController.processPost = {on: 'server', body: function (uri, body) {
-        //     this.__getResponseObj().cookie('iamthecookiemonster', 'megacookie');
-        //     if (body.error) {
-        //         throw 'error';
-        //     }
-        //     return {status: 200, body: body.test};
-        // }};
-
         return axios({
             method: 'get',
-            // url: 'http://localhost:3001/amorphic/xhr?path=test&form=true',
             url: 'http://localhost:3001/amorphic/xhr?path=test&file=test.txt'
         }).then(function(res) {
-            expect(res.status).to.equal(200);
-            expect(res.data).to.not.equal(false);
-            // console.warn("!!! what is our response looking like", res);
             expect(res.headers['set-cookie'][0]).to.deep.equal('iamthecookiemonster=megacookie; Path=/');
         });
     });
