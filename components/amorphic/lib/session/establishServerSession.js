@@ -57,7 +57,7 @@ function setup(req, semotus) {
  *
  * @returns {Promise<Object>} Promise that resolves to server session object.
  */
-function establishServerSession(req, path, newPage, reset, newControllerId, sessions, controllers, nonObjTemplatelogLevel) {
+function establishServerSession(req, path, newPage, reset, newControllerId, sessions, controllers, nonObjTemplatelogLevel, res) {
 
     let establishInitialServerSessionTime = process.hrtime();
 
@@ -112,7 +112,7 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
 
     return establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
         sessionExpiration, session, sessionStore, newControllerId, objectCacheExpiration, newPage,
-        controllers, nonObjTemplatelogLevel, sessions, reset)
+        controllers, nonObjTemplatelogLevel, sessions, reset, res)
         .then(setup.bind(this, req));
 }
 

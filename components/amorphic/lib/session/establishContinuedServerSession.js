@@ -35,7 +35,7 @@ let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 function establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
                                          sessionExpiration, session, sessionStore,
                                          newControllerId, objectCacheExpiration, newPage,
-                                         controllers, nonObjTemplatelogLevel, sessions, reset) {
+                                         controllers, nonObjTemplatelogLevel, sessions, reset, res) {
     let establishContinuedServerSessionTime = process.hrtime();
 
     let applicationConfig = AmorphicContext.applicationConfig;
@@ -72,6 +72,7 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
     ourObjectTemplate.memSession = sessionData;
     ourObjectTemplate.reqSession = req.session;
     controller.__request = req;
+    controller.__response = res;
     controller.__sessionExpiration = sessionExpiration;
 
     req.amorphicTracking.addServerTask({name: 'Create Controller'}, process.hrtime());

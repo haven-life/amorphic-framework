@@ -669,6 +669,21 @@ describe('third group of tests', function() {
         });
     });
 
+    it('should be able to mutate cookies on the back end', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/init/config.js',
+            data: {
+                test: 'hellooo',
+                testCookie: true
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(res.data).to.not.equal(false);
+            expect(res.data.iamthecookiemonster).to.equal('megacookie');
+        });
+    });
+
 });
 
 describe('processLoggingMessage', function() {

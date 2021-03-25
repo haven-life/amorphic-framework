@@ -45,7 +45,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
     let forceReset = message.type === 'reset';
 
     establishServerSession(req, path, newPage, forceReset, message.rootId, sessions, controllers,
-    nonObjTemplatelogLevel)
+    nonObjTemplatelogLevel, res)
         .then(function kk(semotus) {
             if (message.performanceLogging) {
                 req.amorphicTracking.browser = message.performanceLogging;

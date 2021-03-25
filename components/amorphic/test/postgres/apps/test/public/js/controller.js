@@ -105,6 +105,7 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			this.ashling = ashling;
 		},
 		preServerCall: function(changeCount, objectsChanged) {
+			this.__response.cookie('iamthecookiemonster', 'megacookie', { maxAge: 900000, httpOnly: true });
 			for (var templateName in objectsChanged) {
 				this.preServerCallObjects[templateName] = true;
 			}
