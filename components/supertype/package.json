@@ -1,7 +1,7 @@
 {
     "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "3.4.0",
+    "version": "3.4.1",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
