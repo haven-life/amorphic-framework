@@ -243,7 +243,7 @@ export interface Semotus {
     Bindable: (Base) => () => any;
     Persistable: (Base) => () => any;
     bindDecorators: (objectTemplate?) => void;
-    processMessage: (remoteCall, subscriptionId, restoreSessionCallback) => (undefined | any);
+    processMessage: (remoteCall, subscriptionId, restoreSessionCallback, req?: Request, res?: Response) => (undefined | any);
     enableSendMessage: (value, messageCallback, sessionId) => void;
     syncSession: (sessionId) => void;
     restoreSession: (sessionId, savedSession: SavedSession, sendMessage: SendMessage) => boolean;

@@ -95,12 +95,10 @@ export class Controller extends Supertype {
 
 	setAllClientRuleCheckFalgsonServer() {
 		this.onClientFalse = this.onClientTrue = this.onClientNotRightApp = this.onClientWithApp = true;
-		this.remotePublic = false;
 	}
 
 	setAllServerRuleCheckFalgsonClient() {
 		this.onServerFalse = this.onServerTrue = this.onServerNotRightApp = this.onServerWithApp = true;
-		this.remotePublic = false;
 	}
 
 	hitMaxRetries: boolean = false;
@@ -162,11 +160,25 @@ export class Controller extends Supertype {
 		if (isPublic) {
 			this.remotePublic = true;
 		}
+		console.error('yoooo');
+		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+			const {request, response} = HTTPObjs;
+			request.cookies['preServerCookie'] = true;
+			response.cookie();
+			this.hasRequestInPreServer = this.hasResponseInPreServer = true;
+		}
 	}
 
 	postServerCall(hasChanges, callContext, changeString, HTTPObjs?) {
 		if (this.postServerCallThrowException) throw 'postServerCallThrowException';
 		if (this.postServerCallThrowRetryException) throw 'Retry';
+
+		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+			const {request, response} = HTTPObjs;
+			request.cookies['postServerCookie'] = true;
+			response.cookie();
+			this.hasRequestInPostServer = this.hasResponseInPostServer = true;
+		}
 	}
 	validateServerCall() {
 		return this.canValidateServerCall;

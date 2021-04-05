@@ -30,13 +30,20 @@ ServerObjectTemplate.memSession = { semotus: {} };
 ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
 import {expect} from 'chai';
+import { mockRequest, mockResponse } from 'mock-req-res';
+
+let serverMockReq, serverMockRes, clientMockReq, clientMockRes;
 
 function sendToServer(message) {
-	ServerObjectTemplate.processMessage(message);
+	serverMockReq = mockRequest();
+	serverMockRes = mockResponse();
+	ServerObjectTemplate.processMessage(message, undefined, undefined, serverMockReq, serverMockRes);
 }
 
 function sendToClient(message) {
-	ClientObjectTemplate.processMessage(message);
+	clientMockReq = mockRequest();
+	clientMockRes = mockResponse();
+	ClientObjectTemplate.processMessage(message, undefined, undefined, clientMockReq, clientMockRes);
 }
 
 ClientObjectTemplate.createSession('client', sendToServer);
@@ -340,30 +347,52 @@ describe('Typescript Banking Example', function () {
 	});
 	it('Test if public: true remote flag works as intended in preservercall', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
 		clientController.testPublicTrue().then(() => {
 			expect(serverController.remotePublic).to.equal(true);
+			done()
+		}).catch((err) => {
+			done(err);
 		})
 	});
 	it('Test if public: false remote flag works as intended in preservercall', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
 		clientController.testPublicFalse().then(() => {
-				expect(serverController.remotePublic).to.equal(false);
-			});
+			expect(serverController.remotePublic).to.equal(false);
+			done()
+		}).catch((err) => {
+			done(err);
+		})
 	});
 	it('Test if public: undefined remote flag works as intended in preservercall', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
 		clientController.testNoPublic().then(() => {
 			expect(serverController.remotePublic).to.equal(false);
-		});
+			done();
+		}).catch((err) => {
+			done(err);
+		})
 	});
-	it('Test if preServerCall and postServerCall has appropriate request and response objects', function (done) {
+	it('Test if preServerCall and postServerCall has appropriate (dummy) request and (dummy) response objects', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
+		serverController.hasRequestInPreServer = serverController.hasResponseInPreServer = false;
+		serverController.hasRequestInPostServer = serverController.hasResponseInPostServer = false;
+
 		clientController.testNoPublic().then(() => {
 			expect(serverController.hasRequestInPreServer).to.equal(true);
 			expect(serverController.hasResponseInPreServer).to.equal(true);
 			expect(serverController.hasRequestInPostServer).to.equal(true);
 			expect(serverController.hasResponseInPostServer).to.equal(true);
-		});
+			expect(serverMockReq.cookies['preServerCookie']).to.equal(true);
+			expect(serverMockReq.cookies['postServerCookie']).to.equal(true);
+			expect(serverMockRes.cookie.calledTwice).to.equal(true);
+			done();
+		}).catch((err) => {
+			done(err);
+		})
 	});
 	it('Post server error handling works asynchronously', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
