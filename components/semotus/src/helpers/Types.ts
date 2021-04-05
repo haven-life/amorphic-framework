@@ -1,5 +1,5 @@
 import {Supertype} from '@haventech/supertype';
-import {HTTPObjs} from '../../../amorphic/lib/types/ILifecycleController';
+export type HTTPObjs = {request: Request, response: Response};
 
 export type Subscription = {
     role: string;
@@ -24,7 +24,7 @@ export type ProcessCallPayload = {
     subscriptionId: any;
     remoteCallId: any;
     restoreSessionCallback?: Function;
-    HTTPObjs?: {request: Express.Request, response: Express.Response}
+    HTTPObjs?: HTTPObjs;
 }
 
 /**
