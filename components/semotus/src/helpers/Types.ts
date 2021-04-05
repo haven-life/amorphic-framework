@@ -61,6 +61,9 @@ export type RemoteCall = {
     changes: string; // The string is of type ChangeGroup
     name: string;
     sequence: any;
+    type: any;
+    sync: any;
+    value: any;
 }
 
 export type Session = {

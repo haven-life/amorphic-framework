@@ -31,6 +31,7 @@ import * as Subscriptions from './helpers/Subscriptions';
 import {delay} from './helpers/Utilities';
 import * as Changes from './helpers/Changes';
 import * as ChangeGroups from './helpers/ChangeGroups';
+import {Request, Response} from 'express';
 import {processCall} from "./helpers/ProcessCall";
 
 declare var define;
@@ -249,7 +250,7 @@ declare var define;
 	 * @param res
 	 * @returns {unknown} unknown
 	 */
-	RemoteObjectTemplate.processMessage = function processMessage(remoteCall: RemoteCall, subscriptionId, restoreSessionCallback, req?: Express.request, res?: Express.response ) {
+	RemoteObjectTemplate.processMessage = function processMessage(remoteCall: RemoteCall, subscriptionId, restoreSessionCallback, req?: Request, res?: Response ) {
 		if (!remoteCall) {
 			return;
 		}

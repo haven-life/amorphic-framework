@@ -53,7 +53,7 @@ async function retryCall(payload: ProcessCallPayload) {
  * @returns  unknown
  */
 function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): boolean {
-    const {semotus, remoteCall, remoteObject, callContext, HTTPObjs} = payload;
+    const {semotus, remoteCall, session, callContext, HTTPObjs} = payload;
     semotus.logger.info(
         {
             component: 'semotus',
@@ -73,6 +73,8 @@ function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): boolea
         for (var objId in JSON.parse(remoteCall.changes)) {
             changes[semotus.__dictionary__[objId.replace(/[^-]*-/, '').replace(/-.*/, '')].__name__] = true;
         }
+
+        let remoteObject = session.objects[remoteCall.id];
 
         let isPublic = semotus.role === 'server' && remoteObject[remoteCall.name].remotePublic;
 
