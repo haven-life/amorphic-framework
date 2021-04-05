@@ -4,10 +4,7 @@
     "strictNullChecks": false,
     "typeRoots": [
       "./node_modules/@types"
-    ],
-    "allowJs": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    ]
   },
   "include": [
     "src"
