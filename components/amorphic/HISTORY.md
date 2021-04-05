@@ -1,3 +1,5 @@
+## 7.2.0
+* adding access to the response object
 ## 7.1.3
 * Adding unit test for cookies
 ## 7.1.2
