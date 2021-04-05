@@ -601,6 +601,20 @@ describe('Second Group of Tests', function () {
             expect(res.data).to.equal('Internal Error');
         });
     });
+
+    it('Testing the request and response functionality passed into pre and post servercall', function(done) {
+        clientController.emptyFunc().then(function () {
+            expect(serverController.hasRequestInPreServer).to.equal(true);
+            expect(serverController.hasResponseInPreServer).to.equal(true);
+            expect(serverController.hasRequestInPostServer).to.equal(true);
+            expect(serverController.hasResponseInPostServer).to.equal(true);
+            expect(serverController.requestConstructorName).to.equal('IncomingMessage');
+            expect(serverController.responseConstructorName).to.equal('ServerResponse');
+            done();
+        }).catch(function(err) {
+            done(err);
+        });
+    });
 });
 
 describe('third group of tests', function() {
@@ -817,24 +831,6 @@ describe('statsd module enabled', function () {
     it('should be able to consume a module and put it on amorphic static (supertype session)', () => {
         const statsdClient = SupertypeSession.amorphicStatic.statsdClient;
         expect(statsdClient.timing).to.equal('timing stub');
-    });
-});
-
-describe('Testing the request and response functionality passed into pre and post servercall', function() {
-    before(function (done) {
-        return beforeEachDescribe(done, 'test', 'yes', 'prod');
-    });
-
-    after(afterEachDescribe);
-
-    clientController.emptyFunc().then(function () {
-        expect(serverController.hasRequestInPreServer).to.equal(true);
-        expect(serverController.hasResponseInPreServer).to.equal(true);
-        expect(serverController.hasRequestInPostServer).to.equal(true);
-        expect(serverController.hasResponseInPostServer).to.equal(true);
-        done();
-    }).catch(function(e) {
-        done(e);
     });
 });
 

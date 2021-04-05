@@ -15,6 +15,12 @@ module.exports.controller = function(objectTemplate, getTemplate) {
         mainFunc: {on: 'server', body: function () {
 				return serverAssert();
         }},
+		emptyFunc: {
+			on: 'server',
+			body: function () {
+				console.log('executed emptyFUNc');
+				return true;
+			}},
 		conflictData: { type: String, value: 'initial' },
 		someData: { type: String, value: 'A' },
 		sam: { type: Customer, fetch: true },
@@ -104,10 +110,15 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			this.karen = karen;
 			this.ashling = ashling;
 		},
-		preServerCall: function(changeCount, objectsChanged) {
+		preServerCall: function (changeCount, objectsChanged, callContext, forceUpdate, functionName, remoteCall, isPublic, HTTPObjs) {
 			for (var templateName in objectsChanged) {
 				this.preServerCallObjects[templateName] = true;
 			}
+
+			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+				this.hasRequestInPreServer = this.hasResponseInPreServer = true;
+			}
+
 			return Bluebird.resolve()
 				.then(this.sam ? this.sam.refresh.bind(this.sam, null) : true)
 				.then(this.karen ? this.karen.refresh.bind(this.karen, null) : true)
@@ -118,13 +129,21 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 						objectTemplate.currentTransaction.touchTop = true;
                 }.bind(this));
 		},
-		postServerCall: function() {
+		postServerCall: function (hasChanges, callContext, changeString, HTTPObjs) {
 			if (this.postServerCallThrowException) {
 				throw 'postServerCallThrowException';
 			}
 			if (this.postServerCallThrowRetryException) {
 				throw 'Retry';
 			}
+
+			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+				const {request, response} = HTTPObjs;
+				this.requestConstructorName = request.constructor.name;
+				this.responseConstructorName = response.constructor.name;
+				this.hasRequestInPostServer = this.hasResponseInPostServer = true;
+			}
+
 			//return;
 			var dirtCount = 0;
 			serverController.sam.cascadeSave();
