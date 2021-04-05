@@ -1,3 +1,5 @@
+## 7.2.0
+* Adding ability for amorphic to pass in request and response objects into semotus server calls and adding updates to types
 ## 7.1.3
 * Adding unit test for cookies
 ## 7.1.2

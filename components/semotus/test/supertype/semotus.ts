@@ -338,6 +338,33 @@ describe('Typescript Banking Example', function () {
 				done(e);
 			});
 	});
+	it('Test if public: true remote flag works as intended in preservercall', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		clientController.testPublicTrue().then(() => {
+			expect(serverController.remotePublic).to.equal(true);
+		})
+	});
+	it('Test if public: false remote flag works as intended in preservercall', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		clientController.testPublicFalse().then(() => {
+				expect(serverController.remotePublic).to.equal(false);
+			});
+	});
+	it('Test if public: undefined remote flag works as intended in preservercall', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		clientController.testNoPublic().then(() => {
+			expect(serverController.remotePublic).to.equal(false);
+		});
+	});
+	it('Test if preServerCall and postServerCall has appropriate request and response objects', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		clientController.testNoPublic().then(() => {
+			expect(serverController.hasRequestInPreServer).to.equal(true);
+			expect(serverController.hasResponseInPreServer).to.equal(true);
+			expect(serverController.hasRequestInPostServer).to.equal(true);
+			expect(serverController.hasResponseInPostServer).to.equal(true);
+		});
+	});
 	it('Post server error handling works asynchronously', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 

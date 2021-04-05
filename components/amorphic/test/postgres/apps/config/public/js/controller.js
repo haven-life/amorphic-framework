@@ -119,7 +119,7 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             this.karen = karen;
             this.ashling = ashling;
         },
-        preServerCall: function (changeCount, objectsChanged) {
+        preServerCall: function (changeCount, objectsChanged, callContext, forceUpdate, functionName, remoteCall, isPublic, HTTPObjs) {
             for (var templateName in objectsChanged) {
                 this.preServerCallObjects[templateName] = true;
             }
@@ -133,7 +133,7 @@ module.exports.controller = function (objectTemplate, getTemplate) {
                     objectTemplate.currentTransaction.touchTop = true;
                 }.bind(this));
         },
-        postServerCall: function () {
+        postServerCall: function (hasChanges, callContext, changeString, HTTPObjs) {
             if (this.postServerCallThrowException) {
                 throw 'postServerCallThrowException';
             }
@@ -157,6 +157,10 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             return this.canValidateServerCall;
         },
         preServerCallObjects: {isLocal: true, type: Object, value: {}},
+        hasRequestInPreServer: {type: Boolean, value: false},
+        hasResponseInPreServer: {type: Boolean, value: false},
+        hasRequestInPostServer: {type: Boolean, value: false},
+        hasResponseInPostServer: {type: Boolean, value: false},
         preServerCalls: {isLocal: true, type: Number, value: 0},
         postServerCalls: {isLocal: true, type: Number, value: 0},
         preServerCallThrowException: {isLocal: true, type: Boolean, value: false},

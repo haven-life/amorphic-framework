@@ -23,7 +23,7 @@
  objects created with it's templates.  The synchronization
  */
 
-import {ArrayTypes, ProcessCallPayload, SavedSession, Semotus, SendMessage} from './helpers/Types';
+import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
 import {property, remote, Supertype, supertypeClass} from './decorators';
 import {Bindable, Persistable, Remoteable} from './setupExtends';
 import * as Sessions from './helpers/Sessions';
@@ -245,9 +245,11 @@ declare var define;
 	 * @param {unknown} subscriptionId - unknown
 	 * @param {unknown} restoreSessionCallback - unknown
 	 *
+	 * @param req
+	 * @param res
 	 * @returns {unknown} unknown
 	 */
-	RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscriptionId, restoreSessionCallback) {
+	RemoteObjectTemplate.processMessage = function processMessage(remoteCall: RemoteCall, subscriptionId, restoreSessionCallback, req?: Express.request, res?: Express.response ) {
 		if (!remoteCall) {
 			return;
 		}
@@ -328,6 +330,15 @@ declare var define;
 
 				callContext = {retries: 0, startTime: new Date()};
 
+				let HTTPObjs = undefined;
+
+				if (req && res) {
+					HTTPObjs = {
+						request: req,
+						response: res
+					}
+				}
+
 				const payload: ProcessCallPayload = {
 					callContext: callContext,
 					remoteCall: remoteCall,
@@ -335,7 +346,8 @@ declare var define;
 					semotus: this,
 					session: session,
 					subscriptionId: subscriptionId,
-					remoteCallId: remoteCallId
+					remoteCallId: remoteCallId,
+					HTTPObjs: HTTPObjs
 				};
 				return processCall(payload);
 
@@ -684,6 +696,9 @@ declare var define;
 	 * @param {unknown} role unknown
 	 * @param {unknown} validate unknown
 	 *
+	 * @param serverValidation
+	 * @param isPublic
+	 * @param template
 	 * @returns {*} - the original function or a wrapper to make a remote call
 	 */
 	RemoteObjectTemplate._setupFunction = function setupFunction(
@@ -692,6 +707,7 @@ declare var define;
 		role,
 		validate,
 		serverValidation,
+		isPublic: boolean,
 		template
 	) {
 		/** @type {RemoteObjectTemplate} */
@@ -701,6 +717,7 @@ declare var define;
 		if (!role || role == this.role) {
 			if (role === 'server') {
 				propertyValue.serverValidation = serverValidation;
+				propertyValue.remotePublic = isPublic;
 			}
 			return propertyValue;
 		} else {

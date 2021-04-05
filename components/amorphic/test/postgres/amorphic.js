@@ -820,6 +820,24 @@ describe('statsd module enabled', function () {
     });
 });
 
+describe('Testing the request and response functionality passed into pre and post servercall', function() {
+    before(function (done) {
+        return beforeEachDescribe(done, 'test', 'yes', 'prod');
+    });
+
+    after(afterEachDescribe);
+
+    clientController.emptyFunc().then(function () {
+        expect(serverController.hasRequestInPreServer).to.equal(true);
+        expect(serverController.hasResponseInPreServer).to.equal(true);
+        expect(serverController.hasRequestInPostServer).to.equal(true);
+        expect(serverController.hasResponseInPostServer).to.equal(true);
+        done();
+    }).catch(function(e) {
+        done(e);
+    });
+});
+
 describe('amorphic api enabled', function () {
 
     before(function (done) {

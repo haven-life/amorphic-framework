@@ -153,7 +153,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
             ourObjectTemplate.enableSendMessage(true, sendMessage);
 
             try {
-                ourObjectTemplate.processMessage(message, null, semotus.restoreSession);
+                ourObjectTemplate.processMessage(message, null, semotus.restoreSession, req, res);
             }
             catch (error) {
                 ourObjectTemplate.logger.info({
