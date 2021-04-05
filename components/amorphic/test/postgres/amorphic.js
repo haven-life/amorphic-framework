@@ -614,7 +614,7 @@ describe('Second Group of Tests', function () {
     //     }).catch(function(err) {
     //         done(err);
     //     });
-    });
+    // });
 });
 
 describe('third group of tests', function() {
