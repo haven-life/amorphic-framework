@@ -1,4 +1,5 @@
 import {Supertype} from '@haventech/supertype';
+import {Request, Response} from 'express';
 export type HTTPObjs = {request: Request, response: Response};
 
 export type Subscription = {
