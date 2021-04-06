@@ -1,6 +1,6 @@
 import {Supertype} from '../..';
 import {CallContext, ChangeString, ErrorType, PreServerCallChanges} from './HelperTypes';
-import {Request, Response} from 'Express';
+import {Request, Response} from 'express';
 
 /**
  * @TODO: Import directly from semotus later or consolidate
