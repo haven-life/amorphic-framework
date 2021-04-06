@@ -115,6 +115,9 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				this.preServerCallObjects[templateName] = true;
 			}
 
+			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+				this.hasRequestInPreServer = this.hasResponseInPreServer = true;
+			}
 
 			return Bluebird.resolve()
 				.then(this.sam ? this.sam.refresh.bind(this.sam, null) : true)
