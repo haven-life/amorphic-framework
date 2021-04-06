@@ -332,6 +332,20 @@ describe('Second Group of Tests', function () {
         });
     });
 
+    it('Testing the request and response functionality passed into pre and post servercall', function(done) {
+        clientController.emptyFunc().then(function () {
+            expect(serverController.hasRequestInPreServer).to.equal(true);
+            expect(serverController.hasResponseInPreServer).to.equal(true);
+            expect(serverController.hasRequestInPostServer).to.equal(true);
+            expect(serverController.hasResponseInPostServer).to.equal(true);
+            expect(serverController.requestConstructorName).to.equal('IncomingMessage');
+            expect(serverController.responseConstructorName).to.equal('ServerResponse');
+            done();
+        }).catch(function(err) {
+            done(err);
+        });
+    });
+
     it('fetch everything back', function (done) {
         serverAssert = function () {
             serverController.sam.roles[0].account.listTransactions();
@@ -485,19 +499,6 @@ describe('Second Group of Tests', function () {
         });
     });
 
-    it('Testing the request and response functionality passed into pre and post servercall', function(done) {
-        clientController.emptyFunc().then(function () {
-            expect(serverController.hasRequestInPreServer).to.equal(true);
-            expect(serverController.hasResponseInPreServer).to.equal(true);
-            expect(serverController.hasRequestInPostServer).to.equal(true);
-            expect(serverController.hasResponseInPostServer).to.equal(true);
-            expect(serverController.requestConstructorName).to.equal('IncomingMessage');
-            expect(serverController.responseConstructorName).to.equal('ServerResponse');
-            done();
-        }).catch(function(err) {
-            done(err);
-        });
-
     it('can get a synchronization error', function (done) {
         serverAssert = function () {
             expect(serverController.conflictData).to.equal('foo');
@@ -613,7 +614,6 @@ describe('Second Group of Tests', function () {
             expect(res.status).to.equal(500);
             expect(res.data).to.equal('Internal Error');
         });
-    });
     });
 });
 
