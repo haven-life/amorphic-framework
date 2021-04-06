@@ -17,10 +17,11 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  * @param {String} path - The app name.
  * @param {unknown} appVersion unknown
  * @param {unknown} sessionExpiration unknown
+ * @param {Object} res - Express response object
  *
  * @returns {unknown} unknown
  */
-function establishInitialServerSession(req, controllerPath, initObjectTemplate, path, appVersion, sessionExpiration) {
+function establishInitialServerSession(req, controllerPath, initObjectTemplate, path, appVersion, sessionExpiration, res) {
 
     let establishInitialServerSessionTime = process.hrtime();
 
