@@ -160,7 +160,7 @@ export class Controller extends Supertype {
 		if (isPublic) {
 			this.remotePublic = true;
 		}
-		console.error('yoooo');
+
 		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
 			const {request, response} = HTTPObjs;
 			request.cookies['preServerCookie'] = true;
