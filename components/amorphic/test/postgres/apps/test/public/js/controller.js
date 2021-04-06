@@ -139,6 +139,7 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				console.error('\nnnnHEYYYYY');
 				console.log(request.constructor.name);
 				console.error('\nnnnNO');
+				console.err('\nnnSUP'+request.constructor);
 				this.requestConstructorName = request.constructor.name;
 				this.responseConstructorName = response.constructor.name;
 				this.hasRequestInPostServer = this.hasResponseInPostServer = true;
