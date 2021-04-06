@@ -134,6 +134,15 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				throw 'Retry';
 			}
 
+			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+				const {request, response} = HTTPObjs;
+				console.error('\nnnnHEYYYYY');
+				console.log(request.constructor.name);
+				console.error('\nnnnNO');
+				this.requestConstructorName = request.constructor.name;
+				this.responseConstructorName = response.constructor.name;
+				this.hasRequestInPostServer = this.hasResponseInPostServer = true;
+			}
 
 			//return;
 			var dirtCount = 0;
