@@ -115,9 +115,6 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				this.preServerCallObjects[templateName] = true;
 			}
 
-			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
-				this.hasRequestInPreServer = this.hasResponseInPreServer = true;
-			}
 
 			return Bluebird.resolve()
 				.then(this.sam ? this.sam.refresh.bind(this.sam, null) : true)
@@ -137,12 +134,6 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				throw 'Retry';
 			}
 
-			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
-				const {request, response} = HTTPObjs;
-				this.requestConstructorName = request.constructor.name;
-				this.responseConstructorName = response.constructor.name;
-				this.hasRequestInPostServer = this.hasResponseInPostServer = true;
-			}
 
 			//return;
 			var dirtCount = 0;
