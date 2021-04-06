@@ -135,6 +135,7 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			}
 
 			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+				var request = HTTPObjs.request;
 				// const {request, response} = HTTPObjs;
 				// this.requestConstructorName = request.constructor.name;
 				// this.responseConstructorName = response.constructor.name;
