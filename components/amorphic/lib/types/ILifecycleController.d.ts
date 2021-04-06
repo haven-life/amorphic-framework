@@ -1,6 +1,6 @@
 import {Supertype} from '../..';
 import {CallContext, ChangeString, ErrorType, PreServerCallChanges} from './HelperTypes';
-import {Request, Response} from 'Express';
+import {Request, Response} from 'express';
 
 /**
  * @TODO: Import directly from semotus later or consolidate
@@ -40,20 +40,20 @@ export type HTTPObjs = {request: Request, response: Response};
 export interface ILifecycleController {
 
     /**
-    * @client
-    *
-    * Handler that runs prior to session expiry, or logout
-    * Allows the client to determine custom logic to run on session expiration
+     * @client
      *
-    * If not implemented, uses default expireController function, defined in client.js
+     * Handler that runs prior to session expiry, or logout
+     * Allows the client to determine custom logic to run on session expiration
+     *
+     * If not implemented, uses default expireController function, defined in client.js
      *
      * Suggestion on implementation:
-    *  1) Custom work and utilize to expireController (runs on client), clears the session on client
+     *  1) Custom work and utilize to expireController (runs on client), clears the session on client
      *  AND / OR
-    *  2) Custom work and utilize amorphic's expireSession which only runs on server (needs to remote in). Clears the session on the server
+     *  2) Custom work and utilize amorphic's expireSession which only runs on server (needs to remote in). Clears the session on the server
      *
-    * @returns {void}
-    */
+     * @returns {void}
+     */
     publicExpireSession?(): void;
 
     /**

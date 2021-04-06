@@ -12,9 +12,9 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 
 
 	var Controller = objectTemplate.create('Controller', {
-        mainFunc: {on: 'server', body: function () {
+		mainFunc: {on: 'server', body: function () {
 				return serverAssert();
-        }},
+			}},
 		emptyFunc: {
 			on: 'server',
 			body: function () {
@@ -33,37 +33,37 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			}
 			serverController = this;
 		},
-        clearDB: {on: 'server', body: function () {
+		clearDB: {on: 'server', body: function () {
 				var total = 0;
 				return clearCollection(Role)
 					.then(function(count) {
 						total += count;
 						return clearCollection(Account);
-                }).then(function (count) {
+					}).then(function (count) {
 						total += count;
 						return clearCollection(Customer);
-                }).then(function (count) {
+					}).then(function (count) {
 						total += count;
 						return clearCollection(Transaction);
-                }).then(function (count) {
+					}).then(function (count) {
 						total += count;
 						return clearCollection(ReturnedMail);
-                }).then(function (count) {
+					}).then(function (count) {
 						total += count;
 						return clearCollection(Address);
-                }).then(function (count) {
+					}).then(function (count) {
 						total += count;
 						serverAssert(total);
 					});
 				function clearCollection(template) {
-                return objectTemplate.dropKnexTable(template)
-                    .then(function () {
-						return objectTemplate.synchronizeKnexTableFromTemplate(template).then(function() {
-							return 0;
+					return objectTemplate.dropKnexTable(template)
+						.then(function () {
+							return objectTemplate.synchronizeKnexTableFromTemplate(template).then(function() {
+								return 0;
+							});
 						});
-					});
 				}
-        }},
+			}},
 		clientInit: function() {
 			clientController = this;
 			// Setup customers and addresses
@@ -95,7 +95,7 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 
 			// Setup accounts
 			var samsAccount = new Account(1234, ['Sam Elsamman'], sam, sam.addresses[0]);
-            var jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
+			var jointAccount = new Account(123, ['Sam Elsamman', 'Karen Burke', 'Ashling Burke'], sam, karen.addresses[0]);
 			jointAccount.addCustomer(karen, 'joint');
 			jointAccount.addCustomer(ashling, 'joint');
 
@@ -123,11 +123,11 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				.then(this.sam ? this.sam.refresh.bind(this.sam, null) : true)
 				.then(this.karen ? this.karen.refresh.bind(this.karen, null) : true)
 				.then(this.ashling ? this.ashling.refresh.bind(this.ashling, null) : true)
-                .then(function () {
-						objectTemplate.begin();
-						console.log(this.sam ? this.sam.__version__ : '');
-						objectTemplate.currentTransaction.touchTop = true;
-                }.bind(this));
+				.then(function () {
+					objectTemplate.begin();
+					console.log(this.sam ? this.sam.__version__ : '');
+					objectTemplate.currentTransaction.touchTop = true;
+				}.bind(this));
 		},
 		postServerCall: function (hasChanges, callContext, changeString, HTTPObjs) {
 			if (this.postServerCallThrowException) {
@@ -138,7 +138,9 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			}
 
 			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
-				const {request, response} = HTTPObjs;
+				var request = HTTPObjs.request;
+				var response = HTTPObjs.response;
+				// const {request, response} = HTTPObjs;
 				this.requestConstructorName = request.constructor.name;
 				this.responseConstructorName = response.constructor.name;
 				this.hasRequestInPostServer = this.hasResponseInPostServer = true;
@@ -152,10 +154,10 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			objectTemplate.currentTransaction.postSave = function(txn) {
 				this.updatedCount = _.toArray(txn.savedObjects).length;
 			}.bind(this);
-            return objectTemplate.end()
-                .then(function () {
-				PostCallAssert();
-			});
+			return objectTemplate.end()
+				.then(function () {
+					PostCallAssert();
+				});
 		},
 		validateServerCall: function() {
 			return this.canValidateServerCall;
