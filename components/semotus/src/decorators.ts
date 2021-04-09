@@ -119,6 +119,7 @@ export function remote(objectTemplate, defineProperty) {
 
     // function that we call to validate any changes for remote calls
     let remoteValidator = defineProperty.serverValidation;
+    let isPublic = !!defineProperty.public;
 
     return function (target, propertyName, descriptor) {
         descriptor.value = objectTemplate._setupFunction(
@@ -127,6 +128,7 @@ export function remote(objectTemplate, defineProperty) {
             defineProperty.on,
             defineProperty.validate,
             remoteValidator,
+            isPublic,
             defineProperty.target
         );
 

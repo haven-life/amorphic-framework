@@ -1,7 +1,11 @@
 ## 8.0.0
 * Allowing for passing of a Config Store instead of using the internal config builder
-* Will use the new SuperTypeBuilder if one is not provided
-
+* Will use the new SuperTypeBuilder if a config is not provided
+## 7.3.0
+* Adding ability for amorphic to pass in request and response objects into semotus server calls and adding updates to types
+## 7.2.0
+* adding access to the response object
+>>>>>>> master
 ## 7.1.3
 * Adding unit test for cookies
 ## 7.1.2

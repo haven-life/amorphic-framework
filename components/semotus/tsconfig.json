@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "noImplicitAny": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
   "include": [
     "src"

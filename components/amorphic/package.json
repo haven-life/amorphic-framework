@@ -4,7 +4,7 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "8.0.0-beta.0",
+	"version": "8.0.0-beta.1",
 	"dependencies": {
 		"@haventech/persistor": "5.x",
 		"@haventech/semotus": "4.x",
@@ -41,7 +41,7 @@
 		"request": "2.87.0",
 		"sinon": "4.0.1",
 		"ts-node": "3.3.0",
-		"typescript": "2.5.3",
+		"typescript": "4.2.3",
 		"underscore": "^1.9.2",
 		"xmlhttprequest-cookie": "0.9.4"
 	},

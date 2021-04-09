@@ -3,6 +3,7 @@ import {Customer} from './Customer';
 import {Account} from './Account';
 import {Address} from './Address';
 import {expect} from 'chai';
+import {CallContext, ChangeString} from '../../src/helpers/Types';
 
 var ObjectTemplate = require('../../dist/index.js');
 var delay = require('../../dist/helpers/Utilities.js').delay;
@@ -101,7 +102,11 @@ export class Controller extends Supertype {
 	}
 
 	hitMaxRetries: boolean = false;
-
+	remotePublic: boolean = false;
+	hasRequestInPreServer: boolean = false;
+	hasResponseInPreServer: boolean = false;
+	hasRequestInPostServer: boolean = false;
+	hasResponseInPostServer: boolean = false;
 	constructor() {
 		super();
 
@@ -150,12 +155,30 @@ export class Controller extends Supertype {
 		this.karen = karen;
 		this.ashling = ashling;
 	}
-	preServerCall(changeCount, objectsChanged) {
+	preServerCall(changeCount, objectsChanged, callContext, forceUpdate, functionName, remoteCall, isPublic, HTTPObjs?) {
 		for (var templateName in objectsChanged) this.preServerCallObjects[templateName] = true;
+		if (isPublic) {
+			this.remotePublic = true;
+		}
+
+		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+			const {request, response} = HTTPObjs;
+			request.cookies['preServerCookie'] = true;
+			response.cookie();
+			this.hasRequestInPreServer = this.hasResponseInPreServer = true;
+		}
 	}
-	postServerCall() {
+
+	postServerCall(hasChanges, callContext, changeString, HTTPObjs?) {
 		if (this.postServerCallThrowException) throw 'postServerCallThrowException';
 		if (this.postServerCallThrowRetryException) throw 'Retry';
+
+		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+			const {request, response} = HTTPObjs;
+			request.cookies['postServerCookie'] = true;
+			response.cookie();
+			this.hasRequestInPostServer = this.hasResponseInPostServer = true;
+		}
 	}
 	validateServerCall() {
 		return this.canValidateServerCall;
@@ -201,6 +224,21 @@ export class Controller extends Supertype {
 	@remote({ on: 'server' })
 	testUpdateConflictErrorHandling() {
 		return ObjectTemplate.serverAssert();
+	}
+
+	@remote({ on: 'server', public: true })
+	testPublicTrue(): Promise<void> {
+		return;
+	}
+
+	@remote({ on: 'server', public: false })
+	testPublicFalse(): Promise<void> {
+		return;
+	}
+
+	@remote({ on: 'server' })
+	testNoPublic(): Promise<void> {
+		return;
 	}
 
 	asyncErrorHandlerCalled: boolean = false;
