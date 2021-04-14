@@ -34,7 +34,7 @@ type RemoteDecoratorProps = {
 	 * Lets you mark this function as public. By default it is false. When a remote call to this function is triggered,
 	 * the isPublic parameter in the preServerCall will reflect the public status of the function
 	 */
-	public?: boolean
+	public?: boolean;
 
 	/**
 	 * A synchronous client side validation callback called in the case where code in the browser calls code in the server
