@@ -10,7 +10,7 @@ import { IAmorphicRouteController } from './IAmorphicRouteController';
  * 
  * @misnomer - Functionality that may have confusing nomenclature
  * 
- * @deprecated - Deprecated functionality that is not used anymore
+ * @ deprecated - Deprecated functionality that is not used anymore
  * 
  * The amorphic session lives and dies by the controller instance.
  * 
