@@ -25,7 +25,7 @@ export type HTTPObjs = {request: Request, response: Response};
  *
  * @misnomer - Functionality that may have confusing nomenclature
  *
- * @deprecated - Deprecated functionality that is not used anymore
+ * @ deprecated - Deprecated functionality that is not used anymore
  */
 
 /**
