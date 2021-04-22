@@ -1,17 +1,12 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "lib": ["es2015", "es2017"],
     "noImplicitAny": false,
-    "sourceMap": true,
+    "strictNullChecks": false,
     "typeRoots": [
       "./node_modules/@types"
-    ],
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata":true
+    ]
   },
   "include": [
-    "./test/supertype/*"
+    "src"
   ]
 }

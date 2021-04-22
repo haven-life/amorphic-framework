@@ -16,7 +16,7 @@ var schemaTable = 'index_schema_history';
 var Employee, Person, Manager, empId, Address;
 var PersistObjectTemplate, ObjectTemplate;
 
-describe('persistor transaction checks', function () {
+describe('persist newapi extend', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({
@@ -35,7 +35,7 @@ describe('persistor transaction checks', function () {
         return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = require('@havenlife/supertype').default;
+        ObjectTemplate = require('@haventech/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
         schema.Person = {};
         schema.Person.table =  'tx_person';
@@ -51,7 +51,8 @@ describe('persistor transaction checks', function () {
         };
         Person = PersistObjectTemplate.create('Person', {
             firstName: {type: String},
-            lastName: {type: String}
+            lastName: {type: String},
+            age: { type: Number}
         });
 
         Address = PersistObjectTemplate.create('Address', {
@@ -147,6 +148,26 @@ describe('persistor transaction checks', function () {
         function checkSubTypes(persons) {
             expect(persons[0].manager).not.equal(undefined);
             expect(persons[1].address).not.equal(undefined);
+        }
+    });
+
+    it('version should be reverted', function() {
+        return loadPersons()
+            .then(persistSaveToGenerateException);
+           
+        function loadPersons() {
+            return Person.persistorFetchByQuery({}, {fetch: {manager: true, address: true}})
+        }
+
+        function persistSaveToGenerateException(persons) {
+            var person = persons[0];
+            person.age = 'to throw error';
+            return person.persistSave().should.be.rejectedWith(Error, 'invalid input syntax for type double precision:')
+                .then(() => {
+                    expect(person.__version__).to.equal('1');
+                    person.age = 10;
+                    return person.persistSave().should.eventually.be.fulfilled;
+                });
         }
     });
 });

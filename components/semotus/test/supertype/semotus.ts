@@ -7,7 +7,10 @@
 declare function require(name: string);
 
 // RemoteObjectTemplate will be used for server template creation
-var RemoteObjectTemplate = require('../../index.js');
+var RemoteObjectTemplate = require('../../dist/index.js');
+
+var delay = require('../../dist/helpers/Utilities.js').delay;
+
 RemoteObjectTemplate.role = 'server';
 RemoteObjectTemplate._useGettersSetters = true;
 RemoteObjectTemplate.maxCallTime = 60 * 1000;
@@ -26,16 +29,21 @@ ServerObjectTemplate.__conflictMode__ = 'soft';
 ServerObjectTemplate.memSession = { semotus: {} };
 ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
-import { expect } from 'chai';
-import * as mocha from 'mocha';
-import * as Q from 'q';
+import {expect} from 'chai';
+import { mockRequest, mockResponse } from 'mock-req-res';
+
+let serverMockReq, serverMockRes, clientMockReq, clientMockRes;
 
 function sendToServer(message) {
-	ServerObjectTemplate.processMessage(message);
+	serverMockReq = mockRequest();
+	serverMockRes = mockResponse();
+	ServerObjectTemplate.processMessage(message, undefined, undefined, serverMockReq, serverMockRes);
 }
 
 function sendToClient(message) {
-	ClientObjectTemplate.processMessage(message);
+	clientMockReq = mockRequest();
+	clientMockRes = mockResponse();
+	ClientObjectTemplate.processMessage(message, undefined, undefined, clientMockReq, clientMockRes);
 }
 
 ClientObjectTemplate.createSession('client', sendToServer);
@@ -91,8 +99,8 @@ describe('Typescript Banking Example', function () {
 			output += str.replace(/[\r\n ]/g, '');
 		};
 
-		sam.amorphic.logger.startContext({ name: 'supertype' });
-		sam.amorphic.logger.warn({ foo: 'bar1' }, 'Yippie');
+		sam.amorphic.logger.startContext({name: 'supertype'});
+		sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
 		var context = sam.amorphic.logger.setContextProps({ permFoo: 'permBar1' });
 		sam.amorphic.logger.warn({ foo: 'bar2' });
 		sam.amorphic.logger.clearContextProps(context);
@@ -135,7 +143,7 @@ describe('Typescript Banking Example', function () {
 				expect(clientController.sam.roles[1].account.getBalance()).to.equal(125);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 		console.log('foo');
@@ -153,7 +161,7 @@ describe('Typescript Banking Example', function () {
 				expect(clientController.sam.roles[0].account.getBalance()).to.equal(200);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -167,7 +175,7 @@ describe('Typescript Banking Example', function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(300);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -183,11 +191,10 @@ describe('Typescript Banking Example', function () {
 				expect(serverController.sam.roles[2].account.address.lines[0]).to.equal('Plantana');
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
-
 	it('throw an execption', function (done) {
 		RemoteObjectTemplate.serverAssert = function () {
 			throw 'get stuffed';
@@ -203,7 +210,7 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
@@ -222,14 +229,14 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
 	it('can get a synchronization error from overlapping calls', function (done) {
 		this.timeout(7000);
 		RemoteObjectTemplate.serverAssert = function () {
-			return Q.delay(1000);
+			return delay(1000);
 		};
 		clientController.mainFunc().then(function () {
 			expect('Should not be here').to.equal(false);
@@ -242,16 +249,15 @@ describe('Typescript Banking Example', function () {
 				},
 				function (e) {
 					console.log(e);
-					Q.delay(1000).then(function () {
+					delay(1000).then(function () {
 						done();
 					});
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
-
 	it('change tracking to work with arrays', function (done) {
 		RemoteObjectTemplate.serverAssert = function () {
 			expect(serverController.sam.roles[0].account.__changed__).to.equal(true);
@@ -270,11 +276,10 @@ describe('Typescript Banking Example', function () {
 				expect(serverController.sam.roles[0].account.getBalance()).to.equal(balance - 100);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
-
 	it('check onclient rules', function (done) {
 		RemoteObjectTemplate.serverAssert = function () {
 			serverController.setAllClientRuleCheckFalgsonServer();
@@ -288,11 +293,10 @@ describe('Typescript Banking Example', function () {
 				expect(clientController.onClientWithApp).to.equal(true);
 				done();
 			})
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
-
 	it('check onserver rules', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -306,7 +310,6 @@ describe('Typescript Banking Example', function () {
 
 		clientController.mainFunc();
 	});
-
 	it('check serverValidationRules to succeed', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -318,7 +321,6 @@ describe('Typescript Banking Example', function () {
 
 		clientController.testServerValidation('first', 'second', 'third');
 	});
-
 	it('check serverValidationRules to fail', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -339,11 +341,59 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
+	it('Test if public: true remote flag works as intended in preservercall', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
+		clientController.testPublicTrue().then(() => {
+			expect(serverController.remotePublic).to.equal(true);
+			done()
+		}).catch((err) => {
+			done(err);
+		})
+	});
+	it('Test if public: false remote flag works as intended in preservercall', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
+		clientController.testPublicFalse().then(() => {
+			expect(serverController.remotePublic).to.equal(false);
+			done()
+		}).catch((err) => {
+			done(err);
+		})
+	});
+	it('Test if public: undefined remote flag works as intended in preservercall', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
+		clientController.testNoPublic().then(() => {
+			expect(serverController.remotePublic).to.equal(false);
+			done();
+		}).catch((err) => {
+			done(err);
+		})
+	});
+	it('Test if preServerCall and postServerCall has appropriate (dummy) request and (dummy) response objects', function (done) {
+		clientController.setAllServerRuleCheckFalgsonClient();
+		serverController.remotePublic = false;
+		serverController.hasRequestInPreServer = serverController.hasResponseInPreServer = false;
+		serverController.hasRequestInPostServer = serverController.hasResponseInPostServer = false;
 
+		clientController.testNoPublic().then(() => {
+			expect(serverController.hasRequestInPreServer).to.equal(true);
+			expect(serverController.hasResponseInPreServer).to.equal(true);
+			expect(serverController.hasRequestInPostServer).to.equal(true);
+			expect(serverController.hasResponseInPostServer).to.equal(true);
+			expect(serverMockReq.cookies['preServerCookie']).to.equal(true);
+			expect(serverMockReq.cookies['postServerCookie']).to.equal(true);
+			expect(serverMockRes.cookie.calledTwice).to.equal(true);
+			done();
+		}).catch((err) => {
+			done(err);
+		})
+	});
 	it('Post server error handling works asynchronously', function (done) {
 		clientController.setAllServerRuleCheckFalgsonClient();
 
@@ -363,11 +413,10 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
-
 	it('Post server error handling can throw a new error', function (done) {
 
 		// For this test, you need to verify if the logs are correct, it should say
@@ -389,11 +438,10 @@ describe('Typescript Banking Example', function () {
 					done();
 				}
 			)
-			.fail(function (e) {
+            .catch(function (e) {
 				done(e);
 			});
 	});
-
 	it('Mocks Update Conflict and then retries three times (tries 4 times total) and postServerErrorHandler updates Update Conflict count and throws a log only error on 3rd time', function (done) {
 		this.timeout(8000);
 

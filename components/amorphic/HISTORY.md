@@ -1,5 +1,22 @@
-## 6.1.0
+## 7.4.0
 * Remove Bluebird dependency from frontend client code
+## 7.3.0
+* Adding ability for amorphic to pass in request and response objects into semotus server calls and adding updates to types
+## 7.2.0
+* adding access to the response object
+## 7.1.3
+* Adding unit test for cookies
+## 7.1.2
+* ensure we don't call logic to send response twice on form parsing error condition
+## 7.1.1
+* Added bug handling and better errors for uploads
+## 7.1.0
+* Updating persistor version
+## 7.0.1
+* Handle null pointer exception when path or file params are undefined.
+## 7.0.0
+* Adding sync states logic in Semotus, see Semotus for relevant documentation
+* Breaking change due to changing the imports in webpack bundles for semotus applications
 ## 6.0.0
 * Updated Knex and Mongo in persistor to latest major versions
 * Bringing in all of persistor versions greater than or equal to 4.0.0

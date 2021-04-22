@@ -148,7 +148,12 @@ module.exports = function (PersistObjectTemplate) {
             } else if (defineProperty.isRemoteObject && defineProperty.isRemoteObject === true) {
                 const uniqueIdentifier = obj._id;
 
+                // contents of the object itself
                 const remoteObject: string = obj[prop];
+
+                // MIME type of the object e.g. for a pdf, 'application/pdf'
+                // @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+                const mimeType: string = obj[`${prop}_RemoteMIMEType`];
 
                 if (remoteObject && defineProperty.remoteKeyBase) {
                     remoteDocService = RemoteDocService.new(this.environment, this.remoteDocHostURL);
@@ -161,8 +166,21 @@ module.exports = function (PersistObjectTemplate) {
                     const bucket = this.bucketName;
 
                     try {
+                        (logger || this.logger).debug({
+                            component: 'persistor',
+                            module: 'update',
+                            activity: 'persistSaveKnex',
+                            data: {
+                                template: obj.__template__.__name__,
+                                message: 'we are uploading the document with params',
+                                documentBody: documentBody,
+                                objectKey: objectKey,
+                                bucket: bucket,
+                                mimeType: mimeType
+                            }
+                        });
                         // push function to upload the document to remote store
-                        remoteUpdateFns.push(() => remoteDocService.uploadDocument(documentBody, objectKey, bucket));
+                        remoteUpdateFns.push(() => remoteDocService.uploadDocument(documentBody, objectKey, bucket, mimeType));
 
                         // only place a reference to the remote object in the database itself - not the actual
                         // contents of the property.

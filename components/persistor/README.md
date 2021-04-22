@@ -12,7 +12,7 @@ It is automatically installed with [Amorphic](https://github.com/haven-life/amor
 
 First create some object templates (many-to-many example):
 
-    var ObjectTemplate = require('@havenlife/supertype').default;
+    var ObjectTemplate = require('@haventech/supertype').default;
     var PersistObjectTemplate = require('persistor')(ObjectTemplate, null, ObjectTemplate);
 
     var Customer = PersistObjectTemplate.create("customer:Customer", {

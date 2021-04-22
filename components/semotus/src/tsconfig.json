@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "target": "es5",
+    "lib": [
+      "es2015",
+      "es2017",
+      "dom"
+    ],
+    "noImplicitAny": false,
+    "typeRoots": [
+      "../node_modules/@types"
+    ],
+    "outDir": "../dist",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "inlineSources": true,
+    "inlineSourceMap": true
+  },
+  "declaration": true
+}

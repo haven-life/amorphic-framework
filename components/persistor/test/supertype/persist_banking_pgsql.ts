@@ -205,7 +205,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         expect(jointAccount.getBalance()).to.equal(125);
     });
 
-    it('check server side fetch property..', function () {
+    it('supertype check server side fetch property..', function () {
         return samsAccount['addressFetch'](0, 1).then(function(address) {
             expect(address.street).to.not.equal('');
         })
@@ -299,7 +299,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             })
     });
 
-    it('Transactions have accounts fetched', function (done) {
+    it('supertype Transactions have accounts fetched', function (done) {
         Xfer.getFromPersistWithQuery({type: 'xfer'}).then (function (transactions) {
             expect(transactions.length).to.equal(2);
             expect(!!transactions[0].account._id).to.equal(true);
@@ -572,7 +572,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             expect(transactions.length).to.equal(4);
         });
     });
-    it('sam looks good on fresh fetch', function (done) {
+    it('supertype sam looks good on fresh fetch', function (done) {
         Customer.getFromPersistWithId(sam._id, {roles: true}).then (function (customer) {
             expect(customer.nullNumber).to.equal(null);
             expect(customer.nullString).to.equal(null);
@@ -1015,7 +1015,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             output += str.replace(/[\r\n ]/g, '');
         };
 
-        sam.amorphic.logger.startContext({name: '@havenlife/supertype'});
+        sam.amorphic.logger.startContext({name: '@haventech/supertype'});
         sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
         var context = sam.amorphic.logger.setContextProps({permFoo: 'permBar1'});
         sam.amorphic.logger.warn({foo: 'bar2'});
@@ -1036,7 +1036,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(__amorphicContext={"name":"@havenlife/supertype"}foo="bar1")(__amorphicContext={"name":"@havenlife/supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"@havenlife/supertype"}foo="bar3")(__amorphicContext={"name":"@havenlife/supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"@havenlife/supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
+        var result = '(__amorphicContext={"name":"@haventech/supertype"}foo="bar1")(__amorphicContext={"name":"@haventech/supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"@haventech/supertype"}foo="bar3")(__amorphicContext={"name":"@haventech/supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"@haventech/supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
 
         expect(output).to.equal(result);
         sam.amorphic.logger = oldSendToLog;

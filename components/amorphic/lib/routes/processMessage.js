@@ -6,7 +6,7 @@ let log = Logger.log;
 let getSessionCache = require('../session/getSessionCache').getSessionCache;
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let displayPerformance = require('../utils/displayPerformance').displayPerformance;
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
  * Process JSON request message
@@ -27,9 +27,10 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
     let sessionData = getSessionCache(path, req.session.id, false, sessions);
 
     if (!message.sequence) {
-        log(1, req.session.id, 'ignoring non-sequenced message', nonObjTemplatelogLevel);
+        const invalidSequence = 'Invalid or no sequence number detected. Ignoring message - will not process this message';
+        log(1, req.session.id, invalidSequence, nonObjTemplatelogLevel);
         res.writeHead(500, {'Content-Type': 'text/plain'});
-        res.end('ignoring non-sequenced message');
+        res.end(invalidSequence);
 
         statsdUtils.computeTimingAndSend(
             processMessageStartTime,
@@ -44,7 +45,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
     let forceReset = message.type === 'reset';
 
     establishServerSession(req, path, newPage, forceReset, message.rootId, sessions, controllers,
-    nonObjTemplatelogLevel)
+    nonObjTemplatelogLevel, res)
         .then(function kk(semotus) {
             if (message.performanceLogging) {
                 req.amorphicTracking.browser = message.performanceLogging;
@@ -152,7 +153,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
             ourObjectTemplate.enableSendMessage(true, sendMessage);
 
             try {
-                ourObjectTemplate.processMessage(message, null, semotus.restoreSession);
+                ourObjectTemplate.processMessage(message, null, semotus.restoreSession, req, res);
             }
             catch (error) {
                 ourObjectTemplate.logger.info({

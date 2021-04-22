@@ -10,7 +10,7 @@ let restoreSession = require('./restoreSession').restoreSession;
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let Bluebird = require('bluebird');
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
  * Continues an already establised session.
@@ -35,7 +35,7 @@ let statsdUtils = require('@havenlife/supertype').StatsdHelper;
 function establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
                                          sessionExpiration, session, sessionStore,
                                          newControllerId, objectCacheExpiration, newPage,
-                                         controllers, nonObjTemplatelogLevel, sessions, reset) {
+                                         controllers, nonObjTemplatelogLevel, sessions, reset, res) {
     let establishContinuedServerSessionTime = process.hrtime();
 
     let applicationConfig = AmorphicContext.applicationConfig;
@@ -69,9 +69,15 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
 
     let sessionData = getSessionCache(path, req.session.id, true, sessions);
     let ourObjectTemplate = getObjectTemplate(controller);
+
     ourObjectTemplate.memSession = sessionData;
     ourObjectTemplate.reqSession = req.session;
     controller.__request = req;
+
+    // getter for the response object, adding it directly on the controller results in circular reference issues
+    controller.__getResponseObj = function __getResponseObj() {
+        return res;
+    };
     controller.__sessionExpiration = sessionExpiration;
 
     req.amorphicTracking.addServerTask({name: 'Create Controller'}, process.hrtime());

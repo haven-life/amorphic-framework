@@ -15,7 +15,7 @@ var schema = {};
 var schemaTable = 'index_schema_history';
 var Employee, Department, Role, roleId, EmployeeRef;
 var PersistObjectTemplate, ObjectTemplate;
-describe('persistor transaction checks', function () {
+describe('persistor fetch children', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({
@@ -43,7 +43,7 @@ describe('persistor transaction checks', function () {
         return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = require('@havenlife/supertype').default;
+        ObjectTemplate = require('@haventech/supertype').default;
         PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};

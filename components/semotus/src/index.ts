@@ -23,20 +23,35 @@
  objects created with it's templates.  The synchronization
  */
 
-(function(root, factory) {
+import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
+import {property, remote, Supertype, supertypeClass} from './decorators';
+import {Bindable, Persistable, Remoteable} from './setupExtends';
+import * as Sessions from './helpers/Sessions';
+import * as Subscriptions from './helpers/Subscriptions';
+import {delay} from './helpers/Utilities';
+import * as Changes from './helpers/Changes';
+import * as ChangeGroups from './helpers/ChangeGroups';
+import {Request, Response} from 'express';
+import {processCall} from "./helpers/ProcessCall";
+
+declare var define;
+
+// @TODO: Check if we attach Promise as a keyword in the webpack build
+(function (root, factory) {
 	'use strict';
 	if (typeof define === 'function' && define.amd) {
-		define(['q', 'underscore', '@havenlife/supertype'], factory);
-	} else if (typeof exports === 'object') {
-		module.exports = factory(require('q'), require('underscore'), require('@havenlife/supertype'));
-	} else {
+		define(['q', 'underscore', '@haventech/supertype'], factory);
+	}
+	else if (typeof exports === 'object') {
+		module.exports = factory(require('q'), require('underscore'), require('@haventech/supertype'));
+	}
+	else {
 		root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);
 	}
-})(this, function(Q, _, SupertypeModule) {
-	'use strict';
+})(this, function (Q, _, SupertypeModule) {
 
 	var ObjectTemplate = SupertypeModule.default;
-	const RemoteObjectTemplate = ObjectTemplate._createObject();
+	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject();
 
 	RemoteObjectTemplate._useGettersSetters = typeof window === 'undefined';
 
@@ -55,8 +70,18 @@
 	RemoteObjectTemplate.maxClientSequence = 1;
 	RemoteObjectTemplate.nextObjId = 1;
 
+	RemoteObjectTemplate.syncState = '';
+
+	RemoteObjectTemplate.setSyncState = function (str) {
+		this.syncState = str;
+	}
+
+	RemoteObjectTemplate.getSyncState = function () {
+		return this.syncState;
+	}
+
 	/**
-	 * Purpose unknown
+	 * @TODELETE
 	 *
 	 * @param {unknown} level unknown
 	 * @param {unknown} data unknown
@@ -100,46 +125,8 @@
 	 *
 	 * @returns {*} unknown
 	 */
-	RemoteObjectTemplate.createSession = function createSession(role, sendMessage, sessionId) {
-		if (!this.sessions) {
-			this.nextSubscriptionId = 0;
-			this.nextSessionId = 1;
-			this.sessions = {};
-		}
-
-		if (!sessionId) {
-			sessionId = this.nextSessionId++;
-		}
-
-		this.setSession(sessionId);
-
-		this.sessions[sessionId] = {
-			subscriptions: {}, // Change listeners
-			sendMessage: sendMessage, // Send message callback
-			sendMessageEnabled: !!sendMessage,
-			remoteCalls: [], // Remote calls queued to go out
-			pendingRemoteCalls: {}, // Remote calls waiting for response
-			nextPendingRemoteCallId: 1,
-			nextSaveSessionId: 1,
-			savedSessionId: 0,
-			nextSubscriptionId: 0,
-			objects: {},
-			nextObjId: 1,
-			dispenseNextId: null // Force next object Id
-		};
-
-		if (role instanceof Array) {
-			for (var ix = 0; ix < role.length; ++ix) {
-				this.subscribe(role[ix]);
-			}
-
-			this.role = role[1];
-		} else {
-			this.subscribe(role);
-			this.role = role;
-		}
-
-		return sessionId;
+	RemoteObjectTemplate.createSession = function createSession(role, sendMessage: SendMessage, sessionId) {
+		return Sessions.create(this, role, sendMessage, sessionId);
 	};
 
 	/**
@@ -147,16 +134,8 @@
 	 *
 	 * @param {unknown} sessionId unknown
 	 */
-	RemoteObjectTemplate.deleteSession = function deleteSession(sessionId) {
-		let session = this._getSession(sessionId);
-
-		for (var calls in session.remoteCalls) {
-			session.remoteCalls[calls].deferred.reject({ code: 'reset', text: 'Session resynchronized' });
-		}
-
-		if (this.sessions[sessionId]) {
-			delete this.sessions[sessionId];
-		}
+	RemoteObjectTemplate.deleteSession = function deleteSession(sessionId: string | number) {
+		return Sessions.remove(this, sessionId)
 	};
 
 	/**
@@ -166,7 +145,8 @@
 	 * @param {unknown} nextObjId unknown
 	 */
 	RemoteObjectTemplate.setMinimumSequence = function setMinimumSequence(nextObjId) {
-		this._getSession().nextObjId = Math.max(nextObjId, this._getSession().nextObjId);
+        const session = Sessions.get(this);
+        session.nextObjId = Math.max(nextObjId, session.nextObjId);
 	};
 
 	/**
@@ -177,24 +157,7 @@
 	 * @returns {Object} unknown
 	 */
 	RemoteObjectTemplate.saveSession = function saveSession(sessionId) {
-		const session = this._getSession(sessionId);
-
-		session.nextSaveSessionId = session.nextSaveSessionId + 1;
-		session.savedSessionId = session.nextSaveSessionId;
-		const objects = session.objects;
-		session.objects = {};
-
-		const str = {
-			callCount: this.getPendingCallCount(sessionId), // Can't just restore on another server and carry on
-			revision: session.savedSessionId, // Used to see if our memory copy good enough
-			referenced: new Date().getTime(), // Used for reaping old sessions
-			data: JSON.stringify(session) // All the session data
-		};
-
-		session.objects = objects;
-		this.logger.debug({ component: 'semotus', module: 'saveSession', activity: 'save' });
-
-		return str;
+		return Sessions.save(this, sessionId);
 	};
 
 	/**
@@ -205,7 +168,7 @@
 	 * @returns {Number} The number of remote calls pending in the session.
 	 */
 	RemoteObjectTemplate.getPendingCallCount = function getPendingCallCount(sessionId) {
-		const session = this._getSession(sessionId);
+        const session = Sessions.get(this, sessionId);
 
 		return Object.keys(session.pendingRemoteCalls).length;
 	};
@@ -221,23 +184,8 @@
 	 *
 	 * @returns {Boolean} false means that messages were in flight and a reset is needed
 	 */
-	RemoteObjectTemplate.restoreSession = function restoreSession(sessionId, savedSession, sendMessage) {
-		this.setSession(sessionId);
-		const session = this.sessions[sessionId];
-		this.logger.debug({ component: 'semotus', module: 'restoreSession', activity: 'save' });
-
-		if (session) {
-			if (session.savedSessionId == savedSession.revision) {
-				return true;
-			} else {
-				delete this.sessions[sessionId];
-			}
-		}
-
-		this.sessions[sessionId] = JSON.parse(savedSession.data);
-		this.sessions[sessionId].sendMessage = sendMessage;
-
-		return savedSession.callCount > 0;
+	RemoteObjectTemplate.restoreSession = function restoreSession(sessionId, savedSession: SavedSession, sendMessage: SendMessage) {
+		return Sessions.restore(this, sessionId, savedSession, sendMessage);
 	};
 
 	/**
@@ -246,10 +194,9 @@
 	 *
 	 * @param {unknown} sessionId unknown
 	 */
+
 	RemoteObjectTemplate.syncSession = function syncSession(sessionId) {
-		this._getSession(sessionId);
-		this.getChanges();
-		this._deleteChanges();
+		return Sessions.sync(this, sessionId);
 	};
 
 	/**
@@ -270,7 +217,7 @@
 	 * @param {unknown} sessionId optional session id
 	 */
 	RemoteObjectTemplate.enableSendMessage = function enableSendMessage(value, messageCallback, sessionId) {
-		const session = this._getSession(sessionId);
+        const session = Sessions.get(this, sessionId);
 		session.sendMessageEnabled = value;
 
 		if (messageCallback) {
@@ -289,18 +236,7 @@
 	 * @returns {*} unknown
 	 */
 	RemoteObjectTemplate.subscribe = function subscribe(role) {
-		const subscriptionId = this._getSession().nextSubscriptionId++;
-
-		this._getSession().subscriptions[subscriptionId] = {
-			role: role,
-			log: {
-				array: {},
-				change: {},
-				arrayDirty: {}
-			}
-		};
-
-		return subscriptionId;
+		return Subscriptions.subscribe(this, role);
 	};
 
 	/**
@@ -310,16 +246,18 @@
 	 * @param {unknown} subscriptionId - unknown
 	 * @param {unknown} restoreSessionCallback - unknown
 	 *
+	 * @param req
+	 * @param res
 	 * @returns {unknown} unknown
 	 */
-	RemoteObjectTemplate.processMessage = function processMessage(remoteCall, subscriptionId, restoreSessionCallback) {
+	RemoteObjectTemplate.processMessage = function processMessage(remoteCall: RemoteCall, subscriptionId, restoreSessionCallback, req?: Request, res?: Response ) {
 		if (!remoteCall) {
 			return;
 		}
 
 		let callContext;
 		let hadChanges = 0;
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const remoteCallId = remoteCall.remoteCallId;
 
 		switch (remoteCall.type) {
@@ -361,7 +299,7 @@
 					} else {
 						//TODO: Why is this not an else if clause?
 						if (this.memSession.semotus.callStartTime + this.maxCallTime > new Date().getTime()) {
-							Q.delay(5000).then(
+							delay(5000).then(
 								function a() {
 									this.logger.warn(
 										{
@@ -391,9 +329,28 @@
 					}
 				}
 
-				callContext = { retries: 0, startTime: new Date() };
+				callContext = {retries: 0, startTime: new Date()};
 
-				return processCall.call(this);
+				let HTTPObjs = undefined;
+
+				if (req && res) {
+					HTTPObjs = {
+						request: req,
+						response: res
+					}
+				}
+
+				const payload: ProcessCallPayload = {
+					callContext: callContext,
+					remoteCall: remoteCall,
+					restoreSessionCallback: restoreSessionCallback,
+					semotus: this,
+					session: session,
+					subscriptionId: subscriptionId,
+					remoteCallId: remoteCallId,
+					HTTPObjs: HTTPObjs
+				};
+				return processCall(payload);
 
 			case 'response':
 			case 'error':
@@ -455,456 +412,6 @@
 
 				return hadChanges == 2;
 		}
-
-		function logTime() {
-			return new Date().getTime() - callContext.startTime.getTime();
-		}
-
-		/**
-		 * We process the call the remote method in stages starting by letting the controller examine the
-		 * changes (preCallHook) and giving it a chance to refresh data if it needs to.  Then we apply any
-		 * changes in the messages and give the object owning the method a chance to validate that the
-		 * call is valid and take care of any authorization concerns.  Finally we let the controller perform
-		 * any post-call processing such as commiting data and then we deal with a failure or success.
-		 *
-		 * @param {unknown} forceupdate unknown
-		 *
-		 * @returns {unknown} unknown
-		 */
-		function processCall(forceupdate) {
-			return Q(forceupdate)
-				.then(preCallHook.bind(this))
-				.then(applyChangesAndValidateCall.bind(this))
-				.then(customValidation.bind(this))
-				.then(callIfValid.bind(this))
-				.then(postCallHook.bind(this))
-				.then(postCallSuccess.bind(this))
-				.fail(postCallFailure.bind(this));
-		}
-
-		/**
-		 * If there is an update conflict we want to retry after restoring the session
-		 *
-		 * @returns {*} unknown
-		 */
-		function retryCall() {
-			if (restoreSessionCallback) {
-				restoreSessionCallback();
-			}
-
-			return processCall.call(this, true);
-		}
-
-		/**
-		 * Determine what objects changed and pass this to the preServerCall method on the controller
-		 *
-		 * @param {unknown} forceupdate unknown
-		 *
-		 * @returns {unknown} unknown
-		 */
-		function preCallHook(forceupdate) {
-			this.logger.info(
-				{
-					component: 'semotus',
-					module: 'processCall',
-					activity: 'preServerCall',
-					data: {
-						call: remoteCall.name,
-						sequence: remoteCall.sequence
-					}
-				},
-				remoteCall.name
-			);
-
-			if (this.controller && this.controller['preServerCall']) {
-				let changes = {};
-
-				for (var objId in JSON.parse(remoteCall.changes)) {
-					changes[this.__dictionary__[objId.replace(/[^-]*-/, '').replace(/-.*/, '')].__name__] = true;
-				}
-
-				return this.controller['preServerCall'].call(
-					this.controller,
-					remoteCall.changes.length > 2,
-					changes,
-					callContext,
-					forceupdate
-				);
-			} else {
-				return true;
-			}
-		}
-
-		/**
-		 * Apply changes in the message and then validate the call.  Throw "Sync Error" if changes can't be applied
-		 *
-		 * @returns {unknown} unknown
-		 */
-		function applyChangesAndValidateCall() {
-			this.logger.info(
-				{
-					component: 'semotus',
-					module: 'processCall',
-					activity: 'applyChangesAndValidateCall',
-					data: {
-						call: remoteCall.name,
-						sequence: remoteCall.sequence,
-						remoteCallId: remoteCall.id
-					}
-				},
-				remoteCall.name
-			);
-
-			let changes = JSON.parse(remoteCall.changes);
-
-			if (this._applyChanges(changes, this.role === 'client', subscriptionId, callContext)) {
-				const obj = session.objects[remoteCall.id];
-
-				if (!obj) {
-					throw new Error('Cannot find object for remote call ' + remoteCall.id);
-				}
-
-				// check to see if this function is supposed to be called directly from client
-				if (obj.__proto__[remoteCall.name].__on__ !== 'server') {
-					throw 'Invalid Function Call; not an API function';
-				}
-
-				if (this.role === 'server' && obj['validateServerCall']) {
-					return obj['validateServerCall'].call(obj, remoteCall.name, callContext);
-				}
-				return true;
-			} else {
-				throw 'Sync Error';
-			}
-		}
-
-		/**
-		 * Apply function specific custom serverSide validation functions
-		 *
-		 * @param {boolean} isValid - Result of previous validation step (applyChangesAndValidateCall)
-		 * @returns {boolean} True if passed function
-		 */
-		function customValidation(isValid) {
-			let loggerObject = {
-				component: 'semotus',
-				module: 'processCall',
-				activity: 'customValidation',
-				data: {
-					call: remoteCall.name,
-					sequence: remoteCall.sequence,
-					remoteCallId: remoteCall.id
-				}
-			};
-
-			let remoteObject = session.objects[remoteCall.id];
-
-			this.logger.info(loggerObject, remoteCall.name);
-
-			if (!isValid) {
-				return false;
-			} else if (this.role === 'server' && remoteObject[remoteCall.name].serverValidation) {
-				let args = this._extractArguments(remoteCall);
-				args.unshift(remoteObject);
-
-				return remoteObject[remoteCall.name].serverValidation.apply(null, args);
-			} else {
-				return true;
-			}
-		}
-
-		/**
-		 * If the changes could be applied and the validation was successful call the method
-		 *
-		 * @param {boolean} isValid - takes a flag if the call is valid or not, if it is then we proceed normally,
-		 * otherwise, we throw an error and stop execution
-		 *
-		 * @returns {unknown} unknown
-		 */
-		function callIfValid(isValid) {
-			let loggerObject = {
-				component: 'semotus',
-				module: 'processCall',
-				activity: 'callIfValid',
-				data: {
-					call: remoteCall.name,
-					sequence: remoteCall.sequence,
-					remoteCallId: remoteCall.id
-				}
-			};
-
-			this.logger.info(loggerObject, remoteCall.name);
-
-			let obj = session.objects[remoteCall.id];
-
-			if (!obj[remoteCall.name]) {
-				throw new Error(remoteCall.name + ' function does not exist.');
-			}
-
-			if (!isValid && remoteCall && remoteCall.name) {
-				throw new Error(remoteCall.name + ' refused');
-			}
-
-			let args = this._extractArguments(remoteCall);
-
-			return obj[remoteCall.name].apply(obj, args);
-		}
-
-		/**
-		 * Let the controller know that the method was completed and give it a chance to commit changes
-		 *
-		 * @param {unknown} returnValue unknown
-		 *
-		 * @returns {unknown} unknown
-		 */
-		function postCallHook(returnValue) {
-			if (this.controller && this.controller['postServerCall']) {
-				return Q(
-					this.controller['postServerCall'].call(
-						this.controller,
-						remoteCall.changes.length > 2,
-						callContext,
-						this.changeString
-					)
-				).then(function u() {
-					return returnValue;
-				});
-			} else {
-				return returnValue;
-			}
-		}
-
-		/**
-		 * Package up any changes resulting from the execution and send them back in the message, clearing
-		 * our change queue to accumulate more changes for the next call
-		 *
-		 * @param {unknown} ret unknown
-		 */
-		function postCallSuccess(ret) {
-			this.logger.info(
-				{
-					component: 'semotus',
-					module: 'processCall',
-					activity: 'postCall.success',
-					data: {
-						call: remoteCall.name,
-						callTime: logTime(),
-						sequence: remoteCall.sequence
-					}
-				},
-				remoteCall.name
-			);
-
-			packageChanges.call(this, {
-				type: 'response',
-				sync: true,
-				value: JSON.stringify(this._toTransport(ret)),
-				name: remoteCall.name,
-				remoteCallId: remoteCallId
-			});
-		}
-
-		/**
-		 *  Helper function to log amorphic errors.
-		 * @param {*} logger
-		 * @param {*} activity
-		 * @param {*} message
-		 * @param {*} logType
-		 * @param {*} logString
-		 */
-		function postCallErrorLog(logger, activity, message, logType, logString) {
-			let logBody = {
-				component: 'semotus',
-				module: 'processCall.failure',
-				data: {
-					call: remoteCall.name,
-					callTime: logTime(),
-					sequence: remoteCall.sequence
-				}
-			};
-
-			logBody.activity = activity;
-
-			if (logger.data) {
-				logBody.data.message = message;
-			}
-
-			logger[logType](logBody, logString);
-		}
-
-		/**
-		 * Helper function to identify if there's a postServerErrorHandler callback on the base controller
-		 * If there is, we execute the handler, and if we catch an error in the handler, we propogate it up to the logger.
-		 * @param {*} controller
-		 */
-		function resolveErrorHandler(logger, controller, type, remoteCall, remoteCallId, callContext, changeString) {
-			if (controller && controller['postServerErrorHandler']) {
-				let errorType = type;
-				let functionName = remoteCall.name;
-				let obj = undefined;
-				if (session.objects[remoteCall.id]) {
-					obj = session.objects[remoteCall.id];
-				}
-				let logBody = {
-					component: 'semotus',
-					module: 'processCall.failure',
-					activity: 'postCall.resolveErrorHandler',
-					data: {
-						call: remoteCall.name
-					}
-				};
-
-				return Promise.resolve()
-					.then(
-						controller['postServerErrorHandler'].bind(
-							controller,
-							errorType,
-							remoteCallId,
-							obj,
-							functionName,
-							callContext,
-							changeString
-						)
-					)
-					.then(
-						function() {
-							// no error on error handler callback
-						},
-						function(error) {
-							if (error.message) {
-								logBody.data.message = error.message;
-								logger.error(error.message);
-							} else {
-								logBody.data.message = JSON.stringify(error);
-							}
-
-							logger.error(logBody, 'User defined postServerErrorHandler threw an error');
-						}
-					);
-			} else {
-				return Promise.resolve();
-			}
-		}
-
-		/**
-		 * Handle errors by returning an apropriate message.  In all cases changes sent back though they
-		 *
-		 * @param {unknown} err unknown
-		 *
-		 * @returns {unknown} A Promise
-		 */
-		function postCallFailure(err) {
-			let logString = '';
-
-			let packageChangesPayload = {};
-
-			let updateConflictRetry = false;
-
-			if (err === 'Sync Error') {
-				postCallErrorLog(this.logger, 'postCall.syncError', undefined, 'error', remoteCall.name);
-				packageChangesPayload = {
-					type: 'response',
-					sync: false,
-					changes: ''
-				};
-			} else if (err.message == 'Update Conflict') {
-				// Not this may be caught in the trasport (e.g. Amorphic) and retried)
-
-				// increment callContext.retries after checking if < 3. Should retry 3 times.
-				if (callContext.retries++ < 3) {
-					postCallErrorLog(this.logger, 'postCall.updateConflict', undefined, 'warn', remoteCall.name);
-					updateConflictRetry = true;
-					// The following assignment is only used for the error handler
-					packageChangesPayload = {
-						type: 'retry'
-					};
-				} else {
-					postCallErrorLog(this.logger, 'postCall.updateConflict', undefined, 'error', remoteCall.name);
-					packageChangesPayload = {
-						type: 'retry',
-						sync: false
-					};
-				}
-			} else {
-				if (!(err instanceof Error)) {
-					postCallErrorLog(this.logger, 'postCall.error', JSON.stringify(err), 'info', remoteCall.name);
-				} else {
-					if (err.stack) {
-						logString = 'Exception in ' + remoteCall.name + ' - ' + err.message + (' ' + err.stack);
-					} else {
-						logString = 'Exception in ' + remoteCall.name + ' - ' + err.message;
-					}
-
-					postCallErrorLog(this.logger, 'postCall.exception', err.message, 'error', logString);
-				}
-
-				packageChangesPayload = {
-					type: 'error',
-					sync: true,
-					value: getError.call(this, err),
-					name: remoteCall.name
-				};
-			}
-
-			Object.assign(packageChangesPayload, { remoteCallId: remoteCallId });
-
-			const errorHandlerPromise = resolveErrorHandler(
-				this.logger,
-				this.controller,
-				packageChangesPayload.type,
-				remoteCall,
-				remoteCallId,
-				callContext,
-				this.changeString
-			);
-
-			if (updateConflictRetry) {
-				return errorHandlerPromise
-					.then(Q.delay.bind(null, callContext.retries * 1000))
-					.then(retryCall.bind(this));
-			} else {
-				return errorHandlerPromise.then(packageChanges.bind(this, packageChangesPayload));
-			}
-		}
-
-		/**
-		 * Helper function to
-		 *
-		 * Distinquish between an actual error (will throw an Error object) and a string that the application may
-		 * throw which is to get piped back to the caller.  For an actual error we want to log the stack trace
-		 *
-		 * @param {unknown} err unknown
-		 *
-		 * @returns {*} unknown
-		 */
-		function getError(err) {
-			if (err instanceof Error) {
-				return { code: 'internal_error', text: 'An internal error occurred' };
-			} else {
-				if (typeof err === 'string') {
-					return { message: err };
-				} else {
-					return err;
-				}
-			}
-		}
-
-		/**
-		 * Deal with changes going back to the caller
-		 *
-		 * @param {unknown} message unknown
-		 */
-		function packageChanges(message) {
-			this._convertArrayReferencesToChanges();
-			message.changes = JSON.stringify(this.getChanges());
-
-			if (this.memSession && this.memSession.semotus && this.memSession.semotus.callStartTime) {
-				this.memSession.semotus.callStartTime = 0;
-			}
-
-			session.sendMessage(message);
-			this._deleteChanges();
-			this._processQueue();
-		}
 	};
 
 	/**
@@ -914,7 +421,7 @@
 	 * @returns {*} unknown
 	 */
 	RemoteObjectTemplate.serializeAndGarbageCollect = function serializeAndGarbageCollect() {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const idMap = {};
 		let objectKey = '';
 		let propKey = '';
@@ -985,7 +492,7 @@
 	 * @returns {*} the message or null
 	 */
 	RemoteObjectTemplate.getMessage = function getMessage(sessionId, forceMessage) {
-		const session = this._getSession(sessionId);
+        const session = Sessions.get(this, sessionId);
 		let message = session.remoteCalls.shift();
 
 		if (message) {
@@ -1013,7 +520,7 @@
 	 * @param {unknown} sessionId unknown
 	 */
 	RemoteObjectTemplate.clearPendingCalls = function clearPendingCalls(sessionId) {
-		const session = this._getSession(sessionId);
+        const session = Sessions.get(this, sessionId);
 		session.remoteCalls = [];
 	};
 
@@ -1026,7 +533,7 @@
  * @returns {[]} the messages in an array
  *
  RemoteObjectTemplate.getMessages = function(sessionId) {
-    const session = this._getSession(sessionId);
+    const session = Sessions.get(this, sessionId);
     const messages = [];
     const message;
     while (message = session.remoteCalls.shift())
@@ -1038,20 +545,6 @@
     return messages;
 }
  */
-	RemoteObjectTemplate.getChangeGroup = function getChangeGroup(type, subscriptionId) {
-		return this._getSubscription(subscriptionId).log[type];
-	};
-
-	/**
-	 * Remove a change group from a subscription
-	 *
-	 * @param {unknown} type unknown
-	 * @param {unknown} subscriptionId unknown
-	 */
-	RemoteObjectTemplate.deleteChangeGroup = function deleteChangeGroup(type, subscriptionId) {
-		this._getSubscription(subscriptionId).log[type] = {};
-	};
-
 	/**
 	 * Retrieve a change group from a subscription
 	 *
@@ -1061,11 +554,11 @@
 	 */
 	RemoteObjectTemplate.getChanges = function getChanges(subscriptionId) {
 		if (!this._useGettersSetters) {
-			this._generateChanges();
+			Changes.generate(this);
 		}
 
 		this._convertArrayReferencesToChanges();
-		const changes = this.getChangeGroup('change', subscriptionId);
+		const changes = ChangeGroups.getPropChangeGroup(subscriptionId, this);
 
 		return changes;
 	};
@@ -1076,19 +569,19 @@
 	 * @returns {unknown} unknown
 	 */
 	RemoteObjectTemplate.getChangeStatus = function getChangeStatus() {
-		this._getSession();
+        Sessions.get(this); // necessary?
 
 		let a = 0;
 		let c = 0;
 
 		for (var subscriptionId in this.subscriptions) {
-			const changes = this.getChangeGroup('change', subscriptionId);
+			const changes = ChangeGroups.getPropChangeGroup(subscriptionId, this);
 
-			c += changes.length;
+			c += Object.keys(changes).length;
 
-			const arrays = this.getChangeGroup('array', subscriptionId);
+			const arrays = ChangeGroups.getArrayChangeGroup('array', subscriptionId, this);
 
-			a += arrays.length;
+			a += Object.keys(arrays).length;
 		}
 
 		return a + ' arrays ' + c + ' changes ';
@@ -1114,12 +607,13 @@
 		}
 		this.nextDispenseId = null;
 
-		const session = this._getSession(undefined, true); // May not have one if called from new
+        const session = Sessions.get(this, undefined); // May not have one if called from new
 		if (!this.__transient__ && session) {
 			session.objects[obj.__id__] = obj;
 		}
 
 		if (obj.__id__.match(/^client.*?-([0-9]*)$/)) {
+			// @ts-ignore
 			this.maxClientSequence = Math.max(this.maxClientSequence, RegExp.$1);
 			this.nextObjId = Math.max(this.maxClientSequence, this.nextObjId) + 1;
 		}
@@ -1156,7 +650,7 @@
 			obj.amorphic = objectTemplate;
 			obj.amorphicate = RemoteObjectTemplate.sessionize.bind(objectTemplate);
 
-			// Here is where the object is stored in the sssion
+			// Here is where the object is stored in the session
 			this._stashObject(obj, obj.__template__, this);
 
 			// Process any array references by completing the reference processing that was stashed pre-sessionization
@@ -1203,6 +697,9 @@
 	 * @param {unknown} role unknown
 	 * @param {unknown} validate unknown
 	 *
+	 * @param serverValidation
+	 * @param isPublic
+	 * @param template
 	 * @returns {*} - the original function or a wrapper to make a remote call
 	 */
 	RemoteObjectTemplate._setupFunction = function setupFunction(
@@ -1211,6 +708,7 @@
 		role,
 		validate,
 		serverValidation,
+		isPublic: boolean,
 		template
 	) {
 		/** @type {RemoteObjectTemplate} */
@@ -1220,6 +718,7 @@
 		if (!role || role == this.role) {
 			if (role === 'server') {
 				propertyValue.serverValidation = serverValidation;
+				propertyValue.remotePublic = isPublic;
 			}
 			return propertyValue;
 		} else {
@@ -1233,7 +732,7 @@
 				if (validate && this.controller) {
 					//TODO: make this one if statement
 					if (!validate.call(this.controller)) {
-						return Q.reject('validation failure');
+						return Promise.reject('validation failure');
 					}
 				}
 
@@ -1241,19 +740,22 @@
 					component: 'semotus',
 					module: 'setupFunction',
 					activity: 'pre',
-					data: { call: propertyName }
+					data: {call: propertyName}
 				});
+
+				// @TODO: remove dependency on Q for future optimizations on FE (perhaps part of ESNext effort)
 				const deferred = Q.defer();
 				objectTemplate._queueRemoteCall(this.__id__, propertyName, deferred, arguments);
 
 				if (self.controller && self.controller.handleRemoteError) {
-					Q.delay(0).then(function d() {
-							return deferred.promise.then(null, function e(error) {
-								self.controller && self.controller.handleRemoteError(error);
-								return Q(true);
-							});
+					delay(0).then(function d() {
+						return deferred.promise.then(null, function e(error) {
+							self.controller && self.controller.handleRemoteError(error);
+							return Promise.resolve(true);
+						});
 					});
 				}
+				
 				return deferred.promise;
 			};
 		}
@@ -1262,6 +764,9 @@
 	/**
 	 * Overridden method in ObjectTemplate that creates a structure initialize a property in constructor
 	 * and adds any getters and setters to the property so changes can be tracked
+	 *
+	 *
+	 * This triggers whenever properties are created
 	 *
 	 * @param {unknown} propertyName - the name of the property
 	 * @param {unknown} defineProperty - the property definition as passed to ObjectTemplate
@@ -1337,8 +842,10 @@
 		// Setter
 		const objectTemplate = this;
 
-		if (this._useGettersSetters && this._manageChanges(defineProperty)) {
-			const createChanges = this._createChanges(defineProperty);
+		// Only called on the server
+		if (this._useGettersSetters && Changes.manage(defineProperty)) {
+			// Determine initially if we should create changes for these properties
+			const createChanges = Changes.create(defineProperty, undefined, this);
 
 			defineProperty.set = (function set() {
 				// use a closure to record the property name which is not passed to the setter
@@ -1496,7 +1003,7 @@
 		}
 
 		// Setters and Getters cannot have value or be writable
-		if (this._useGettersSetters && this._manageChanges(defineProperty)) {
+        if (this._useGettersSetters && Changes.manage(defineProperty)) {
 			delete defineProperty.value;
 			delete defineProperty.writable;
 		}
@@ -1515,129 +1022,7 @@
 	};
 
 	/**
-	 * Determine whether changes need to be created for a property
 	 *
-	 * @param {unknown} defineProperty unknown
-	 * @param {unknown} template unknown
-	 *
-	 * @returns {Boolean} unknown
-	 *
-	 * @private
-	 */
-	RemoteObjectTemplate._createChanges = function createChanges(defineProperty, template) {
-		template = template || {};
-
-		return !(
-			defineProperty.isLocal == true ||
-			(defineProperty.toServer == false && this.role == 'client') ||
-			(defineProperty.toClient == false && this.role == 'server') ||
-			(template.__toServer__ == false && this.role == 'client') ||
-			(template.__toClient__ == false && this.role == 'server')
-		);
-	};
-
-	/**
-	 * Determine whether changes should be accepted for a property
-	 *
-	 * @param {unknown} defineProperty unknown
-	 * @param {unknown} template unknown
-	 *
-	 * @returns {Boolean} unknown
-	 *
-	 * @private
-	 */
-	RemoteObjectTemplate._acceptChanges = function acceptChanges(defineProperty, template) {
-		template = template || {};
-		return !(
-			defineProperty.isLocal == true ||
-			(defineProperty.toServer == false && this.role == 'server') ||
-			(defineProperty.toClient == false && this.role == 'client') ||
-			(template.__toServer__ == false && this.role == 'server') ||
-			(template.__toClient__ == false && this.role == 'client')
-		);
-	};
-
-	/**
-	 * Determine whether any tracking of old values is needed
-	 * @param {unknown} defineProperty unknown
-	 *
-	 * @returns {Boolean} unknown
-	 *
-	 * @private
-	 */
-	RemoteObjectTemplate._manageChanges = function manageChanges(defineProperty) {
-		return !(
-			defineProperty.isLocal == true ||
-			(defineProperty.toServer == false && defineProperty.toClient == false)
-		);
-	};
-
-	/**************************** Change Management Functions **********************************/
-
-	RemoteObjectTemplate._generateChanges = function generateChanges() {
-		const session = this._getSession();
-
-		for (var obj in session.objects) {
-			this._logChanges(session.objects[obj]);
-		}
-	};
-
-	/**
-	 * Simulate getters and setters by tracking the old value and if it
-	 * has changed, creating a change log.  local properties are ignored
-	 * and properties not to be transmitted to the other party do not
-	 * generate changes but still track the old value so that changes
-	 * can be applied from the other party
-	 *
-	 * @param {unknown} obj - object to be processed
-	 *
-	 * @private
-	 */
-	RemoteObjectTemplate._logChanges = function logChanges(obj) {
-		// Go through all the properties and transfer them to newly created object
-		const props = obj.__template__.getProperties();
-
-		for (var prop in props) {
-			const defineProperty = props[prop];
-			const type = defineProperty.type;
-
-			if (type && this._manageChanges(defineProperty)) {
-				const createChanges = this._createChanges(defineProperty, obj.__template__);
-
-				if (type == Array) {
-					if (createChanges) {
-						if (obj['__' + prop] && !obj[prop]) {
-							// switch to null treated like a property change
-							this._changedValue(obj, prop, obj[prop]);
-						} else if (obj[prop]) {
-							// switch from null like an array ref where array will be created
-							if (!obj['__' + prop]) {
-								if (obj[prop].length == 0) {
-									// switch to empty array
-									this._changedValue(obj, prop, obj[prop]);
-								}
-
-								obj['__' + prop] = []; // Start from scratch
-							}
-
-							this._referencedArray(obj, prop, obj['__' + prop]);
-						}
-					}
-				} else {
-					const currValue = this._convertValue(obj[prop]);
-					const prevValue = this._convertValue(obj['__' + prop]);
-
-					if (createChanges && currValue !== prevValue) {
-						this._changedValue(obj, prop, obj[prop]);
-					}
-
-					obj['__' + prop] = obj[prop];
-				}
-			}
-		}
-	};
-
-	/**
 	 * Called from a setter when a value has changed. Record old and new values
 	 * changes are accumulated for each change subscriber.
 	 * The change structure in the subscription log is a key/value store
@@ -1647,6 +1032,9 @@
 	 * Note that objects created with RemoteObjectTemplate have and id and that
 	 * only the id is stored
 	 *
+	 * This is triggered either by property value changes directly (through setupProperty, through the decorator)
+	 * Or through LogChanges
+	 *
 	 * @param {unknown} obj the object instance
 	 * @param {unknown} prop the object property
 	 * @param {unknown} value the new value
@@ -1654,11 +1042,7 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._changedValue = function changedValue(obj, prop, value) {
-		if (
-			obj.__transient__ ||
-			(this.role == 'client' && obj.__template__.__toServer__ == false) ||
-			(this.role == 'server' && obj.__template__.__toClient__ == false)
-		) {
+		if (obj.__transient__ || Changes.isIsolatedObject(this, obj)) {
 			return;
 		}
 
@@ -1671,7 +1055,7 @@
 
 		for (var subscription in subscriptions) {
 			if (subscriptions[subscription] != this.processingSubscription) {
-				const changeGroup = this.getChangeGroup('change', subscription);
+				const changeGroup = ChangeGroups.getPropChangeGroup(subscription, this);
 
 				// Get normalized values substituting ids for ObjectTemplate objects
 				const newValue = this._convertValue(value);
@@ -1708,13 +1092,8 @@
 	 *
 	 * @private
 	 */
-	RemoteObjectTemplate._referencedArrayWithChangeGroup = function(obj) {};
 	RemoteObjectTemplate._referencedArray = function referencedArray(obj, prop, arrayRef, sessionId) {
-		if (
-			obj.__transient__ ||
-			(this.role == 'client' && obj.__template__.__toServer__ == false) ||
-			(this.role == 'server' && obj.__template__.__toClient__ == false)
-		) {
+		if (obj.__transient__ || Changes.isIsolatedObject(this, obj)) { // Should not be transported
 			return;
 		}
 
@@ -1738,9 +1117,11 @@
 		}
 
 		// Create a change group entries either from the referenced array or from a previously saved copy of the array
-		function processSubscriptions(changeType, existingChangeGroup) {
+
+		// Only array or dirty
+		function processSubscriptions(changeType: ArrayTypes, existingChangeGroup) {
 			for (var subscription in subscriptions) {
-				const changeGroup = this.getChangeGroup(changeType, subscription);
+				const changeGroup = ChangeGroups.getArrayChangeGroup(changeType, subscription, this);
 				if (subscriptions[subscription] != this.processingSubscription) {
 					if (existingChangeGroup) {
 						copyChangeGroup(changeGroup, existingChangeGroup);
@@ -1786,6 +1167,9 @@
 	};
 
 	/**
+	 * @TODO: Consolidate _convertArrayReferencesToChanges with MarkArrayReferencesAsChanged
+	 */
+	/**
 	 * Determine whether each array reference was an actual change or just a reference
 	 * If an actual change convert to a change log entry.  For arrays the changes
 	 * structure in the subscription log is the old and new value of the entire array
@@ -1793,13 +1177,14 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._convertArrayReferencesToChanges = function convertArrayReferencesToChanges() {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const subscriptions = this._getSubscriptions();
 
+		// Iterate
 		for (var subscription in subscriptions) {
 			if (subscriptions[subscription] != this.processingSubscription) {
-				const changeGroup = this.getChangeGroup('change', subscription);
-				const refChangeGroup = this.getChangeGroup('array', subscription);
+				const changeGroup = ChangeGroups.getPropChangeGroup(subscription, this);
+				const refChangeGroup = ChangeGroups.getArrayChangeGroup('array', subscription, this);
 
 				// Look at every array reference
 				for (var key in refChangeGroup) {
@@ -1834,6 +1219,8 @@
 					}
 
 					// Walk through all elements (which ever is longer, original or new)
+
+					//@TODO: Double check this. Fixing this semotus bug might break other parts
 					const len = Math.max(curr.length, orig.length);
 
 					for (var ix = 0; ix < len; ++ix) {
@@ -1886,8 +1273,8 @@
 						}
 					}
 				}
-				this.deleteChangeGroup('arrayDirty', subscription);
-				this.deleteChangeGroup('array', subscription);
+				ChangeGroups.remove('arrayDirty', subscription, this);
+				ChangeGroups.remove('array', subscription, this);
 			}
 		}
 	};
@@ -1897,12 +1284,12 @@
 	 * If an actual change set __changed__
 	 */
 	RemoteObjectTemplate.MarkChangedArrayReferences = function MarkChangedArrayReferences() {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const subscriptions = this._getSubscriptions();
 
 		for (var subscription in subscriptions) {
 			if (subscriptions[subscription] != this.processingSubscription) {
-				const refChangeGroup = this.getChangeGroup('arrayDirty', subscription);
+				const refChangeGroup = ChangeGroups.getArrayChangeGroup('arrayDirty', subscription, this);
 
 				// Look at every array reference
 				for (var key in refChangeGroup) {
@@ -2013,7 +1400,7 @@
 	 * @returns {unknown}
 	 */
 	RemoteObjectTemplate.getObject = function getObject(objId, template) {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const obj = session.objects[objId];
 
 		if (obj && obj.__template__ && obj.__template__ == template) {
@@ -2036,7 +1423,7 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subscriptionId, callContext) {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const rollback = [];
 
 		this.processingSubscription = this._getSubscription(subscriptionId);
@@ -2180,11 +1567,7 @@
 						activity: 'processing',
 						data: { template: obj.__template__.__name__, property: prop }
 					},
-					'Could not apply change to ' +
-						obj.__template__.__name__ +
-						'.' +
-						prop +
-						' property not defined in template'
+					`Could not apply change to ${obj.__template__.__name__}.${prop} property not defined in template`
 				);
 				return false;
 			}
@@ -2330,7 +1713,7 @@
 		newValue,
 		force
 	) {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		let currentValue;
 
 		// Get old, new and current value to determine if change is still applicable
@@ -2368,14 +1751,7 @@
 			const conflictErrorData = { component: 'semotus', module: 'applyPropertyChange', activity: 'processing' };
 
 			const conflictErrorString =
-				'Could not apply change to ' +
-				obj.__template__.__name__ +
-				'.' +
-				prop +
-				' expecting ' +
-				this.cleanPrivateValues(prop, oldValueConverted, defineProperty) +
-				' but presently ' +
-				this.cleanPrivateValues(prop, currentValueConverted, defineProperty);
+				`Could not apply change to ${obj.__template__.__name__}.${prop} expecting ${this.cleanPrivateValues(prop, oldValueConverted, defineProperty)} but presently ${this.cleanPrivateValues(prop, currentValueConverted, defineProperty)}`;
 
 			if (this.__conflictMode__ == 'hard') {
 				this.logger.error(conflictErrorData, conflictErrorString);
@@ -2386,15 +1762,11 @@
 		}
 
 		// Based on type of property we convert the value from it's string representation into
-		// either a fundemental type or a templated object, creating it if needed
-		if (!this._acceptChanges(defineProperty, obj.__template__)) {
+		// either a fundamental type or a templated object, creating it if needed
+        if (!Changes.accept(defineProperty, obj.__template__, this)) {
 			this.logger.error(
 				{ component: 'semotus', module: 'applyPropertyChange', activity: 'processing' },
-				'Could not accept changes to ' +
-					obj.__template__.__name__ +
-					'.' +
-					prop +
-					' based on property definition'
+				`Could not accept changes to ${obj.__template__.__name__}.${prop} based on property definition`
 			);
 
 			return false;
@@ -2450,14 +1822,7 @@
 				} else {
 					this.logger.error(
 						{ component: 'semotus', module: 'applyPropertyChange', activity: 'processing' },
-						'Could not apply change to ' +
-							obj.__template__.__name__ +
-							'.' +
-							prop +
-							' id (' +
-							objId +
-							') is type ' +
-							session.objects[objId].__template__.__name__
+						`Could not apply change to ${obj.__template__.__name__}.${prop} - ID (${objId}) is TYPE ${session.objects[objId].__template__.__name__}`
 					);
 
 					return false;
@@ -2474,7 +1839,7 @@
 			if (ix >= 0) {
 				obj[prop][ix] = newValue;
 
-				if (!this._useGettersSetters && this._manageChanges(defineProperty)) {
+                if (!this._useGettersSetters && Changes.manage(defineProperty)) {
 					if (!obj['__' + prop]) {
 						obj['__' + prop] = [];
 					}
@@ -2487,7 +1852,7 @@
 			} else {
 				obj[prop] = newValue;
 
-				if (!this._useGettersSetters && this._manageChanges(defineProperty)) {
+                if (!this._useGettersSetters && Changes.manage(defineProperty)) {
 					obj['__' + prop] = newValue;
 				}
 			}
@@ -2506,13 +1871,13 @@
 		}
 
 		if (ix >= 0) {
-			this.changeString[obj.__template__.__name__ + '[' + ix + ']' + '.' + prop] = this.cleanPrivateValues(
+			this.changeString[`${obj.__template__.__name__}[${ix}].${prop}`] = this.cleanPrivateValues(
 				prop,
 				logValue,
 				defineProperty
 			);
 		} else {
-			this.changeString[obj.__template__.__name__ + '.' + prop] = this.cleanPrivateValues(
+			this.changeString[`${obj.__template__.__name__}.${prop}`] = this.cleanPrivateValues(
 				prop,
 				logValue,
 				defineProperty
@@ -2547,7 +1912,7 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._rollbackChanges = function rollbackChanges() {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const changes = this.getChanges();
 
 		for (var objId in changes) {
@@ -2598,7 +1963,7 @@
 
 		template = this._resolveSubClass(template, objId, defineProperty);
 
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		const sessionReference = session ? session.objects[objId] : null;
 		let newValue;
 
@@ -2607,10 +1972,7 @@
 				newValue = sessionReference;
 			} else {
 				throw new Error(
-					'_createEmptyObject called for ' +
-						template.__name__ +
-						' and session object with that id exists but for template ' +
-						session.objects[objId].__template__.__name__
+					`_createEmptyObject called for ${template.__name__} and session object with that id exists but for template ${session.objects[objId].__template__.__name__}`
 				);
 			}
 		} else {
@@ -2660,7 +2022,7 @@
 	RemoteObjectTemplate.inject = function inject(template, injector) {
 		template.__injections__.push(injector);
 		// Go through existing objects to inject them as well
-		const session = this._getSession();
+        const session = Sessions.get(this);
 
 		for (var obj in session.objects) {
 			if (this._getBaseClass(session.objects[obj].__template__) == this._getBaseClass(template)) {
@@ -2683,7 +2045,7 @@
 	 */
 
 	RemoteObjectTemplate._queueRemoteCall = function queueRemoteCall(objId, functionName, deferred, args) {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 		args = Array.prototype.slice.call(args); // JS arguments array not an array after all
 
 		session.remoteCalls.push({
@@ -2708,7 +2070,7 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._processQueue = function processQueue() {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 
 		if (session.sendMessage && session.sendMessageEnabled) {
 			const message = this.getMessage();
@@ -2731,7 +2093,7 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._toTransport = function clone(obj) {
-		let res = { type: null };
+		let res: any = {type: null};
 
 		// Replace references with an object that describes the type
 		// and has a property for the original value
@@ -2779,7 +2141,7 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._fromTransport = function clone(obj) {
-		const session = this._getSession();
+        const session = Sessions.get(this);
 
 		switch (obj.type) {
 			case 'date':
@@ -2791,7 +2153,7 @@
 				break;
 
 			case 'number':
-				obj = new Number(obj.value);
+				obj = Number(obj.value);
 				break;
 
 			case 'boolean':
@@ -2867,24 +2229,8 @@
 	 *
 	 * @private
 	 */
-	RemoteObjectTemplate._getSession = function getSession(_sid) {
-		if (!this.currentSession) {
-			return null;
-		}
-		return this.sessions[this.currentSession];
-	};
-
-	/**
-	 * Purpose unknown
-	 *
-	 * @param {unknown} type unknown
-	 *
-	 * @private
-	 */
-	RemoteObjectTemplate._deleteChangeGroups = function deleteChangeGroups(type) {
-		for (var subscription in this._getSubscriptions()) {
-			this.deleteChangeGroup(type, subscription);
-		}
+	RemoteObjectTemplate._getSession = function _getSession(sessionId?) {
+		return Sessions.get(this, sessionId);
 	};
 
 	/**
@@ -2896,9 +2242,8 @@
 	 *
 	 * @private
 	 */
-	RemoteObjectTemplate._getSubscriptions = function getSubscriptions(sessionId) {
-		const subscriptions = this._getSession(sessionId);
-		return subscriptions ? subscriptions.subscriptions : null;
+	RemoteObjectTemplate._getSubscriptions = function _getSubscriptions(sessionId?) {
+		return Subscriptions.getSubscriptions(this, sessionId);
 	};
 
 	/**
@@ -2907,9 +2252,8 @@
 	 * @private
 	 */
 	RemoteObjectTemplate._deleteChanges = function deleteChanges() {
-		this._deleteChangeGroups('array');
-		this._deleteChangeGroups('arrayDirty');
-		this._deleteChangeGroups('change');
+		const types = ['array', 'arrayDirty', 'change'];
+		types.forEach((type) => ChangeGroups.removeAll(type, this));
 	};
 
 	/**
@@ -2921,8 +2265,8 @@
 	 *
 	 * @private
 	 */
-	RemoteObjectTemplate._getSubscription = function getSubscription(subscriptionId) {
-		return this._getSession().subscriptions[subscriptionId || 0];
+	RemoteObjectTemplate._getSubscription = function _getSubscription(subscriptionId) {
+		return Subscriptions.getSubscription(this, subscriptionId);
 	};
 
 	/**
@@ -2942,188 +2286,24 @@
 		return logValue;
 	};
 
-	RemoteObjectTemplate.bindDecorators = function(objectTemplate) {
-		objectTemplate = objectTemplate || this;
+    RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
+        objectTemplate = objectTemplate || this;
 
-		this.supertypeClass = function(target) {
-			let ret;
+        this.supertypeClass = supertypeClass.bind(this, objectTemplate, SupertypeModule);
+        this.Supertype = function () {
+            return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
+        };
+        this.Supertype.prototype = SupertypeModule.Supertype.prototype;
+        this.property = function (props) {
+            return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
+        };
+        this.remote = remote.bind(null, objectTemplate);
+    };
 
-			// Decorator workerbee
-			const decorator = function decorator(target) {
-				// second time we must call the function returned the first time because it has the
-				// properties as a closure
-				ret = ret ? ret(target, objectTemplate) : SupertypeModule.supertypeClass(target, objectTemplate);
 
-				// Mainly for peristor properties to make sure they get transported
-				target.createProperty = function(propertyName, defineProperty) {
-					if (defineProperty.body) {
-						target.prototype[propertyName] = objectTemplate._setupFunction(
-							propertyName,
-							defineProperty.body,
-							defineProperty.on,
-							defineProperty.validate
-						);
-					} else {
-						target.prototype.__amorphicprops__[propertyName] = defineProperty;
-						const value = defineProperty.value;
-						// The getter actually initializes the property
-						defineProperty.get = function() {
-							if (!this['__' + propertyName]) {
-								this['__' + propertyName] = ObjectTemplate.clone(
-									value,
-									defineProperty.of || defineProperty.type || null
-								);
-							}
-							return this['__' + propertyName];
-						};
-						const defineProperties = {};
-						objectTemplate._setupProperty(propertyName, defineProperty, undefined, defineProperties);
-						Object.defineProperties(target.prototype, defineProperties);
-					}
-				};
-				return ret;
-			};
-
-			// Called by decorator processor
-			if (target.prototype) {
-				return decorator(target);
-			}
-
-			// Called first time with parameter rather than target - call supertypes supertypeClass function which will
-			// return a function that must be called on the 2nd pass when we have a target.  It will remember parameter
-			ret = SupertypeModule.supertypeClass(target, objectTemplate);
-			return decorator; // decorator will be called 2nd time with ret as a closure
-		};
-
-		this.Supertype = function() {
-			return SupertypeModule.Supertype.call(this, objectTemplate);
-		};
-
-		this.Supertype.prototype = SupertypeModule.Supertype.prototype;
-
-		this.property = function(props) {
-			props = props || {};
-			props.toClient = applyRuleSet(props.toClient, this.toClientRuleSet);
-			props.toServer = applyRuleSet(props.toServer, this.toServerRuleSet);
-			const baseDecorator = SupertypeModule.property(props, objectTemplate);
-			return function(target, targetKey) {
-				baseDecorator(target, targetKey);
-				const defineProperties = {};
-				props.enumerable = true;
-				props.writable = true;
-				objectTemplate._setupProperty(targetKey, props, undefined, defineProperties);
-				Object.defineProperties(target, defineProperties);
-			};
-		};
-
-		this.remote = function(defineProperty) {
-			defineProperty = defineProperty || {};
-
-			/*
-                if we haven't supplied a configuration object into the decorator,
-                 default the role of this function to a server API function
-             */
-			if (!defineProperty.on) {
-				defineProperty.on = 'server';
-			}
-
-			// function that we call to validate any changes for remote calls
-			let remoteValidator = defineProperty.serverValidation;
-
-			return function(target, propertyName, descriptor) {
-				descriptor.value = objectTemplate._setupFunction(
-					propertyName,
-					descriptor.value,
-					defineProperty.on,
-					defineProperty.validate,
-					remoteValidator,
-					defineProperty.target
-				);
-
-				/*
-                    this function been marked as a server API either explicitly or by default.
-                    set the appropriate metadata.
-                 */
-				if (defineProperty.on === 'server') {
-					descriptor.value.__on__ = 'server';
-				}
-
-				if (defineProperty.type) {
-					descriptor.value.__returns__ = defineProperty.type;
-				}
-				if (defineProperty.of) {
-					descriptor.value.__returns__ = defineProperty.of;
-					descriptor.value.__returnsarray__ = true;
-				}
-			};
-		};
-	};
-
-	function applyRuleSet(prop, ruleSet) {
-		if (prop instanceof Array && ruleSet instanceof Array && ruleSet.length > 0) {
-			return prop.some(function(r) {
-				return ruleSet.indexOf(r) >= 0;
-			});
-		} else {
-			return prop;
-		}
-	}
-
-	// These two mixins and extender functions are needed because in the browser we only include supertype and semotus
-	// and since classes use these in their extends hierarchy they must be defined.
-
-	const __extends =
-		(this && this.__extends) ||
-		(function() {
-			const extendStatics =
-				Object.setPrototypeOf ||
-				({ __proto__: [] } instanceof Array &&
-					function(d, b) {
-						d.__proto__ = b;
-					}) ||
-				function(d, b) {
-					for (var p in b) {
-						if (b.hasOwnProperty(p)) {
-							d[p] = b[p];
-						}
-					}
-				};
-			return function(d, b) {
-				extendStatics(d, b);
-				function __() {
-					this.constructor = d;
-				}
-				d.prototype = b === null ? Object.create(b) : ((__.prototype = b.prototype), new __());
-			};
-		})();
-
-	RemoteObjectTemplate.Persistable = function(Base) {
-		return (function(_super) {
-			__extends(class_1, _super);
-			function class_1() {
-				return (_super !== null && _super.apply(this, arguments)) || this;
-			}
-			return class_1;
-		})(Base);
-	};
-	RemoteObjectTemplate.Remoteable = function(Base) {
-		return (function(_super) {
-			__extends(class_1, _super);
-			function class_1() {
-				return (_super !== null && _super.apply(this, arguments)) || this;
-			}
-			return class_1;
-		})(Base);
-	};
-	RemoteObjectTemplate.Bindable = function(Base) {
-		return (function(_super) {
-			__extends(class_1, _super);
-			function class_1() {
-				return (_super !== null && _super.apply(this, arguments)) || this;
-			}
-			return class_1;
-		})(Base);
-	};
+    RemoteObjectTemplate.Persistable = Persistable;
+	RemoteObjectTemplate.Remoteable = Remoteable;
+	RemoteObjectTemplate.Bindable = Bindable;
 
 	RemoteObjectTemplate.bindDecorators(); //Default to binding to yourself
 

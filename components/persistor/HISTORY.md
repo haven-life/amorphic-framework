@@ -1,3 +1,17 @@
+## 5.2.1
+* return the remote document content in its original format
+## 5.2.0
+* adding content type property on the template to inform remote doc interactions
+## 5.1.0
+* commit calls track the sqls issued on the database and provide the details in postSave event handler.
+## 5.0.0
+* Persistor should set the version back to the original value when there is an error in the SQL.
+## 4.4.0
+* Reverting changes to persistor 4.3.0
+## 4.3.0
+* separate out logic into separate classes
+* add typing to transaction logic
+* documentation updates
 ## 4.2.0
 * config driven host URL name for remote document store
 ## 4.1.1

@@ -6,7 +6,7 @@ var chaiAsPromised = require('chai-as-promised');
 chai.should();
 chai.use(chaiAsPromised);
 
-var ObjectTemplate = require('@havenlife/supertype').default;
+var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 var Promise = require('bluebird');
 var knexInit = require('knex');
@@ -15,7 +15,7 @@ var schema = {};
 var schemaTable = 'index_schema_history';
 
 
-describe('persistor transaction checks', function () {
+describe('persist transaction', function () {
     before('arrange', function (done) {
         knex = knexInit({
             client: 'pg',

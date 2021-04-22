@@ -22,10 +22,10 @@
 
 // Node Modules
 let Bluebird = require('bluebird');
-let Semotus = require('@havenlife/semotus');
-let Persistor = require('@havenlife/persistor');   // Only used for the typescript path
+let Semotus = require('@haventech/semotus');
+let Persistor = require('@haventech/persistor');   // Only used for the typescript path
 
-let ObjectTemplate = require('@havenlife/supertype').default;
+let ObjectTemplate = require('@haventech/supertype').default;
 
 // Local Modules
 let getTemplates = require('./lib/getTemplates').getTemplates;

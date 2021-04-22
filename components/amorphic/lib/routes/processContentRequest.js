@@ -2,7 +2,7 @@
 
 let url = require('url');
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -18,7 +18,7 @@ function processContentRequest(req, res, sessions, controllers, nonObjTemplatelo
     let path = url.parse(req.originalUrl, true).query.path;
 
     establishServerSession(req, path, false, false, null, sessions, controllers,
-        nonObjTemplatelogLevel).then(function zz(semotus) {
+        nonObjTemplatelogLevel, res).then(function zz(semotus) {
             if (typeof(semotus.objectTemplate.controller.onContentRequest) === 'function') {
                 semotus.objectTemplate.controller.onContentRequest(req, res);
 

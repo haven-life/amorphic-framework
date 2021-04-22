@@ -1,12 +1,12 @@
 'use strict';
 
 let AmorphicContext = require('../AmorphicContext');
-let persistor = require('@havenlife/persistor');
-let semotus = require('@havenlife/semotus');
+let persistor = require('@haventech/persistor');
+let semotus = require('@haventech/semotus');
 let getTemplates = require('../getTemplates').getTemplates;
 let getServerConfigString = require('../utils/getServerConfigString').getServerConfigString;
 let Bluebird = require('bluebird');
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
  * Purpose unknown
@@ -17,10 +17,11 @@ let statsdUtils = require('@havenlife/supertype').StatsdHelper;
  * @param {String} path - The app name.
  * @param {unknown} appVersion unknown
  * @param {unknown} sessionExpiration unknown
+ * @param {Object} res - Express response object
  *
  * @returns {unknown} unknown
  */
-function establishInitialServerSession(req, controllerPath, initObjectTemplate, path, appVersion, sessionExpiration) {
+function establishInitialServerSession(req, controllerPath, initObjectTemplate, path, appVersion, sessionExpiration, res) {
 
     let establishInitialServerSessionTime = process.hrtime();
 

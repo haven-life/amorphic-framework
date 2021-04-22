@@ -5,7 +5,7 @@ let getSessionCache = require('./getSessionCache').getSessionCache;
 let establishInitialServerSession = require('./establishInitialServerSession').establishInitialServerSession;
 let establishContinuedServerSession = require('./establishContinuedServerSession').establishContinuedServerSession;
 let url = require('url');
-let statsdUtils = require('@havenlife/supertype').StatsdHelper;
+let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
  * Sets up generic logging context with context passed from request
@@ -57,7 +57,7 @@ function setup(req, semotus) {
  *
  * @returns {Promise<Object>} Promise that resolves to server session object.
  */
-function establishServerSession(req, path, newPage, reset, newControllerId, sessions, controllers, nonObjTemplatelogLevel) {
+function establishServerSession(req, path, newPage, reset, newControllerId, sessions, controllers, nonObjTemplatelogLevel, res) {
 
     let establishInitialServerSessionTime = process.hrtime();
 
@@ -101,7 +101,7 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
                     'amorphic.session.establish_server_session.response_time');
 
                 return establishInitialServerSession(req, controllerPath, initObjectTemplate, path,
-                    appVersion, sessionExpiration);
+                    appVersion, sessionExpiration, res);
             }
         }
     }
@@ -112,7 +112,7 @@ function establishServerSession(req, path, newPage, reset, newControllerId, sess
 
     return establishContinuedServerSession(req, controllerPath, initObjectTemplate, path, appVersion,
         sessionExpiration, session, sessionStore, newControllerId, objectCacheExpiration, newPage,
-        controllers, nonObjTemplatelogLevel, sessions, reset)
+        controllers, nonObjTemplatelogLevel, sessions, reset, res)
         .then(setup.bind(this, req));
 }
 

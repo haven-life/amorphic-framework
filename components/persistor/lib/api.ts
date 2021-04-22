@@ -14,7 +14,7 @@ import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
 
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
-    let supertypeRequire = require('@havenlife/supertype');
+    let supertypeRequire = require('@haventech/supertype');
     let statsDHelper = supertypeRequire.StatsdHelper;
 
     var Promise = require('bluebird');
@@ -980,7 +980,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {object} returns transaction object
      */
     PersistObjectTemplate.begin = function (notDefault) {
-        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}};
+        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}, queriesToNotify: []};
         if (!notDefault) {
             this.currentTransaction = txn;
         }
@@ -1170,7 +1170,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             touchObjects: {},
             deletedObjects: {},
             remoteObjects: new Map(),
-            deleteQueries: {}
+            deleteQueries: {},
+            queriesToNotify: []
         };
     };
 
@@ -1182,7 +1183,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             touchObjects: {},
             deletedObjects: {},
             remoteObjects: new Map(),
-            deleteQueries: {}
+            deleteQueries: {},
+            queriesToNotify: []
         };
 
         this.__defaultTransaction__ = defaultTransaction;
@@ -1201,7 +1203,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
         var promise;
         if (PersistObjectTemplate.DB_Knex) {
-            promise = PersistObjectTemplate._commitKnex(persistorTransaction, logger, options.notifyChanges);
+            promise = PersistObjectTemplate._commitKnex(persistorTransaction, logger, options.notifyChanges, options.notifyQueries);
         }
 
         const name = 'commit';

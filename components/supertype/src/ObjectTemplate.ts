@@ -1,6 +1,7 @@
 import * as serializer from './serializer';
 import { SupertypeLogger } from './SupertypeLogger';
 import { StatsdClientInterface } from './StatsdClientInterface';
+import {Config, ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 export type CreateTypeForName = {
     name?: string;
     toClient?: boolean;
@@ -124,6 +125,10 @@ export class ObjectTemplate {
     static __toClient__: boolean;
     static __statsdClient__: StatsdClientInterface;
     static amorphicStatic = ObjectTemplate;
+
+    // Nconf is the SupertypeConfig object for this app, and configStore is the list of AppConfigs
+    // This property is initialized in Amorphic, not in Supertype
+    static config: { nconf: Config, configStore: ApplicationNameToConfigMap};
 
     /**
      * Gets the statsDClient
@@ -1083,7 +1088,6 @@ export class ObjectTemplate {
     static createLogger(): SupertypeLogger {
         return new SupertypeLogger();
     }
-
 
 }
 

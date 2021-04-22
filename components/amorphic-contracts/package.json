@@ -1,0 +1,7 @@
+{
+  "description": "Typescript contracts for amorphic dependency injection",
+  "name": "@haventech/amorphic-contracts",
+  "version": "0.2.0",
+  "license": "MIT",
+  "types": "index.d.ts"
+}

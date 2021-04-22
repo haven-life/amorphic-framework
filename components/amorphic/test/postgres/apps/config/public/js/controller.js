@@ -33,10 +33,14 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             serverController = this;
         },
         processPost: {on: 'server', body: function (uri, body) {
+            var retVal = body.test;
             if (body.error) {
                 throw 'error';
             }
-            return {status: 200, body: body.test};
+            if (body.testCookie) {
+                retVal = JSON.stringify(this.__request && this.__request.cookies);
+            }
+            return {status: 200, body: retVal};
         }},
         clearDB: {on: 'server', body: function () {
             var total = 0;

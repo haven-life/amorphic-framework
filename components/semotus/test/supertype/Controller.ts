@@ -1,18 +1,20 @@
-import { Supertype, supertypeClass, property, remote } from '../../index';
-var ObjectTemplate = require('../../index.js');
+import {property, remote, Supertype, supertypeClass} from '../../dist/index';
+import {Customer} from './Customer';
+import {Account} from './Account';
+import {Address} from './Address';
+import {expect} from 'chai';
+import {CallContext, ChangeString} from '../../src/helpers/Types';
+
+var ObjectTemplate = require('../../dist/index.js');
+var delay = require('../../dist/helpers/Utilities.js').delay;
 ObjectTemplate['toClientRuleSet'] = ['ClientRule'];
 ObjectTemplate['toServerRuleSet'] = ['ServerRule'];
 
 @supertypeClass({ toClient: false, toServer: true })
 class Dummy { }
 
-import { Customer } from './Customer';
-import { Account } from './Account';
-import { Address } from './Address';
 declare function require(name: string);
-import { expect } from 'chai';
 
-import * as Q from 'q';
 //expect(Dummy['__toClient__']).to.equal(false);//
 //expect(Dummy['__toServer__']).to.equal(true);
 
@@ -21,7 +23,7 @@ export class Controller extends Supertype {
 	@remote({
 		on: 'server'
 	})
-	mainFunc(...args): Q.Promise<any> {
+	mainFunc(...args): Promise<any> {
 		return ObjectTemplate.serverAssert();
 	}
 
@@ -31,11 +33,11 @@ export class Controller extends Supertype {
 			controller.serverValidatorCounter = args.length;
 			if (args.length === 3 && args[0] === 'first' && args[1] === 'second' && args[2] === 'third') {
 				controller.argumentValidator = true;
-				await Q.delay(1500);
+				await delay(1500);
 				return true;
 			}
 			controller.argumentValidator = false;
-			await Q.delay(1500);
+			await delay(1500);
 			return false;
 		}
 	})
@@ -100,7 +102,11 @@ export class Controller extends Supertype {
 	}
 
 	hitMaxRetries: boolean = false;
-
+	remotePublic: boolean = false;
+	hasRequestInPreServer: boolean = false;
+	hasResponseInPreServer: boolean = false;
+	hasRequestInPostServer: boolean = false;
+	hasResponseInPostServer: boolean = false;
 	constructor() {
 		super();
 
@@ -149,12 +155,30 @@ export class Controller extends Supertype {
 		this.karen = karen;
 		this.ashling = ashling;
 	}
-	preServerCall(changeCount, objectsChanged) {
+	preServerCall(changeCount, objectsChanged, callContext, forceUpdate, functionName, remoteCall, isPublic, HTTPObjs?) {
 		for (var templateName in objectsChanged) this.preServerCallObjects[templateName] = true;
+		if (isPublic) {
+			this.remotePublic = true;
+		}
+
+		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+			const {request, response} = HTTPObjs;
+			request.cookies['preServerCookie'] = true;
+			response.cookie();
+			this.hasRequestInPreServer = this.hasResponseInPreServer = true;
+		}
 	}
-	postServerCall() {
+
+	postServerCall(hasChanges, callContext, changeString, HTTPObjs?) {
 		if (this.postServerCallThrowException) throw 'postServerCallThrowException';
 		if (this.postServerCallThrowRetryException) throw 'Retry';
+
+		if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
+			const {request, response} = HTTPObjs;
+			request.cookies['postServerCookie'] = true;
+			response.cookie();
+			this.hasRequestInPostServer = this.hasResponseInPostServer = true;
+		}
 	}
 	validateServerCall() {
 		return this.canValidateServerCall;
@@ -173,7 +197,7 @@ export class Controller extends Supertype {
 	 */
 	async postServerErrorHandler(errorType, remoteCallId, obj, functionName, callContext, changeString) {
 		if (functionName === 'testAsyncPostServerError') {
-			await Q.delay(1500);
+			await delay(1500);
 			this.asyncErrorHandlerCalled = true;
 		}
 		else if (functionName === 'tryThrowingAnErrorFromErrorHandler') {
@@ -200,6 +224,21 @@ export class Controller extends Supertype {
 	@remote({ on: 'server' })
 	testUpdateConflictErrorHandling() {
 		return ObjectTemplate.serverAssert();
+	}
+
+	@remote({ on: 'server', public: true })
+	testPublicTrue(): Promise<void> {
+		return;
+	}
+
+	@remote({ on: 'server', public: false })
+	testPublicFalse(): Promise<void> {
+		return;
+	}
+
+	@remote({ on: 'server' })
+	testNoPublic(): Promise<void> {
+		return;
 	}
 
 	asyncErrorHandlerCalled: boolean = false;
