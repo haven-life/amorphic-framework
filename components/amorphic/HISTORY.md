@@ -1,3 +1,5 @@
+## 7.5.0
+* Adding the ability for amorphic to set the cookie options for cross-origin load
 ## 7.4.0
 * Remove Bluebird dependency from frontend client code
 ## 7.3.0
