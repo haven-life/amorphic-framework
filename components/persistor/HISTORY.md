@@ -1,5 +1,6 @@
 ## 5.3.0
 * objects can return the raw insert sqls if consumers want to track them.
+* changing the structure of the returned object for the sqls list in the commit.
 ## 5.2.1
 * return the remote document content in its original format
 ## 5.2.0

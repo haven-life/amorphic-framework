@@ -994,7 +994,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {object} returns transaction object
      */
     PersistObjectTemplate.begin = function (notDefault) {
-        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}, queriesToNotify: []};
+        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}, queriesToNotify: {}};
         if (!notDefault) {
             this.currentTransaction = txn;
         }
@@ -1185,7 +1185,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             deletedObjects: {},
             remoteObjects: new Map(),
             deleteQueries: {},
-            queriesToNotify: []
+            queriesToNotify: {}
         };
     };
 
@@ -1198,7 +1198,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             deletedObjects: {},
             remoteObjects: new Map(),
             deleteQueries: {},
-            queriesToNotify: []
+            queriesToNotify: {}
         };
 
         this.__defaultTransaction__ = defaultTransaction;

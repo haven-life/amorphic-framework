@@ -246,7 +246,7 @@ module.exports = function (PersistObjectTemplate) {
             (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
 
         if (txn && txn.knex && txn.queriesToNotify) {
-            txn.queriesToNotify.push(knex.delete().toString());
+            generateNotifyQueries(template, txn.queriesToNotify, knex.delete().toString());
         }
         return knex.delete();
     };
@@ -280,7 +280,7 @@ module.exports = function (PersistObjectTemplate) {
         knex = (filterKey ? knex.andWhere(filterKey, filterValue) : knex);
         //console.log(knex.toSQL().sql + ' ? = ' + (filterValue || '') + ' ? = ' + obj._id + ' ? = ' + goodList.join(','))
         if (txn && txn.knex && txn.queriesToNotify) {
-            txn.queriesToNotify.push(knex.delete().toString());
+            generateNotifyQueries(template, txn.queriesToNotify, knex.delete().toString());
         }
         knex = knex.delete().then(function (res) {
             if (res)
@@ -307,7 +307,7 @@ module.exports = function (PersistObjectTemplate) {
         if (txn && txn.knex) {
             knex.transacting(txn.knex);
             if (txn.queriesToNotify) {
-                txn.queriesToNotify.push(knex.where({_id: id}).delete().toString());
+                generateNotifyQueries(template, txn.queriesToNotify, knex.where({_id: id}).delete().toString());
             }
             
         }
@@ -396,7 +396,7 @@ module.exports = function (PersistObjectTemplate) {
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
                 data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
             if (txn && txn.knex && txn.queriesToNotify) {
-                txn.queriesToNotify.push(sqlToRun);
+                generateNotifyQueries(obj.__template__, txn.queriesToNotify, sqlToRun);
             }
         }
     }
@@ -890,6 +890,14 @@ module.exports = function (PersistObjectTemplate) {
             getPropsRecursive(template, map);
         });
         return map;
+    }
+
+    function generateNotifyQueries(template, queriesToNotify, query) {
+        if (!queriesToNotify[template.__name__]) {
+            queriesToNotify[template.__name__] = { tableType: template.__schema__.tableType, queries: []}
+        }
+
+        queriesToNotify[template.__name__].queries.push(query);
     }
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn, logger) {

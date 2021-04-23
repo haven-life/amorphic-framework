@@ -56,6 +56,7 @@ describe('persist newapi tests', function () {
         schema.Dept = {};
         schema.Employee.table = 'tx_employee';
         schema.Address.table = 'tx_address';
+        schema.Address.tableType = 'reference_data';
         schema.Phone.table = 'tx_phone';
 
         schema.Employee.parents = {
@@ -414,7 +415,10 @@ describe('persist newapi tests', function () {
 
         var tx =  PersistObjectTemplate.beginTransaction();
         tx.postSave = function(txn, _logger, changes, queries) {
-            expect(queries.length).to.equal(3);
+            expect(queries['Employee'].queries.length).to.equal(1);
+            expect(queries['Address'].queries.length).to.equal(1);
+            expect(queries['Address'].tableType).to.equal('reference_data');
+            expect(queries['Phone'].queries.length).to.equal(1);
         }
 
         const insertScript = emp1.getInsertScript();
