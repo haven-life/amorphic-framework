@@ -1,7 +1,8 @@
+## 8.1.0
+* Adding the ability for amorphic to set the cookie options for cross-origin load
 ## 8.0.0
 * Allowing for passing of a Config Store instead of using the internal config builder
 * Will use the new SuperTypeBuilder if one is not provided
-
 ## 7.4.0
 * Remove Bluebird dependency from frontend client code
 ## 7.3.0
