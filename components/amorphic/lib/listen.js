@@ -81,7 +81,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 		saveUninitialized: true,
 		rolling: true
 	};
-	if (amorphicOptions.sameSite) {
+	if (amorphicOptions.sameSiteCookie) {
 		sessionConfig.cookie.sameSite = amorphicOptions.sameSiteCookie;
 	}
 	if (amorphicOptions.secureCookie) {
