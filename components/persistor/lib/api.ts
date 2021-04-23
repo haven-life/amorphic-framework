@@ -928,6 +928,20 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             configurable: true
         })
 
+        /**
+         * Can generate insert sql for the give object
+         * @returns {string}
+         */
+         template.prototype.getInsertScript = function (): string {
+            let persistObjectTemplate = this.__objectTemplate__ || self;
+            var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
+            if (dbType == PersistObjectTemplate.DB_Mongo) {
+                throw new Error('Not supported this functionality for MongoDb.');
+            }
+                
+            return persistObjectTemplate.getInsertScript(this);
+        };
+
         //persistorDelete will only support new API calls.
         template.prototype.persistorDelete = template.prototype.deleteV2 = async function (options) {
             var time = getTime();

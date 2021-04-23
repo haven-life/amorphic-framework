@@ -983,6 +983,37 @@ module.exports = function (PersistObjectTemplate) {
     };
 
     /**
+     * Get the insert sql for the given object
+     *
+     * @param {object} template super type
+     * @returns {string} raw insert sql
+     */
+     PersistObjectTemplate.getInsertScript = function (obj) {
+        var template = obj.__template__;
+        var tableName = this.dealias(template.__table__);
+        var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
+        const props = template.getProperties();
+        var schema = template.__schema__;
+        var data = {};
+        for (var prop in props) {
+            var defineProperty = props[prop];
+            if (!this._persistProperty(defineProperty) || 
+                (defineProperty.type === Array && defineProperty.of.isObjectTemplate))
+                continue;
+            else if (defineProperty.type && defineProperty.type.__objectTemplate__) {
+                if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+                    throw new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
+                var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
+                data[foreignKey] = obj[prop];
+            }
+            else 
+                data[prop] = obj[prop];
+        }
+
+        return knex.insert(data).toString();
+    };
+
+    /**
      * Drop table if exists, just a wrapper method on Knex library.
      * @param {object} template super type
      * @param {string} tableName table to drop

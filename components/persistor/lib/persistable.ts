@@ -192,6 +192,8 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
          */
         generateId() : any {};
 
+        getInsertScript() : any {};
+
         
         objectId : string ;
         objectTemplateName : string ;

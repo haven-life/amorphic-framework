@@ -416,6 +416,9 @@ describe('persist newapi tests', function () {
         tx.postSave = function(txn, _logger, changes, queries) {
             expect(queries.length).to.equal(3);
         }
+
+        const insertScript = emp1.getInsertScript();
+        expect(insertScript).to.contain('insert into "tx_employee"');
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
             return PersistObjectTemplate.commit({transaction: tx, notifyQueries: true}).then(function() {
                 return Employee.persistorFetchByQuery({name: 'LoadObjectForNotificationCheck'}, {enableChangeTracking: true}).then(function(employees) {
