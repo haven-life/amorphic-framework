@@ -85,7 +85,7 @@ async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): 
         }
         else if (remoteTemplate) {
             // If the class doesn't exist, we should get the remote function from the prototype
-            isPublic = semotus.role === 'server' && remoteTemplate.prototype[remoteCall.name].remotePublic;
+            isPublic = semotus.role === 'server' && remoteTemplate.prototype[remoteCall.name] && remoteTemplate.prototype[remoteCall.name].remotePublic;
         }
         else {
             semotus.logger.error({
