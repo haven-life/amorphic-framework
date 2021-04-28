@@ -81,7 +81,7 @@ async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): 
         let isPublic = false;
 
         if (remoteObject) {
-            isPublic = semotus.role === 'server' && remoteObject[remoteCall.name].remotePublic;
+            isPublic = semotus.role === 'server' && remoteObject[remoteCall.name] && remoteObject[remoteCall.name].remotePublic;
         }
         else if (remoteTemplate) {
             // If the class doesn't exist, we should get the remote function from the prototype
