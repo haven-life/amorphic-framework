@@ -1,3 +1,5 @@
+## 4.1.1
+* Fixing a bug in semotus where checking to see if `public: true` would fail if the remote object instance did not exist within the session
 ## 4.1.0
 * Added Semotus changes for `public: true` tag in remote decorator to help define public facing routes
 * Added ability for amorphic to pass in the request and response objects into semotus so it can pass them into the preserver and postServercall
