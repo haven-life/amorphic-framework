@@ -4,7 +4,7 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "7.3.1",
+	"version": "7.4.0",
 	"dependencies": {
 		"@haventech/persistor": "5.x",
 		"@haventech/semotus": "4.x",

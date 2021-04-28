@@ -1,3 +1,5 @@
+## 7.4.0
+* Remove Bluebird dependency from frontend client code
 ## 7.3.0
 * Adding ability for amorphic to pass in request and response objects into semotus server calls and adding updates to types
 ## 7.2.0
@@ -5,7 +7,7 @@
 ## 7.1.3
 * Adding unit test for cookies
 ## 7.1.2
-* ensure we don't call logic to send response twice on form parsing error condition 
+* ensure we don't call logic to send response twice on form parsing error condition
 ## 7.1.1
 * Added bug handling and better errors for uploads
 ## 7.1.0
@@ -30,7 +32,7 @@
 ## 5.2.0
 * Exposing expire session to all entry points that require session in the app
 * Adding interfaces / types / documentation for Amorphic App Controller
-* Cleaning up some small bugs 
+* Cleaning up some small bugs
 ## 5.1.0
 * Logging Improvements
 * Added any level logging from client in an amorphic app to propagate to the server side logs, as long as you specify the 'browser' component.
@@ -73,7 +75,7 @@
 ## 4.1.0
 * Adding config for the servers for daemon mode and enabling https server in addition to the http server. Now you can specify express options in the form 'serverOptions' in your app level config. This is used for HTTPS configuration. You need an 'isSecure' flag turned on, an optional 'securePort' flag for the https server (otherwise, will use the default port as per the HTTPS module)
 * Also removing the amorphic routes for daemon applications.
-* Fixed a bug where in daemon mode would not appropriately read the middlewares / routes in all cases 
+* Fixed a bug where in daemon mode would not appropriately read the middlewares / routes in all cases
 * Apply sendToLogFunction override to SupertypeSession, for a custom logger propogation
 ## 4.0.0
 * Enabling daemon applications to service their own endpoints.
