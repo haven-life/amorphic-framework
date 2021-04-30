@@ -1,7 +1,6 @@
 'use strict';
 
-let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
-let ConfigApi = require('./utils/configBuilder').ConfigAPI;
+let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 let startApplication = require('./startApplication');
 let readFile = require('./utils/readFile').readFile;
 
@@ -13,15 +12,14 @@ let readFile = require('./utils/readFile').readFile;
  *
  * @returns {unknown} unknown.
  */
-function startup(configPath, schemaPath) {
+function startup(configPath, schemaPath, configStore = null) {
     if (!configPath) {
         throw new Error('startup(configPath, schemaPath?) called without a config path');
     }
 
     schemaPath = schemaPath || configPath;
 
-    let builder = new ConfigBuilder(new ConfigApi());
-    let configStore = builder.build(configPath);
+	configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);
     let config = configStore['root'].get();
 
     config.nconf = configStore['root']; // Global config

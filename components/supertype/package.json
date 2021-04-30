@@ -6,10 +6,10 @@
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
+        "@haventech/amorphic-contracts": "^0.2.0",
         "@types/reflect-metadata": "^0.1.0",
-        "reflect-metadata": "^0.1.12",
         "nconf": "^0.11.0",
-        "@haventech/amorphic-contracts": "^0.2.0"
+        "reflect-metadata": "^0.1.12"
     },
     "devDependencies": {
         "@types/chai": "^3.4.34",

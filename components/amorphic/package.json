@@ -4,11 +4,11 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "7.4.0",
+	"version": "8.0.0",
 	"dependencies": {
 		"@haventech/persistor": "5.x",
 		"@haventech/semotus": "4.x",
-		"@haventech/supertype": "3.3.*",
+		"@haventech/supertype": "^3.4.0",
 		"amorphic-bindster": "2.0.*",
 		"bluebird": "3.5.1",
 		"chalk": "2.4.1",
@@ -22,7 +22,6 @@
 		"uglify-js": "2.7.5"
 	},
 	"devDependencies": {
-		"@haventech/semotus": "4.x",
 		"@types/chai": "4.0.4",
 		"@types/compression": "0.0.36",
 		"@types/cookie-parser": "1.4.1",
@@ -59,7 +58,6 @@
 		"test:docker": "docker-compose up --build",
 		"test:trace": "nyc npm run test",
 		"test:debug": "mocha --inspect test/*",
-		"test:config": "mocha test/config",
 		"test:daemon": "mocha test/daemon/*",
 		"test:daemon_auto": "mocha test/daemon_auto/*",
 		"test:postgres": "mocha test/postgres",

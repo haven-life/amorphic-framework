@@ -2,8 +2,6 @@
 
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
-let ConfigBuilder = require('./utils/configBuilder').ConfigBuilder;
-let ConfigApi = require('./utils/configBuilder').ConfigAPI;
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
@@ -11,6 +9,7 @@ let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let Bluebird = require('bluebird');
+let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 
 const packageVersions = resolveVersions([
 	'@haventech/semotus',
@@ -46,9 +45,8 @@ function resolveVersions(packages) {
  * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient) {
-	let builder = new ConfigBuilder(new ConfigApi());
-	let configStore = builder.build(appDirectory);
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
+	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
 	if (typeof sendToLogFunction === 'function') {
