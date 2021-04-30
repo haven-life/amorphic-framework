@@ -52,7 +52,7 @@ async function retryCall(payload: ProcessCallPayload) {
  *
  * @returns  unknown
  */
-function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): boolean {
+async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): Promise<any> {
     const {semotus, remoteCall, session, callContext, HTTPObjs} = payload;
     semotus.logger.info(
         {
@@ -76,7 +76,28 @@ function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): boolea
 
         let remoteObject = session.objects[remoteCall.id];
 
-        let isPublic = semotus.role === 'server' && remoteObject[remoteCall.name].remotePublic;
+        // Need to double check if not in session, what the template is.
+        let remoteTemplate = semotus.__dictionary__[remoteCall.id.replace(/[^-]*-/, '').replace(/-.*/, '')];
+        let isPublic = false;
+
+        if (remoteObject) {
+            isPublic = semotus.role === 'server' && remoteObject[remoteCall.name] && remoteObject[remoteCall.name].remotePublic;
+        }
+        else if (remoteTemplate) {
+            // If the class doesn't exist, we should get the remote function from the prototype
+            isPublic = semotus.role === 'server' && remoteTemplate.prototype[remoteCall.name] && remoteTemplate.prototype[remoteCall.name].remotePublic;
+        }
+        else {
+            semotus.logger.error({
+                component: 'semotus',
+                module: 'processCall',
+                activity: 'preServerCall',
+                data: {
+                    call: remoteCall.name,
+                    sequence: remoteCall.sequence
+                }
+            }, 	'Could not find template for ' + objId);
+        }
 
         return semotus.controller.preServerCall.call(
             semotus.controller,

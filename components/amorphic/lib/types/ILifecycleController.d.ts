@@ -91,7 +91,7 @@ export interface ILifecycleController {
      * @returns {Promise<void>}
      * @memberof ILifecycleController
      */
-    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string, remoteCall: RemoteCall, isPublic: boolean, HTTPObjs?: HTTPObjs ): Promise<void>;
+    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string, remoteCall: RemoteCall, isPublic: boolean, HTTPObjs?: HTTPObjs ): Promise<any>;
 
     /**
      * @server

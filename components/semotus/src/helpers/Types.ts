@@ -182,7 +182,7 @@ export interface ISemotusController {
      * @returns {Promise<void>}
      * @memberof Controller
      */
-    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string, remoteCall: RemoteCall, isPublic: boolean, HTTPObjs?: HTTPObjs ): Promise<void>;
+    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string, remoteCall: RemoteCall, isPublic: boolean, HTTPObjs?: HTTPObjs ): Promise<any>;
 
     /**
      * This is a handler that will only be used for testing and debugging purposes
