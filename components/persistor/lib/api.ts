@@ -928,6 +928,20 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             configurable: true
         })
 
+        /**
+         * Can generate insert sql for the give object
+         * @returns {string}
+         */
+         template.prototype.getInsertScript = function (): string {
+            let persistObjectTemplate = this.__objectTemplate__ || self;
+            var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
+            if (dbType == PersistObjectTemplate.DB_Mongo) {
+                throw new Error('Not supported this functionality for MongoDb.');
+            }
+                
+            return persistObjectTemplate.getInsertScript(this);
+        };
+
         //persistorDelete will only support new API calls.
         template.prototype.persistorDelete = template.prototype.deleteV2 = async function (options) {
             var time = getTime();
@@ -980,7 +994,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {object} returns transaction object
      */
     PersistObjectTemplate.begin = function (notDefault) {
-        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}, queriesToNotify: []};
+        var txn = { id: new Date().getTime(), dirtyObjects: {}, savedObjects: {}, touchObjects: {}, deletedObjects: {}, queriesToNotify: {}};
         if (!notDefault) {
             this.currentTransaction = txn;
         }
@@ -1171,7 +1185,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             deletedObjects: {},
             remoteObjects: new Map(),
             deleteQueries: {},
-            queriesToNotify: []
+            queriesToNotify: {}
         };
     };
 
@@ -1184,7 +1198,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             deletedObjects: {},
             remoteObjects: new Map(),
             deleteQueries: {},
-            queriesToNotify: []
+            queriesToNotify: {}
         };
 
         this.__defaultTransaction__ = defaultTransaction;
