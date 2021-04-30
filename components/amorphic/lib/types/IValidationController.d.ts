@@ -9,7 +9,7 @@ import { Changes, CallContext, NewValue } from './HelperTypes';
  * 
  * @misnomer - Functionality that may have confusing nomenclature
  * 
- * @deprecated - Deprecated functionality that is not used anymore
+ * @ deprecated - Deprecated functionality that is not used anymore
  */
 
 

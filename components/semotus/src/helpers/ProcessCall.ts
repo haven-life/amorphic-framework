@@ -52,8 +52,8 @@ async function retryCall(payload: ProcessCallPayload) {
  *
  * @returns  unknown
  */
-function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): boolean {
-    const {semotus, remoteCall, callContext, session, subscriptionId, remoteCallId, restoreSessionCallback} = payload;
+async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): Promise<any> {
+    const {semotus, remoteCall, session, callContext, HTTPObjs} = payload;
     semotus.logger.info(
         {
             component: 'semotus',
@@ -74,12 +74,41 @@ function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): boolea
             changes[semotus.__dictionary__[objId.replace(/[^-]*-/, '').replace(/-.*/, '')].__name__] = true;
         }
 
+        let remoteObject = session.objects[remoteCall.id];
+
+        // Need to double check if not in session, what the template is.
+        let remoteTemplate = semotus.__dictionary__[remoteCall.id.replace(/[^-]*-/, '').replace(/-.*/, '')];
+        let isPublic = false;
+
+        if (remoteObject) {
+            isPublic = semotus.role === 'server' && remoteObject[remoteCall.name] && remoteObject[remoteCall.name].remotePublic;
+        }
+        else if (remoteTemplate) {
+            // If the class doesn't exist, we should get the remote function from the prototype
+            isPublic = semotus.role === 'server' && remoteTemplate.prototype[remoteCall.name] && remoteTemplate.prototype[remoteCall.name].remotePublic;
+        }
+        else {
+            semotus.logger.error({
+                component: 'semotus',
+                module: 'processCall',
+                activity: 'preServerCall',
+                data: {
+                    call: remoteCall.name,
+                    sequence: remoteCall.sequence
+                }
+            }, 	'Could not find template for ' + objId);
+        }
+
         return semotus.controller.preServerCall.call(
             semotus.controller,
             remoteCall.changes.length > 2,
             changes,
             callContext,
-            forceupdate
+            forceupdate,
+            remoteCall.name,
+            remoteCall,
+            isPublic,
+            HTTPObjs
         );
     } else {
         return true;
@@ -223,11 +252,11 @@ async function callIfValid(payload: ProcessCallPayload, isValid: boolean) {
  * @returns
  */
 async function postCallHook(payload: ProcessCallPayload, returnValue) {
-    const {semotus, remoteCall, callContext} = payload;
+    const {semotus, remoteCall, callContext, HTTPObjs} = payload;
 
     if (semotus.controller && semotus.controller.postServerCall) {
         const hasChanges: boolean = remoteCall.changes.length > 2;
-        await semotus.controller.postServerCall.call(semotus.controller, hasChanges, callContext, semotus.changeString);
+        await semotus.controller.postServerCall.call(semotus.controller, hasChanges, callContext, semotus.changeString, HTTPObjs);
     }
     return returnValue;
 }

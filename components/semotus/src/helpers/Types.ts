@@ -1,4 +1,6 @@
 import {Supertype} from '@haventech/supertype';
+import {Request, Response} from 'express';
+export type HTTPObjs = {request: Request, response: Response};
 
 export type Subscription = {
     role: string;
@@ -23,6 +25,7 @@ export type ProcessCallPayload = {
     subscriptionId: any;
     remoteCallId: any;
     restoreSessionCallback?: Function;
+    HTTPObjs?: HTTPObjs;
 }
 
 /**
@@ -59,6 +62,9 @@ export type RemoteCall = {
     changes: string; // The string is of type ChangeGroup
     name: string;
     sequence: any;
+    type: any;
+    sync: any;
+    value: any;
 }
 
 export type Session = {
@@ -122,11 +128,12 @@ export interface ISemotusController {
      * @param {boolean} hasChanges - Whether or not we have applied client changes onto the server's object graph
      * @param {CallContext} callContext - Context (number of retries etc)
      * @param {changeString} changeString - Object of Changes - Key is [ClassName].[propertyName], Value is [changedValue] example: {'Customer.middlename': 'Karen'}, See above note
+     * @param HTTPObjs
      *
      * @returns {Promise<void>}
      * @memberof Controller
      */
-    postServerCall?(hasChanges: boolean, callContext: CallContext, changeString: ChangeString): Promise<any>;
+    postServerCall?(hasChanges: boolean, callContext: CallContext, changeString: ChangeString, HTTPObjs?: HTTPObjs): Promise<any>;
 
     /**
      * @server
@@ -168,10 +175,14 @@ export interface ISemotusController {
      * @param {CallContext} callContext - Context (number of retries etc)
      * @param {boolean} [forceUpdate] - Optional parameter passed in. True if this is a retry of the call based on an update conflict. False / undefined otherwise.
      *
+     * @param functionName
+     * @param remoteCall
+     * @param isPublic
+     * @param HTTPObjs
      * @returns {Promise<void>}
      * @memberof Controller
      */
-    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate?: boolean): Promise<void>;
+    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string, remoteCall: RemoteCall, isPublic: boolean, HTTPObjs?: HTTPObjs ): Promise<any>;
 
     /**
      * This is a handler that will only be used for testing and debugging purposes
@@ -201,7 +212,7 @@ export interface Semotus {
     getChangeStatus: () => string;
     _stashObject: (obj, template) => boolean;
     sessionize: (obj, referencingObj) => (undefined | any);
-    _setupFunction: (propertyName, propertyValue, role, validate, serverValidation, template) => (any);
+    _setupFunction: (propertyName, propertyValue, role, validate, serverValidation, isPublic: boolean, template) => (any);
     _setupProperty: (propertyName, defineProperty, objectProperties, defineProperties) => void;
     withoutChangeTracking: (cb) => void;
     _changedValue: (obj, prop, value) => void;
@@ -232,7 +243,7 @@ export interface Semotus {
     Bindable: (Base) => () => any;
     Persistable: (Base) => () => any;
     bindDecorators: (objectTemplate?) => void;
-    processMessage: (remoteCall, subscriptionId, restoreSessionCallback) => (undefined | any);
+    processMessage: (remoteCall, subscriptionId, restoreSessionCallback, req?: Request, res?: Response) => (undefined | any);
     enableSendMessage: (value, messageCallback, sessionId) => void;
     syncSession: (sessionId) => void;
     restoreSession: (sessionId, savedSession: SavedSession, sendMessage: SendMessage) => boolean;

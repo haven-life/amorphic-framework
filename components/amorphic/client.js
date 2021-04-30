@@ -225,7 +225,7 @@ amorphic = // Needs to be global to make mocha tests work
                 if (this.controller && typeof(this.controller.displayError) === 'function') {
                     this.controller.displayError(output);
                 }
-            } 
+            }
         }.bind(this);
 
         this.setContextProps = RemoteObjectTemplate.logger.setContextProps;
@@ -293,9 +293,12 @@ amorphic = // Needs to be global to make mocha tests work
                 }
                 else {
                     var hasChanges = RemoteObjectTemplate.processMessage(message);
-                    Bluebird.delay(50).then(function () {
-                        self.refresh(hasChanges);
-                    }); // Let the promises settle out
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            self.refresh(hasChanges);
+                            resolve();
+                        }, 50);
+                    });
                 }
 
                 if (message.sync === false) {
@@ -491,7 +494,7 @@ amorphic = // Needs to be global to make mocha tests work
 
         function isRetriableErrorStatus(status) {
             const errorStatuses = new Set([500, 502, 503, 504, 0]);
-        
+
             return errorStatuses.has(status);
         }
 

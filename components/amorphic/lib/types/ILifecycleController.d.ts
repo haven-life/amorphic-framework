@@ -1,6 +1,22 @@
 import {Supertype} from '../..';
 import {CallContext, ChangeString, ErrorType, PreServerCallChanges} from './HelperTypes';
+import {Request, Response} from 'express';
 
+/**
+ * @TODO: Import directly from semotus later or consolidate
+ */
+export type RemoteCall = {
+    remoteCallId: any;
+    id: any;
+    changes: string; // The string is of type ChangeGroup
+    name: string;
+    sequence: any;
+    type: any;
+    sync: any;
+    value: any;
+}
+
+export type HTTPObjs = {request: Request, response: Response};
 /**
  * Some additional terms
  *
@@ -9,7 +25,7 @@ import {CallContext, ChangeString, ErrorType, PreServerCallChanges} from './Help
  *
  * @misnomer - Functionality that may have confusing nomenclature
  *
- * @deprecated - Deprecated functionality that is not used anymore
+ * @ deprecated - Deprecated functionality that is not used anymore
  */
 
 /**
@@ -24,20 +40,20 @@ import {CallContext, ChangeString, ErrorType, PreServerCallChanges} from './Help
 export interface ILifecycleController {
 
     /**
-    * @client
-    *
-    * Handler that runs prior to session expiry, or logout
-    * Allows the client to determine custom logic to run on session expiration
+     * @client
      *
-    * If not implemented, uses default expireController function, defined in client.js
+     * Handler that runs prior to session expiry, or logout
+     * Allows the client to determine custom logic to run on session expiration
+     *
+     * If not implemented, uses default expireController function, defined in client.js
      *
      * Suggestion on implementation:
-    *  1) Custom work and utilize to expireController (runs on client), clears the session on client
+     *  1) Custom work and utilize to expireController (runs on client), clears the session on client
      *  AND / OR
-    *  2) Custom work and utilize amorphic's expireSession which only runs on server (needs to remote in). Clears the session on the server
+     *  2) Custom work and utilize amorphic's expireSession which only runs on server (needs to remote in). Clears the session on the server
      *
-    * @returns {void}
-    */
+     * @returns {void}
+     */
     publicExpireSession?(): void;
 
     /**
@@ -69,10 +85,13 @@ export interface ILifecycleController {
      * @param {CallContext} callContext - Context (number of retries etc)
      * @param {boolean} forceUpdate -  True if this is a retry of the call based on an update conflict. False / undefined otherwise.
      * @param {boolean} functionName - The function name as a string
+     * @param remoteCall - Object that has all the relevant info for this remotecall
+     * @param isPublic - Whether or not this function's remote decorator has 'public: true' defined or not. To be used to define publicly accessible endpoints
+     * @param HTTPObjs - Object that passes the references to Request and Response objects
      * @returns {Promise<void>}
      * @memberof ILifecycleController
      */
-    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string): Promise<void>;
+    preServerCall?(hasChanges: boolean, changes: PreServerCallChanges, callContext: CallContext, forceUpdate: undefined | boolean, functionName: string, remoteCall: RemoteCall, isPublic: boolean, HTTPObjs?: HTTPObjs ): Promise<any>;
 
     /**
      * @server
@@ -88,13 +107,14 @@ export interface ILifecycleController {
      * See remote call documentation to know where this executes in the lifecycle
      *
      * @param {boolean} hasChanges - Whether or not we have applied client changes onto the server's object graph
-     * @param {CallContext} CallContext - Context (number of retries etc)
-     * @param {changeString} ChangeString - Object of Changes - Key is [ClassName].[propertyName], Value is [changedValue] example: {'Customer.middlename': 'Karen'}, See above note
+     * @param {CallContext} callContext - Context (number of retries etc)
+     * @param {changeString} changeString - Object of Changes - Key is [ClassName].[propertyName], Value is [changedValue] example: {'Customer.middlename': 'Karen'}, See above note
      *
+     * @param HTTPObjs
      * @returns {Promise<void>}
      * @memberof ILifecycleController
      */
-    postServerCall?(hasChanges: boolean, callContext: CallContext, changeString: ChangeString): Promise<any>;
+    postServerCall?(hasChanges: boolean, callContext: CallContext, changeString: ChangeString, HTTPObjs?: HTTPObjs): Promise<any>;
 
     /**
      * @server
