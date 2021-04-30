@@ -52,7 +52,7 @@ async function retryCall(payload: ProcessCallPayload) {
  *
  * @returns  unknown
  */
-async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): Promise<void | boolean> {
+async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): Promise<any> {
     const {semotus, remoteCall, session, callContext, HTTPObjs} = payload;
     semotus.logger.info(
         {
