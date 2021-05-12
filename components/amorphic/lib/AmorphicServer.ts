@@ -39,6 +39,7 @@ type ServerOptions = https.ServerOptions &
     securePort?: number;
     isSecure?: Boolean;
     apiPath?: string;
+    trustProxy?: Boolean;
 };
 
 //@TODO: Experiment with app.engine so we can have customizable SSR
@@ -90,7 +91,10 @@ export class AmorphicServer {
         const port = AmorphicContext.amorphicOptions.port;
         const securePort = serverOptions && serverOptions.securePort;
         const isSecure = serverOptions && serverOptions.isSecure;
-
+        const trustProxy = serverOptions && serverOptions.trustProxy;
+        if (trustProxy) {
+            server.app.enable('trust proxy');
+        }
         // Secure App (https)
         if (isSecure) {
             const serverOptions = appConfig.appConfig.serverOptions;
@@ -112,6 +116,8 @@ export class AmorphicServer {
 
         // @TODO: convert to http2 with node-spdy
         // Unsecure App (http)
+
+
         AmorphicContext.appContext.server = http.createServer(server.app).listen(port);
 
         AmorphicContext.appContext.expressApp = server.app;

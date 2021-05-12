@@ -81,12 +81,12 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 		saveUninitialized: true,
 		rolling: true
 	};
-	if (amorphicOptions.sameSiteCookie) {
-		sessionConfig.cookie.sameSite = amorphicOptions.sameSiteCookie;
+	if(configStore[mainApp].get('sameSiteCookie')) {
+		sessionConfig.cookie.sameSite = configStore[mainApp].get('sameSiteCookie');
 	}
-	if (amorphicOptions.secureCookie) {
-		sessionConfig.cookie.secure = amorphicOptions.secureCookie;
-	}
+	if(configStore[mainApp].get('secureCookie')) {
+		sessionConfig.cookie.secure = configStore[mainApp].get('secureCookie');
+	};
 	if (sessionStore) {
 		sessionConfig['store'] = sessionStore;
 	}
