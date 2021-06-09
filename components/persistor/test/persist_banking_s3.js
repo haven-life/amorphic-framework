@@ -128,12 +128,11 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
                 ));
             });
 
-            it('returns the original value for the remote field and logs error', async () => {
+            it('returns a top level error', async () => {
                 try {
                     const fetchedBankDocCust = await Customer.getFromPersistWithId(bankingDocumentCustomer._id);
                 } catch (e) {
                     expect(e.message).to.eql('there was a problem downloading the remote object from source');
-                    // expect(fetchedBankDocCust.bankingDocument).to.eql(bankingDocumentData);
                 }
             });
         });
