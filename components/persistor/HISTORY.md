@@ -1,3 +1,8 @@
+## 5.4.0
+* make the local client slightly more robust in its ability to model rollbacks
+* don't set the field to null if we encounter an error, leave it alone but also throw an error
+instead of only logging it
+* update tests
 ## 5.3.0
 * objects can return the raw insert sqls if consumers want to track them.
 * changing the structure of the returned object for the sqls list in the commit.
