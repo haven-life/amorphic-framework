@@ -352,12 +352,14 @@ module.exports = function (PersistObjectTemplate) {
             .insert(pojo).toString();
             return Promise.resolve(knex
                 .insert(pojo)
-                .then(logSuccessAndTrack.bind(this)));
+                .then(logSuccessAndTrack.bind(this))
+                .catch(revertVersion.bind(this)));
         }
 
         function revertVersion(error) {
+            //we need revert the version wheen there is an exception thrown by the db.
             if (error.message !== 'Update Conflict') {
-                (logger || this.logger).error(
+                (logger || this.logger).info(
                     {
                         component: 'persistor',
                         module: 'db',
@@ -370,26 +372,50 @@ module.exports = function (PersistObjectTemplate) {
                         }
                     }
                 );
-                //If there is an error with updates, revert the version value to the original version.
+                //If there is a db error, revert the version value to the original version.
                 obj.__version__ = origVer;
             }
-
-            
+            //all the objects in the transactions should revert the __version__
+            revertVersionsOnAllObjects();
             throw error;
         }
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'updateConflict',
+                (logger || this.logger).info({component: 'persistor', module: 'db.saveKnexPojo', activity: 'updateConflict',
                     data: {txn: (txn ? txn.id : '-#-'), id: obj.__id__, __version__: origVer}});
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
                     txn.updateConflict =  true;
+                    //Need to revert versions only if the exception is not thrown.
+                    revertVersionsOnAllObjects();
                     return;
                 } else {
                     throw new Error('Update Conflict');
                 }
             }
+        }
+
+        function logChange() {
+            if (!txn) {
+                return;
+            }
+            txn.changedObjects = txn.changedObjects || [];
+            let updateState = {
+                orgVersion: origVer,
+                value: obj
+            };
+            txn.changedObjects.push(updateState);
+        }
+
+        function revertVersionsOnAllObjects() {
+            if (!txn || !txn.changedObjects) {
+                return;
+            }
+            txn.changedObjects.forEach((obj, key) => {
+                obj.value.__version__ = obj.orgVersion;
+            })
+            txn.changedObjects = null;
         }
 
         function logSuccessAndTrack() {
@@ -398,6 +424,7 @@ module.exports = function (PersistObjectTemplate) {
             if (txn && txn.knex && txn.queriesToNotify) {
                 generateNotifyQueries(obj.__template__, txn.queriesToNotify, sqlToRun);
             }
+            logChange();
         }
     }
 
@@ -1213,7 +1240,7 @@ module.exports = function (PersistObjectTemplate) {
         if (!notifyQueries) {
             persistorTransaction.queriesToNotify = null;
         }
-        // Start the knext transaction
+        // Start the knex transaction
         return knex.transaction(function(knexTransaction) {
             persistorTransaction.knex = knexTransaction;
 
@@ -1226,6 +1253,7 @@ module.exports = function (PersistObjectTemplate) {
                 .then(processTouches.bind(this))
                 .then(processPostSave.bind(this))
                 .then(processCommit.bind(this))
+                .then(postCommit.bind(this))
                 .catch(rollback.bind(this));
 
             function processPreSave() {
@@ -1355,6 +1383,34 @@ module.exports = function (PersistObjectTemplate) {
                         'transaction rolled back ' + innerError.message + (deadlock ? ' from deadlock' : ''));
                 });
             }
+            
+            function isOnetoManyRelationsOrPersistorProps(propName, propType, allProps) {
+                return (propType.type === Array && propType.of.isObjectTemplate) ||
+                    (propName.match(/Persistor$/) && typeof allProps[propName.replace(/Persistor$/, '')] === 'object');
+            }
+
+            function postCommit() {
+                persistorTransaction.changedObjects && persistorTransaction.changedObjects.forEach(obj => {
+                    var props = obj.value.__template__.getProperties();
+                    for (var prop in props) {
+                        var propType = props[prop];
+                        if (isOnetoManyRelationsOrPersistorProps(prop, propType, props) || !PersistObjectTemplate._persistProperty(propType)) {
+                            continue;
+                        }
+                        var oldKey = '_ct_org_' + prop;
+                        const replaceNullValuesWithUndefined = function (k, v) { return v === null ? undefined : v; };
+                        if (!props[prop].type.isObjectTemplate && (obj[oldKey] != obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
+                            JSON.stringify(obj[oldKey], replaceNullValuesWithUndefined) !== JSON.stringify(obj[prop], replaceNullValuesWithUndefined))))  {
+                            obj[oldKey] = obj[prop];
+                        }
+                        //For one to one relations, we need to check the ids associated to the parent record.
+                        else if (props[prop].type.isObjectTemplate && obj[prop + 'Persistor'] && obj['_ct_org_' + prop] !== obj[prop + 'Persistor'].id) {
+                            obj[oldKey] = obj[prop + 'Persistor'].id;
+                        }
+                    }
+                });
+                persistorTransaction.changedObjects = null;
+            }
 
             function generateChanges(obj, action) {
                 var objChanges;
@@ -1372,7 +1428,7 @@ module.exports = function (PersistObjectTemplate) {
                         var props = obj.__template__.getProperties();
                         for (var prop in props) {
                             var propType = props[prop];
-                            if (isOnetoManyRelationsOrPersistorProps(prop, propType) || !PersistObjectTemplate._persistProperty(propType)) {
+                            if (isOnetoManyRelationsOrPersistorProps(prop, propType, props) || !PersistObjectTemplate._persistProperty(propType)) {
                                 continue;
                             }
                             generatePropertyChanges(prop, obj);
@@ -1380,10 +1436,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
 
-                function isOnetoManyRelationsOrPersistorProps(propName, propType) {
-                    return (propType.type === Array && propType.of.isObjectTemplate) ||
-                        (prop.match(/Persistor$/) && typeof props[propName.replace(/Persistor$/, '')] === 'object');
-                }
+                
 
                 function generatePropertyChanges(prop, obj) {
                     //When the property type is not an object template, need to compare the values.

@@ -460,7 +460,7 @@ describe('persist newapi tests', function () {
         add1.phone = phone1;
         emp1.name = 'RaviNotSaved';
         emp1.homeAddress = add1;
-
+        
         var tx =  PersistObjectTemplate.beginTransaction();
         return emp1.persist({transaction: tx, cascade: false}).then(function() {
             return PersistObjectTemplate.commit({transaction: tx}).then(function() {
@@ -487,7 +487,7 @@ describe('persist newapi tests', function () {
             add = employee.homeAddress;
         }
         function realTest() {
-            var notifyChanges;
+            var notifyChanges;  
             var tx =  PersistObjectTemplate.beginTransaction();
             add.persistDelete({transaction: tx});
             emp.persistDelete({transaction: tx});
@@ -542,6 +542,45 @@ describe('persist newapi tests', function () {
 
         function createFKs() {
             return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
+        }
+    });
+
+    it('update conflict should revert the version', function () {
+        return createRecords()
+            .then(loadEmployee.bind(this))
+            .then(realTest.bind(this));
+
+        function loadEmployee() {
+            return Employee.persistorFetchByQuery({name: 'Ravi'})
+        }
+
+        async function realTest(emps) {
+            var tx =  PersistObjectTemplate.beginTransaction();
+            emps[0].setDirty(tx);
+            emps[1].__version__ = emps[1].__version__ + 1;
+            emps[1].setDirty(tx);
+            try {
+                await PersistObjectTemplate.commit({transaction: tx});
+            }
+            catch (err) {
+                expect(emps[0].__version__).to.equal('1');
+                expect(err.message).to.equal('Update Conflict');
+            }
+        }
+
+        function createRecords() {
+            var emp1 = new Employee();
+            var add1 = new Address();
+            var phone1 = new Phone();
+            phone1.number = '222222222';
+            add1.city = 'New York1';
+            add1.state = 'New York1';
+            add1.phone = phone1;
+            emp1.name = 'Ravi';
+            emp1.homeAddress = add1;
+            var tx =  PersistObjectTemplate.beginTransaction();
+            emp1.persist({transaction: tx, cascade: false});
+            return PersistObjectTemplate.commit({transaction: tx});
         }
     });
 });
