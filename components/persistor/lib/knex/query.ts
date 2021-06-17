@@ -327,12 +327,12 @@ module.exports = function (PersistObjectTemplate) {
                         } catch (e) {
                             (logger || this.logger).error({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
                                 data: `there was a problem downloading the remote object from source. Error: ${e}.`});
-                            obj[prop] = null;
+
+                            throw new Error('there was a problem downloading the remote object from source');
                         }
                     } else {
-                        (logger || this.logger).error({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
-                            data: 'there was a problem. remote object key must be a string' });
-                        obj[prop] = null;
+                        (logger || this.logger).log({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
+                            data: 'fetch called on remote object with no remote address value' });
                     }
                 }
                 else {
