@@ -359,7 +359,7 @@ module.exports = function (PersistObjectTemplate) {
         function revertVersion(error) {
             //we need revert the version wheen there is an exception thrown by the db.
             if (error.message !== 'Update Conflict') {
-                (logger || this.logger).info(
+                (logger || this.logger).error(
                     {
                         component: 'persistor',
                         module: 'db',
