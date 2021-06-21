@@ -283,7 +283,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         })
     });
 
-    it('Accounts sloppily replace addresses', function (done) {
+    it('Accounts sloppily replace addresses supertype', function (done) {
         sam.primaryAddresses.splice(0, 1);
         sam.addAddress('primary', ['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');
         Promise.resolve()
@@ -842,7 +842,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         });
     });
 
-    it('Can get a deadlock rollback', function (done) {
+    it('Can get a deadlock rollback supertype', function (done) {
 
         /* Sequence to get a deadlock:
         1 - txn1 - end() procssesing: update sam (acquire exclusive lock)

@@ -1,3 +1,6 @@
+## 5.5.0
+* Reverting __version__ of all the objects getting updated in the transaction.
+* Changing tracking updates the __org__ properties only if the commit succeed.
 ## 5.4.0
 * make the local client slightly more robust in its ability to model rollbacks
 * don't set the field to null if we encounter an error, leave it alone but also throw an error
