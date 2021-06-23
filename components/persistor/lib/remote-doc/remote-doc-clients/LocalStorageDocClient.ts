@@ -79,8 +79,8 @@ export class LocalStorageDocClient implements RemoteDocClient {
      */
     public async deleteDocument(key: string, bucket: string) {
         return new Promise((resolve, reject) => {
-            fs.unlink(this.fileBaseDirectory + bucket + '_' + key + '.txt', (err: NodeJS.ErrnoException) => {
-                if (err) {
+            fs.writeFile(this.fileBaseDirectory + bucket + '_' +  key + '.txt', "DELETED / ROLLED BACK", (err: NodeJS.ErrnoException) => {
+                if(err) {
                     reject(err);
                 }
                 resolve(undefined);
