@@ -841,7 +841,15 @@ amorphic = // Needs to be global to make mocha tests work
         var now = new Date();
 
         now.setDate(now.getDate() + (length ? length : 30));
-        document.cookie = cookie + '=' + value + '; expires=' + now.toUTCString() + '; path=/';
+        let cookieValue = cookie + '=' + value + '; expires=' + now.toUTCString() + '; path=/;';
+        if (this.config.sameSiteCookie) {
+            cookieValue += `sameSite=${this.config.sameSiteCookie};`
+        }
+        if (this.config.secureCookie) {
+            cookieValue += `Secure;`
+        }
+
+        document.cookie = cookieValue;
     },
 
     getCookieJar: function () {
