@@ -587,10 +587,15 @@ module.exports = function (PersistObjectTemplate) {
                 var className = '';
                 getClassName(template);
                 return className;
-                function getClassName(template) {
-                    className += (className.length > 0 ? ', ' + template.__name__ : 'values: ' + template.__name__);
-                    if (template.__children__)
-                        _.each(template.__children__, getClassName);
+                function getClassName(template, visited?) {
+                    visited = visited || [];
+                    if (template.__children__ && !visited.includes(template.__name__)) {
+                        className += (className.length > 0 ? ', ' + template.__name__ : 'values: ' + template.__name__);
+                        visited.push(template.__name__);
+                        template.__children__.forEach(function (obj) {
+                            getClassName(obj, visited);
+                        })
+                    }
                 }
             }
             function getDescription (prop, defineProperty) {
@@ -907,14 +912,18 @@ module.exports = function (PersistObjectTemplate) {
         }
     }
 
-    function getPropsRecursive(template, map?) {
+    function getPropsRecursive(template, map?, visited?) {
         map = map || {};
+        visited = visited || [];
         _.map(template.getProperties(), function (val, prop) {
             map[prop] = val
         });
         template = template.__children__;
         template.forEach(function (template) {
-            getPropsRecursive(template, map);
+            if (!visited.includes(template.__name__)) {
+                visited.push(template.__name__);
+                getPropsRecursive(template, map, visited);
+            }
         });
         return map;
     }

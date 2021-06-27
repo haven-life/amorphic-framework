@@ -1,3 +1,6 @@
+## 5.6.0
+* Fixing infinite loop issue with getPropsRecursive and addComments
+
 ## 5.5.0
 * Reverting __version__ of all the objects getting updated in the transaction.
 * Changing tracking updates the __org__ properties only if the commit succeed.
