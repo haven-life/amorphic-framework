@@ -136,14 +136,18 @@ module.exports = function (PersistObjectTemplate) {
                 cols.push(prefix + '.' + prop + ' as ' + (prefix ? prefix + '___' : '') + prop);
             }
 
-            function getPropsRecursive(template, map?) {
+            function getPropsRecursive(template, map?, visited?) {
                 map = map || {};
+                visited = visited || []
                 _.map(template.getProperties(), function (val, prop) {
                     map[prop] = val
                 });
                 template = template.__children__;
                 template.forEach(function (template) {
-                    getPropsRecursive(template, map);
+                    if (!visited.includes(template.__name__)) {
+                        visited.push(template.__name__);
+                        getPropsRecursive(template, map, visited);
+                    }
                 });
                 return map;
             }
