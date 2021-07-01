@@ -1,3 +1,6 @@
+
+## 8.1.1
+* upgrade the express-session and cookie-parser module to support the sameSite=None
 ## 8.1.0
 * Adding the ability for amorphic to set the cookie options for cross-origin load
 ## 8.0.0
