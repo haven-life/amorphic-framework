@@ -1,7 +1,6 @@
 'use strict';
 
 let AmorphicContext = require('./AmorphicContext');
-let chalk = require('chalk');
 
 /*
     Amorphic startup options setup
@@ -19,7 +18,7 @@ function buildStartUpParams(configStore) {
     amorphicOptions.appList = rootCfg.get('applications');
 
     if (!rootCfg.get('application')) {
-        console.error(chalk.red('FATAL you did not define an application in your config.json file.'));
+        throw new Error('FATAL you did not define an application in your config.json file.');
     }
 
     amorphicOptions.appStartList = rootCfg.get('application').split(';');
@@ -27,11 +26,11 @@ function buildStartUpParams(configStore) {
     amorphicOptions.port = rootCfg.get('port') || 3000; // default to 3000 if not listed
 
     if (!amorphicOptions.appList) {
-        console.error(chalk.red('FATAL you did not define an applications list in your config.json file.'));
+        throw new Error('FATAL you did not define an applications list in your config.json file.');
     }
     for (let i = 0; i < amorphicOptions.appStartList.length; i++) {
         if (!amorphicOptions.appList[amorphicOptions.appStartList[i]]) {
-            console.error(chalk.red('FATAL your application: %s is not in the applications list in your root config.'), amorphicOptions.appStartList[i]);
+            throw new Error('FATAL your application: %s is not in the applications list in your root config.');
         }
     }
 
@@ -39,8 +38,7 @@ function buildStartUpParams(configStore) {
         amorphicOptions.sessionSecret = rootCfg.get('sessionSecret');
     }
     else {
-        amorphicOptions.sessionSecret = 'swat_team';
-        console.warn('WARNING you are starting amorphic with no sessionSecret.');
+        throw new Error('FATAL you are starting amorphic with no sessionSecret.');
     }
 }
 
