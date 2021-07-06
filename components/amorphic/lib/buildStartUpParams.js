@@ -30,7 +30,7 @@ function buildStartUpParams(configStore) {
     }
     for (let i = 0; i < amorphicOptions.appStartList.length; i++) {
         if (!amorphicOptions.appList[amorphicOptions.appStartList[i]]) {
-            throw new Error('FATAL your application: %s is not in the applications list in your root config.');
+            throw new Error('FATAL your application: ' + amorphicOptions.appStartList[i] + ' is not in the applications list in your root config.');
         }
     }
 
