@@ -459,7 +459,10 @@ export class ObjectTemplate {
                 const parentTemplateName = constructorName(Object.getPrototypeOf(template.prototype).constructor);
                 template.__shadowParent__ = this.__dictionary__[parentTemplateName];
                 if (template.__shadowParent__) {
-                    template.__shadowParent__.__shadowChildren__.push(template);
+                    const found = template.__shadowParent__.__shadowChildren__.find(sc => sc.__name__ === template.__name__);
+                    if (!found) {
+                        template.__shadowParent__.__shadowChildren__.push(template);
+                    }
                 }
                 template.props = {};
                 const propst = ObjectTemplate._getDefineProperties(template, undefined, true);
