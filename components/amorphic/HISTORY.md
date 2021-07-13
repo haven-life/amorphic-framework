@@ -1,6 +1,9 @@
-## 8.1.1
+## 8.2.1
 * Replaced realistic hardcoded session secrets in test files with a test string
-
+## 8.2.0
+* for safety, stop amorphic from starting up if certain conditions aren't met
+## 8.1.1
+* upgrade the express-session and cookie-parser module to support the sameSite=None
 ## 8.1.0
 * Adding the ability for amorphic to set the cookie options for cross-origin load
 ## 8.0.0

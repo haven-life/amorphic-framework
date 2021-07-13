@@ -1,3 +1,5 @@
+## 3.5.0
+* Fixing issues in __children__ injections
 ## 3.4.1
 * Added amorphic-contracts to regular dependencies
 ## 3.4.0
