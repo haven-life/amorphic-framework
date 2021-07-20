@@ -102,22 +102,28 @@ module.exports = function (PersistObjectTemplate) {
             for (templateName in this._schema) {
                 template = PersistObjectTemplate.__dictionary__[templateName];
                 if (template) {
-                    addFKIndexes.call(this, this._schema[templateName], template, templateName)
+                    addFKIndexes.call(this, this._schema[templateName], template);
                 }
             }
         }
         this._schema.__indexed__ = true;
 
 
-        function addFKIndexes(schema, template, _templateName) {
-
+        /**
+         * add foreign key indexes for both 1:1 and 1:n object relationships
+         *
+         * @param schema - schema file
+         * @param template - object template that we're currently processing
+         */
+        function addFKIndexes(schema, template) {
             // Some folks may not want this
-            if (!schema.noAutoIndex)
-                _.map(schema.parents, addIndex.bind(this));
+            if (!schema.noAutoIndex) {
+                _.map(schema.parents, addOneToManyIndexes.bind(this));
+                _.map(schema.parents, addOneToOneIndexes.bind(this));
+            }
 
             // For a given parent relationship in the schema decide if an index should be added
-            function addIndex(val, prop) {
-
+            function addOneToManyIndexes(val, prop) {
                 // To get only one-to-many keys find the corresponding children entry and look up by id
                 var parentTemplate = template ? template.getProperties()[prop] : null;
                 var propType;
@@ -139,6 +145,21 @@ module.exports = function (PersistObjectTemplate) {
                 if (isOTM && !indexes[keyName]) {
                     indexes[keyName] = true;
                     schema.indexes.push({name: keyName, def: {columns: [val.id], type: 'index'}});
+                }
+            }
+
+            // make sure that we also add FK indexes for one to one object reference relationships
+            function addOneToOneIndexes(referencedObjectFromSchema) {
+                schema.indexes = schema.indexes || [];
+                const keyName = 'idx_' + schema.table + '_fk_' + referencedObjectFromSchema.id;
+
+                // check to see that we don't already have an index created already
+                if (!indexes[keyName]) {
+                    // we haven't created this index yet, but we're about to. mark this index key as processed
+                    indexes[keyName] = true;
+                    
+                    // create the index
+                    schema.indexes.push({name: keyName, def: {columns: [referencedObjectFromSchema.id], type: 'index'}});
                 }
             }
         }
