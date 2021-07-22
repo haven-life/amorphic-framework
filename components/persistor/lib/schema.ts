@@ -143,8 +143,8 @@ module.exports = function (PersistObjectTemplate) {
                 schema.indexes = schema.indexes || [];
                 var keyName = 'idx_' + schema.table + '_fk_' + val.id;
                 if (isOTM && !indexes[keyName]) {
-                    indexes[keyName] = true;
                     schema.indexes.push({name: keyName, def: {columns: [val.id], type: 'index'}});
+                    indexes[keyName] = true;
                 }
             }
 
@@ -155,11 +155,11 @@ module.exports = function (PersistObjectTemplate) {
 
                 // check to see that we don't already have an index created already
                 if (!indexes[keyName]) {
-                    // we haven't created this index yet, but we're about to. mark this index key as processed
-                    indexes[keyName] = true;
-                    
                     // create the index
                     schema.indexes.push({name: keyName, def: {columns: [referencedObjectFromSchema.id], type: 'index'}});
+
+                    // mark this index key as processed
+                    indexes[keyName] = true;
                 }
             }
         }
