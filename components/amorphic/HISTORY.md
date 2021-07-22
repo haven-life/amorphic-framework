@@ -1,3 +1,5 @@
+## 8.3.0
+* Changed variable name to prevent global window variables in other scripts from being undefined
 ## 8.2.1
 * Replaced realistic hardcoded session secrets in test files with a test string
 ## 8.2.0
