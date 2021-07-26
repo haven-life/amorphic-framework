@@ -247,7 +247,6 @@ describe('index synchronization checks', function () {
                 .limit(1)
                 .then(function (records) {
                     if (!records[0]) return [];
-                    console.error("!!!!", JSON.parse(records[0].schema)[key].indexes);
                     return JSON.parse(records[0].schema)[key].indexes;
                 });
         };
