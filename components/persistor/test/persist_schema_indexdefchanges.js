@@ -10,12 +10,6 @@ var Promise = require('bluebird');
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
-// setup indexing configs
-PersistObjectTemplate.setDBIndexingConfigs({
-    excludedOneToOneIndexes: [
-        'address'
-    ]
-});
 
 var Address = PersistObjectTemplate.create('Address', {
     id: { type: Number },
@@ -115,7 +109,8 @@ var schema = {
         parents: {
             address: {
                 id: 'address_id',
-                fetch: 'yes'
+                fetch: 'yes',
+                skipIndexCreation: true
             },
         },
         indexes: [{
@@ -394,11 +389,6 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate._verifySchema();
             return PersistObjectTemplate.synchronizeKnexTableFromTemplate(notificationCheck, fieldsNotify);
         });
-    });
-
-
-    it('transfers config props to the base template', () => {
-        expect(PersistObjectTemplate.excludedOneToOneIndexes).to.eql(['address']);
     });
 
     // we have two indexes manually placed on the employee table. without index skipping behavior,

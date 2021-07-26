@@ -149,15 +149,12 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             // make sure that we also add FK indexes for one to one object reference relationships
-            function addOneToOneIndexes(referencedObjectFromSchema, templateName) {
+            function addOneToOneIndexes(referencedObjectFromSchema) {
                 // get or create the indexes array...ugh
                 schema.indexes = schema.indexes || [];
 
-                // grab the "do not process" list given to us by the app config
-                const excludedIndexes = this.excludedOneToOneIndexes;
-
                 // check if the current object relation index is on our "do not process" list
-                const isSkippableIndex = (excludedIndexes && excludedIndexes.indexOf(templateName.toLowerCase()) !== -1);
+                const isSkippableIndex = !!referencedObjectFromSchema.skipIndexCreation;
 
                 // generate the index key name
                 const keyName = 'idx_' + schema.table + '_fk_' + referencedObjectFromSchema.id;
