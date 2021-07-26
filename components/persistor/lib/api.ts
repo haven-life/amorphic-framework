@@ -10,7 +10,7 @@
  *
  */
 
-import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import { PersistorTransaction, RemoteDocConnectionOptions, DBIndexingConfig } from './types';
 
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
@@ -1243,10 +1243,15 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         var connection = knex(config);
         this.setDB(connection, this.DB_Knex, config.client);
         this.setRemoteDocConnection(config);
+        this.setDBIndexingConfigs(config);
         this.setSchema(schema);
         this.performInjections(); // Normally done by getTemplates
         return connection;
-    }
+    };
+
+    PersistObjectTemplate.setDBIndexingConfigs = function(config: DBIndexingConfig) {
+        this.excludedOneToOneIndexes = config.excludedOneToOneIndexes;
+    };
 
     /**
      * Mostly used for unit testing.  Drops all tables for templates that have a schema

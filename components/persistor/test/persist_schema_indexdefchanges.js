@@ -10,11 +10,25 @@ var Promise = require('bluebird');
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
+// setup indexing configs
+PersistObjectTemplate.setDBIndexingConfigs({
+    excludedOneToOneIndexes: [
+        'address'
+    ]
+});
+
+var Address = PersistObjectTemplate.create('Address', {
+    id: { type: Number },
+    init: function(id) {
+        this.id = id;
+    }
+});
 
 var Employee = PersistObjectTemplate.create('Employee', {
     id: {type: Number},
     name: {type: String, value: 'Test Employee'},
     newField: {type: String, value: 'Test Employee', customField: 'customValue'},
+    address: { type: Address },
     init: function (id, name) {
         this.id = id;
         this.name = name;
@@ -98,6 +112,12 @@ var ExtendParent = Parent.extend('ExtendParent', {
 var schema = {
     Employee: {
         documentOf: 'pg/employee',
+        parents: {
+            address: {
+                id: 'address_id',
+                fetch: 'yes'
+            },
+        },
         indexes: [{
             name: 'fst_index',
             def: {
@@ -122,6 +142,10 @@ var schema = {
                 type: 'unique'
             }
         }]
+    },
+    Address: {
+        documentOf: 'pg/address',
+        table: 'address'
     },
     Executive: {
         documentOf: 'pg/Manager',
@@ -223,8 +247,9 @@ describe('index synchronization checks', function () {
                 .limit(1)
                 .then(function (records) {
                     if (!records[0]) return [];
+                    console.error("!!!!", JSON.parse(records[0].schema)[key].indexes);
                     return JSON.parse(records[0].schema)[key].indexes;
-                })
+                });
         };
 
         (function () {
@@ -372,11 +397,17 @@ describe('index synchronization checks', function () {
         });
     });
 
-    // it('creating parent and child and synchronize the parent to check the child table indexes', function (done) {
-    //     PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function () {
-    //         Promise.all([getIndexes('Employee').should.eventually.have.length(2),
-    //             getIndexes('Manager').should.eventually.have.length(1),
-    //             getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
-    //     });
-    // });
+
+    it('transfers config props to the base template', () => {
+        expect(PersistObjectTemplate.excludedOneToOneIndexes).to.eql(['address']);
+    });
+
+    // we have two indexes manually placed on the employee table. without index skipping behavior,
+    // we would have three, an additional one being placed on address FK. test to make sure that
+    // we are indeed skipping this index
+    it('should skip creating the address index', () => {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee, null, true).then(function () {
+            return getIndexes('Employee').should.eventually.have.length(2);
+        });
+    })
 });
