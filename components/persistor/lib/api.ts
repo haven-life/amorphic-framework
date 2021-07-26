@@ -10,7 +10,7 @@
  *
  */
 
-import { PersistorTransaction, RemoteDocConnectionOptions, DBIndexingConfig } from './types';
+import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
 
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
