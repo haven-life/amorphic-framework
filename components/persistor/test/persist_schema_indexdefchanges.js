@@ -398,5 +398,27 @@ describe('index synchronization checks', function () {
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee, null, true).then(function () {
             return getIndexes('Employee').should.eventually.have.length(2);
         });
-    })
+    });
+
+    it('should create the address FK index', () => {
+        // don't skip this particular FK index creation anymore
+        schema.Employee.parents.address.skipIndexCreation = false;
+
+        // in a normal app startup scenario, this wouldn't need to be touched, but since
+        // we're in a testing environment, pretend as if we haven't indexed things yet
+        PersistObjectTemplate._schema.__indexed__ = false;
+
+        // take our updated schema and place it on the global object template
+        PersistObjectTemplate.setSchema(schema);
+
+        // run through the pathway that creates the dynamically generated indexes
+        // e.g. foreign key indexes
+        // don't need this if we're manually creating indexes in the `indexes` property on the schema
+        PersistObjectTemplate._verifySchema();
+
+        // synchronize DB with our in memory schema definition
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee, null, true).then(function () {
+            return getIndexes('Employee').should.eventually.have.length(3);
+        });
+    });
 });
