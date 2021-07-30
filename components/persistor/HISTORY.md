@@ -1,3 +1,6 @@
+## 6.0.0
+* fix creation of 1:1 foreign key indexes
+* automatically create indexes for FKs unless "skipIndexCreation" flag is added in schema entry
 ## 5.5.0
 * Reverting __version__ of all the objects getting updated in the transaction.
 * Changing tracking updates the __org__ properties only if the commit succeed.

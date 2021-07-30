@@ -11,10 +11,18 @@ var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
 
+var Address = PersistObjectTemplate.create('Address', {
+    id: { type: Number },
+    init: function(id) {
+        this.id = id;
+    }
+});
+
 var Employee = PersistObjectTemplate.create('Employee', {
     id: {type: Number},
     name: {type: String, value: 'Test Employee'},
     newField: {type: String, value: 'Test Employee', customField: 'customValue'},
+    address: { type: Address },
     init: function (id, name) {
         this.id = id;
         this.name = name;
@@ -98,6 +106,13 @@ var ExtendParent = Parent.extend('ExtendParent', {
 var schema = {
     Employee: {
         documentOf: 'pg/employee',
+        parents: {
+            address: {
+                id: 'address_id',
+                fetch: 'yes',
+                skipIndexCreation: true
+            },
+        },
         indexes: [{
             name: 'fst_index',
             def: {
@@ -122,6 +137,10 @@ var schema = {
                 type: 'unique'
             }
         }]
+    },
+    Address: {
+        documentOf: 'pg/address',
+        table: 'address'
     },
     Executive: {
         documentOf: 'pg/Manager',
@@ -224,7 +243,7 @@ describe('index synchronization checks', function () {
                 .then(function (records) {
                     if (!records[0]) return [];
                     return JSON.parse(records[0].schema)[key].indexes;
-                })
+                });
         };
 
         (function () {
@@ -372,11 +391,34 @@ describe('index synchronization checks', function () {
         });
     });
 
-    // it('creating parent and child and synchronize the parent to check the child table indexes', function (done) {
-    //     PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee).then(function () {
-    //         Promise.all([getIndexes('Employee').should.eventually.have.length(2),
-    //             getIndexes('Manager').should.eventually.have.length(1),
-    //             getIndexes('Executive').should.eventually.have.length(1)]).should.notify(done);
-    //     });
-    // });
+    // we have two indexes manually placed on the employee table. without index skipping behavior,
+    // we would have three, an additional one being placed on address FK. test to make sure that
+    // we are indeed skipping this index
+    it('should skip creating the address index', () => {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee, null, true).then(function () {
+            return getIndexes('Employee').should.eventually.have.length(2);
+        });
+    });
+
+    it('should create the address FK index', () => {
+        // don't skip this particular FK index creation anymore
+        schema.Employee.parents.address.skipIndexCreation = false;
+
+        // in a normal app startup scenario, this wouldn't need to be touched, but since
+        // we're in a testing environment, pretend as if we haven't indexed things yet
+        PersistObjectTemplate._schema.__indexed__ = false;
+
+        // take our updated schema and place it on the global object template
+        PersistObjectTemplate.setSchema(schema);
+
+        // run through the pathway that creates the dynamically generated indexes
+        // e.g. foreign key indexes
+        // don't need this if we're manually creating indexes in the `indexes` property on the schema
+        PersistObjectTemplate._verifySchema();
+
+        // synchronize DB with our in memory schema definition
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(Employee, null, true).then(function () {
+            return getIndexes('Employee').should.eventually.have.length(3);
+        });
+    });
 });
