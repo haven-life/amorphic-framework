@@ -1246,7 +1246,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this.setSchema(schema);
         this.performInjections(); // Normally done by getTemplates
         return connection;
-    }
+    };
 
     /**
      * Mostly used for unit testing.  Drops all tables for templates that have a schema
