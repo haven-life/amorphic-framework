@@ -69,7 +69,7 @@ RemoteObjectTemplate._injectIntoTemplate = function (template) {
     }
 };
 
-var module = {exports: {}};
+const amorphicModule = {exports: {}};
 
 amorphic = // Needs to be global to make mocha tests work
 {
@@ -573,8 +573,8 @@ amorphic = // Needs to be global to make mocha tests work
             // Graph of mixins so we can process them at the end
         var mixinGraph = {};
 
-        if (module.exports.objectTemplateInitialize) {
-            module.exports.objectTemplateInitialize(RemoteObjectTemplate);
+        if (amorphicModule.exports.objectTemplateInitialize) {
+            amorphicModule.exports.objectTemplateInitialize(RemoteObjectTemplate);
         }
 
         var objectTemplateSubClass = Object.create(RemoteObjectTemplate);
@@ -613,7 +613,7 @@ amorphic = // Needs to be global to make mocha tests work
                 }
             };
 
-            for (var exp in module.exports || {}) {
+            for (var exp in amorphicModule.exports || {}) {
                 if (!exp.match(/_mixins/)) {
                     objectTemplateSubClass.create = function (name) {
                         var template = RemoteObjectTemplate.create(name, {});
@@ -648,7 +648,7 @@ amorphic = // Needs to be global to make mocha tests work
                         return template;
                     };
 
-                    var initializerReturnValues = (module.exports[exp])(objectTemplateSubClass, usesV2Pass1);
+                    var initializerReturnValues = (amorphicModule.exports[exp])(objectTemplateSubClass, usesV2Pass1);
 
                     recordStatics(initializerReturnValues);
                 }
@@ -669,7 +669,7 @@ amorphic = // Needs to be global to make mocha tests work
 
             var objectTemplateSubClass = Object.create(RemoteObjectTemplate);
 
-            for (var exp in module.exports) {
+            for (var exp in amorphicModule.exports) {
                 objectTemplateSubClass.create = function (name, props) {
                     if (RemoteObjectTemplate.__dictionary__[name.name || name]) {
                         RemoteObjectTemplate.__dictionary__[name.name || name].mixin(props);
@@ -684,10 +684,10 @@ amorphic = // Needs to be global to make mocha tests work
                 var initializerReturnValues;
 
                 if (this.config && this.config.modules) {
-                    initializerReturnValues = (module.exports[exp])(objectTemplateSubClass, usesV2Pass2, this.config.modules[exp.replace(/_mixins/, '')]);
+                    initializerReturnValues = (amorphicModule.exports[exp])(objectTemplateSubClass, usesV2Pass2, this.config.modules[exp.replace(/_mixins/, '')]);
                 }
                 else {
-                    initializerReturnValues = (module.exports[exp])(objectTemplateSubClass, usesV2Pass2, null);
+                    initializerReturnValues = (amorphicModule.exports[exp])(objectTemplateSubClass, usesV2Pass2, null);
                 }
 
                 recordStatics(initializerReturnValues);
@@ -706,9 +706,9 @@ amorphic = // Needs to be global to make mocha tests work
         else {
             var requires = {};
 
-            for (var exp in module.exports || {}) {
+            for (var exp in amorphicModule.exports || {}) {
                 if (!exp.match(/_mixins/)) {
-                    var templates = (module.exports[exp])(RemoteObjectTemplate, function () {
+                    var templates = (amorphicModule.exports[exp])(RemoteObjectTemplate, function () {
                         return window;
                     });
 
@@ -722,14 +722,14 @@ amorphic = // Needs to be global to make mocha tests work
 
             var templates = flatten(requires);
 
-            for (var exp in module.exports) {
+            for (var exp in amorphicModule.exports) {
                 if (exp.match(/_mixins/)) {
 
                     if (this.config) {
-                        templates = (module.exports[exp])(RemoteObjectTemplate, requires, this.config.modules[exp.replace(/_mixins/, '')], templates);
+                        templates = (amorphicModule.exports[exp])(RemoteObjectTemplate, requires, this.config.modules[exp.replace(/_mixins/, '')], templates);
                     }
                     else {
-                        templates = (module.exports[exp])(RemoteObjectTemplate, requires, null, templates);
+                        templates = (amorphicModule.exports[exp])(RemoteObjectTemplate, requires, null, templates);
                     }
 
                     for (var template in  templates) {
