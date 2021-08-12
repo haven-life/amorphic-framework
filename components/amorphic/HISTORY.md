@@ -1,3 +1,5 @@
+## 8.3.0
+* bump persistor version to latest 6.x
 ## 8.2.1
 * Replaced realistic hardcoded session secrets in test files with a test string
 ## 8.2.0
