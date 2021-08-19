@@ -4,7 +4,7 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "8.3.0",
+	"version": "8.4.0",
 	"dependencies": {
 		"@haventech/persistor": "5.x",
 		"@haventech/semotus": "4.x",
@@ -19,7 +19,8 @@
 		"formidable": "1.1.1",
 		"mongodb": "^3.5.5",
 		"nconf": "0.8.5",
-		"uglify-js": "2.7.5"
+		"uglify-js": "2.7.5",
+		"validator": "13.6.0"
 	},
 	"devDependencies": {
 		"@types/chai": "4.0.4",
@@ -29,6 +30,7 @@
 		"@types/express-session": "1.15.11",
 		"@types/mocha": "2.2.43",
 		"@types/node": "8.10.36",
+		"@types/validator": "^13.6.3",
 		"axios": "^0.21.1",
 		"chai": "4.1.2",
 		"es6-promise": "4.1.1",
