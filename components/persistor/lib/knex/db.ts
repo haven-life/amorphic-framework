@@ -309,7 +309,7 @@ module.exports = function (PersistObjectTemplate) {
             if (txn.queriesToNotify) {
                 generateNotifyQueries(template, txn.queriesToNotify, knex.where({_id: id}).delete().toString());
             }
-            
+
         }
         return knex.where({_id: id}).delete();
     };
@@ -329,6 +329,7 @@ module.exports = function (PersistObjectTemplate) {
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
+        logChange();
         pojo.__version__ = obj.__version__;
         (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'pre',
             data: {txn: (txn ? txn.id + ' ' : '-#- '), type: (updateID ? 'updating ' : 'insert '),
@@ -375,8 +376,6 @@ module.exports = function (PersistObjectTemplate) {
                 //If there is a db error, revert the version value to the original version.
                 obj.__version__ = origVer;
             }
-            //all the objects in the transactions should revert the __version__
-            revertVersionsOnAllObjects();
             throw error;
         }
         function checkUpdateResults(countUpdated) {
@@ -387,8 +386,6 @@ module.exports = function (PersistObjectTemplate) {
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
                     txn.updateConflict =  true;
-                    //Need to revert versions only if the exception is not thrown.
-                    revertVersionsOnAllObjects();
                     return;
                 } else {
                     throw new Error('Update Conflict');
@@ -408,23 +405,12 @@ module.exports = function (PersistObjectTemplate) {
             txn.changedObjects.push(updateState);
         }
 
-        function revertVersionsOnAllObjects() {
-            if (!txn || !txn.changedObjects) {
-                return;
-            }
-            txn.changedObjects.forEach((obj, key) => {
-                obj.value.__version__ = obj.orgVersion;
-            })
-            txn.changedObjects = null;
-        }
-
         function logSuccessAndTrack() {
             (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
                 data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
             if (txn && txn.knex && txn.queriesToNotify) {
                 generateNotifyQueries(obj.__template__, txn.queriesToNotify, sqlToRun);
             }
-            logChange();
         }
     }
 
@@ -1032,7 +1018,7 @@ module.exports = function (PersistObjectTemplate) {
         var data = {};
         for (var prop in props) {
             var defineProperty = props[prop];
-            if (!this._persistProperty(defineProperty) || 
+            if (!this._persistProperty(defineProperty) ||
                 (defineProperty.type === Array && defineProperty.of.isObjectTemplate))
                 continue;
             else if (defineProperty.type && defineProperty.type.__objectTemplate__) {
@@ -1041,7 +1027,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 data[foreignKey] = obj[prop];
             }
-            else 
+            else
                 data[prop] = obj[prop];
         }
 
@@ -1237,6 +1223,7 @@ module.exports = function (PersistObjectTemplate) {
         var innerError;
         var changeTracking;
 
+        persistorTransaction.changedObjects = null;
         if (!notifyQueries) {
             persistorTransaction.queriesToNotify = null;
         }
@@ -1253,7 +1240,6 @@ module.exports = function (PersistObjectTemplate) {
                 .then(processTouches.bind(this))
                 .then(processPostSave.bind(this))
                 .then(processCommit.bind(this))
-                .then(postCommit.bind(this))
                 .catch(rollback.bind(this));
 
             function processPreSave() {
@@ -1374,7 +1360,7 @@ module.exports = function (PersistObjectTemplate) {
                     // fire off our delete requests in parallel
                     await Promise.all(toDeletePromiseArr);
                 }
-
+                revertVersionsOnAllObjects();
                 return knexTransaction.rollback(innerError).then(() => {
                     (logger || this.logger).debug({
                         component: 'persistor',
@@ -1383,7 +1369,17 @@ module.exports = function (PersistObjectTemplate) {
                         'transaction rolled back ' + innerError.message + (deadlock ? ' from deadlock' : ''));
                 });
             }
-            
+
+            function revertVersionsOnAllObjects() {
+                if (!persistorTransaction || !persistorTransaction.changedObjects) {
+                    return;
+                }
+                persistorTransaction.changedObjects.forEach((obj, key) => {
+                    obj.value.__version__ = obj.orgVersion;
+                })
+                persistorTransaction.changedObjects = null;
+            }
+
             function isOnetoManyRelationsOrPersistorProps(propName, propType, allProps) {
                 return (propType.type === Array && propType.of.isObjectTemplate) ||
                     (propName.match(/Persistor$/) && typeof allProps[propName.replace(/Persistor$/, '')] === 'object');
@@ -1436,7 +1432,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }
 
-                
+
 
                 function generatePropertyChanges(prop, obj) {
                     //When the property type is not an object template, need to compare the values.

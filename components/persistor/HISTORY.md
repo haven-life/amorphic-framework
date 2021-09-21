@@ -1,3 +1,7 @@
+## 5.5.2
+* version reverts should happen on all objects in the commit call as we are committing in batches.
+* removing the logic to update __org__ values from the postCommit call
+* skipping 5.5.1 verion as this has been already published with some of these changes.
 ## 5.5.0
 * Reverting __version__ of all the objects getting updated in the transaction.
 * Changing tracking updates the __org__ properties only if the commit succeed.
