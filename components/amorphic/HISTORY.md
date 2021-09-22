@@ -1,3 +1,5 @@
+## 8.5.0
+* bump supertype version to latest 3.5.0
 ## 8.4.0
 * bump persistor version to latest 6.x
 ## 8.3.0
