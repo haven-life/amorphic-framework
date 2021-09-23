@@ -8,7 +8,7 @@
 	"dependencies": {
 		"@haventech/persistor": "6.x",
 		"@haventech/semotus": "4.x",
-		"@haventech/supertype": "^3.4.0",
+		"@haventech/supertype": "^3.5.0",
 		"amorphic-bindster": "2.0.*",
 		"bluebird": "3.5.1",
 		"chalk": "2.4.1",
