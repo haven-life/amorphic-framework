@@ -1,3 +1,5 @@
+## 8.6.0
+* Exposed HTTPObjs, CallContext, RemoteCall, ChangeString, and PreServerCallChanges in index.d.ts
 ## 8.5.0
 * bump supertype version to latest 3.5.0
 ## 8.4.0
