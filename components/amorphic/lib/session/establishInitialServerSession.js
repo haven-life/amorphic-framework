@@ -5,7 +5,6 @@ let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 let getTemplates = require('../getTemplates').getTemplates;
 let getServerConfigString = require('../utils/getServerConfigString').getServerConfigString;
-let Bluebird = require('bluebird');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
@@ -51,40 +50,37 @@ function establishInitialServerSession(req, controllerPath, initObjectTemplate, 
 
     req.amorphicTracking.addServerTask({name: 'Creating Session without Controller'}, process.hrtime());
 
-    return Bluebird.try(function h() {
+    return Promise.resolve()
+        .then(function returnRetInitial() {
+            statsdUtils.computeTimingAndSend(establishInitialServerSessionTime,
+                'amorphic.session.establish_initial_server_session.response_time');
+            return {
+                appVersion: appVersion,
+                getMessage: function gotMessage() {
+                    return {
+                        ver: appVersion,
+                        startingSequence: 0,
+                        sessionExpiration: sessionExpiration
+                    };
+                    },
 
-        statsdUtils.computeTimingAndSend(
-            establishInitialServerSessionTime,
-            'amorphic.session.establish_initial_server_session.response_time');
+                getServerConnectString: function gotServerConnectString() {
+                    return JSON.stringify({
+                        url: '/amorphic/xhr?path=' + path,
+                        message: this.getMessage()
+                    });
+                    },
 
-        return {
-            appVersion: appVersion,
+                getServerConfigString: function j() {
+                    return getServerConfigString(config);
+                    },
 
-            getMessage: function gotMessage() {
-                return {
-                    ver: appVersion,
-                    startingSequence: 0,
-                    sessionExpiration: sessionExpiration
-                };
-            },
-
-            getServerConnectString: function i() {
-                return JSON.stringify({
-                    url: '/amorphic/xhr?path=' + path,
-                    message: this.getMessage()
-                });
-            },
-
-            getServerConfigString: function j() {
-                return getServerConfigString(config);
-            },
-
-            getPersistorProps: function () {
-                return applicationPersistorProps[path] ||
-                    (persistableSemotableTemplate.getPersistorProps ? persistableSemotableTemplate.getPersistorProps() : {});
-            }
-        };
-    });
+                getPersistorProps: function () {
+                    return applicationPersistorProps[path] ||
+                        (persistableSemotableTemplate.getPersistorProps ? persistableSemotableTemplate.getPersistorProps() : {});
+                }
+            };
+        });
 }
 
 

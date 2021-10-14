@@ -65,10 +65,11 @@ export interface IAmorphicRouteController {
      * From the Express documentation: "This property is much like req.url; however, it retains the original request URL, allowing you to rewrite req.url freely for internal routing purposes." 
      * @param {*} body - Request Body
      * @param {Request} req - Request Object
+     * @param {Response} res - Response Object (before sent to client)
      * 
      * @returns {Promise<ControllerResponse>} - Promise containing the response you want to send back to the client
      * @memberof IAmorphicRouteController
      */
-    processPost?(originalUrl: string, body: any, req: Request): Promise<ControllerResponse>;
+    processPost?(originalUrl: string, body: any, req: Request, res: Response): Promise<ControllerResponse>;
 
 }

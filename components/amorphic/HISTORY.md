@@ -1,3 +1,7 @@
+## 9.0.0
+* Removing Bluebird dependency from Amorphic
+* Removing __getRequestObj handler from Amorphic (not always working as intended)
+* Adding Response parameter to processPost
 ## 8.5.0
 * bump supertype version to latest 3.5.0
 ## 8.4.0

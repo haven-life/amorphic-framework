@@ -647,6 +647,21 @@ describe('third group of tests', function() {
         });
     });
 
+    it('should be able to set the cookie on the response within a processPost function', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/init/config.js',
+            data: {
+                test: 'hellooo',
+                setCookie: true
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(res.data).to.equal('hellooo');
+            expect(res.headers['set-cookie'][0]).to.deep.equal('iamthecookiemonster=megacookie; Path=/');
+        });
+    });
+
     it('should process a POST from xhr request when a processPost function is defined', function() {
         return axios({
             method: 'post',
@@ -683,14 +698,6 @@ describe('third group of tests', function() {
         });
     });
 
-    it('should be able to mutate cookies on the back end', function() {
-        return axios({
-            method: 'get',
-            url: 'http://localhost:3001/amorphic/xhr?path=test&file=test.txt'
-        }).then(function(res) {
-            expect(res.headers['set-cookie'][0]).to.deep.equal('iamthecookiemonster=megacookie; Path=/');
-        });
-    });
 
 });
 
