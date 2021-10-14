@@ -1,5 +1,3 @@
-import {Request, Response} from 'express';
-
 module.exports.controller = function(objectTemplate, getTemplate) {
 	objectTemplate.debugInfo = 'io;api';
 
