@@ -84,7 +84,7 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
 
                 if (req.method === 'POST' && session.objectTemplate.controller.processPost) {
                     
-                    Promise.resolve(session.objectTemplate.controller.processPost(req.originalUrl, req.body, req))
+                    Promise.resolve(session.objectTemplate.controller.processPost(req.originalUrl, req.body, req, resp))
                         .then(function b (controllerResp) {
                             session.save(appName, req.session, req);
 
