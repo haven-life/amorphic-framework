@@ -678,6 +678,21 @@ describe('third group of tests', function() {
         });
     });
 
+    it('should be able to set the cookie on the response within a processPost function within an existing session', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/xhr?path=config&form=true',
+            data: {
+                test: 'hellooo',
+                setCookie: true
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(res.data).to.equal('hellooo');
+            expect(res.headers['set-cookie'][0]).to.deep.equal('iamthecookiemonster=megacookie; Path=/');
+        });
+    });
+
     it('should be able to read cookies that I set on the front end', function() {
         return axios({
             method: 'post',

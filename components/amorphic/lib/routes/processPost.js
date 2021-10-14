@@ -30,7 +30,7 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 			if (typeof ourObjectTemplate.controller.processPost === 'function') {
 				Promise.resolve()
 					.then(function executeProcessPost() {
-						return ourObjectTemplate.controller.processPost(null, req.body, req)
+						return ourObjectTemplate.controller.processPost(null, req.body, req, res)
 					})
 					.then(function saveSessionAndEndResponse(controllerResp) {
 						ourObjectTemplate.setSession(remoteSessionId);
