@@ -47,7 +47,11 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
 
     return setUpInjectObjectTemplate(appName, config, schema)
         .then(buildAppConfigAndLoadTemplates.bind(this, appName, config, controllerJsDir, commonJsDir, sessionStore))
-        .spread(finishDaemonIfNeeded.bind(this, config, prop, prefix, appName));
+        .then(function(templates) {
+            const baseTemplate = templates[0];
+            const appTemplates = templates[1];
+            return finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates);
+        }.bind(this));
 }
 
 /**
