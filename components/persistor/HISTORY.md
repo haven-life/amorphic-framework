@@ -1,3 +1,5 @@
+## 6.2.0
+* Added "persistorIsFetched" function
 ## 6.1.0
 * Including changes from persistor@5.5.2 to master
 
