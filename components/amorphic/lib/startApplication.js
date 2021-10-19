@@ -7,7 +7,6 @@ let readFile = require('./utils/readFile').readFile;
 let getTemplates = require('./getTemplates').getTemplates;
 
 // Npm modules
-let Bluebird = require('bluebird');
 let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 let superType = require('@haventech/supertype').default;
@@ -48,7 +47,11 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
 
     return setUpInjectObjectTemplate(appName, config, schema)
         .then(buildAppConfigAndLoadTemplates.bind(this, appName, config, controllerJsDir, commonJsDir, sessionStore))
-        .spread(finishDaemonIfNeeded.bind(this, config, prop, prefix, appName));
+        .then(function(templates) {
+            const baseTemplate = templates[0];
+            const appTemplates = templates[1];
+            return finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates);
+        }.bind(this));
 }
 
 /**
@@ -64,7 +67,7 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
 function setUpInjectObjectTemplate(appName, config, schema) {
     let amorphicOptions = AmorphicContext.amorphicOptions || {};
     let dbConfig = buildDbConfig(appName, config);
-    let connectToDbIfNeedBe = Bluebird.resolve(false); // Default to no need.
+    let connectToDbIfNeedBe = Promise.resolve(false); // Default to no need.
 
     if (dbConfig.dbName && dbConfig.dbPath) {
         if (dbConfig.dbDriver === 'mongo') {
@@ -92,7 +95,7 @@ function setUpInjectObjectTemplate(appName, config, schema) {
                 acquireConnectionTimeout: dbConfig.dbConnectionTimeout
             });
 
-            connectToDbIfNeedBe = Bluebird.resolve(knex); // require('knex') is a synchronous call that already connects
+            connectToDbIfNeedBe = Promise.resolve(knex); // require('knex') is a synchronous call that already connects
         }
     }
 

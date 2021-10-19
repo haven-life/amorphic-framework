@@ -4,7 +4,6 @@ let amorphicContext = require('./AmorphicContext');
 let logMessage = require('./utils/logger').logMessage;
 let establishServerSession = require('./session/establishServerSession').establishServerSession;
 let displayPerformance = require('./utils/displayPerformance').displayPerformance;
-let Bluebird = require('bluebird');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /*
@@ -85,7 +84,7 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
 
                 if (req.method === 'POST' && session.objectTemplate.controller.processPost) {
                     
-                    Bluebird.resolve(session.objectTemplate.controller.processPost(req.originalUrl, req.body, req))
+                    Promise.resolve(session.objectTemplate.controller.processPost(req.originalUrl, req.body, req, resp))
                         .then(function b (controllerResp) {
                             session.save(appName, req.session, req);
 

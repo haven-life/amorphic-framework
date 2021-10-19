@@ -1,18 +1,19 @@
 version: '2'
 services:
   database-test:
-    image: postgres:9.4-alpine
+    image: circleci/postgres:latest
     ports:
-      - '5432:5432'
+      - '6001:5432'
     environment:
       - POSTGRES_USER=amorphic
       - POSTGRES_PASSWORD=amorphic
       - POSTGRES_DB=test
+      - POSTGRES_HOST_AUTH_METHOD=trust
 # uncomment to save data between tests
 #    volumes:
 #      - ./.postgres:/var/lib/postgresql/data
   mongo:
-    image: mongo:3.4
+    image: circleci/mongo:4.2.7
     ports:
       - '27017:27017'
 # uncomment to save data between tests
@@ -24,6 +25,8 @@ services:
     depends_on:
       - mongo
       - database-test
+    volumes:
+      - .:/app
     env_file:
       - ./test.env
     command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm test    

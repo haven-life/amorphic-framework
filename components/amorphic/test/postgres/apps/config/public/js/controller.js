@@ -32,13 +32,17 @@ module.exports.controller = function (objectTemplate, getTemplate) {
         serverInit: function () {
             serverController = this;
         },
-        processPost: {on: 'server', body: function (uri, body) {
+        processPost: {on: 'server', body: function (uri, body, req, res) {
             var retVal = body.test;
             if (body.error) {
                 throw 'error';
             }
             if (body.testCookie) {
                 retVal = JSON.stringify(this.__request && this.__request.cookies);
+            }
+            if (body.setCookie) {
+                console.warn("we are getting run here!");
+                res.cookie('iamthecookiemonster', 'megacookie');
             }
             return {status: 200, body: retVal};
         }},

@@ -9,7 +9,6 @@ let saveSession = require('./saveSession').saveSession;
 let restoreSession = require('./restoreSession').restoreSession;
 let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
-let Bluebird = require('bluebird');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
@@ -74,10 +73,6 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
     ourObjectTemplate.reqSession = req.session;
     controller.__request = req;
 
-    // getter for the response object, adding it directly on the controller results in circular reference issues
-    controller.__getResponseObj = function __getResponseObj() {
-        return res;
-    };
     controller.__sessionExpiration = sessionExpiration;
 
     req.amorphicTracking.addServerTask({name: 'Create Controller'}, process.hrtime());
@@ -128,13 +123,12 @@ function establishContinuedServerSession(req, controllerPath, initObjectTemplate
         saveSession(path, session, controller, req, sessions);
     }
 
-    return Bluebird.try(function g() {
-        statsdUtils.computeTimingAndSend(
-            establishContinuedServerSessionTime,
-            'amorphic.session.establish_continued_server_session.response_time');
-
-        return ret;
-    });
+    return Promise.resolve()
+        .then(function returnRetAsPromise() {
+            statsdUtils.computeTimingAndSend(establishContinuedServerSessionTime,
+                'amorphic.session.establish_continued_server_session.response_time');
+            return ret;
+        });
 }
 
 function getDefaultSemotus() {
