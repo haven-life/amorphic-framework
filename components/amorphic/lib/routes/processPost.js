@@ -18,7 +18,7 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  */
 
 function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
-    let processPostStartTime = process.hrtime();
+	let processPostStartTime = process.hrtime();
 
 	let session = req.session;
 	let path = url.parse(req.originalUrl, true).query.path;
@@ -30,8 +30,8 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 
 			if (typeof ourObjectTemplate.controller.processPost === 'function') {
 				Bluebird.resolve(ourObjectTemplate.controller.processPost(null, req.body, req, res))
-					.then(function saveSessionAndEndResponse(controllerResp) {
-                        ourObjectTemplate.setSession(remoteSessionId);
+					.then(function gg(controllerResp) {
+						ourObjectTemplate.setSession(remoteSessionId);
 						semotus.save(path, session, req);
 						res.writeHead(
 							controllerResp.status,
