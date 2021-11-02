@@ -306,7 +306,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             let deleteQuery = dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query, options.logger) :
                 PersistObjectTemplate.deleteFromKnexByQuery(template, query, options.transaction, options.logger);
-            
+
             const name = 'persistorDeleteByQuery';
             return deleteQuery
                 .then(result => {
@@ -813,6 +813,14 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 });
         };
 
+        template.prototype.persistorIsFetched = function (prop: string) {
+            const persistorPropertyName = prop + 'Persistor';
+            if (this.hasOwnProperty(persistorPropertyName)) {
+                return this[persistorPropertyName].isFetched;
+            }
+            throw new Error('Unable to find Persistor property for ' + prop);
+        };
+
         template.prototype.persistorFetchReferences = template.prototype.fetchReferences = async function (options) {
             var persistObjectTemplate = this.__objectTemplate__ || self;
             persistObjectTemplate._validateParams(options, 'fetchSchema', this.__template__);
@@ -919,7 +927,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             configurable: true
         })
 
-        
+
         Object.defineProperty(template.prototype, 'objectTemplateName', {
             get: function () {
                 return (this.constructor && this.constructor.name) || template.__name__;
@@ -938,7 +946,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             if (dbType == PersistObjectTemplate.DB_Mongo) {
                 throw new Error('Not supported this functionality for MongoDb.');
             }
-                
+
             return persistObjectTemplate.getInsertScript(this);
         };
 

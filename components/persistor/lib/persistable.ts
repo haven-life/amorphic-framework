@@ -6,7 +6,7 @@ export class Persistor extends SupertypeSession {
     /**
      * @TODO: was typed `Persistor` but that's weird? doesn't work need to figure out what's going on.
      */
-    static create(): any | undefined {return undefined}; 
+    static create(): any | undefined {return undefined};
     beginDefaultTransaction() : any {}
 
     /**
@@ -186,6 +186,11 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         persistorIsStale () : any {}
 
         /**
+         * Checks to see if the object has been fetched
+         */
+         persistorIsFetched(prop): any {};
+
+        /**
          * Can generate object id even before saving the record to the database
          *
          * @returns the string id
@@ -194,10 +199,10 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
 
         getInsertScript() : any {};
 
-        
+
         objectId : string ;
         objectTemplateName : string ;
-        
+
         _id: string;
         __version__: number;
         amorphic : Persistor;
@@ -233,7 +238,7 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
          * @async
          */
         static getFromPersistWithQuery(query, cascade?, start?, limit?, isTransient?, idMap?, options?, logger?) : any {}
-        
+
         /**
          * Delete objects given a json query
          *
