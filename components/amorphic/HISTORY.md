@@ -1,3 +1,5 @@
+## 9.0.1
+* Adding Bluebird dependency back into Amorphic, ran into errors with transactions
 ## 9.0.0
 * Removing Bluebird dependency from Amorphic
 * Removing __getResponseObj handler from Amorphic (not always working as intended)

@@ -8,6 +8,7 @@ let startApplication = require('./startApplication').startApplication;
 let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
+let Bluebird = require('bluebird');
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 
 const packageVersions = resolveVersions([
@@ -100,7 +101,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 		}
 	}
 
-	return Promise.all(promises)
+	return Bluebird.all(promises)
 		.then(
 			createServer.bind(
 				this,
