@@ -1,3 +1,5 @@
+## 6.3.0
+* Catch cases where index is not generated
 ## 6.2.0
 * Added "persistorIsFetched" function
 ## 6.1.0

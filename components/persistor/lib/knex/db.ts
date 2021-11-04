@@ -824,8 +824,19 @@ module.exports = function (PersistObjectTemplate) {
                     syncIndexesForHierarchy('delete', dbChanges, table);
                     syncIndexesForHierarchy('add', dbChanges, table);
                     syncIndexesForHierarchy('change', dbChanges, table);
-                })
-            })
+                }).catch(function (error) {
+                    const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
+                    if (logger) {
+                        logger.warn({
+                            component: 'persistor',
+                            dbChanges: dbChanges,
+                            module: 'db',
+                            activity: 'synchronizeIndexes',
+                            error: error
+                        }, 'Unable to update index');
+                    }
+                });
+            });       
         };
 
         var isSchemaChanged = function(object) {
