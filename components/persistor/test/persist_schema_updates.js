@@ -299,8 +299,7 @@ describe('schema update checks', function () {
         schema.newTable.indexes = (JSON.parse('[{"name": "scd_index","def": {"columns": ["id"],"type": "primary"}}]'));
 
         PersistObjectTemplate._verifySchema();
-        PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).should.eventually.not.contain('NewTable');
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).should.eventually.equal(true);
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).should.eventually.be.rejectedWith(Error, 'index type can be only "unique" or "index"');
     });
 
     it('add a new table definition to the schema and try to synchronize', function () {

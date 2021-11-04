@@ -825,6 +825,9 @@ module.exports = function (PersistObjectTemplate) {
                     syncIndexesForHierarchy('add', dbChanges, table);
                     syncIndexesForHierarchy('change', dbChanges, table);
                 }).catch(function (error) {
+                    if (error.message === 'index type can be only "unique" or "index"') {
+                        throw error;
+                    }
                     const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                     if (logger) {
                         logger.warn({
