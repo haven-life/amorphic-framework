@@ -1,5 +1,9 @@
 ## 6.3.0
 * Catch cases where index is not generated
+* This MR is a short-term fix to address an issue of index errors that is causing startup to hang.
+* A catch all was added to catch and log any index errors and allowing rest of the logic to continue.
+* A more permanent fix is in works and will be addressed in couple of months.
+
 ## 6.2.0
 * Added "persistorIsFetched" function
 ## 6.1.0
