@@ -1,3 +1,5 @@
+## 6.3.1
+* add a null check on error.message
 ## 6.3.0
 * Catch cases where index is not generated
 * This MR is a short-term fix to address an issue of index errors that is causing startup to hang.
