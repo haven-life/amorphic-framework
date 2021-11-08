@@ -1,3 +1,4 @@
+import { table } from "console";
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
 
 module.exports = function (PersistObjectTemplate) {
@@ -674,9 +675,11 @@ module.exports = function (PersistObjectTemplate) {
 
         var _dbschema;
         var _changes =  {};
+        let _additions = {};
         var schemaTable = 'index_schema_history';
         var schemaField = 'schema';
-
+        let tableColumns: string[] = [];
+        let tableIndexes: string[] = [];
 
         var loadSchema = function (tableName) {
 
@@ -762,8 +765,8 @@ module.exports = function (PersistObjectTemplate) {
             }, {});
         };
 
-        var getFilteredTarget = function(src, target) {
-            return _.filter(target, function(o, _filterkey) {
+        var getFilteredTarget = function(src, target, key) {
+            const filteredData = _.filter(target, function(o, _filterkey) {
                 var currName = _.reduce(o.def.columns, function (name, col) {
                     return name + '_' + col;
                 }, 'idx_' + tableName);
@@ -774,6 +777,7 @@ module.exports = function (PersistObjectTemplate) {
                     return (cachedName.toLowerCase() === currName.toLowerCase())
                 })
             });
+            return filterExistingIndexesAndNonExistingColumns(filteredData, key);
         };
 
         var mergeChanges = function() {
@@ -783,13 +787,34 @@ module.exports = function (PersistObjectTemplate) {
                     var uniqChanges = _.uniq(change[key], function(o) {
                         return o.name;
                     });
-                    var filtered = getFilteredTarget(dbChanges[key], uniqChanges);
+                    var filtered = getFilteredTarget(dbChanges[key], uniqChanges, key);
                     dbChanges[key].push.apply(dbChanges[key], filtered);
                 })
             });
 
             return dbChanges;
         };
+
+        function filterExistingIndexesAndNonExistingColumns(items, key: string) {
+            if (!items || !Array.isArray(items) || key !== 'add') {
+                return items;
+            }
+
+            const filteredItems = items.filter(obj => 
+                !tableIndexes.includes(obj.name)
+            );
+
+            for (let i=0; i < filteredItems.length; i++){
+                const items  = filteredItems[i];
+                if (items && items.def && items.def.columns) {
+                    let columns = items.def.columns;
+                    columns = columns.filter(column => 
+                        tableColumns.includes(column && column.id)
+                    );
+                } 
+            }
+            return filteredItems;
+        }
 
         var applyTableChanges = function(dbChanges) {
             function syncIndexesForHierarchy (operation, diffs, table) {
@@ -846,6 +871,24 @@ module.exports = function (PersistObjectTemplate) {
             return (object.add.length || object.change.length || object.delete.length)
         };
 
+        async function loadColumnNames(tableName: string) {
+            const columns = await knex(tableName).columnInfo();
+            tableColumns = columns ? Object.keys(columns) : [];
+        }
+
+        async function loadPgIndexes(tableName: string) {
+            const indexes = await knex('pg_indexes').select(['indexname', 'indexdef', 'tablename']).where({tablename: tableName});
+            if (!indexes) {
+                tableIndexes = [];
+            }
+
+            for (let i = 0; i<indexes.length; i++) {
+                if (Object.keys(indexes[i]) && Object.keys(indexes[i])[0] && Object.keys(indexes[i])[0]['indexname']){
+                    tableIndexes.push(indexes[i]['anonymous'].indexname);
+                }
+            }
+         }
+
         var makeSchemaUpdates = function () {
             var chgFound = _.reduce(_changes, function (curr, change) {
                 return curr || !!isSchemaChanged(change);
@@ -881,6 +924,8 @@ module.exports = function (PersistObjectTemplate) {
             .spread(diffTable)
             .then(generateChanges.bind(this, template))
             .then(mergeChanges)
+            .then(loadColumnNames(tableName))
+            .then(loadPgIndexes(tableName))
             .then(applyTableChanges)
             .then(makeSchemaUpdates)
             .catch(function(e) {
