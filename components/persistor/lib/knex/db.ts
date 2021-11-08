@@ -876,14 +876,16 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         async function loadPgIndexes(tableName: string) {
-            const indexes = await knex('pg_indexes').select(['indexname', 'indexdef', 'tablename']).where({tablename: tableName});
+            const indexes = await knex('pg_indexes').select(['indexname']).where({tablename: tableName});
             if (!indexes) {
                 tableIndexes = [];
             }
 
             for (let i = 0; i<indexes.length; i++) {
-                if (Object.keys(indexes[i]) && Object.keys(indexes[i])[0] && Object.keys(indexes[i])[0]['indexname']){
-                    tableIndexes.push(indexes[i]['anonymous'].indexname);
+                const keys = Object.keys(indexes[i]);
+                const indexname = keys && keys[0] && keys[0]['indexname'];
+                if (indexname) {
+                    tableIndexes.push(indexname);
                 }
             }
          }
