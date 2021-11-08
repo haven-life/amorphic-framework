@@ -675,7 +675,6 @@ module.exports = function (PersistObjectTemplate) {
 
         var _dbschema;
         var _changes =  {};
-        let _additions = {};
         var schemaTable = 'index_schema_history';
         var schemaField = 'schema';
         let tableColumns: string[] = [];
