@@ -1,4 +1,3 @@
-import { table } from "console";
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
 
 module.exports = function (PersistObjectTemplate) {
