@@ -70,7 +70,7 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
                 cachedController.controller.__template__.objectTemplate.getPendingCallCount() === 0) {
                 if (typeof cachedController.controller.amorphicReservedTimeOutAction === 'function') {
                     Promise.resolve()
-                    .then(function executeChachedControllerFunction() {
+                    .then(function executeCachedControllerFunction() {
                         return cachedController.controller.amorphicReservedTimeOutAction();
                     })
                     .catch(function error(e)  {
