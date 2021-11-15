@@ -1,3 +1,6 @@
+## 9.1.0
+* Add a hook on timeout that can be used by controller to do some actions.
+
 ## 9.0.0
 * Removing Bluebird dependency from Amorphic
 * Removing __getResponseObj handler from Amorphic (not always working as intended)
