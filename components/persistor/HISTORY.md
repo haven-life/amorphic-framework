@@ -1,5 +1,5 @@
 ## 7.0.0
-* Updated knex and pg for node 14 upgrade.
+* Updated knex and pg versions for node 14 upgrade.
 ## 6.3.1
 * add a null check on error.message
 ## 6.3.0

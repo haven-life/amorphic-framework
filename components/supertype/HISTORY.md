@@ -1,3 +1,5 @@
+## 3.6.0
+* Updated the minumum version of node to >=14.x
 ## 3.5.0
 * Fixing issues in __children__ injections
 ## 3.4.1
