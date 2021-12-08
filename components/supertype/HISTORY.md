@@ -1,3 +1,5 @@
+## 3.6.0
+* bumping versions to publish latest version
 ## 3.5.0
 * Fixing issues in __children__ injections
 ## 3.4.1
