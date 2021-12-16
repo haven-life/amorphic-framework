@@ -1,5 +1,7 @@
-## 3.6.0
+## 4.0.0
 * Updated the minumum version of node to >=14.x
+## 3.5.1
+* bumping patch version to publish latest package
 ## 3.5.0
 * Fixing issues in __children__ injections
 ## 3.4.1

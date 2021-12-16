@@ -1,5 +1,5 @@
 ## 10.0.0
-* Updated knex and pg for node 14 upgrade.
+* Updated knex and pg versions for node 14 upgrade.
 ## 9.0.0
 * Removing Bluebird dependency from Amorphic
 * Removing __getResponseObj handler from Amorphic (not always working as intended)
