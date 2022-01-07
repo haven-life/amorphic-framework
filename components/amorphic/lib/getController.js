@@ -68,8 +68,23 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
 
             if (!expressSession ||
                 cachedController.controller.__template__.objectTemplate.getPendingCallCount() === 0) {
-                controllers[sessionId + path] = null;
-                log(1, sessionId, 'Expiring controller cache for ' + path, nonObjTemplatelogLevel);
+                if (typeof cachedController.controller.amorphicReservedTimeOutAction === 'function') {
+                    return Promise.resolve()
+                            .then(function executeCachedControllerFunction() {
+                                return cachedController.controller.amorphicReservedTimeOutAction();
+                            })
+                            .catch(function error(e)  {
+                                log(1, sessionId, 'Error Encountered while executing amorphicReservedTimeOutAction function  ' + e.message + ' ' + e.stack);
+                            })
+                            .finally(function removeSessionController() {
+                                controllers[sessionId + path] = null;
+                                log(1, sessionId, 'Expiring controller cache for ' + path, nonObjTemplatelogLevel);
+                            });  
+                }
+                else {
+                    controllers[sessionId + path] = null;
+                    log(1, sessionId, 'Expiring controller cache for ' + path, nonObjTemplatelogLevel);
+                }
             }
             else {
                 cachedController.timeout = setTimeout(timeoutAction, objectCacheExpiration);
