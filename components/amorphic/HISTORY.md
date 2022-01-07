@@ -1,3 +1,5 @@
+## 9.1.0
+* Downgrade persistor to 5.x
 ## 9.0.0
 * Removing Bluebird dependency from Amorphic
 * Removing __getResponseObj handler from Amorphic (not always working as intended)
