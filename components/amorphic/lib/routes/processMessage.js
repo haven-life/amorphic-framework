@@ -181,7 +181,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 processMessageStartTime,
                 'amorphic.webserver.process_message.response_time',
                 { result: 'failure' });
-        });
+        }).done();
 }
 
 module.exports = {

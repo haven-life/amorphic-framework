@@ -4,6 +4,7 @@ let url = require('url');
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
+let Bluebird = require('bluebird');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
 /**
@@ -28,11 +29,8 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 			let remoteSessionId = req.session.id;
 
 			if (typeof ourObjectTemplate.controller.processPost === 'function') {
-				Promise.resolve()
-					.then(function executeProcessPost() {
-						return ourObjectTemplate.controller.processPost(null, req.body, req, res)
-					})
-					.then(function saveSessionAndEndResponse(controllerResp) {
+				Bluebird.resolve(ourObjectTemplate.controller.processPost(null, req.body, req, res))
+					.then(function gg(controllerResp) {
 						ourObjectTemplate.setSession(remoteSessionId);
 						semotus.save(path, session, req);
 						res.writeHead(
