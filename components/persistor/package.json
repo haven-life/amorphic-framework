@@ -2,25 +2,25 @@
     "name": "@haventech/persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from MongoDB or SQL databases",
     "homepage": "https://github.com/haven-life/persistor",
-    "version": "6.3.1",
+    "version": "7.0.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
         "aws-sdk": "2.x",
         "bluebird": "x",
-        "knex": "^0.20.13",
+        "knex": "^0.21.0",
         "mongodb": "^3.5.5",
-        "pg": "7.4.1",
+        "pg": "8.3.3",
         "q": "1.x",
         "tv4": "^1.2.7",
         "underscore": "^1.13.1",
         "uuid": "3.3.3"
     },
     "peerDependencies": {
-        "@haventech/supertype": "3.x"
+        "@haventech/supertype": "4.0.x"
     },
     "devDependencies": {
-        "@haventech/supertype": "3.x",
+        "@haventech/supertype": "4.0.x",
         "@types/bluebird": "*",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
@@ -41,7 +41,7 @@
     },
     "directories": {},
     "engines": {
-        "node": ">=12.x"
+        "node": ">=14.x"
     },
     "repository": {
         "type": "git",
@@ -49,6 +49,7 @@
     },
     "scripts": {
         "setup": "npm install",
+        "clean": "rm -rf dist/",
         "lint": "eslint .",
         "compile": "tsc -p ./tsconfig.json && cp index.d.ts dist/ && cp ./lib/persistable.ts dist/lib/",
         "compile:tests": "tsc -p ./test/supertype/tsconfig.test.json",
