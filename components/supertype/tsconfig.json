@@ -19,6 +19,7 @@
   "declaration": true,
   "exclude": [
     "./typescript",
-    "./test/typescript"
+    "./test/typescript",
+    "./dist/**/*"
   ]
 }

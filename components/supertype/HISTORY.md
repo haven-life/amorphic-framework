@@ -1,3 +1,5 @@
+## 4.0.0
+* Updated the minimum version of node to >=14.x
 ## 3.5.1
 * bumping patch version to publish latest package
 ## 3.5.0
