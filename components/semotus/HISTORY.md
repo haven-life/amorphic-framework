@@ -1,3 +1,5 @@
+## 5.0.0
+* Updated knex and pg versions for node 14 upgrade.
 ## 4.1.1
 * Fixing a bug in semotus where checking to see if `public: true` would fail if the remote object instance did not exist within the session
 ## 4.1.0
