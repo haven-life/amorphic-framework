@@ -6,8 +6,8 @@
 	"types": "dist/index.d.ts",
 	"version": "10.0.0",
 	"dependencies": {
-		"@haventech/persistor": "7.0.0-beta.4",
-		"@haventech/semotus": "5.0.0-beta.2",
+		"@haventech/persistor": "7.x",
+		"@haventech/semotus": "5.x",
 		"@haventech/supertype": "^4.0.0",
 		"amorphic-bindster": "2.0.*",
 		"chalk": "2.4.1",
