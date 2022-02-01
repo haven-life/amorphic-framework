@@ -743,12 +743,10 @@ module.exports = function (PersistObjectTemplate) {
                         var currentTableName = masterTblSchema.table || defaultTable;
                         if (addPredicate(mstIdx, shdIdx)) {
                             diffs[opr] = diffs[opr] || [];
-                            let indexName = _.reduce(mstIdx.def.columns, function (name, col) {
-                                return name + '_' + col;
-                            }, 'idx_' + currentTableName);
+                            let indexName = generateIndexName(mstIdx.def.columns, currentTableName);
                             indexName = indexName.toLowerCase();
                             if (opr === 'add') {
-                                const message =  `Index ${indexName} already exists and was not be marked for creation`;
+                                const message =  `Index ${indexName} already exists and will not be marked for creation`;
                                 !tableIndexes.includes(indexName) ? diffs[opr].push(mstIdx) : logIndexActionMessage(message);
                             }
                             else if (opr === 'delete') {
@@ -767,6 +765,22 @@ module.exports = function (PersistObjectTemplate) {
                 return diffs;
             }
         };
+
+        function generateIndexName(columns: string[], tableName: string) : string {
+            const indexName : string = _.reduce(columns, function (name: string, col: string) {
+                return name + '_' + col;
+            }, 'idx_' + tableName);
+
+            return indexName && indexName.toLowerCase();
+        }
+
+        function logIndexActionMessage(message: string) {
+            PersistObjectTemplate.logger.info({
+                component: 'persistor',
+                module: 'db.synchronizeKnexTableFromTemplate',
+                activity: 'applyTableChanges', message 
+            });
+        }
 
         var generateChanges = function (localtemplate, _value) {
             return _.reduce(localtemplate.__children__, function (_curr, o) {
@@ -916,14 +930,6 @@ module.exports = function (PersistObjectTemplate) {
             .catch(function(e) {
                 throw e;
             })
-    }
-
-    function logIndexActionMessage(message: string) {
-        PersistObjectTemplate.logger.info({
-            component: 'persistor',
-            module: 'db.synchronizeKnexTableFromTemplate',
-            activity: 'applyTableChanges', message 
-        });
     }
 
     function iscompatible(persistortype, pgtype) {

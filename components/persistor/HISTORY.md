@@ -1,7 +1,7 @@
-##7.1.0
-* This change introduces checks against index updates:
-*  1. Add index only if an index does not previously exists
-*  2. remove index only if it currently exists.
+## 7.1.0
+* This change introduces validations against index updates:
+*  1. Add an index only if it does not already exists
+*  2. Remove an index only if it currently exists.
 ## 7.0.0
 * Updated knex and pg versions for node 14 upgrade.
 ## 6.3.1
