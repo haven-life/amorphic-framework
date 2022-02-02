@@ -744,7 +744,6 @@ module.exports = function (PersistObjectTemplate) {
                         if (addPredicate(mstIdx, shdIdx)) {
                             diffs[opr] = diffs[opr] || [];
                             let indexName = generateIndexName(mstIdx.def.columns, currentTableName);
-                            indexName = indexName.toLowerCase();
                             if (opr === 'add') {
                                 const message =  `Index ${indexName} already exists and will not be marked for creation`;
                                 !tableIndexes.includes(indexName) ? diffs[opr].push(mstIdx) : logIndexActionMessage(message);
@@ -778,7 +777,7 @@ module.exports = function (PersistObjectTemplate) {
             PersistObjectTemplate.logger.info({
                 component: 'persistor',
                 module: 'db.synchronizeKnexTableFromTemplate',
-                activity: 'applyTableChanges', message 
+                function: 'applyTableChanges', message 
             });
         }
 

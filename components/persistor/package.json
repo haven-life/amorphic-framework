@@ -24,7 +24,7 @@
         "@types/bluebird": "*",
         "@types/chai": "^3.4.34",
         "@types/mocha": "^2.2.39",
-        "@types/node": "13.13.4",
+        "@types/node": "14.18.10",
         "@types/q": "*",
         "@types/underscore": "*",
         "chai": "4.3.6",
