@@ -676,7 +676,7 @@ module.exports = function (PersistObjectTemplate) {
         var _changes =  {};
         var schemaTable = 'index_schema_history';
         var schemaField = 'schema';
-
+        let tableIndexes: string[] = [];
 
         var loadSchema = function (tableName) {
 
@@ -739,10 +739,22 @@ module.exports = function (PersistObjectTemplate) {
                 if (!!masterTblSchema && !!masterTblSchema.indexes && masterTblSchema.indexes instanceof Array && !!shadowTblSchema) {
                     (masterTblSchema.indexes || []).forEach(function (mstIdx) {
                         var shdIdx = _.findWhere(shadowTblSchema.indexes, {name: mstIdx.name});
-
+                        const defaultTable = masterTblSchema.documentOf && masterTblSchema.documentOf.replace('pg/','');
+                        var currentTableName = masterTblSchema.table || defaultTable;
                         if (addPredicate(mstIdx, shdIdx)) {
                             diffs[opr] = diffs[opr] || [];
-                            diffs[opr].push(mstIdx);
+                            let indexName = generateIndexName(mstIdx.def.columns, currentTableName);
+                            if (opr === 'add') {
+                                const message =  `Index ${indexName} already exists and will not be marked for creation`;
+                                !tableIndexes.includes(indexName) ? diffs[opr].push(mstIdx) : logIndexActionMessage(message);
+                            }
+                            else if (opr === 'delete') {
+                                const message =  `Index ${indexName} does not exist and will not be marked for deletion`;
+                                tableIndexes.includes(indexName) ? diffs[opr].push(mstIdx) : logIndexActionMessage(message);
+                            }
+                            else {
+                                diffs[opr].push(mstIdx);
+                            }
                         }
                     });
                 } else if (addMissingTable && !!masterTblSchema && !!masterTblSchema.indexes) {
@@ -752,6 +764,22 @@ module.exports = function (PersistObjectTemplate) {
                 return diffs;
             }
         };
+
+        function generateIndexName(columns: string[], tableName: string) : string {
+            const indexName : string = _.reduce(columns, function (name: string, col: string) {
+                return name + '_' + col;
+            }, 'idx_' + tableName);
+
+            return indexName && indexName.toLowerCase();
+        }
+
+        function logIndexActionMessage(message: string) {
+            PersistObjectTemplate.logger.info({
+                component: 'persistor',
+                module: 'db.synchronizeKnexTableFromTemplate',
+                function: 'applyTableChanges', message 
+            });
+        }
 
         var generateChanges = function (localtemplate, _value) {
             return _.reduce(localtemplate.__children__, function (_curr, o) {
@@ -875,8 +903,23 @@ module.exports = function (PersistObjectTemplate) {
                 })
         };
 
+        var loadPgIndexes = async function loadPgIndexes(tableName: string) {
+            const indexes = await knex('pg_indexes').select(['indexname']).where({tablename: tableName});
+            if (!indexes) {
+                tableIndexes = [];
+            }
+
+            for (let i = 0; i<indexes.length; i++) {
+                const indexname = indexes[i] && indexes[i]['indexname'];
+                if (indexname) {
+                    tableIndexes.push(indexname);
+                }
+            }
+        }
+
         return Promise.resolve()
             .then(loadSchema.bind(this, tableName))
+            .then(loadPgIndexes(tableName))
             .spread(loadTableDef)
             .spread(diffTable)
             .then(generateChanges.bind(this, template))
@@ -887,8 +930,6 @@ module.exports = function (PersistObjectTemplate) {
                 throw e;
             })
     }
-
-
 
     function iscompatible(persistortype, pgtype) {
         switch (persistortype) {

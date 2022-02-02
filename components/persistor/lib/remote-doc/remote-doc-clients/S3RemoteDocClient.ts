@@ -128,7 +128,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
                 if (err) {
                     reject(err.message);
                 } else {
-                    resolve();
+                    resolve(undefined);
                 }
             });
         });

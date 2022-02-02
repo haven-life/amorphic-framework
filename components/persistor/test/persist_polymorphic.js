@@ -612,7 +612,7 @@ describe('type mapping tests for parent/child relations', function () {
     });
 
 
-    it('Create a new table and check if the comments added to the fields are included in the database', function () {
+    it('Create a new table and check if the comments added to the fields are included in the database', async () => {
         var NewTableWithComments = PersistObjectTemplate.create('NewTableWithComments', {
             id: {type: Number},
             name: {type: String, value: 'Test Parent', comment: 'comment on a new table...'},
@@ -624,12 +624,11 @@ describe('type mapping tests for parent/child relations', function () {
 
         schema.NewTableWithComments = {documentOf: 'pg/NewTableWithComments'};
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(NewTableWithComments).then(function () {
-            return knex('pg_catalog.pg_description')
-                .count()
-                .where('description', 'like', '%comment on a new table...%')
-                .should.eventually.contain({ count: '1' });
-        })
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(NewTableWithComments);
+        const results = await knex('pg_catalog.pg_description')
+            .count()
+            .where('description', 'like', '%comment on a new table...%')
+        expect(results).to.deep.include({ count: '1' });
     });
 
     it('table notification should only work with function callbacks', function () {
@@ -677,7 +676,7 @@ describe('type mapping tests for parent/child relations', function () {
             });
     });
 
-    it('Adding a comment to an existing table', function () {
+    it('Adding a comment to an existing table', async () => {
         var ExistingTableWithComments = PersistObjectTemplate.create('ExistingTableWithComments', {
             id: {type: Number},
             name: {type: String, value: 'Test Parent'},
@@ -685,27 +684,24 @@ describe('type mapping tests for parent/child relations', function () {
                 this.id = id;
                 this.name = name;
             }
-        })
+        });
 
         schema.ExistingTableWithComments = {documentOf: 'pg/ExistingTableWithComments'};
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments).then(function () {
-            ExistingTableWithComments.mixin({
-                name: {type: String, value: 'Test Parent', comment:    'comment on an existing table'}
-            });
-            PersistObjectTemplate._verifySchema();
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments, null, true).then(function () {
-                return knex('pg_catalog.pg_description')
-                    .count()
-                    .where('description', 'like', '%comment on an existing table%')
-                    .should.eventually.contain({ count: '1' });
-
-            })
-        })
-
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments);
+        ExistingTableWithComments.mixin({
+            name: {type: String, value: 'Test Parent', comment:    'comment on an existing table'}
+        });
+        PersistObjectTemplate._verifySchema();
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments, null, true);
+        const results = await knex('pg_catalog.pg_description')
+            .count()
+            .where('description', 'like', '%comment on an existing table%');
+                    
+        expect(results).to.deep.include({ count: '1' });
     });
 
-    it('Adding a new field with comment to an existing table', function () {
+    it('Adding a new field with comment to an existing table', async () => {
         var ExistingTableWithAField = PersistObjectTemplate.create('ExistingTableWithAField', {
             id: {type: Number},
             name: {type: String, value: 'Test Parent'},
@@ -717,19 +713,16 @@ describe('type mapping tests for parent/child relations', function () {
 
         schema.ExistingTableWithAField = {documentOf: 'pg/ExistingTableWithAField'};
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField).then(function () {
-            ExistingTableWithAField.mixin({
-                newField: {type: String, value: 'Test Parent', comment:    'Adding a new field comment'}
-            });
-            PersistObjectTemplate._verifySchema();
-            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField, null, true).then(function () {
-                return knex('pg_catalog.pg_description')
-                    .count()
-                    .where('description', 'like', '%Adding a new field comment%')
-                    .should.eventually.contain({ count: '1' });
-            })
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField);
+        ExistingTableWithAField.mixin({
+            newField: {type: String, value: 'Test Parent', comment:    'Adding a new field comment'}
         });
-
+        PersistObjectTemplate._verifySchema();
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField, null, true);
+        const results = await knex('pg_catalog.pg_description')
+            .count()
+            .where('description', 'like', '%Adding a new field comment%');
+        expect(results).to.deep.include({ count: '1' });
     });
 
     it('Adding a foreign key refrence in children', function () {
