@@ -1,3 +1,6 @@
+## 5.0.0
+* Upgraded to node 16
+* Bumped dependencies to major versions
 ## 4.0.0
 * Updated the minimum version of node to >=14.x
 ## 3.5.1
