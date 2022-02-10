@@ -1,3 +1,6 @@
+## 6.0.0
+* Upgraded to node 16
+* Bumped dependencies to major versions
 ## 5.0.0
 * Updated knex and pg versions for node 14 upgrade.
 ## 4.1.1
