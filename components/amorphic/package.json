@@ -6,9 +6,9 @@
 	"types": "dist/index.d.ts",
 	"version": "10.1.0",
 	"dependencies": {
-		"@haventech/persistor": "8.0.0-beta.0",
-		"@haventech/semotus": "6.0.0-beta.0",
-		"@haventech/supertype": "5.1.0-beta.0",
+		"@haventech/persistor": "8.x",
+		"@haventech/semotus": "6.x",
+		"@haventech/supertype": "^5.0.0",
 		"amorphic-bindster": "2.0.*",
 		"compression": "1.7.4",
 		"cookie-parser": "1.4.6",
