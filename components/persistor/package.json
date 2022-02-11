@@ -17,10 +17,10 @@
         "uuid": "8.3.2"
     },
     "peerDependencies": {
-        "@haventech/supertype": "5.1.0-beta.0"
+        "@haventech/supertype": "5.0.0"
     },
     "devDependencies": {
-        "@haventech/supertype": "5.1.0-beta.0",
+        "@haventech/supertype": "5.0.0",
         "@types/bluebird": "*",
         "@types/chai": "4.3.0",
         "@types/mocha": "9.1.0",
