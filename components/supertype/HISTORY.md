@@ -2,7 +2,7 @@
 * Upgraded to node 16
 * Bumped dependencies to major versions
 ## 4.0.0
-* Updated the minimum version of node to >=14.x
+* Upgraded to node 14
 ## 3.5.1
 * bumping patch version to publish latest package
 ## 3.5.0
