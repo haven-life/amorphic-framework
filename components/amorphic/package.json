@@ -42,7 +42,8 @@
 		"ts-node": "10.5.0",
 		"typescript": "4.2.3",
 		"underscore": "^1.13.2",
-		"xmlhttprequest-cookie": "0.9.9"
+		"xmlhttprequest-cookie": "0.9.9",
+		"bluebird": "3.5.1"
 	},
 	"scripts": {
 		"setup": "npm install",
