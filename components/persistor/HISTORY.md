@@ -1,3 +1,6 @@
+## 8.0.0
+* Upgraded to node 16
+* Bumped dependencies to major versions
 ## 7.0.0
 * Updated knex and pg versions for node 14 upgrade.
 ## 6.3.1
