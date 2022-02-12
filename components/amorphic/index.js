@@ -21,7 +21,6 @@
 'use strict';
 
 // Node Modules
-let Bluebird = require('bluebird');
 let Semotus = require('@haventech/semotus');
 let Persistor = require('@haventech/persistor');   // Only used for the typescript path
 
