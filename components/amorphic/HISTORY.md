@@ -1,3 +1,6 @@
+## 10.2.0
+* Use persistor in a standalone mode and turn off starting amorphic server by 
+a new option 'off' for serverMode
 ## 10.1.0
 * Upgraded to node 16
 * Bumped dependencies to major versions

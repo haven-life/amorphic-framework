@@ -100,18 +100,20 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 		}
 	}
 
+	const serverMode = configStore[mainApp].get('serverMode');
 	return Promise.all(promises)
-		.then(
-			createServer.bind(
-				this,
-				preSessionInject,
-				postSessionInject,
-				appList,
-				appStartList,
-				appDirectory,
-				sessionConfig
-			)
-		)
+		.then(function() {
+			if (serverMode !== 'off') {
+				return createServer(
+					preSessionInject,
+					postSessionInject,
+					appList,
+					appStartList,
+					appDirectory,
+					sessionConfig
+				);
+			}
+		})
 		.then(function logStart() {
 			logMessage('Amorphic has been started with versions: ');
 			for (let packageVer in packageVersions) {
