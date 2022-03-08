@@ -44,11 +44,18 @@ export class InputValidator {
                     InputValidator.iterateAndValidate(obj[key]);
                 }
                 else {
-                    if (obj[key]) {
-                        // TODO what to do with returned value ?
-                        //      option 1: compare with original and flag as error?
-                        //      option 2: sanitize and continue.
-                        InputValidator.performValidations(obj[key].toString());
+                    // TODO what to do with returned value ?
+                    //      option 1: compare with original and flag as error?
+                    //      option 2: sanitize and continue.
+                    if (typeof(obj[key]) === 'string') {
+                        if (validator.isJSON(obj[key])) {
+                            const JSONobj = JSON.parse(obj[key]);
+                            InputValidator.iterateAndValidate(JSONobj);
+                            obj[key] = JSON.stringify(JSONobj);
+                        }
+                        else {
+                            obj[key] = InputValidator.performValidations(obj[key]);
+                        }
                     }
                 }
             }
