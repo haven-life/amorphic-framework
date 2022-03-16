@@ -332,7 +332,7 @@ function checkTypes(classes) {
  */
 function buildBaseTemplate(appConfig, processTypescript) {
     const config = appConfig.appConfig;
-    if (config && (config.serverMode === 'daemon' || config.serverMode === 'api')) {
+    if (config && (config.serverMode === 'daemon' || config.serverMode === 'api' || config.serverMode === 'serverless')) {
         return persistor(null, null, superType);
     }
 
