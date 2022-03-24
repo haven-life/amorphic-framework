@@ -29,41 +29,7 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				throw new Error('Missing keepOriginalIdForSavedObjects in config.json');
 			}
 			serverController = this;
-		},
-		clearDB: {on: 'server', body: function () {
-				var total = 0;
-				return clearCollection(Role)
-					.then(function(count) {
-						total += count;
-						return clearCollection(Account);
-					}).then(function (count) {
-						total += count;
-						return clearCollection(Customer);
-					}).then(function (count) {
-						total += count;
-						return clearCollection(Transaction);
-					}).then(function (count) {
-						total += count;
-						return clearCollection(ReturnedMail);
-					}).then(function (count) {
-						total += count;
-						return clearCollection(Address);
-					}).then(function (count) {
-						total += count;
-						serverAssert(total);
-					});
-				function clearCollection(template) {
-					return objectTemplate.dropKnexTable(template)
-						.then(function () {
-							return objectTemplate.synchronizeKnexTableFromTemplate(template).then(function() {
-								return 0;
-							});
-						});
-				}
-			}},
-		clientInit: function() {
-			clientController = this;
-			// Setup customers and addresses
+
 			var sam = new Customer('Sam', 'M', 'Elsamman');
 			var karen = new Customer('Karen', 'M', 'Burke');
 			var ashling = new Customer('Ashling', '', 'Burke');
@@ -107,66 +73,37 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 			this.karen = karen;
 			this.ashling = ashling;
 		},
-		preServerCall: function (changeCount, objectsChanged, callContext, forceUpdate, functionName, remoteCall, isPublic, HTTPObjs) {
-			for (var templateName in objectsChanged) {
-				this.preServerCallObjects[templateName] = true;
-			}
-
-			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
-				this.hasRequestInPreServer = this.hasResponseInPreServer = true;
-			}
-
-			return Bluebird.resolve()
-				.then(this.sam ? this.sam.refresh.bind(this.sam, null) : true)
-				.then(this.karen ? this.karen.refresh.bind(this.karen, null) : true)
-				.then(this.ashling ? this.ashling.refresh.bind(this.ashling, null) : true)
-				.then(function () {
-					objectTemplate.begin();
-					console.log(this.sam ? this.sam.__version__ : '');
-					objectTemplate.currentTransaction.touchTop = true;
-				}.bind(this));
-		},
-		postServerCall: function (hasChanges, callContext, changeString, HTTPObjs) {
-			if (this.postServerCallThrowException) {
-				throw 'postServerCallThrowException';
-			}
-			if (this.postServerCallThrowRetryException) {
-				throw 'Retry';
-			}
-
-			if (HTTPObjs && HTTPObjs.request && HTTPObjs.response) {
-				var request = HTTPObjs.request;
-				var response = HTTPObjs.response;
-				// const {request, response} = HTTPObjs;
-				this.requestConstructorName = request.constructor.name;
-				this.responseConstructorName = response.constructor.name;
-				this.hasRequestInPostServer = this.hasResponseInPostServer = true;
-			}
-
-			//return;
-			var dirtCount = 0;
-			serverController.sam.cascadeSave();
-			serverController.karen.cascadeSave();
-			serverController.ashling.cascadeSave();
-			objectTemplate.currentTransaction.postSave = function(txn) {
-				this.updatedCount = _.toArray(txn.savedObjects).length;
-			}.bind(this);
-			return objectTemplate.end()
-				.then(function () {
-					PostCallAssert();
-				});
-		},
-		validateServerCall: function() {
-			return this.canValidateServerCall;
-		},
-		preServerCallObjects: { isLocal: true, type: Object, value: {} },
-		preServerCalls: { isLocal: true, type: Number, value: 0 },
-		postServerCalls: { isLocal: true, type: Number, value: 0 },
-		preServerCallThrowException: { isLocal: true, type: Boolean, value: false },
-		postServerCallThrowException: { isLocal: true, type: Boolean, value: false },
-		postServerCallThrowRetryException: { isLocal: true, type: Boolean, value: false },
-		serverCallThrowException: { isLocal: true, type: Boolean, value: false },
-		canValidateServerCall: { isLocal: true, type: Boolean, value: true }
+		clearDB: {on: 'server', body: function () {
+				var total = 0;
+				return clearCollection(Role)
+					.then(function(count) {
+						total += count;
+						return clearCollection(Account);
+					}).then(function (count) {
+						total += count;
+						return clearCollection(Customer);
+					}).then(function (count) {
+						total += count;
+						return clearCollection(Transaction);
+					}).then(function (count) {
+						total += count;
+						return clearCollection(ReturnedMail);
+					}).then(function (count) {
+						total += count;
+						return clearCollection(Address);
+					}).then(function (count) {
+						total += count;
+						serverAssert(total);
+					});
+				function clearCollection(template) {
+					return objectTemplate.dropKnexTable(template)
+						.then(function () {
+							return objectTemplate.synchronizeKnexTableFromTemplate(template).then(function() {
+								return 0;
+							});
+						});
+				}
+			}}
 	});
 
 	return { Controller: Controller };

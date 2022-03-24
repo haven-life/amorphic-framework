@@ -19,9 +19,6 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     process.env.sourceMode = sourceMode || 'debug';
     amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
 
-    // need to inject the amorphicStatic send to log because due to loading up both client and server in the same module resolution
-    // we override our sendToLog with the the clients sometimes
-    serverAmorphic.listen(__dirname);
     let modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     let controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
@@ -32,37 +29,9 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     window = modelRequires;
     window.addEventListener = function () {};
     window.Controller = controllerRequires.Controller;
-    let isDone = false;
 
-    amorphic.establishClientSession(
-        'Controller', __ver,
-        function (newController, sessionExpiration) {
-            if (clientController && typeof(clientController.shutdown) === 'function') {
-                clientController.shutdown();
-            }
-            clientController = newController;
-            if (typeof(clientController.clientInit) === 'function') {
-                clientController.clientInit(sessionExpiration);
-            }
-            if (!isDone) {
-                isDone = true;
-                done();
-            }
-        },
-        function (hadChanges) {
-        },
-
-        // When a new version is detected pop up "about to be refreshed" and
-        // then reload the document after 5 seconds.
-        function () {
-            clientController.amorphicStatus = 'reloading';
-        },
-
-        // If communication lost pop up dialog
-        function () {
-            clientController.amorphicStatus = 'offline';
-        }
-    );
+    // start persistor mode
+    serverAmorphic.startPersistorMode(__dirname).then(done());
 }
 
 describe('Run amorphic as serverless', function () {
@@ -72,15 +41,33 @@ describe('Run amorphic as serverless', function () {
         return beforeEachDescribe(done, 'serverless');
     });
     
-    it("amorphic server is not listening", function (done) {
+    it("amorphic server is not listening and express app is disabled", function (done) {
         expect(amorphicContext.appContext.server.listening).to.equal(false);
         done();
     });
 
-    it("client controller has data", function (done) {
-        expect(clientController.sam.firstName).to.equal('Sam');
-        expect(clientController.sam.lastName).to.equal('Elsamman');
+    it("server controller has data", function (done) {
+        expect(serverController.sam.firstName).to.equal('Sam');
+        expect(serverController.sam.lastName).to.equal('Elsamman');
         done();
+    });
+
+    it("save data from server controller to database, and data is retrieved", function (done) {
+        serverController.clearDB().then(function () {
+            var ServerRemoteObjectTemplate = serverController.__template__.objectTemplate;
+            ServerRemoteObjectTemplate.begin();
+            ServerRemoteObjectTemplate.currentTransaction.touchTop = true;
+            serverController.sam.persistSave(ServerRemoteObjectTemplate.currentTransaction);
+            return ServerRemoteObjectTemplate.end();
+        }).then(function () {
+            return serverController.sam.__template__.persistorFetchById(serverController.sam._id);
+        }).then(function(customer) {
+            expect(customer.firstName).to.equal('Sam');
+            expect(customer.lastName).to.equal('Elsamman');
+            done();
+        }).catch(function(e) {
+            done(e);
+        });
     });
 
     after(function (done) {

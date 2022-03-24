@@ -356,7 +356,7 @@ function buildBaseTemplate(appConfig, processTypescript) {
  * @param {Object} appTemplates - unknown
  */
 function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates) {
-	if (config.serverMode === 'daemon' || config.serverMode === 'api') {
+	if (config.serverMode === 'daemon' || config.serverMode === 'api' || config.serverMode === 'serverless') {
 		let ControllerTemplate = AmorphicContext.applicationTSController[appName] ||
 			appTemplates[prop].Controller;
 
@@ -364,7 +364,7 @@ function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTe
 			throw new Error('Missing controller template in ' + prefix + prop + '.js');
 		}
 		startDaemon(baseTemplate, ControllerTemplate);
-		logMessage(appName + ' started as a daemon');
+		logMessage(appName + ' started as a ' + config.serverMode);
 	}
 }
 
