@@ -363,7 +363,7 @@ function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTe
 		if (!ControllerTemplate) {
 			throw new Error('Missing controller template in ' + prefix + prop + '.js');
 		}
-		startDaemon(baseTemplate, ControllerTemplate);
+		startDaemon(baseTemplate, ControllerTemplate, config);
 		logMessage(appName + ' started as a ' + config.serverMode);
 	}
 }
@@ -376,7 +376,7 @@ function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTe
  *   into all the files)
  * @param {Object} MainControllerTemplate - The main controller for the app.
  */
-function startDaemon(persistableTemplate, MainControllerTemplate) {
+function startDaemon(persistableTemplate, MainControllerTemplate, config) {
     let controller;
 
     MainControllerTemplate.objectTemplate = persistableTemplate;
@@ -384,6 +384,12 @@ function startDaemon(persistableTemplate, MainControllerTemplate) {
 
     // Since this is the 'objectTemplate' passed into every file, make sure it has its controller set.
     persistableTemplate.controller = controller;
+
+    // With a brand new controller we don't want old object to persist id mappings
+    if (config.serverMode === 'serverless' && (persistableTemplate.objectMap || config.keepOriginalIdForSavedObjects)) {
+        persistableTemplate.objectMap = {};
+    }
+
     controller.serverInit();
 }
 
