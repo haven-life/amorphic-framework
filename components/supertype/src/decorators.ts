@@ -122,7 +122,14 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
             return target.prototype.__amorphicprops__;
         }
         function getName() {
-            return target.toString().match(/function ([^(]*)/)[1];
+            let classDefinitionSplitBySpaces = target.toString().split(' ');
+            console.log(target.toString());
+            if(classDefinitionSplitBySpaces[0] === 'class') {
+                console.log(classDefinitionSplitBySpaces[1]);
+                // return classDefinitionSplitBySpaces[1];
+            } else {
+                return 'NOTHING';
+            }
         }
         function getDictionary() {
             objectTemplate.getClasses();

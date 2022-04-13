@@ -496,8 +496,10 @@ export class ObjectTemplate {
         return this.__dictionary__;
 
         function constructorName(constructor) {
-            const namedFunction = constructor.toString().match(/function ([^(]*)/);
-            return namedFunction ? namedFunction[1] : null;
+            let constructorSplit = constructor.toString().split(' ');
+            // const namedFunction = constructor.toString().match(/function ([^(]*)/);
+            return constructorSplit ? constructorSplit[1] : null;
+            // return namedFunction ? namedFunction[1] : null;
         }
 
     }
@@ -900,6 +902,8 @@ export class ObjectTemplate {
                 }
             }
         }
+
+        console.log()
 
         if (template.parentTemplate) {
             this._getDefineProperties(template.parentTemplate, returnValue, includeVirtual);

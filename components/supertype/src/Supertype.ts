@@ -119,7 +119,7 @@ export class Supertype {
     }
 
     createCopy(creator) {
-        var obj = this;
+        const obj = this;
         return ObjectTemplate.fromPOJO(obj, obj.__template__, null, null, undefined, null, null, creator);
     }
 

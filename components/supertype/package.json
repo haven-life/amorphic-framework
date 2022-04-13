@@ -26,8 +26,7 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "debug:tests": "mocha --inspect-brk test/animals.js",
-        "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
+        "test:ts:debug": "mocha --inspect-brk --require ts-node/register test/typescript/*",
         "test:ts": "mocha --require ts-node/register test/typescript/*",
         "clean": "rm -rf dist/",
         "compile": "tsc",

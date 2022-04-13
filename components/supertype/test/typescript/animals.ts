@@ -1,12 +1,12 @@
 import {expect} from 'chai';
 import * as mocha from 'mocha';
 import {Ark} from "./model/Ark";
-import {LionContainer} from "./model/Ark";
-import {AnimalContainer} from "./model/Ark";
 import {Lion} from "./model/Lion";
 import {Bear} from "./model/Bear";
 import {Animal} from "./model/Animal";
 import {amorphicStatic} from "../../dist/index";
+import {LionContainer} from "./model/LionContainer";
+import {AnimalContainer} from "./model/AnimalContainer";
 
 
 describe('AnimalContainer', function () {
