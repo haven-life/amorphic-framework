@@ -44,13 +44,17 @@ function resolveVersions(packages) {
  * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null, appCustomizations=null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
 	if (typeof sendToLogFunction === 'function') {
 		AmorphicContext.appContext.sendToLog = sendToLogFunction;
 		SupertypeSession.logger.setLogger(sendToLogFunction);
+	}
+
+	if(appCustomizations) {
+		SupertypeSession.appCustomizations = appCustomizations;
 	}
 
 	buildStartUpParams(configStore);
