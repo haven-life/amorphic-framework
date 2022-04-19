@@ -1246,7 +1246,7 @@ module.exports = function (PersistObjectTemplate) {
             persistorTransaction.knex = knexTransaction;
 
 
-            Promise.resolve(true)
+            return Promise.resolve(true)
                 .then(processPreSave.bind(this))
                 .then(processSaves.bind(this))
                 .then(processDeletes.bind(this))
@@ -1254,6 +1254,7 @@ module.exports = function (PersistObjectTemplate) {
                 .then(processTouches.bind(this))
                 .then(processPostSave.bind(this))
                 .then(processCommit.bind(this))
+                .then(knexTransaction.executionPromise)
                 .catch(rollback.bind(this));
 
             function processPreSave() {
