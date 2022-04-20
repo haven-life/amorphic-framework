@@ -1254,7 +1254,6 @@ module.exports = function (PersistObjectTemplate) {
                 .then(processTouches.bind(this))
                 .then(processPostSave.bind(this))
                 .then(processCommit.bind(this))
-                .then(knexTransaction.executionPromise)
                 .catch(rollback.bind(this));
 
             function processPreSave() {
@@ -1320,13 +1319,14 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             // And we are done with everything
-            function processCommit() {
+            async function processCommit(): Promise<any> {
                 this.dirtyObjects = {};
                 this.savedObjects = {};
                 if (persistorTransaction.updateConflict) {
                     throw 'Update Conflict';
                 }
-                return knexTransaction.commit();
+                await knexTransaction.commit();
+                return knexTransaction.executionPromise;
             }
 
             // Walk through the touched objects
@@ -1376,7 +1376,7 @@ module.exports = function (PersistObjectTemplate) {
                     await Promise.all(toDeletePromiseArr);
                 }
                 revertVersionsOnAllObjects();
-                return knexTransaction.rollback(innerError).then(() => {
+                return knexTransaction.rollback(innerError).then(knexTransaction.executionPromise).then(() => {
                     (logger || this.logger).debug({
                         component: 'persistor',
                         module: 'api',
