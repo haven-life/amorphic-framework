@@ -1,3 +1,6 @@
+## 8.0.1
+* Added executionPromise to the promise chain in knex commit 
+* Explicitly return promise in knex commit
 ## 8.0.0
 * Upgraded to node 16
 * Bumped dependencies to major versions
