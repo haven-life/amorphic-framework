@@ -61,7 +61,11 @@ export class AmorphicServer {
         const amorphicOptions = AmorphicContext.amorphicOptions;
         const mainApp = amorphicOptions.mainApp;
         const appConfig = AmorphicContext.applicationConfig[mainApp];
-        const server = new AmorphicServer(express(), appConfig.appConfig.serverMode);
+        const serverMode = appConfig.appConfig.serverMode;
+        if (serverMode === 'serverless') {
+            return;
+        }
+        const server = new AmorphicServer(express(), serverMode);
 
         const amorphicRouterOptions: Options = {
             amorphicOptions,
