@@ -8,4 +8,3 @@ coverage
 
 ./test/**/*.js
 ./test/**/*.js.map
-.vscode/
