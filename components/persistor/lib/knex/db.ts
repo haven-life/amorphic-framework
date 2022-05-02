@@ -856,11 +856,7 @@ module.exports = function (PersistObjectTemplate) {
                             };
                         }
                     }
-                    catch(error) {
-                        if (error && error.message && error.message === 'index type can be only "unique" or "index"') {
-                            throw error;
-                        }
-    
+                    catch(error) {    
                         const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                         if (logger) {
                             logger.warn({

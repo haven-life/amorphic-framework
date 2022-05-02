@@ -299,7 +299,15 @@ describe('schema update checks', function () {
         schema.newTable.indexes = (JSON.parse('[{"name": "scd_index","def": {"columns": ["id"],"type": "primary"}}]'));
 
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).should.eventually.be.rejectedWith(Error, 'index type can be only "unique" or "index"');
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).then(function () {
+            return knex(schemaTable)
+                .select('schema')
+                .orderBy('sequence_id', 'desc')
+                .limit(1)
+                .then(function (records) {
+                    return Promise.resolve(records[0].schema);
+                })
+        }).should.eventually.contain('NewTable');
     });
 
     it('add a new table definition to the schema and try to synchronize', function () {
