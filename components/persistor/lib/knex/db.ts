@@ -792,7 +792,7 @@ module.exports = function (PersistObjectTemplate) {
         };
 
         var applyTableChanges = async function(dbChanges) {
-            function logTableChangesWarningMessage(columns, type, name, error) {
+            function logTableChangesWarningMessage(columns, type, indexName, operation, error) {
                 const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                 if (logger) {
                     logger.warn({
@@ -800,7 +800,9 @@ module.exports = function (PersistObjectTemplate) {
                         data: {
                             type,
                             columns,
-                            name
+                            operation,
+                            indexName,
+                            tableName
                         },
                         module: 'db - applyTableChanges',
                         error: error
@@ -813,8 +815,9 @@ module.exports = function (PersistObjectTemplate) {
                         const object = diffs[operation][_key];
                         var type = object.def.type;
                         var columns = object.def.columns;
-                        if (type !== 'unique' && type !== 'index') 
+                        if (type !== 'unique' && type !== 'index') {
                             throw new Error('index type can be only "unique" or "index"');
+                        }
 
                         var name = _.reduce(object.def.columns, function (name, col) {
                             return name + '_' + col;
@@ -828,7 +831,7 @@ module.exports = function (PersistObjectTemplate) {
                                 });
                             }
                             catch(error) {
-                                logTableChangesWarningMessage(columns, type, name, error);
+                                logTableChangesWarningMessage(columns, type, name, operation, error);
                             }
                         }
                         else if (operation === 'delete') {
@@ -839,17 +842,17 @@ module.exports = function (PersistObjectTemplate) {
                                     await table['drop' + type]([], name);
                                 });
                             }
-                            catch(error) {
-                                    logTableChangesWarningMessage(columns, type, name, error);
+                            catch (error) {
+                                    logTableChangesWarningMessage(columns, type, name, operation, error);
                             };
                         }
                         else {
                             try {
                                 await knex.schema.table(tableName, async function (table) {
                                     await table[type](columns, name);
-                                })
+                                });
                             } catch(error) {
-                                logTableChangesWarningMessage(columns, type, name, error);
+                                logTableChangesWarningMessage(columns, type, name, operation, error);
                             };
                         }
                     }
@@ -870,9 +873,11 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
 
-            await syncIndexesForHierarchy('delete', dbChanges);
-            await syncIndexesForHierarchy('add', dbChanges);
-            return syncIndexesForHierarchy('change', dbChanges);  
+            return Promise.all([
+                syncIndexesForHierarchy('delete', dbChanges), 
+                syncIndexesForHierarchy('add', dbChanges), 
+                syncIndexesForHierarchy('change', dbChanges)
+            ]);
         };
 
         var isSchemaChanged = function(object) {
