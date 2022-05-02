@@ -791,9 +791,24 @@ module.exports = function (PersistObjectTemplate) {
             return dbChanges;
         };
 
-        var applyTableChanges = function(dbChanges) {
-            function syncIndexesForHierarchy (operation, diffs, table) {
-                _.map(diffs[operation], (function (object, _key) {
+        var applyTableChanges = async function(dbChanges) {
+            function logTableChangesWarningMessage(columns, type, name, error) {
+                const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
+                if (logger) {
+                    logger.warn({
+                        function: 'syncIndexesForHierarchy',
+                        data: {
+                            type,
+                            columns,
+                            name
+                        },
+                        module: 'db - applyTableChanges',
+                        error: error
+                    }, 'Executing one index at a time - Unable to update index');
+                }
+            }
+            async function syncIndexesForHierarchy (operation, diffs) {
+                _.map(diffs[operation], (async function (object, _key) {
                     var type = object.def.type;
                     var columns = object.def.columns;
                     if (type !== 'unique' && type !== 'index')
@@ -805,41 +820,52 @@ module.exports = function (PersistObjectTemplate) {
 
                     name = name.toLowerCase();
                     if (operation === 'add') {
-                        table[type](columns, name);
+                        await knex.schema.table(tableName, function (table) {
+                            table[type](columns, name);
+                        }).catch((error) => {
+                            logTableChangesWarningMessage(columns, type, name, error);
+                        })
                     }
                     else if (operation === 'delete') {
                         type = type.replace(/index/, 'Index');
                         type = type.replace(/unique/, 'Unique');
-                        table['drop' + type]([], name);
+                        await knex.schema.table(tableName, function (table) {
+                            table['drop' + type]([], name);
+                        }).catch((error) => {
+                            logTableChangesWarningMessage(columns, type, name, error);
+                        });
                     }
-                    else
-                        table[type](columns, name);
-
-                }));
+                    else {
+                        await knex.schema.table(tableName, function (table) {
+                            table[type](columns, name);
+                        }).catch((error) => {
+                            logTableChangesWarningMessage(columns, type, name, error);
+                        });
+                        
+                        }
+                    }
+                ));
             }
-
-
-            return knex.transaction(function (trx) {
-                return trx.schema.table(tableName, function (table) {
-                    syncIndexesForHierarchy('delete', dbChanges, table);
-                    syncIndexesForHierarchy('add', dbChanges, table);
-                    syncIndexesForHierarchy('change', dbChanges, table);
-                }).catch(function (error) {
-                    if (error && error.message && error.message === 'index type can be only "unique" or "index"') {
-                        throw error;
-                    }
-                    const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
-                    if (logger) {
-                        logger.warn({
-                            component: 'persistor',
-                            dbChanges: dbChanges,
-                            module: 'db',
-                            activity: 'synchronizeIndexes',
-                            error: error
-                        }, 'Unable to update index');
-                    }
-                });
-            });       
+            try { 
+                await syncIndexesForHierarchy('delete', dbChanges);
+                await syncIndexesForHierarchy('add', dbChanges);
+                //intentially throwing error
+                await syncIndexesForHierarchy('change', dbChanges);
+            }   
+            catch(error) {
+                if (error && error.message && error.message === 'index type can be only "unique" or "index"') {
+                    throw error;
+                }
+                const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
+                if (logger) {
+                    logger.warn({
+                        module: 'db',
+                        function: 'applyTableChanges',
+                        error: error
+                    }, 'Unable to apply index changes for '+ tableName);
+                }
+            }
+            return;   
         };
 
         var isSchemaChanged = function(object) {
