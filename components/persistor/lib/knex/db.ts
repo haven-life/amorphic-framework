@@ -808,64 +808,71 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
             async function syncIndexesForHierarchy (operation, diffs) {
-                _.map(diffs[operation], (async function (object, _key) {
-                    var type = object.def.type;
-                    var columns = object.def.columns;
-                    if (type !== 'unique' && type !== 'index')
-                        throw new Error('index type can be only "unique" or "index"');
+                for (const _key in diffs[operation]) {
+                    try {
+                        const object = diffs[operation][_key];
+                        var type = object.def.type;
+                        var columns = object.def.columns;
+                        if (type !== 'unique' && type !== 'index') 
+                            throw new Error('index type can be only "unique" or "index"');
 
-                    var name = _.reduce(object.def.columns, function (name, col) {
-                        return name + '_' + col;
-                    }, 'idx_' + tableName);
+                        var name = _.reduce(object.def.columns, function (name, col) {
+                            return name + '_' + col;
+                        }, 'idx_' + tableName);
 
-                    name = name.toLowerCase();
-                    if (operation === 'add') {
-                        await knex.schema.table(tableName, function (table) {
-                            table[type](columns, name);
-                        }).catch((error) => {
-                            logTableChangesWarningMessage(columns, type, name, error);
-                        })
-                    }
-                    else if (operation === 'delete') {
-                        type = type.replace(/index/, 'Index');
-                        type = type.replace(/unique/, 'Unique');
-                        await knex.schema.table(tableName, function (table) {
-                            table['drop' + type]([], name);
-                        }).catch((error) => {
-                            logTableChangesWarningMessage(columns, type, name, error);
-                        });
-                    }
-                    else {
-                        await knex.schema.table(tableName, function (table) {
-                            table[type](columns, name);
-                        }).catch((error) => {
-                            logTableChangesWarningMessage(columns, type, name, error);
-                        });
-                        
+                        name = name.toLowerCase();
+                        if (operation === 'add') {
+                            try {
+                                await knex.schema.table(tableName, async function (table) {
+                                    await table[type](columns, name);
+                                });
+                            }
+                            catch(error) {
+                                logTableChangesWarningMessage(columns, type, name, error);
+                            }
+                        }
+                        else if (operation === 'delete') {
+                            type = type.replace(/index/, 'Index');
+                            type = type.replace(/unique/, 'Unique');
+                            try {
+                                await knex.schema.table(tableName, async function (table) {
+                                    await table['drop' + type]([], name);
+                                });
+                            }
+                            catch(error) {
+                                    logTableChangesWarningMessage(columns, type, name, error);
+                            };
+                        }
+                        else {
+                            try {
+                                await knex.schema.table(tableName, async function (table) {
+                                    await table[type](columns, name);
+                                })
+                            } catch(error) {
+                                logTableChangesWarningMessage(columns, type, name, error);
+                            };
                         }
                     }
-                ));
-            }
-            try { 
-                await syncIndexesForHierarchy('delete', dbChanges);
-                await syncIndexesForHierarchy('add', dbChanges);
-                //intentially throwing error
-                await syncIndexesForHierarchy('change', dbChanges);
-            }   
-            catch(error) {
-                if (error && error.message && error.message === 'index type can be only "unique" or "index"') {
-                    throw error;
-                }
-                const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
-                if (logger) {
-                    logger.warn({
-                        module: 'db',
-                        function: 'applyTableChanges',
-                        error: error
-                    }, 'Unable to apply index changes for '+ tableName);
+                    catch(error) {
+                        if (error && error.message && error.message === 'index type can be only "unique" or "index"') {
+                            throw error;
+                        }
+    
+                        const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
+                        if (logger) {
+                            logger.warn({
+                                module: 'db',
+                                function: 'applyTableChanges',
+                                error: error
+                            }, 'Unable to apply index changes for '+ tableName);
+                        }
+                    };
                 }
             }
-            return;   
+
+            await syncIndexesForHierarchy('delete', dbChanges);
+            await syncIndexesForHierarchy('add', dbChanges);
+            return syncIndexesForHierarchy('change', dbChanges);  
         };
 
         var isSchemaChanged = function(object) {
