@@ -809,6 +809,16 @@ module.exports = function (PersistObjectTemplate) {
                     }, 'Executing one index at a time - Unable to update index');
                 }
             }
+            /**
+             * This function loops through index changes (add/change/delete) and 
+             * executes them one by one. In case of errors, while executing indexes, 
+             * we will log a warning message. This approach handles each idenx at 
+             * its own merit without impacting the behavior or other index. 
+             * This is a change from previous code, where were trying to run index 
+             * changes together in a transaction. 
+             * @param operation 
+             * @param diffs 
+             */
             async function syncIndexesForHierarchy (operation, diffs) {
                 for (const _key in diffs[operation]) {
                     try {
@@ -827,6 +837,8 @@ module.exports = function (PersistObjectTemplate) {
                         if (operation === 'add') {
                             try {
                                 await knex.schema.table(tableName, async function (table) {
+                                    // This table function callback does not necessarily need to be 
+                                    // an async callback, but making the callback async/await as a guard.
                                     await table[type](columns, name);
                                 });
                             }
@@ -839,6 +851,8 @@ module.exports = function (PersistObjectTemplate) {
                             type = type.replace(/unique/, 'Unique');
                             try {
                                 await knex.schema.table(tableName, async function (table) {
+                                    // This table function callback does not necessarily need to be 
+                                    // an async callback, but making the callback async/await as a guard.
                                     await table['drop' + type]([], name);
                                 });
                             }
@@ -849,6 +863,8 @@ module.exports = function (PersistObjectTemplate) {
                         else {
                             try {
                                 await knex.schema.table(tableName, async function (table) {
+                                    // This table function callback does not necessarily need to be 
+                                    // an async callback, but making the callback async/await as a guard.
                                     await table[type](columns, name);
                                 });
                             } catch(error) {
