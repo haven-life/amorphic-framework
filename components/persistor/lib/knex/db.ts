@@ -812,9 +812,9 @@ module.exports = function (PersistObjectTemplate) {
             /**
              * This function loops through index changes (add/change/delete) and 
              * executes them one by one. In case of errors, while executing indexes, 
-             * we will log a warning message. This approach handles each idenx at 
-             * its own merit without impacting the behavior or other index. 
-             * This is a change from previous code, where were trying to run index 
+             * we will log a warning message. This approach handles each index at 
+             * its own merit without impacting the behavior or another index. 
+             * This is a change from previous code where were trying to run index 
              * changes together in a transaction. 
              * @param operation 
              * @param diffs 
