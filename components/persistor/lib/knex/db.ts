@@ -862,7 +862,7 @@ module.exports = function (PersistObjectTemplate) {
                             logger.warn({
                                 module: 'db',
                                 function: 'applyTableChanges',
-                                error: error
+                                error: error && (error.stack || error.message),
                             }, 'Unable to apply index changes for '+ tableName);
                         }
                     };

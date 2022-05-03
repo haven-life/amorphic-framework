@@ -285,29 +285,25 @@ describe('schema update checks', function () {
         })
     })
 
-    it('Add a new index and call createKnexTable to create the table and the corresponding indexes', function () {
-        schema.newTable = {};
-        schema.newTable.documentOf = 'pg/NewTable';
-        var newTable = PersistObjectTemplate.create('newTable', {
+    it('Add a new index and call createKnexTable to create the table and the corresponding indexes', async () => {
+        schema.newTablePrimIndex = {};
+        schema.newTablePrimIndex.documentOf = 'pg/NewTablePrimIndex';
+        var newTablePrimIndex = PersistObjectTemplate.create('newTablePrimIndex', {
             id: {type: String},
             name: {type: String, value: 'PrimaryIndex'},
             init: function (id, name) {
                 this.id = id;
                 this.name = name;
             }
-        })
-        schema.newTable.indexes = (JSON.parse('[{"name": "scd_index","def": {"columns": ["id"],"type": "primary"}}]'));
+        })  
+        schema.newTablePrimIndex.indexes = (JSON.parse('[{"name": "scd_index","def": {"columns": ["id"],"type": "primary"}}]'));
 
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable).then(function () {
-            return knex(schemaTable)
-                .select('schema')
-                .orderBy('sequence_id', 'desc')
-                .limit(1)
-                .then(function (records) {
-                    return Promise.resolve(records[0].schema);
-                })
-        }).should.eventually.contain('NewTable');
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTablePrimIndex);
+        const records = await knex(schemaTable).select('schema').orderBy('sequence_id', 'desc').limit(1);
+        const result = records[0].schema;
+
+        expect(result).contains('NewTablePrimIndex');
     });
 
     it('add a new table definition to the schema and try to synchronize', function () {
