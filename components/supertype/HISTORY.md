@@ -1,3 +1,5 @@
+## 5.0.1
+* bump nconf version due to security vulnerability
 ## 5.0.0
 * Upgraded to node 16
 * Bumped dependencies to major versions
