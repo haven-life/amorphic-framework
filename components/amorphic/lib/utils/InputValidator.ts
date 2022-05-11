@@ -1,10 +1,8 @@
 import * as validator from 'validator';
 import { Request, Response } from 'express';
+import * as AmorphicContext from '../AmorphicContext';
 
 export class InputValidator {
-    static readonly denyList: string = '\\[\\]';
-    static readonly allowList: string = '^[a-zA-Z0-9]*$';
-
     /**
      * Validate URL parameters
      *
@@ -63,9 +61,19 @@ export class InputValidator {
     }
 
     private static performValidations(value: string): string {
-        value = validator.blacklist(value, InputValidator.denyList);
+        const amorphicOptions = AmorphicContext.amorphicOptions;
+        const mainApp = amorphicOptions.mainApp;
+        const appConfig = AmorphicContext.applicationConfig[mainApp];
+        const denyList = appConfig.appConfig.validatorDenyList;
+        const allowList = appConfig.appConfig.validatorAllowList;
+
+        if (denyList) {
+            value = validator.blacklist(value, denyList);
+        }
         value = validator.escape(value);
-        value = validator.whitelist(value, InputValidator.allowList);
+        if (allowList) {
+            value = validator.whitelist(value, allowList);
+        }
 
         return value;
     }

@@ -9,5 +9,7 @@
   "dbUser": "postgres",
   "dbPassword": "postgres",
   "keepOriginalIdForSavedObjects": "yes",
-  "amorphicEnableStatsd": true
+  "amorphicEnableStatsd": true,
+  "validatorAllowList": "^[a-zA-Z0-9]*$",
+  "validatorDenyList": "\\[\\]"
 }
