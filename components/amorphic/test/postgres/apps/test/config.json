@@ -10,6 +10,8 @@
   "dbPassword": "postgres",
   "keepOriginalIdForSavedObjects": "yes",
   "amorphicEnableStatsd": true,
-  "validatorAllowList": "^[a-zA-Z0-9]*$",
-  "validatorDenyList": "\\[\\]"
+  "validatorAllowList": "",
+  "validatorDenyList": "\\;\\<\\>\\﹤\\﹥\\^\\*\\|\\_\\%\\'\\/\\=\\+\\,",
+  "validatorLog": true,
+  "validatorEscapeHTML": true
 }

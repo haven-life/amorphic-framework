@@ -678,6 +678,59 @@ describe('third group of tests', function() {
         });
     });
 
+    it('should be able to set the cookie on the response within a processPost function within an existing session', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/xhr?path=config&form=true',
+            data: {
+                test: 'hellooo',
+                setCookie: true
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(res.data).to.equal('hellooo');
+            expect(res.headers['set-cookie'][0]).to.deep.equal('iamthecookiemonster=megacookie; Path=/');
+        });
+    });
+
+    it('should be able to read cookies that I set on the front end', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/init/config.js',
+            data: {
+                test: 'hellooo',
+                testCookie: true
+            },
+            headers: {
+                Cookie: "cookie1=Cookie1; cookie2=Cookie2; cookie3=Cookie3;"
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(res.data).to.not.equal(false);
+            expect(res.data.cookie1).to.equal('Cookie1');
+            expect(res.data.cookie2).to.equal('Cookie2');
+            expect(res.data.cookie3).to.equal('Cookie3');
+        });
+    });
+
+
+});
+
+describe('validation', function() {
+
+    const statsModule = {
+        timing: 'timing stub',
+        counter: () => {}
+    };
+    let counterSpy;
+
+    before(function (done) {
+        counterSpy = sinon.spy(statsModule, 'counter');
+        return beforeEachDescribe(done, 'test', 'yes', 'prod', statsModule);
+    });
+
+    after(afterEachDescribe);
+
     it('should validate request', function() {
         return axios({
             method: 'post',
@@ -723,13 +776,14 @@ describe('third group of tests', function() {
             }
         }).then(function(res) {
             expect(res.status).to.equal(200);
+            expect(counterSpy.callCount).to.equal(9);
             expect(JSON.stringify(res.data)).to.equal(JSON.stringify({
                 customers: [
                     {
                         customer_id: '615f000b888cfd0029768ab4',
-                        firstName: 'Hello,',
-                        middleName: 'I&#x27;m',
-                        lastName: 'looking to replace the boards on my deck, potentially with composite. Could someone take a look at this and provide a quote?'
+                        firstName: 'Hello',
+                        middleName: 'Im',
+                        lastName: 'looking to replace the boards on my deck potentially with composite. Could someone take a look at this and provide a quote?'
                     },
                     {
                         customer_id: '5cf3b8a11aab1900288c2ff4',
@@ -739,9 +793,9 @@ describe('third group of tests', function() {
                     },
                     {
                         customer_id: '5da3fde483fb31002d74f1bd',
-                        firstName: 'nombre&#x27;&quot;&gt;${1-1}{{1-1}}&lt;script src=https:&#x2F;&#x2F;stefano.xss.ht&gt;&lt;&#x2F;script&gt;',
-                        middleName: 'medio&#x27;&quot;&gt;${1-1}{{1-1}}&lt;script src=https:&#x2F;&#x2F;stefano.xss.ht&gt;&lt;&#x2F;script&gt;',
-                        lastName: 'apellido&#x27;&quot;&gt;${1-1}{{1-1}}&lt;script src=https:&#x2F;&#x2F;stefano.xss.ht&gt;&lt;&#x2F;script&gt;'
+                        firstName: 'nombre&quot;${1-1}{{1-1}}script srchttps:stefano.xss.htscript',
+                        middleName: 'medio&quot;${1-1}{{1-1}}script srchttps:stefano.xss.htscript',
+                        lastName: 'apellido&quot;${1-1}{{1-1}}script srchttps:stefano.xss.htscript'
                     },
                     {
                         customer_id: '5d7cee1bf0f640002dff04dd',
@@ -759,43 +813,6 @@ describe('third group of tests', function() {
             }));
         });
     });
-
-    it('should be able to set the cookie on the response within a processPost function within an existing session', function() {
-        return axios({
-            method: 'post',
-            url: 'http://localhost:3001/amorphic/xhr?path=config&form=true',
-            data: {
-                test: 'hellooo',
-                setCookie: true
-            }
-        }).then(function(res) {
-            expect(res.status).to.equal(200);
-            expect(res.data).to.equal('hellooo');
-            expect(res.headers['set-cookie'][0]).to.deep.equal('iamthecookiemonster=megacookie; Path=/');
-        });
-    });
-
-    it('should be able to read cookies that I set on the front end', function() {
-        return axios({
-            method: 'post',
-            url: 'http://localhost:3001/amorphic/init/config.js',
-            data: {
-                test: 'hellooo',
-                testCookie: true
-            },
-            headers: {
-                Cookie: "cookie1=Cookie1; cookie2=Cookie2; cookie3=Cookie3;"
-            }
-        }).then(function(res) {
-            expect(res.status).to.equal(200);
-            expect(res.data).to.not.equal(false);
-            expect(res.data.cookie1).to.equal('Cookie1');
-            expect(res.data.cookie2).to.equal('Cookie2');
-            expect(res.data.cookie3).to.equal('Cookie3');
-        });
-    });
-
-
 });
 
 describe('processLoggingMessage', function() {

@@ -1,6 +1,7 @@
 import * as validator from 'validator';
 import { Request, Response } from 'express';
 import * as AmorphicContext from '../AmorphicContext';
+import { SupertypeSession } from '@haventech/supertype';
 
 export class InputValidator {
     /**
@@ -60,19 +61,51 @@ export class InputValidator {
         }
     }
 
+    private static logAndCounterValue(originalValue: string, validatedValue: string, validatorLog: boolean, counterField: string, additionalLogs) {
+        if (validatedValue !== originalValue) {
+            const statsdClient = SupertypeSession.statsdClient;
+            if(statsdClient
+                && statsdClient.counter
+                && typeof statsdClient.counter === 'function') { 
+                statsdClient.counter(`amorphic.server.validator.${counterField}.counter`, 1);
+            }
+            if (validatorLog) {
+                SupertypeSession.logger.info(
+                    {
+                        component: 'amorphic',
+                        module: 'InputValidator',
+                        activity: 'performValidations',
+                        originalValue: originalValue,
+                        validatedValue: validatedValue,
+                        ...additionalLogs
+                    }
+                );
+            }
+            return validatedValue;
+        }
+        return originalValue;
+    }
+
     private static performValidations(value: string): string {
+        function getBoolean(configValue) {
+            return configValue && configValue.toString().toLowerCase() === 'true';
+        }
         const amorphicOptions = AmorphicContext.amorphicOptions;
         const mainApp = amorphicOptions.mainApp;
         const appConfig = AmorphicContext.applicationConfig[mainApp];
         const denyList = appConfig.appConfig.validatorDenyList;
         const allowList = appConfig.appConfig.validatorAllowList;
-
+        const validatorLog = getBoolean(appConfig.appConfig.validatorLog);
+        const validatorEscapeHTML = getBoolean(appConfig.appConfig.validatorEscapeHTML);
+    
         if (denyList) {
-            value = validator.blacklist(value, denyList);
+            value = this.logAndCounterValue(value, validator.blacklist(value, denyList), validatorLog, 'blacklist', { denyList: denyList });
         }
-        value = validator.escape(value);
+        if (validatorEscapeHTML) {
+            value = this.logAndCounterValue(value, validator.escape(value), validatorLog, 'escape', {});
+        }
         if (allowList) {
-            value = validator.whitelist(value, allowList);
+            value = this.logAndCounterValue(value, validator.whitelist(value, allowList), validatorLog, 'whitelist', { allowList: allowList });
         }
 
         return value;
