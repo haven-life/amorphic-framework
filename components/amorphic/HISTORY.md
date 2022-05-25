@@ -1,3 +1,7 @@
+## 10.3.0
+* Add validator middleware to express server, config settings for whitelist, blacklist, escape
+## 10.2.1
+* bump nconf version due to security vulnerability.
 ## 10.2.0
 * Add serverless serverMode, will not start up amorphic express server
 * Add docker inspect debug

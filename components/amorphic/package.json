@@ -16,7 +16,7 @@
 		"express-session": "1.17.2",
 		"formidable": "2.0.1",
 		"mongodb": "^3.5.5",
-		"nconf": "0.11.3",
+		"nconf": "^0.12.0",
 		"uglify-js": "2.7.5",
 		"validator": "13.6.0"
 	},
