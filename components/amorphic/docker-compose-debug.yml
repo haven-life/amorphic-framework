@@ -22,6 +22,8 @@ services:
   amorphic-test:
     build:
       context: .
+    ports:
+      - '9229:9229'
     depends_on:
       - mongo
       - database-test
@@ -29,5 +31,5 @@ services:
       - .:/app
     env_file:
       - ./test.env
-    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test    
+    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test:debug    
  

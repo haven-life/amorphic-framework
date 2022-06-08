@@ -126,7 +126,7 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
             console.log(target.toString());
             if(classDefinitionSplitBySpaces[0] === 'class') {
                 console.log(classDefinitionSplitBySpaces[1]);
-                // return classDefinitionSplitBySpaces[1];
+                return classDefinitionSplitBySpaces[1];
             } else {
                 return 'NOTHING';
             }

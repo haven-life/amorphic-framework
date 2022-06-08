@@ -1,3 +1,8 @@
+## 10.2.1
+* bump nconf version due to security vulnerability.
+## 10.2.0
+* Add serverless serverMode, will not start up amorphic express server
+* Add docker inspect debug
 ## 10.1.0
 * Upgraded to node 16
 * Bumped dependencies to major versions

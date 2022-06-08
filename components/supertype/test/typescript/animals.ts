@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 import * as mocha from 'mocha';
+import * as sinon from 'sinon';
 import {Ark} from "./model/Ark";
 import {Lion} from "./model/Lion";
 import {Bear} from "./model/Bear";
@@ -7,6 +8,7 @@ import {Animal} from "./model/Animal";
 import {amorphicStatic} from "../../dist/index";
 import {LionContainer} from "./model/LionContainer";
 import {AnimalContainer} from "./model/AnimalContainer";
+import { SupertypeLogger } from '../../dist/SupertypeLogger';
 
 
 describe('AnimalContainer', function () {
@@ -107,14 +109,16 @@ describe('Freeze Dried Arks', function () {
     it ('can log', function () {
         var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
+
+        let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
+        sendToLogStub.callsFake((level, obj) => {
+            var str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
+            console.log(str);
+            output += str.replace(/[\r\n ]/g, '');
+        });
         
         let ark: Ark = new Ark();
 
-        ark.amorphic.logger.sendToLog = function sendToLog(level, obj) {
-            var str = ark.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
-            console.log(str);
-            output += str.replace(/[\r\n ]/g, '');
-        };
 
         ark.amorphic.logger.startContext({name: 'supertype'});
         ark.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');

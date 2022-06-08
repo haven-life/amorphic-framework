@@ -1,13 +1,13 @@
 {
     "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
         "@haventech/amorphic-contracts": "^0.2.0",
-        "nconf": "^0.11.0",
+        "nconf": "^0.12.0",
         "reflect-metadata": "^0.1.12"
     },
     "devDependencies": {

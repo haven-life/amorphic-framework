@@ -57,7 +57,7 @@
         "prepublishOnly": "npm run compile",
         "test": "mocha --exit -- test/*.js",
         "test:coverage": "nyc npm test",
-        "test:debug": "mocha test/**/*.js --inspect-brk=0.0.0.0:5858",
+        "test:debug": "mocha test/*.js --inspect-brk=0.0.0.0:5858",
         "test:docker": "docker-compose up --build",
         "test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",
         "test:compiled:js": "_mocha ./test/supertype/persist_banking_pgsql.js --exit",
