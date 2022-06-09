@@ -497,9 +497,7 @@ export class ObjectTemplate {
 
         function constructorName(constructor) {
             let constructorSplit = constructor.toString().split(' ');
-            // const namedFunction = constructor.toString().match(/function ([^(]*)/);
             return constructorSplit ? constructorSplit[1] : null;
-            // return namedFunction ? namedFunction[1] : null;
         }
 
     }
@@ -902,8 +900,6 @@ export class ObjectTemplate {
                 }
             }
         }
-
-        console.log()
 
         if (template.parentTemplate) {
             this._getDefineProperties(template.parentTemplate, returnValue, includeVirtual);

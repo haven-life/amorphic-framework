@@ -1,3 +1,5 @@
+## 6.0.0
+* target es2017 
 ## 5.0.1
 * bump nconf version due to security vulnerability
 ## 5.0.0
