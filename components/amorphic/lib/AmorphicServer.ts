@@ -11,6 +11,7 @@ let router = require('./routers/router').router;
 let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownloadsDir;
 let setupCustomRoutes = require('./setupCustomRoutes').setupCustomRoutes;
 let setupCustomMiddlewares = require('./setupCustomMiddlewares').setupCustomMiddlewares;
+let validatorMiddleware = require('./utils/InputValidator').InputValidator;
 
 let nonObjTemplatelogLevel = 1;
 
@@ -252,6 +253,7 @@ export class AmorphicServer {
 
         const amorphicRouter: express.Router = express.Router();
 
+        amorphicRouter.use(validatorMiddleware.validateUrlParams);
         amorphicRouter.use(initializePerformance);
         amorphicRouter.use(cookieMiddleware)
             .use(expressSesh)
@@ -259,6 +261,7 @@ export class AmorphicServer {
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)
             .use(urlEncodedMiddleWare)
+            .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
 

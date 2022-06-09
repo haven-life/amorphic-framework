@@ -1,6 +1,7 @@
 {
   "files": [
-    "./lib/AmorphicServer.ts"
+    "./lib/AmorphicServer.ts",
+    "./lib/utils/InputValidator.ts"
   ],
   "compilerOptions": {
     "module": "commonjs",

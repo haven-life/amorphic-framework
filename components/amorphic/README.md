@@ -44,6 +44,31 @@ Start the application:
 See this [blog post](http://elsamman.com/?p=117) for more info on Amorphic and this
 [video ](http://www.screencast.com/t/Z5Y2jMTmJ) that demos the drpatient sample
 
+## Validation 
+
+The Amorphic server has validation middleware that will validate requests coming into the server based on fields specified in a config.
+
+There are four fields to put in the config.json for the amorphic app. These fields are:
+
+```
+    validatorAllowList: characters that are allowed in the request, a white list
+    validatorDenyList: characters that are not allowed in the request, a black list
+    validatorLog: boolean for logging whenever a request is blacklisted, whitelisted, or has HTML values escaped
+    validatorEscapeHTML: boolean for allowing HTML characters to be escaped
+```
+
+The whitelist and blacklist fields follow the format here: https://www.npmjs.com/package/validator
+
+The whitelist field is especially dangerous to use as it will only allow characters that match the format to pass the validator.
+
+The blacklist field also has certain characters that should not be blocked, such as '-', as that will most likely corrupt the amorphic message and cause problems.
+
+The order that this validation is performed is blacklist, escape, whitelist.
+
+The config.json found for the amorphic postgres unit test found here: components/amorphic/test/postgres/apps/test/config.json, contains examples of how these fields should be used.
+
+There is also a counter under statsd for 'amorphic.server.validator.whitelist.counter', 'amorphic.server.validator.blacklist.counter', and 'amorphic.server.validator.escape.counter' that will count the times requests are blacklisted, whitelisted, or escaped.
+
 ## Testing
 
 Run all the tests:
