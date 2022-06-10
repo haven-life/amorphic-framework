@@ -449,14 +449,14 @@ export class ObjectTemplate {
         if (this.__templates__) {
             for (let ix = 0; ix < this.__templates__.length; ++ix) {
                 var template = this.__templates__[ix];
-                this.__dictionary__[constructorName(template)] = template;
-                this.__templatesToInject__[constructorName(template)] = template;
+                this.__dictionary__[ObjectTemplate.getName(template)] = template;
+                this.__templatesToInject__[ObjectTemplate.getName(template)] = template;
                 processDeferredTypes(template);
             }
             this.__templates__ = undefined;
             for (const templateName1 in this.__dictionary__) {
                 var template = this.__dictionary__[templateName1];
-                const parentTemplateName = constructorName(Object.getPrototypeOf(template.prototype).constructor);
+                const parentTemplateName = ObjectTemplate.getName(Object.getPrototypeOf(template.prototype).constructor);
                 template.__shadowParent__ = this.__dictionary__[parentTemplateName];
                 if (template.__shadowParent__) {
                     const found = template.__shadowParent__.__shadowChildren__.find(sc => sc.__name__ === template.__name__);
@@ -494,12 +494,16 @@ export class ObjectTemplate {
             }
         }
         return this.__dictionary__;
+    }
 
-        function constructorName(constructor) {
-            let constructorSplit = constructor.toString().split(' ');
-            return constructorSplit ? constructorSplit[1] : null;
+    static getName(object) {
+        if (typeof object === 'function') {
+            return object.name;
         }
-
+        if (object.constructor) {
+            return object.constructor.name;
+        }
+        return null;
     }
 
     /**
