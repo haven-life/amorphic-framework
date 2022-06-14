@@ -3,10 +3,10 @@ import { Animal } from './Animal';
 
 @supertypeClass
 export class Ark extends Supertype {
-    @property({getType: () => Animal})
+    @property({type: Array, getType: () => Animal})
     animals: Array<Animal> = [];
 
-    @property({values: ['s', 'l'], descriptions: {'s': 'small', 'l': 'large'}})
+    @property({values: ['s', 'l'], descriptions: {'s': 'small', 'l': 'large'}, type: String})
     size: string = 's'
 
     board (animal) {

@@ -1,8 +1,6 @@
 export { Supertype } from './Supertype';
 import { ObjectTemplate } from './ObjectTemplate';
 
-import 'reflect-metadata';
-
 /**
     * 
     * @param {*} objectProps- optional property for passing params into supertypeclass, if no params, is undefined,
@@ -144,18 +142,8 @@ export function property(props?): any {
         props = props || {};
         props.enumerable = true;
         target.__amorphicprops__ = target.hasOwnProperty('__amorphicprops__') ? target.__amorphicprops__ : {};
-        var reflectionType = Reflect.getMetadata('design:type', target, targetKey);
-        var declaredType = props.type;
-        var type = reflectionType !== Array ? declaredType || reflectionType : declaredType;
-    // Type mismatches
-        if (declaredType && reflectionType && reflectionType !== Array) {
-            target.__exceptions__ = target.__exceptions__ || {};
-            target.__exceptions__[targetKey] = function (className, prop) {
-                return className + '.' + prop + ' - decorator type does not match actual type';
-            };
-    // Deferred type
-        }
-        else if (typeof props.getType === 'function') {
+        let type = props.type;
+        if (typeof props.getType === 'function') {
             target.__deferredType__ = target.hasOwnProperty('__deferredType__') ? target.__deferredType__ : {};
             target.__deferredType__[targetKey] = props.getType;
             delete props.getType;
@@ -168,13 +156,6 @@ export function property(props?): any {
                 prop[0].toUpperCase() + prop.substr(1) + '}})';
 
             };
-        }
-        if (reflectionType === Array) {
-            props.type = Array;
-            props.of = type;
-        }
-        else {
-            props.type = type;
         }
         target.__amorphicprops__[targetKey] = props;
     };

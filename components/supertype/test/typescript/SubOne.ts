@@ -2,7 +2,7 @@ import { property, Supertype, supertypeClass } from "../../dist";
 
 @supertypeClass
 export class SubOne extends Supertype {
-    @property()
+    @property({ type: String })
     name: String = '';
     constructor (name) {
         super();
