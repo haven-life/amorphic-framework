@@ -59,7 +59,10 @@ export class Supertype {
     static __parent__: Constructable;
     amorphicClass : any
 
-    constructor(objectTemplate = ObjectTemplate) {
+    constructor(objectTemplate = ObjectTemplate, proto?: any) {
+        if (proto) {
+            Object.setPrototypeOf(this, proto);
+        }
         var template = this.__template__;
         if (!template) {
             throw new Error(ObjectTemplate.getName(Object.getPrototypeOf(this).constructor) + ' missing @supertypeClass');
