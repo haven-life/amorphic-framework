@@ -1,7 +1,7 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Account} from './Account';
 
-@supertypeClass
+@supertypeClass({})
 export class Transaction  extends Persistable(Supertype) {
     constructor (account, type, amount) {
         super()
@@ -12,36 +12,12 @@ export class Transaction  extends Persistable(Supertype) {
             account.transactions.push(this);
     };
 
-    @property()
+    @property({type: Number})
     amount: number;
 
-    @property()
+    @property({type: String})
     type: string;
 
     @property({getType: () => {return Account}})
     account: Account;
-}
-@supertypeClass
-export class Debit extends Transaction {
-    constructor (account, type, amount) {
-        super(account, type, amount);
-    }
-}
-@supertypeClass
-export class Credit extends Transaction {
-    constructor (account, type, amount) {
-        super(account, type, amount);
-    }
-}
-@supertypeClass
-export class Xfer extends Transaction {
-    @property({fetch: true, getType: () => {return Account}})
-    fromAccount: Account;
-
-    constructor (account, type, amount, fromAccount) {
-        super(account, type, amount);
-        this.fromAccount = fromAccount;
-        if (fromAccount)
-            fromAccount.fromAccountTransactions.push(this);
-    }
 }

@@ -1,10 +1,10 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Address} from './Address';
 
-@supertypeClass
+@supertypeClass({})
 export class ReturnedMail extends Persistable(Supertype) {
 
-    @property()
+    @property({type: Date})
     date: Date;
 
     @property({getType: ()=> {return Address}})

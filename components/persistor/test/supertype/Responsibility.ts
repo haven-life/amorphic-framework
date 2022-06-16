@@ -1,7 +1,7 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Employee} from './Employee';
 
-@supertypeClass
+@supertypeClass({})
 export class Responsibility extends Persistable(Supertype) {
     constructor(type, details) {
         super();
@@ -10,10 +10,10 @@ export class Responsibility extends Persistable(Supertype) {
         this.setDirty();
     }
 
-    @property()
+    @property({type: String})
     type: string = '';
 
-    @property()
+    @property({type: String})
     details: string = '';
 
     @property({getType: () => {return Employee}})

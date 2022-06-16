@@ -2,7 +2,7 @@
     "name": "@haventech/persistor",
     "description": "A subclass of supertype that serializes to and reconstitutes from MongoDB or SQL databases",
     "homepage": "https://github.com/haven-life/persistor",
-    "version": "8.0.2",
+    "version": "9.0.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
@@ -17,10 +17,10 @@
         "uuid": "8.3.2"
     },
     "peerDependencies": {
-        "@haventech/supertype": "5.x"
+        "@haventech/supertype": "6.0.0-beta.1"
     },
     "devDependencies": {
-        "@haventech/supertype": "5.x",
+        "@haventech/supertype": "6.0.0-beta.1",
         "@types/bluebird": "*",
         "@types/chai": "4.3.0",
         "@types/mocha": "9.1.0",
@@ -64,7 +64,7 @@
         "test:config": "mocha test/config --exit",
         "test:example": "mocha test/example --exit",
         "test:ts": "npm run compile:tests && npm run test:compiled:js",
-        "test:ts:register": "mocha --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts",
+        "test:ts:register": "mocha --require ts-node/register test/supertype/persist_banking_pgsql.ts",
         "test:ts:debug": "mocha --inspect-brk --compilers ts:ts-node/register test/supertype/persist_banking_pgsql.ts"
     },
     "bugs": {

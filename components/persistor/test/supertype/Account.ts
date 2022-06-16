@@ -1,7 +1,10 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Role} from './Role';
 import {Address} from './Address';
-import {Transaction, Debit, Credit, Xfer} from './Transaction';
+import {Transaction} from './Transaction';
+import {Debit} from './Debit';
+import {Credit} from './Credit';
+import {Xfer} from './Xfer';
 
 @supertypeClass({toServer: true, toClient: false})
 export class Account extends Persistable(Supertype) {
@@ -19,22 +22,22 @@ export class Account extends Persistable(Supertype) {
         this.setDirty();
     };
 
-    @property({values: ['B', 'P'], descriptions: {B: 'Business', P: 'Personal'}})
+    @property({type: String, values: ['B', 'P'], descriptions: {B: 'Business', P: 'Personal'}})
     accountType: String = 'P';
 
-    @property({type: Transaction, fetch: true})
+    @property({type: Array, of: Transaction, fetch: true})
     transactions: Array<Transaction> = [];
 
-    @property({type: Transaction, fetch: true})
+    @property({type: Array, of: Transaction, fetch: true})
     fromAccountTransactions: Array<Transaction> = [];
 
-    @property()
+    @property({type: Number})
     number: number;
 
-    @property({type: String})
+    @property({type: Array, of: String})
     title: Array<string>;
 
-    @property({getType: () => {return Role}, fetch: true})
+    @property({type: Array, getType: () => {return Role}, fetch: true})
     roles: Array<Role> = [];
 
     @property({getType: () => {return Address}})
