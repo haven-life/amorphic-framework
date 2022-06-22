@@ -1,3 +1,6 @@
+## 7.0.0
+* target es2020
+* use supertype 6, remove emitDecoratorMetadata
 ## 6.0.1
 * bump nconf version due to security vulnerability.
 ## 6.0.0

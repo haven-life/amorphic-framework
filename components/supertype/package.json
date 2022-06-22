@@ -1,7 +1,7 @@
 {
     "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "6.0.0",
+    "version": "5.0.1",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
@@ -26,7 +26,8 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "test:ts:debug": "mocha --inspect-brk --require ts-node/register test/typescript/*",
+        "debug:tests": "mocha --inspect-brk test/animals.js",
+        "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
         "test:ts": "mocha --require ts-node/register test/typescript/*",
         "clean": "rm -rf dist/",
         "compile": "tsc",

@@ -2,8 +2,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es2020",
-    "lib": ["es2015", "es2017", "es2020", "dom"],
+    "target": "es5",
+    "lib": ["es2015", "es2017", "dom"],
     "noImplicitAny": false,
     "typeRoots": [
       "./node_modules/@types"
@@ -12,6 +12,7 @@
     "declarationDir": "dist",
     "outDir": "./dist",
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "inlineSources": true,
     "inlineSourceMap": true
   },

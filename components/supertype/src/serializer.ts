@@ -66,7 +66,7 @@ export function fromPOJO(pojo, template, defineProperty?, idMap?, idQualifier?, 
         return;
     }
 
-    let obj;
+    var obj;
 
     if (creator) {
         obj = creator(parent, prop, template, idMap[pojo.__id__.toString()], pojo.__transient__);
