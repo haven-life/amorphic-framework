@@ -788,7 +788,7 @@ export class ObjectTemplate {
      *
      * @private
      */
-     static _getBaseClass(template) {
+    static _getBaseClass(template) {
         while (template.__parent__) {
             template = template.__parent__;
         }

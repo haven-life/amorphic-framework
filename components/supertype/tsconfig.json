@@ -12,6 +12,7 @@
     "declarationDir": "dist",
     "outDir": "./dist",
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "inlineSources": true,
     "inlineSourceMap": true
   },

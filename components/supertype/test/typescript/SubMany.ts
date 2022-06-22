@@ -5,7 +5,7 @@ import { Main } from './Main';
 export class SubMany extends Supertype {
     @property({getType: () => {return Main}})
     main: Main;
-    @property({ type: String })
+    @property()
     name: String = '';
     constructor (name) {
         super();

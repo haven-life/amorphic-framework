@@ -3,7 +3,7 @@ import { Animal } from './Animal';
 
 @supertypeClass
 export class Bear extends Animal {
-    @property({ type: String })
+    @property()
     bearStuff: string = 'maul';
 
     constructor () {

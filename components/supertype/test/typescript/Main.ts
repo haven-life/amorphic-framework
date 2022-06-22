@@ -5,7 +5,7 @@ import { SubMany } from "./SubMany";
 @supertypeClass
 export class Main extends Supertype {
 
-    @property({ type: String })
+    @property()
     name: String = '';
     constructor (name) {
         super();
@@ -15,9 +15,9 @@ export class Main extends Supertype {
     subA: SubOne;
     @property({getType: () => {return SubOne}})
     subB: SubOne;
-    @property({type: Array, getType: () => {return SubMany}})
+    @property({getType: () => {return SubMany}})
     subsA: Array<SubMany> = [];
-    @property({type: Array, getType: () => {return SubMany}})
+    @property({getType: () => {return SubMany}})
     subsB: Array<SubMany> = [];
 
     addSubManyA (subMany) {
