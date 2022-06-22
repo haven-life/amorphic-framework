@@ -4,7 +4,7 @@ import {Address} from './Address';
 @supertypeClass
 export class ReturnedMail extends Supertype {
 
-    @property({type: Date})
+    @property()
     date: Date;
 
     @property({getType: ()=> {return Address}})

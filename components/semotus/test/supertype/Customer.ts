@@ -12,46 +12,46 @@ export class Customer extends Supertype {
         this.middleName = middle;
     }
 
-    @property({type: String})
+    @property()
     email: string = '';
 
-    @property({type: String})
+    @property()
     firstName: string = '';
 
-    @property({type: String})
+    @property()
     middleName: string = '';
 
-    @property({type: String})
+    @property()
     lastName: string = '';
 
-    @property({type: String})
+    @property()
     local1: string = 'local1';
 
-    @property({type: String})
+    @property()
     local2: string = 'local2';
 
-    @property({type: Number})
+    @property()
     nullNumber: number = null;
 
-    @property({type: Date})
+    @property()
     nullDate: Date = null;
 
-    @property({type: String})
+    @property()
     nullString: string = null;
 
-    @property({type: Array, getType: () => {return Role}})
+    @property({getType: () => {return Role}})
     roles:  Array<Role> = [];
 
-    @property({type: Customer})
+    @property()
     referredBy: Customer;
 
-    @property({type: String})
+    @property()
     type: string = 'primary';
 
-    @property({type: Array, fetch: true, of: Customer})
+    @property({fetch: true, type: Customer})
     referrers:  Array<Customer>;
 
-    @property({type: Array, fetch: true, of: Customer})
+    @property({fetch: true, type: Customer})
     secondaryReferrers:  Array<Customer> = [];
 
     addAddress (lines, city, state, zip) {
@@ -64,7 +64,7 @@ export class Customer extends Supertype {
         this.addresses.push(address);
     }
 
-    @property({type: Array, of: Address, fetch: true})
+    @property({type: Address, fetch: true})
     addresses: Array<Address> = [];
 
 }

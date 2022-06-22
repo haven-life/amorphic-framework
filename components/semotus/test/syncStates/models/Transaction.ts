@@ -3,9 +3,9 @@ import {Account} from './Account';
 
 @supertypeClass
 export class Transaction extends Supertype {
-    @property({type: Number})
+    @property()
     amount: number;
-    @property({type: String})
+    @property()
     type: string;
     @property({
         getType: () => {

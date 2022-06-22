@@ -6,11 +6,11 @@ import * as _ from 'underscore';
 @supertypeClass
 export class Address extends Supertype {
 
-    @property({type: Array, of: String})
+    @property({type: String})
     lines: Array<String> = [];
-    @property({type: String})
+    @property()
     city: String = '';
-    @property({type: String})
+    @property()
     state: string = '';
     @property({
         getType: () => {
@@ -18,7 +18,7 @@ export class Address extends Supertype {
         }
     })
     customer: Customer;
-    @property({type: String})
+    @property()
     type: string;
     @property({
         getType: () => {

@@ -13,6 +13,7 @@
       "../../node_modules/@types"
     ],
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "inlineSources": true,
     "inlineSourceMap": true
   }

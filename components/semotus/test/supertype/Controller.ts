@@ -51,13 +51,13 @@ export class Controller extends Supertype {
 		samsNewAccount.addCustomer(this.sam, 'sole');
 	}
 
-	@property({type: Customer})
+	@property()
 	sam: Customer;
 
-	@property({type: Customer})
+	@property()
 	karen: Customer;
 
-	@property({type: Customer})
+	@property()
 	ashling: Customer;
 
 	@remote({ type: Customer })
@@ -66,31 +66,31 @@ export class Controller extends Supertype {
 	@remote({ of: Customer })
 	decoratedMultiple() { }
 
-	@property({ type: Boolean, toClient: false })
+	@property({ toClient: false })
 	onClientFalse: boolean = false;
 
-	@property({ type: Boolean, toClient: true })
+	@property({ toClient: true })
 	onClientTrue: boolean = false;
 
-	@property({ type: Boolean, toClient: ['NoClientRule'] })
+	@property({ toClient: ['NoClientRule'] })
 	onClientNotRightApp: boolean = false;
 
-	@property({ type: Boolean, toClient: ['ClientRule'] })
+	@property({ toClient: ['ClientRule'] })
 	onClientWithApp: boolean = false;
 
-	@property({ type: Boolean, toServer: false })
+	@property({ toServer: false })
 	onServerFalse: boolean = false;
 
-	@property({ type: Boolean, toServer: true })
+	@property({ toServer: true })
 	onServerTrue: boolean = false;
 
 	serverValidatorCounter = 0;
 	argumentValidator = false;
 
-	@property({ type: Boolean, toServer: ['NoServerRule'] })
+	@property({ toServer: ['NoServerRule'] })
 	onServerNotRightApp: boolean = false;
 
-	@property({ type: Boolean, toClient: ['ServerRule'] })
+	@property({ toClient: ['ServerRule'] })
 	onServerWithApp: boolean = false;
 
 	setAllClientRuleCheckFalgsonServer() {
