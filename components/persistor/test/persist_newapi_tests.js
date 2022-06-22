@@ -398,6 +398,19 @@ describe('persist newapi tests', function () {
         })
     });
 
+    it('test a bunch of parallel commits and reads to check for race condition', async () => {
+        for (let i = 0; i < 1000; ++i) {
+            var phoneTemp = new Phone();
+            phoneTemp.number = `${i}`;
+    
+            var tx =  PersistObjectTemplate.beginTransaction();
+            await phoneTemp.persist({transaction: tx, cascade: false});
+            await PersistObjectTemplate.commit();
+            const phones =  await Phone.persistorFetchByQuery({number: `${i}`});
+            expect(phones.length).to.equal(1);
+        }
+    });
+
     it('load the object with change tracking flag and make changes to get notified', function () {
         var emp1 = new Employee();
         var add1 = new Address();
