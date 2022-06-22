@@ -16,9 +16,11 @@ import * as _ from 'underscore';
 import {Customer} from "./Customer";
 import {ExtendedCustomer} from "./ExtendedCustomer";
 import Promise = require('bluebird');
+import * as sinon from 'sinon';
 import {Role} from "./Role";
 import {Account} from "./Account";
 import {Transaction, Xfer} from './Transaction';
+import { SupertypeLogger } from '@haventech/supertype';
 
 var schema = {
     Customer: {
@@ -1010,10 +1012,12 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         sam = new Customer('Sam', 'M', 'Elsamman');
         var oldSendToLog = sam.amorphic.logger;
 
-        sam.amorphic.logger.sendToLog = function sendToLog(level, obj) {
-            var str = sam.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
+        let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
+        sendToLogStub.callsFake((level, obj) => {
+            let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
+            console.log(str);
             output += str.replace(/[\r\n ]/g, '');
-        };
+        });
 
         sam.amorphic.logger.startContext({name: '@haventech/supertype'});
         sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');

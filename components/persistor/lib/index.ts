@@ -51,7 +51,8 @@
  */
 var nextId = 1;
 var objectTemplate;
-var supertype = require('@haventech/supertype');
+import ObjectTemplate from '@haventech/supertype';
+import { Supertype, supertypeClass, property } from '@haventech/supertype';
 
 module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();
@@ -82,20 +83,20 @@ module.exports.supertypeClass = function (target) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.supertypeClass(target, objectTemplate)
+    return supertypeClass(target, objectTemplate)
 };
 module.exports.Supertype = function () {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.Supertype.call(this, objectTemplate);
+    return Reflect.construct( Supertype, [objectTemplate], this.constructor );
 };
-module.exports.Supertype.prototype = supertype.Supertype.prototype;
+module.exports.Supertype.prototype = Supertype.prototype;
 module.exports.property = function (props) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.property(props, objectTemplate);
+    return property(props);
 }
 
 var __extends = (this && this.__extends) || (function () {
@@ -120,7 +121,6 @@ module.exports.Persistable = function (Base) {
     }(Base));
 }
 
-let ObjectTemplate = supertype.default;
 module.exports.Persistor = {
     create: function () {return  module.exports(ObjectTemplate, null, ObjectTemplate)}
 }

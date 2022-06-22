@@ -1,3 +1,5 @@
+## 7.0.0
+* target es2020
 ## 6.0.1
 * bump nconf version due to security vulnerability.
 ## 6.0.0

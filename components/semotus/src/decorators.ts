@@ -87,7 +87,7 @@ export function supertypeClass(objectTemplate, SupertypeModule, target): any {
 }
 
 export function Supertype(template, objectTemplate, Supertype) {
-    return Supertype.call(template, objectTemplate);
+    return Reflect.construct( Supertype, [objectTemplate], template.constructor );
 }
 
 export function property(objectTemplate, SupertypeModule, props, toClientRuleSet, toServerRuleSet) {
