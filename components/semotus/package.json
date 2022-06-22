@@ -55,7 +55,7 @@
 		"underscore": "1.13.2"
 	},
 	"peerDependencies": {
-		"@haventech/supertype": "5.x"
+		"@haventech/supertype": "6.0.0-beta.4"
 	},
 	"dependencies": {
 		"q": "1.x"
