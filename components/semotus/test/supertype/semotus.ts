@@ -96,11 +96,11 @@ describe('Typescript Banking Example', function () {
 		var sam = clientController.sam;
 		var oldSendToLog = sam.amorphic.logger;
 
-        let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
-        sendToLogStub.callsFake((level, obj) => {
-            let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
-            output += str.replace(/[\r\n ]/g, '');
-        });
+		let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
+		sendToLogStub.callsFake((level, obj) => {
+			let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
+			output += str.replace(/[\r\n ]/g, '');
+		});
 
 		sam.amorphic.logger.startContext({name: 'supertype'});
 		sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
