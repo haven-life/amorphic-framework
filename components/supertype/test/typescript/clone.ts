@@ -1,65 +1,10 @@
-import {expect} from 'chai';
-import * as mocha from 'mocha';
+import { expect } from 'chai';
 import {property, Supertype, supertypeClass} from "../../dist/index";
-
-@supertypeClass
-class Main extends Supertype {
-
-    @property()
-    name: String = '';
-    constructor (name) {
-        super();
-        this.name = name;
-    }
-    @property({getType: () => {return SubOne}})
-    subA: SubOne;
-    @property({getType: () => {return SubOne}})
-    subB: SubOne;
-    @property({getType: () => {return SubMany}})
-    subsA: Array<SubMany> = [];
-    @property({getType: () => {return SubMany}})
-    subsB: Array<SubMany> = [];
-    addSubManyA (subMany) {
-        subMany.main = this;
-        this.subsA.push(subMany);
-    }
-    addSubManyB (subMany) {
-        subMany.main = this;
-        this.subsB.push(subMany);
-    }
-};
-@supertypeClass
-class SubOne extends Supertype {
-    @property()
-    name: String = '';
-    constructor (name) {
-        super();
-        this.name = name;
-    }
-};
-@supertypeClass
-class SubOneExtended extends SubOne {
-    constructor (name) {
-        super(name);
-    }
-};
-@supertypeClass
-class SubMany extends Supertype {
-    @property()
-    main: Main;
-    @property()
-    name: String = '';
-    constructor (name) {
-        super();
-        this.name = name;
-    }
-};
-@supertypeClass
-class SubManyExtended  extends SubMany {
-    constructor (name) {
-        super(name);
-    }
-};
+import { SubOne } from './SubOne';
+import { SubOneExtended } from './SubOneExtended';
+import { SubMany } from './SubMany';
+import { SubManyExtended } from './SubManyExtended';
+import { Main } from './Main';
 
 
 var main = new Main('main');

@@ -449,14 +449,14 @@ export class ObjectTemplate {
         if (this.__templates__) {
             for (let ix = 0; ix < this.__templates__.length; ++ix) {
                 var template = this.__templates__[ix];
-                this.__dictionary__[constructorName(template)] = template;
-                this.__templatesToInject__[constructorName(template)] = template;
+                this.__dictionary__[ObjectTemplateStatic._getName(template)] = template;
+                this.__templatesToInject__[ObjectTemplateStatic._getName(template)] = template;
                 processDeferredTypes(template);
             }
             this.__templates__ = undefined;
             for (const templateName1 in this.__dictionary__) {
                 var template = this.__dictionary__[templateName1];
-                const parentTemplateName = constructorName(Object.getPrototypeOf(template.prototype).constructor);
+                const parentTemplateName = ObjectTemplateStatic._getName(Object.getPrototypeOf(template.prototype).constructor);
                 template.__shadowParent__ = this.__dictionary__[parentTemplateName];
                 if (template.__shadowParent__) {
                     const found = template.__shadowParent__.__shadowChildren__.find(sc => sc.__name__ === template.__name__);
@@ -494,12 +494,10 @@ export class ObjectTemplate {
             }
         }
         return this.__dictionary__;
+    }
 
-        function constructorName(constructor) {
-            const namedFunction = constructor.toString().match(/function ([^(]*)/);
-            return namedFunction ? namedFunction[1] : null;
-        }
-
+    static getName(object) {
+        return ObjectTemplateStatic._getName(object);
     }
 
     /**
@@ -526,7 +524,6 @@ export class ObjectTemplate {
         return false;
     }
 
-
     /**
      * Overridden by other Type Systems to inject other elements
      *
@@ -537,7 +534,7 @@ export class ObjectTemplate {
     static _injectIntoTemplate(_template) { };
 
     /**
-     * Used by template setup to create an property descriptor for use by the constructor
+     * Overridable property used by template setup to create an property descriptor for use by the constructor
      *
      * @param {unknown} propertyName is the name of the property
      * @param {unknown} defineProperty is the property descriptor passed to the template
@@ -546,7 +543,6 @@ export class ObjectTemplate {
      * @param {unknown} defineProperties is all properties that will be passed to Object.defineProperties
      *                         A new property will be added to this object
      *
-     * @private
      */
     static _setupProperty(propertyName, defineProperty, objectProperties, defineProperties) {
         // Determine whether value needs to be re-initialized in constructor
@@ -688,13 +684,13 @@ export class ObjectTemplate {
     };
 
     /**
- * Purpose unknown
- *
- * @param {unknown} obj unknown
- * @param {unknown} creator unknown
- *
- * @returns {unknown}
- */
+     * Purpose unknown
+     *
+     * @param {unknown} obj unknown
+     * @param {unknown} creator unknown
+     *
+     * @returns {unknown}
+     */
     static createCopy(obj, creator) {
         return this.fromPOJO(obj, obj.__template__, null, null, undefined, null, null, creator);
     }
@@ -746,9 +742,8 @@ export class ObjectTemplate {
      */
     static toJSONString = serializer.toJSONString;
 
-         /**
-     /**
-      * Find the right subclass to instantiate by either looking at the
+    /**
+      * Overridable property to find the right subclass to instantiate by either looking at the
       * declared list in the subClasses define property or walking through
       * the subclasses of the declared template
       *
@@ -756,7 +751,6 @@ export class ObjectTemplate {
       * @param {unknown} objId unknown
       * @param {unknown} defineProperty unknown
       * @returns {*}
-      * @private
       */
      static _resolveSubClass(template, objId, defineProperty) {
         let templateName = '';
@@ -765,7 +759,7 @@ export class ObjectTemplate {
             templateName = RegExp.$1;
         }
 
-    // Resolve template subclass for polymorphic instantiation
+        // Resolve template subclass for polymorphic instantiation
         if (defineProperty && defineProperty.subClasses && objId != 'anonymous)') {
             if (templateName) {
                 for (let ix = 0; ix < defineProperty.subClasses.length; ++ix) {
@@ -776,38 +770,13 @@ export class ObjectTemplate {
             }
         }
         else {
-            const subClass = this._findSubClass(template, templateName);
+            const subClass = ObjectTemplateStatic._findSubClass(template, templateName);
 
             if (subClass) {
                 template = subClass;
             }
         }
         return template;
-    }
-
-    /**
-     * Walk recursively through extensions of template via __children__
-     * looking for a name match
-     *
-     * @param {unknown} template unknown
-     * @param {unknown} templateName unknown
-     * @returns {*}
-     * @private
-     */
-    static _findSubClass(template, templateName) {
-        if (template.__name__ == templateName) {
-            return template;
-        }
-
-        for (let ix = 0; ix < template.__children__.length; ++ix) {
-            const subClass = this._findSubClass(template.__children__[ix], templateName);
-
-            if (subClass) {
-                return subClass;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -827,17 +796,17 @@ export class ObjectTemplate {
         return template;
     }
 
-         /**
-      * An overridable function used to create an object from a template and optionally
-      * manage the caching of that object (used by derivative type systems).  It
-      * preserves the original id of an object
-      *
-      * @param {unknown} template of object
-      * @param {unknown} objId and id (if present)
-      * @param {unknown} defineProperty unknown
-      * @returns {*}
-      * @private
-      */
+    /**
+     * An overridable function used to create an object from a template and optionally
+     * manage the caching of that object (used by derivative type systems).  It
+     * preserves the original id of an object
+     *
+     * @param {unknown} template of object
+     * @param {unknown} objId and id (if present)
+     * @param {unknown} defineProperty unknown
+     * @returns {*}
+     * @private
+     */
      static _createEmptyObject(template, objId, defineProperty) {
         template = this._resolveSubClass(template, objId, defineProperty);
 
@@ -1221,11 +1190,53 @@ function createPropertyFunc(functionProperties, templatePrototype, objectTemplat
                 defineProperty.toServer = descriptor.toServer;
             }
 
-            objectTemplate._setupProperty(propertyName, defineProperty, objectProperties, defineProperties, parentTemplate, createProperties);
+            objectTemplate._setupProperty(propertyName, defineProperty, objectProperties, defineProperties);
             defineProperty.sourceTemplate = templateName;
         }
     }
 };
+
+class ObjectTemplateStatic {
+    /**
+     * Getting the name of the object
+     *
+     * @param {unknown} object object we are getting the name for
+     * @returns a string of the name of the object or null
+     */
+     static _getName(object) {
+        if (typeof object === 'function') {
+            return object.name;
+        }
+        if (object.constructor) {
+            return object.constructor.name;
+        }
+        return null;
+    }
+
+    /**
+     * Walk recursively through extensions of template via __children__
+     * looking for a name match
+     *
+     * @param {unknown} template unknown
+     * @param {unknown} templateName unknown
+     * @returns {*}
+     */
+    static _findSubClass(template, templateName) {
+        if (template.__name__ == templateName) {
+            return template;
+        }
+
+        for (let ix = 0; ix < template.__children__.length; ++ix) {
+            const subClass = this._findSubClass(template.__children__[ix], templateName);
+
+            if (subClass) {
+                return subClass;
+            }
+        }
+
+        return null;
+    }
+}
 
 function bindParams(templateName, objectTemplate, functionProperties,
     defineProperties, parentTemplate, propertiesOrTemplate,

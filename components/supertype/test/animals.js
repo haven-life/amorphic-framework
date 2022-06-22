@@ -101,40 +101,4 @@ describe('Freeze Dried Arks', function () {
 
         done();
     });
-
-    it ('can log', function () {
-        var date = new Date('2010-11-11T00:00:00.000Z');
-        var output = '';
-
-        ObjectTemplate.logger.sendToLog = function sendToLog(level, obj) {
-            var str = ObjectTemplate.logger.prettyPrint(level, obj).replace(/.*: /, '');
-            console.log(str);
-            output += str.replace(/[\r\n ]/g, '');
-        };
-
-        ObjectTemplate.logger.startContext({name: 'supertype'});
-        ObjectTemplate.logger.warn({foo: 'bar1'}, 'Yippie');
-        var context = ObjectTemplate.logger.setContextProps({permFoo: 'permBar1'});
-        ObjectTemplate.logger.warn({foo: 'bar2'});
-        ObjectTemplate.logger.clearContextProps(context);
-        ObjectTemplate.logger.warn({foo: 'bar3'});
-        var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
-        child.setContextProps({permFoo: 'childFoo'});
-        child.warn({'foo': 'bar4'});
-        ObjectTemplate.logger.warn({foo: 'bar5'});
-        ObjectTemplate.logger.startContext({name: 'supertype2'});
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error');
-        console.log('setting level to error');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar6');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar7');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-
-        console.log(output);
-        var result = '(__amorphicContext={"name":"supertype"}foo="bar1")(__amorphicContext={"name":"supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"supertype"}foo="bar3")(__amorphicContext={"name":"supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
-
-        expect(output).to.equal(result);
-    });
 });
