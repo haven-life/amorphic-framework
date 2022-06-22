@@ -415,7 +415,7 @@ export class ObjectTemplate {
      * Create the template if it needs to be created
      * @param [unknown} template to be created
      */
-     static createIfNeeded(template?, thisObj?) {
+    static createIfNeeded(template?, thisObj?) {
         if (template.__createParameters__) {
             const createParameters = template.__createParameters__;
             for (var ix = 0; ix < createParameters.length; ++ix) {
@@ -544,7 +544,7 @@ export class ObjectTemplate {
      *                         A new property will be added to this object
      *
      */
-     static _setupProperty(propertyName, defineProperty, objectProperties, defineProperties) {
+    static _setupProperty(propertyName, defineProperty, objectProperties, defineProperties) {
         // Determine whether value needs to be re-initialized in constructor
         const value = defineProperty.value;
         const byValue = value && typeof (value) !== 'number' && typeof (value) !== 'string';
@@ -788,7 +788,7 @@ export class ObjectTemplate {
      *
      * @private
      */
-     static _getBaseClass(template) {
+    static _getBaseClass(template) {
         while (template.__parent__) {
             template = template.__parent__;
         }
