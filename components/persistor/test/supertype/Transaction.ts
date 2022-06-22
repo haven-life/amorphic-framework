@@ -21,3 +21,27 @@ export class Transaction  extends Persistable(Supertype) {
     @property({getType: () => {return Account}})
     account: Account;
 }
+@supertypeClass
+export class Debit extends Transaction {
+    constructor (account, type, amount) {
+        super(account, type, amount);
+    }
+}
+@supertypeClass
+export class Credit extends Transaction {
+    constructor (account, type, amount) {
+        super(account, type, amount);
+    }
+}
+@supertypeClass
+export class Xfer extends Transaction {
+    @property({fetch: true, getType: () => {return Account}})
+    fromAccount: Account;
+
+    constructor (account, type, amount, fromAccount) {
+        super(account, type, amount);
+        this.fromAccount = fromAccount;
+        if (fromAccount)
+            fromAccount.fromAccountTransactions.push(this);
+    }
+}

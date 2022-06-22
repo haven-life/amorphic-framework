@@ -8,11 +8,11 @@ let delay = require('../../../dist/helpers/Utilities.js').delay;
 
 @supertypeClass
 export class Controller extends Supertype {
-	@property()
+	@property({type: CustomerA})
 	sam: CustomerA; // Customer A
-	@property()
+	@property({type: CustomerB})
 	karen: CustomerB; // Customer B
-	@property()
+	@property({type: Customer})
 	ashling: Customer;
 
 	syncState: ControllerSyncState;

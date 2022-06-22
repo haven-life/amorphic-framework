@@ -31,6 +31,8 @@ ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
 import {expect} from 'chai';
 import { mockRequest, mockResponse } from 'mock-req-res';
+import { SupertypeLogger } from '@haventech/supertype';
+import * as sinon from 'sinon';
 
 let serverMockReq, serverMockRes, clientMockReq, clientMockRes;
 
@@ -94,10 +96,11 @@ describe('Typescript Banking Example', function () {
 		var sam = clientController.sam;
 		var oldSendToLog = sam.amorphic.logger;
 
-		sam.amorphic.logger.sendToLog = function sendToLog(level, obj) {
-			var str = sam.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
-			output += str.replace(/[\r\n ]/g, '');
-		};
+        let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
+        sendToLogStub.callsFake((level, obj) => {
+            let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
+            output += str.replace(/[\r\n ]/g, '');
+        });
 
 		sam.amorphic.logger.startContext({name: 'supertype'});
 		sam.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');

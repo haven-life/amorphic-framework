@@ -1,10 +1,7 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Role} from './Role';
 import {Address} from './Address';
-import {Transaction} from './Transaction';
-import {Debit} from './Debit';
-import {Credit} from './Credit';
-import {Xfer} from './Xfer';
+import {Transaction, Debit, Credit, Xfer} from './Transaction';
 
 @supertypeClass({toServer: true, toClient: false})
 export class Account extends Persistable(Supertype) {

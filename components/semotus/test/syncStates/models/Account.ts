@@ -7,25 +7,26 @@ import * as _ from 'underscore';
 @supertypeClass
 export class Account extends Supertype {
 
-    @property({type: Transaction, fetch: true})
+    @property({type: Array, of: Transaction, fetch: true})
     transactions: Array<Transaction> = [];
 
-    @property({type: Transaction, fetch: true})
+    @property({type: Array, of: Transaction, fetch: true})
     fromAccountTransactions: Array<Transaction> = [];
 
-    @property()
+    @property({type: Number})
     number: number;
 
-    @property({type: String})
+    @property({type: Array, of: String})
     title: Array<string>;
 
     @property({
+        type: Array, 
         getType: () => {
             return Role
         }
     })
-
     roles: Array<Role> = [];
+
     @property({
         getType: () => {
             return Address

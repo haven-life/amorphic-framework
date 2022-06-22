@@ -6,27 +6,28 @@ import {Account} from './Account';
 @supertypeClass
 export class Customer extends Supertype {
 
-    @property()
+    @property({type: String})
     firstName: string = '';
-    @property()
+    @property({type: String})
     middleName: string = '';
-    @property()
+    @property({type: String})
     lastName: string = '';
     @property({
+        type: Array,
         getType: () => {
             return Role
         }
     })
     roles: Array<Role> = [];
-    @property()
+    @property({type: Customer})
     referredBy: Customer;
-    @property()
+    @property({type: String})
     type: string = 'primary';
-    @property({fetch: true, type: Customer})
+    @property({fetch: true, type: Array, of: Customer})
     referrers: Array<Customer>;
-    @property({fetch: true, type: Customer})
+    @property({fetch: true, type: Array, of: Customer})
     secondaryReferrers: Array<Customer> = [];
-    @property({type: Address, fetch: true})
+    @property({type: Array, of: Address, fetch: true})
     addresses: Array<Address> = [];
 
     constructor(first, middle, last) {

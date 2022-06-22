@@ -5,7 +5,7 @@ import {Account} from './Account';
 @supertypeClass
 export class Role extends Supertype {
 
-    @property()
+    @property({type: String})
     relationship: string = 'primary';
     @property({
         getType: () => {

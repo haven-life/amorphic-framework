@@ -12,10 +12,10 @@ export class Transaction  extends Supertype {
             account.transactions.push(this);
     };
 
-    @property()
+    @property({type: Number})
     amount: number;
 
-    @property()
+    @property({type: String})
     type: string;
 
     @property({getType: () => {return Account}})

@@ -12,28 +12,28 @@ export class Address extends Supertype {
         this.customer   = customer;
     }
 
-    @property({type: String})
+    @property({type: Array, of: String})
     lines: Array<String> = [];
 
-    @property()
+    @property({type: String})
     city: String = '';
 
-    @property()
+    @property({type: String})
     state: string = '';
 
-    @property()
+    @property({type: String})
     postalCode:  string = '';
 
-    @property()
+    @property({type: String})
     country: string = 'US';
 
     @property({getType: () => {return Customer}})
     customer: Customer;
 
-    @property()
+    @property({type: String})
     type: string;
 
-    @property({type: ReturnedMail})
+    @property({type: Array, of: ReturnedMail})
     returnedMail: Array<ReturnedMail> = [];
 
     @property({getType: () => {return Account}})

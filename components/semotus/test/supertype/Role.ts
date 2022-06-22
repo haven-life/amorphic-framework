@@ -13,7 +13,7 @@ export class Role extends Supertype {
             this.relationship = relationship;
     };
 
-    @property()
+    @property({type: String})
     relationship: string = 'primary';
 
     @property({getType: () => {return Customer}})

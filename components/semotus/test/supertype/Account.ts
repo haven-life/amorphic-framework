@@ -18,19 +18,19 @@ export class Account extends Supertype {
             this.addCustomer(customer);
     };
 
-    @property({type: Transaction, fetch: true})
+    @property({type: Array, of: Transaction, fetch: true})
     transactions: Array<Transaction> = [];
 
-    @property({type: Transaction, fetch: true})
+    @property({type: Array, of: Transaction, fetch: true})
     fromAccountTransactions: Array<Transaction> = [];
 
-    @property()
+    @property({type: Number})
     number: number;
 
-    @property({type: String})
+    @property({type: Array, of: String})
     title: Array<string>;
 
-    @property({getType: () => {return Role}})
+    @property({type: Array, getType: () => {return Role}})
     roles: Array<Role> = [];
 
     @property({getType: () => {return Address}})
