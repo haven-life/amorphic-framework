@@ -2,7 +2,7 @@ import {Supertype, supertypeClass, property, Persistable} from '../../dist/index
 import {Customer} from './Customer';
 import {Account} from './Account';
 
-@supertypeClass({})
+@supertypeClass
 export class Role extends Persistable(Supertype) {
 
     constructor (customer, account, relationship) {
@@ -14,7 +14,7 @@ export class Role extends Persistable(Supertype) {
         this.setDirty();
     };
 
-    @property({type: String})
+    @property()
     relationship: string = 'primary';
 
     @property({getType: () => {return Customer}})

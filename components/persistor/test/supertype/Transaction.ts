@@ -1,7 +1,7 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Account} from './Account';
 
-@supertypeClass({})
+@supertypeClass
 export class Transaction  extends Persistable(Supertype) {
     constructor (account, type, amount) {
         super()
@@ -12,10 +12,10 @@ export class Transaction  extends Persistable(Supertype) {
             account.transactions.push(this);
     };
 
-    @property({type: Number})
+    @property()
     amount: number;
 
-    @property({type: String})
+    @property()
     type: string;
 
     @property({getType: () => {return Account}})

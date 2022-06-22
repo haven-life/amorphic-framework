@@ -1,7 +1,7 @@
 import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
 import {Responsibility} from './Responsibility';
 
-@supertypeClass({})
+@supertypeClass
 export class Employee extends Persistable(Supertype) {
     constructor(firstName, lastName) {
         super();
@@ -10,12 +10,12 @@ export class Employee extends Persistable(Supertype) {
         this.lastName = lastName;
     }
 
-    @property({type: String})
+    @property()
     firstName: string = '';
 
-    @property({type: String})
+    @property()
     lastName: string = '';
 
-    @property({type: Array, getType: () => Responsibility})
+    @property({getType: () => Responsibility})
     responsibilities:  Array<Responsibility> = [];
 }

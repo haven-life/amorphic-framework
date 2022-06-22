@@ -2,8 +2,9 @@ import {Supertype, supertypeClass, property, Persistable} from '../../dist/index
 import {Customer} from './Customer';
 import {Account} from './Account';
 import {ReturnedMail} from './ReturnedMail';
+import "reflect-metadata";
 
-@supertypeClass({})
+@supertypeClass
 export class Address extends Persistable(Supertype) {
 
     constructor (customer) {
@@ -12,28 +13,28 @@ export class Address extends Persistable(Supertype) {
         this.setDirty();
     }
 
-    @property({type: Array, of: String})
+    @property({type: String})
     lines: Array<String> = [];
 
-    @property({type: String})
+    @property()
     city: String = '';
 
-    @property({type: String})
+    @property()
     state: string = '';
 
-    @property({type: String})
+    @property()
     postalCode:  string = '';
 
-    @property({type: String})
+    @property()
     country: string = 'US';
 
     @property({getType: () => Customer})
     customer: Customer;
 
-    @property({type: String})
+    @property()
     type: string;
 
-    @property({type: Array, getType: () => ReturnedMail})
+    @property({getType: () => ReturnedMail})
     returnedMail: Array<ReturnedMail> = [];
 
     @property({getType: () => Account})

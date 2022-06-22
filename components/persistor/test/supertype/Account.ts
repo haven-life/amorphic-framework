@@ -19,22 +19,22 @@ export class Account extends Persistable(Supertype) {
         this.setDirty();
     };
 
-    @property({type: String, values: ['B', 'P'], descriptions: {B: 'Business', P: 'Personal'}})
+    @property({values: ['B', 'P'], descriptions: {B: 'Business', P: 'Personal'}})
     accountType: String = 'P';
 
-    @property({type: Array, of: Transaction, fetch: true})
+    @property({type: Transaction, fetch: true})
     transactions: Array<Transaction> = [];
 
-    @property({type: Array, of: Transaction, fetch: true})
+    @property({type: Transaction, fetch: true})
     fromAccountTransactions: Array<Transaction> = [];
 
-    @property({type: Number})
+    @property()
     number: number;
 
-    @property({type: Array, of: String})
+    @property({type: String})
     title: Array<string>;
 
-    @property({type: Array, getType: () => {return Role}, fetch: true})
+    @property({getType: () => {return Role}, fetch: true})
     roles: Array<Role> = [];
 
     @property({getType: () => {return Address}})

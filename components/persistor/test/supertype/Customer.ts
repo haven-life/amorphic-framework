@@ -2,7 +2,7 @@ import {Supertype, supertypeClass, property, Persistable} from '../../dist/index
 import {Role} from './Role';
 import {Address} from './Address';
 
-@supertypeClass({})
+@supertypeClass
 export class Customer extends Persistable(Supertype) {
 
     constructor (first, middle, last) {
@@ -13,50 +13,50 @@ export class Customer extends Persistable(Supertype) {
         this.setDirty();
     }
 
-    @property({type: String})
+    @property()
     email: string = '';
 
-    @property({type: String})
+    @property()
     firstName: string = '';
 
-    @property({type: String})
+    @property()
     middleName: string = '';
 
-    @property({type: String})
+    @property()
     lastName: string = '';
 
-    @property({type: String})
+    @property()
     local1: string = 'local1';
 
-    @property({type: String})
+    @property()
     local2: string = 'local2';
 
-    @property({type: Number})
+    @property()
     nullNumber: number = null;
 
-    @property({type: Date})
+    @property()
     nullDate: Date = null;
 
-    @property({type: String})
+    @property()
     nullString: string = null;
 
-    @property({type: Array, getType: () => Role})
+    @property({getType: () => Role})
     roles:  Array<Role> = [];
 
-    @property({getType: () => Customer})
+    @property()
     referredBy: Customer;
 
-    @property({type: String})
+    @property()
     type: string = 'primary';
 
-    @property({type: Array, fetch: true, getType: () => Customer})
+    @property({fetch: true, getType: () => Customer})
     referrers:  Array<Customer>;
 
-    @property({type: Array, fetch: true, getType: () => Customer})
+    @property({fetch: true, getType: () => Customer})
     secondaryReferrers:  Array<Customer> = [];
 
-    @property({type: Boolean})
-    booleanProp: boolean;
+    @property()
+    booleanProp: any;
 
     addAddress (type, lines, city, state, zip) {
         var address = new Address(this);
@@ -68,9 +68,9 @@ export class Customer extends Persistable(Supertype) {
         this[type == 'primary' ? 'primaryAddresses' : 'secondaryAddresses'].push(address);
     }
 
-    @property({type: Array, of: Address, fetch: true})
+    @property({type: Address, fetch: true})
     primaryAddresses: Array<Address> = [];
 
-    @property({type: Array, of: Address, fetch: true})
+    @property({type: Address, fetch: true})
     secondaryAddresses:  Array<Address> = []
 }

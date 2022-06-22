@@ -19,7 +19,7 @@ import Promise = require('bluebird');
 import * as sinon from 'sinon';
 import {Role} from "./Role";
 import {Account} from "./Account";
-import { Transaction, Xfer } from './Transaction';
+import {Transaction, Xfer} from './Transaction';
 import { SupertypeLogger } from '@haventech/supertype';
 
 var schema = {
