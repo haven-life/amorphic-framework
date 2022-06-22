@@ -1,3 +1,5 @@
+## 11.0.0
+* target es2020
 ## 10.3.0
 * Add validator middleware to express server, config settings for whitelist, blacklist, escape
 ## 10.2.1
