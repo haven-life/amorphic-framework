@@ -122,9 +122,48 @@ export interface StatsdClientInterface {
         response?: Response,
         data?: Data
     }    
-}
 
-/**
- * logger function
- */
-export type LoggerFunction = (logLevel: string, logObject: Logger.Log, ...rawLogData) => void
+    export enum PiiLevelEnum {
+        's1' = 's1',
+        's2' = 's2',
+        'nonPII' = 'non-pii'
+    }    
+
+    export enum Category {
+        security = 'security',
+        availability = 'availability',
+        request = 'request',
+        milestone = 'milestone'
+    }
+
+    export interface BunyanBaseInterface {
+        info(): boolean;
+        error(): boolean;
+        debug(): boolean;
+        warn(): boolean;
+        info(object: ExpandedLog, ...params: any[]): void;
+        info(message: string, functionName: string, piiLevel?: PiiLevelEnum): void;
+        error(object: ExpandedLog, ...params: any[]): void;
+        debug(object: ExpandedLog, ...params: any[]): void;
+        warn(object: ExpandedLog, ...params: any[]): void;
+    }
+
+    export interface ChildLogRootValues {
+        module?: string,
+        category?: Category,
+        context?: {
+            piiLevel?: PiiLevelEnum
+        },
+        error?:  {
+            isHumanRelated?: boolean
+        }
+    }
+    
+    export interface ChildLogDataValues {
+        [key: string]: any;
+    }
+    
+    export interface ExpandedLog extends Log {
+        [key: string]: any;
+    }
+}
