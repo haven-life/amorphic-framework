@@ -31,7 +31,7 @@ export interface StatsdClientInterface {
     counter(statsKey: string, num: number, tags?: object): void
 }
 
-export interface LoggerCommon {
+export interface HavenLoggerCommon {
     /**
      * This utility function converts the errData to ErrorLog that can be directly used with logger.error().
      * It adds isHumanRelated and code fields to the result from errData.
@@ -45,7 +45,7 @@ export interface LoggerCommon {
     mapToErrorLog?(errData: Interfaces.ErrorData): Interfaces.ErrorLog;
 }
 
-export interface Logger extends Interfaces.BunyanBaseInterface, LoggerCommon {
+export interface HavenLogger extends Interfaces.BunyanBaseInterface, HavenLoggerCommon {
 
     /**
      * Uses the request header's groupId and source value to set local storage context object.
@@ -99,10 +99,10 @@ export interface Logger extends Interfaces.BunyanBaseInterface, LoggerCommon {
      * Backend server would use this api to receive UI logs and use its logger to parse UI logs.
      * @param {Enums.ServerType} serverType - supported server type (express or restify) is required.
      * @param {any} server - server instance (express or restify) is required.
-     * @param {Logger} logger - logger instance (express or restify) is required.
+     * @param {HavenLogger} logger - logger instance (express or restify) is required.
      * @returns void
      */
-    addUILogHandler?(serverType: Enums.ServerType, server: any, logger: Logger): void;
+    addUILogHandler?(serverType: Enums.ServerType, server: any, logger: HavenLogger): void;
 
     /**
      * Use this method to optionally set defaults for module, category, context.piiLevel,
@@ -115,13 +115,13 @@ export interface Logger extends Interfaces.BunyanBaseInterface, LoggerCommon {
      * error.isHumanRelated defaults.
      * @param {Interfaces.ChildLogDataValues} dataValues - Optional. set key/value pair defaults, that get added
      * to the root level data objects.
-     * @returns {Logger}
+     * @returns {HavenLogger}
      */
-    childLogger?(rootValues?: Interfaces.ChildLogRootValues, dataValues?: Interfaces.ChildLogDataValues): Logger;
+    childLogger?(rootValues?: Interfaces.ChildLogRootValues, dataValues?: Interfaces.ChildLogDataValues): HavenLogger;
 
 }
 
-export interface UILogger extends Interfaces.BunyanBaseInterface, LoggerCommon {
+export interface HavenUILogger extends Interfaces.BunyanBaseInterface, HavenLoggerCommon {
 
     /**
      * Use this method to optionally set defaults for module, category, context.piiLevel,
@@ -134,7 +134,7 @@ export interface UILogger extends Interfaces.BunyanBaseInterface, LoggerCommon {
      * error.isHumanRelated defaults.
      * @param {Interfaces.ChildLogDataValues} dataValues - Optional. set key/value pair defaults, that get added
      * to the root level data objects.
-     * @returns {UILogger}
+     * @returns {HavenUILogger}
      */
-    childLogger?(rootValues?: Interfaces.ChildLogRootValues, dataValues?: Interfaces.ChildLogDataValues): UILogger;
+    childLogger?(rootValues?: Interfaces.ChildLogRootValues, dataValues?: Interfaces.ChildLogDataValues): HavenUILogger;
 }
