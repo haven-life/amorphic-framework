@@ -6,7 +6,7 @@
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
-        "@haventech/amorphic-contracts": "^0.2.0",
+        "@haventech/amorphic-contracts": "0.3.0-beta.1",
         "nconf": "^0.12.0",
         "reflect-metadata": "^0.1.12"
     },
@@ -31,7 +31,7 @@
         "test:ts": "mocha --require ts-node/register test/typescript/*",
         "clean": "rm -rf dist/",
         "compile": "tsc",
-        "test": "mocha test/**/*.js dist/test/**/*.js",
+        "test": "mocha test/**/*.js",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
         "prepublishOnly": "npm run clean && npm run compile"

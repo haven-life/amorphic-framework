@@ -7,6 +7,8 @@ import {Lion} from "./model/Lion";
 import {Bear} from "./model/Bear";
 import {Animal} from "./model/Animal";
 import {amorphicStatic} from "../../dist/index";
+import { SupertypeLogger } from '../../dist/SupertypeLogger';
+import * as sinon from 'sinon';
 
 
 describe('AnimalContainer', function () {
@@ -109,12 +111,13 @@ describe('Freeze Dried Arks', function () {
         var output = '';
         
         let ark: Ark = new Ark();
-
-        ark.amorphic.logger.sendToLog = function sendToLog(level, obj) {
-            var str = ark.amorphic.logger.prettyPrint(level, obj).replace(/.*: /, '');
+        
+        let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
+        sendToLogStub.callsFake((level, obj) => {
+            let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*-/, '');
             console.log(str);
             output += str.replace(/[\r\n ]/g, '');
-        };
+        });
 
         ark.amorphic.logger.startContext({name: 'supertype'});
         ark.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
@@ -122,22 +125,18 @@ describe('Freeze Dried Arks', function () {
         ark.amorphic.logger.warn({foo: 'bar2'});
         ark.amorphic.logger.clearContextProps(context);
         ark.amorphic.logger.warn({foo: 'bar3'});
-        var child = ark.amorphic.logger.createChildLogger({name: 'supertype_child'});
+        var child = ark.amorphic.logger.childLogger({name: 'supertype_child'});
         child.setContextProps({permFoo: 'childFoo'});
         child.warn({'foo': 'bar4'});
         ark.amorphic.logger.warn({foo: 'bar5'});
         ark.amorphic.logger.startContext({name: 'supertype2'});
         ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ark.amorphic.logger.setLevel('error');
-        console.log('setting level to error');
         ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ark.amorphic.logger.setLevel('error;foo:bar6');
         ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ark.amorphic.logger.setLevel('error;foo:bar7');
-        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.error({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(__amorphicContext={"name":"supertype"}foo="bar1")(__amorphicContext={"name":"supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"supertype"}foo="bar3")(__amorphicContext={"name":"supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
+        var result = '4:WARN:(0={"foo":"bar1","data":{"__amorphicContext":{"name":"supertype"}}}1="Yippie")4:WARN:(0={"foo":"bar2","data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}})4:WARN:(0={"foo":"bar3","data":{"__amorphicContext":{"name":"supertype"}}})4:WARN:(0={"foo":"bar4","data":{"__amorphicContext":{"permFoo":"childFoo"}}})4:WARN:(0={"foo":"bar5","data":{"__amorphicContext":{"name":"supertype"}}})11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")';
 
         expect(output).to.equal(result);
     });
