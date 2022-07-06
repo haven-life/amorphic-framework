@@ -220,13 +220,13 @@ export class SupertypeLogger implements HavenLogger {
      * @param logLevel - log level
      * @param logObject - formatted log object, passed in from consumer
      */
-     protected sendToLog(logLevel, logObject) {
+    protected sendToLog(logLevel, logObject) {
         console.log(this.prettyPrint(logLevel, logObject));     // eslint-disable-line no-console
     }
 
     prettyPrint(level, json) {
         let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
-        
+
         return this.formatDateTime(new Date()) + ': ' +
             level.toUpperCase() + ': ' +
             addColonIfToken(split[1].name, ': ') +
