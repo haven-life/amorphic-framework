@@ -227,7 +227,7 @@ export class SupertypeLogger implements HavenLogger {
     prettyPrint(level, json) {
         let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
 
-        return this.formatDateTime(new Date()) + ': ' +
+        return this.formatDateTime(new Date()) + ' - ' +
             level.toUpperCase() + ': ' +
             addColonIfToken(split[1].name, ': ') +
             addColonIfToken(split[1].msg, ': ') +

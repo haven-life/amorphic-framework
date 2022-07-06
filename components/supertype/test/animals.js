@@ -109,7 +109,7 @@ describe('Freeze Dried Arks', function () {
 
         let sendToLogStub = sinon.stub(SupertypeLogger.prototype, 'sendToLog');
         sendToLogStub.callsFake((level, obj) => {
-            let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*-/, '');
+            let str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.* - /, '');
             console.log(str);
             output += str.replace(/[\r\n ]/g, '');
         });
@@ -130,7 +130,7 @@ describe('Freeze Dried Arks', function () {
         ObjectTemplate.logger.error({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '4:WARN:(0={"foo":"bar1","data":{"__amorphicContext":{"name":"supertype"}}}1="Yippie")4:WARN:(0={"foo":"bar2","data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}})4:WARN:(0={"foo":"bar3","data":{"__amorphicContext":{"name":"supertype"}}})4:WARN:(0={"foo":"bar4","data":{"__amorphicContext":{"permFoo":"childFoo"}}})4:WARN:(0={"foo":"bar5","data":{"__amorphicContext":{"name":"supertype"}}})11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")';
+        var result = 'WARN:(0={"foo":"bar1","data":{"__amorphicContext":{"name":"supertype"}}}1="Yippie")WARN:(0={"foo":"bar2","data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}})WARN:(0={"foo":"bar3","data":{"__amorphicContext":{"name":"supertype"}}})WARN:(0={"foo":"bar4","data":{"__amorphicContext":{"permFoo":"childFoo"}}})WARN:(0={"foo":"bar5","data":{"__amorphicContext":{"name":"supertype"}}})WARN:(0={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")WARN:(0={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")WARN:(0={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")ERROR:(0={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"data":{"__amorphicContext":{"name":"supertype2"}}}1="hotdog")';
 
         expect(output).to.equal(result);
     });
