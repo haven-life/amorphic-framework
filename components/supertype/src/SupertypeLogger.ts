@@ -47,67 +47,6 @@ export class SupertypeLogger implements HavenLogger {
         this.log('debug' as Enums.LogLevel, ...args);
     }
 
-    private static preProcessErrorObject(logObject: any, defaultErrorIsHumanRelated: boolean): Interfaces.ErrorLog {
-        const errorObject = logObject instanceof Error ? logObject : logObject.error;
-        const argsErrorIsHumanRelated = errorObject && errorObject.isHumanRelated;
-        const data = errorObject && errorObject.data;
-        const code = errorObject && errorObject.code;
-        const message = errorObject && (errorObject.message || errorObject.name) || 'error';
-        const isHumanRelated = argsErrorIsHumanRelated || defaultErrorIsHumanRelated;
-        const errorData = {
-            isHumanRelated,
-            data,
-            code,
-            error: logObject instanceof Error ? Object.assign(logObject || {}, { message }) :
-                Object.assign(logObject.error || {}, { message })
-        };
-        const error = this.mapToErrorLog(errorData);
-        return error;
-    }
-
-    static mapToErrorLog(errData: Interfaces.ErrorData): Interfaces.ErrorLog {
-        const { isHumanRelated, code, error } = errData;
-        const logErrorObj: Interfaces.ErrorLog = { isHumanRelated };
-        if (code) {
-            logErrorObj.code = code;
-        }
-        if (error instanceof Error) {
-            Object.assign(logErrorObj, this.prepareLogErrorObj(error));
-        }
-        if (errData.data) {
-            logErrorObj.data = { ...logErrorObj.data, ...errData.data };
-        }
-
-        const messageFromError = error?.message;
-        logErrorObj.message = [errData.message, messageFromError].filter((x) => x).join(': ') || 'error';
-        return logErrorObj;
-    }
-
-    private static prepareLogErrorObj({ name, stack, message: _message, ...data }: Error): Interfaces.ErrorLog {
-        const logErrorObj: Interfaces.ErrorLog = {};
-        if (name) {
-            logErrorObj.name = name;
-        }
-        if (stack) {
-            logErrorObj.stack = stack;
-        }
-        if (Object.keys(data).includes('code')) {
-            logErrorObj.code = data['code'];
-            delete data['code'];
-        }
-        if (_message) {
-            logErrorObj.message = _message;
-        }
-        if (Object.keys(data).includes('isHumanRelated')) {
-            logErrorObj.isHumanRelated = data['isHumanRelated'];
-            delete data['isHumanRelated'];
-        }
-        if (data && Object.keys(data).length > 0) {
-            logErrorObj.data = Object.assign(logErrorObj.data || {}, { fromError: data });
-        }
-        return logErrorObj;
-    }
-
     private static preProcessDataObject(data: any, clonedLogObject: any): any {
         // data objects mixing default and data object from log.
         if (data && Object.keys(data).length > 0) {
@@ -134,8 +73,8 @@ export class SupertypeLogger implements HavenLogger {
             let startIndex = 0;
             if (typeof properties[startIndex] === 'object') {
                 logObject = Object.assign({}, !(properties[startIndex] instanceof Error) ? properties[startIndex] : {});
-                if (properties[0] && (properties[0] instanceof Error || Object.keys(properties[0]).includes('error'))) {
-                    logObject.error = SupertypeLogger.preProcessErrorObject(properties[startIndex], defaultErrorIsHumanRelated);
+                if (properties[startIndex] && (properties[startIndex] instanceof Error || Object.keys(properties[startIndex]).includes('error'))) {
+                    logObject.error = properties[startIndex] instanceof Error ? properties[startIndex] : properties[startIndex].error;
                 }
                 logObject.data = SupertypeLogger.preProcessDataObject(data, properties[startIndex]) || {};
                 startIndex++;
