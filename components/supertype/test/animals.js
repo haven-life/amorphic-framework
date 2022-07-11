@@ -207,9 +207,7 @@ describe('Freeze Dried Arks', function () {
             }
         };
 
-        let customLogger = new CustomLogger();
-
-        ObjectTemplate.getLogger(customLogger);
+        ObjectTemplate.logger = new CustomLogger();
 
         ObjectTemplate.logger.info({foo: 'bar1'}, 'Yippie');
         ObjectTemplate.logger.warn({foo: 'bar2'});
