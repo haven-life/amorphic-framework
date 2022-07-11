@@ -1,8 +1,6 @@
 const levelToStr = { 60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace' };
 const strToLevel = { 'fatal': 60, 'error': 50, 'warn': 40, 'info': 30, 'debug': 20, 'trace': 10 };
 
-import type { Enums, HavenLogger, Interfaces } from '@haventech/amorphic-contracts';
-
 function isObject(obj) {
     return obj != null
         && typeof (obj) === 'object'
@@ -11,8 +9,21 @@ function isObject(obj) {
         && !(obj instanceof Error);
 }
 
-export class SupertypeLogger implements HavenLogger {
+type LoggerFunction = (logLevel: string, logObject: any, ...rawLogData) => void;
+
+type LogObject = {
+    level: string | number;
+    time: string;
+    msg: string;
+    module?: any;
+    activity?: any;
+    __amorphicContext: any;
+};
+
+export class SupertypeLogger {
     context: any;
+    granularLevels: any;
+    level: any;
 
     // for overriding
     // sendToLog: Function;
@@ -20,99 +31,89 @@ export class SupertypeLogger implements HavenLogger {
 
     constructor() {
         this.context = {};
+        this.granularLevels = {};
+        this.level = 'info';
     }
 
-    error(): boolean;
-    error(object: Interfaces.ExpandedLog, ...params: any[]): void;
-    error(...args: any[]): void | boolean {
-        this.log('error' as Enums.LogLevel, ...args);
+
+    fatal(...data: any[]): void {
+        this.log(60, ...data);
     }
 
-    warn(): boolean;
-    warn(object: Interfaces.ExpandedLog, ...params: any[]): void;
-    warn(...args: any[]): void | boolean {
-        this.log('warn' as Enums.LogLevel, ...args);
+    error(...data: any[]): void {
+        this.log(50, ...data);
     }
 
-    info(): boolean;
-    info(object: Interfaces.ExpandedLog, ...params: any[]): void;
-    info(message: string, functionName: string, piiLevel?: Enums.PiiLevelEnum): void;
-    info(...args: any[]): void | boolean {
-        this.log('info' as Enums.LogLevel, ...args);
+    warn(...data: any[]): void {
+        this.log(40, ...data);
     }
 
-    debug(): boolean;
-    debug(object: Interfaces.ExpandedLog, ...params: any[]): void;
-    debug(...args: any[]): void | boolean {
-        this.log('debug' as Enums.LogLevel, ...args);
+    info(...data: any[]): void {
+        this.log(30, ...data);
+    }
+    debug(...data: any[]): void {
+        this.log(20, ...data);
+    }
+    trace(...data: any[]): void {
+        this.log(10, ...data);
     }
 
-    private static preProcessDataObject(data: any, clonedLogObject: any): any {
-        // data objects mixing default and data object from log.
-        if (data && Object.keys(data).length > 0) {
-            return Object.assign({}, data, clonedLogObject && clonedLogObject.data);
-        }
-        return clonedLogObject && clonedLogObject.data;
+    /**
+     * assign a custom send to log functionality.
+     * @param {(level: string, data: any) => void} loggerFunction
+     */
+    setLogger(loggerFunction: LoggerFunction) {
+        this.sendToLog = loggerFunction;
     }
 
-    // Log all arguments assuming the first one is level and after that are a set of fields that will be processed
-    private log(logLevel: Enums.LogLevel, ...args: any[]): void {
-        console.log('test');
-        // 'fields' contains the defaults set by ChildLogger.
-        const fields = this['fields'];
-        const defaultErrorIsHumanRelated = fields && fields.error &&
-            Object.keys(fields.error).includes('isHumanRelated') ?
-            fields.error.isHumanRelated : undefined;
+    // Log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
+    private log(level: number, ...data: any[]): void {
+        let msg = '';
+        const obj: LogObject = {
+            time: (new Date()).toISOString(),
+            msg: '',
+            level: 'info', //default info
+            __amorphicContext: {}
+        };
 
-        const data = fields && fields.data;
-        const properties = args && Array.isArray(args) ? args.slice() : args;
-
-        if (Array.isArray(properties) && properties.length > 0) {
-            let logObject: Interfaces.Log = {};
-            logObject.data = {};
-            let startIndex = 0;
-            if (typeof properties[startIndex] === 'object') {
-                logObject = Object.assign({}, !(properties[startIndex] instanceof Error) ? properties[startIndex] : {});
-                if (properties[startIndex] && (properties[startIndex] instanceof Error || Object.keys(properties[startIndex]).includes('error'))) {
-                    logObject.error = properties[startIndex] instanceof Error ? properties[startIndex] : properties[startIndex].error;
-                }
-                logObject.data = SupertypeLogger.preProcessDataObject(data, properties[startIndex]) || {};
-                startIndex++;
-            }
-
-            //Handle the case where log function is (message, functionName, piiLevel(optional))
-            if (typeof properties[startIndex] === 'string' && typeof properties[startIndex + 1] === 'string'
-                && logLevel === 'info') {
-                logObject.message = properties[startIndex];
-                logObject.function = properties[startIndex+1];
-                startIndex += 2;
-                const logsPiiLevel = typeof properties[startIndex] === 'string' && properties[startIndex];
-                if (logsPiiLevel) {
-                    logObject.context = {};
-                    logObject.context.piiLevel = logsPiiLevel;
-                    startIndex++;
-                }
-            }
-
-            logObject.data.__amorphicContext = { ...this.context };
-            const argArrayWithLogObject: any[] = [logObject, ...properties.slice(startIndex)];
-            this.sendToLog(logLevel, argArrayWithLogObject);
-            return;
+        const amorphicContext = {};
+        // Copy amorphic context into the data
+        for (const prop in this.context) {
+            obj[prop] = this.context[prop];
+            amorphicContext[prop] = this.context[prop];
         }
 
-        properties['__amorphicContext'] = { ...this.context };
-        this.sendToLog(logLevel, properties);
-        return;
-    }
+        obj.level = level;
+        obj.__amorphicContext = amorphicContext;
 
-    childLogger(): HavenLogger {
-        return new SupertypeLogger();
-    };
+        data.forEach((arg, index) => {
+            if (index === 0 && isObject(arg)) {
+                for (const proper in arg) {
+                    obj[proper] = arg[proper];
+                }
+            }
+            else {
+                msg += `${arg} `;
+            }
+        });
 
-    loggerObjects() {
-        return {
-            context: this.context,
-            time: (new Date()).toISOString()
+        if (obj.msg.length) {
+            obj.msg += ' ';
+        }
+
+        if (msg.length) {
+            if (obj.module && obj.activity) {
+                obj.msg += `${obj.module}[${obj.activity}] - `;
+            }
+
+            obj.msg += msg;
+        }
+        else if (obj.module && obj.activity) {
+            obj.msg += `${obj.module}[${obj.activity}]`;
+        }
+
+        if (this.isEnabled(levelToStr[obj.level], obj)) {
+            this.sendToLog(levelToStr[obj.level], obj, ...data);
         }
     }
 
@@ -131,12 +132,50 @@ export class SupertypeLogger implements HavenLogger {
 
         return reverse;
     }
+    // Parse log levels such as warn.activity
+    setLevel(level) {
+        var levels = level.split(';');
+
+        for (var ix = 0; ix < levels.length; ++ix) {
+            var levela = levels[ix];
+
+            if (levela.match(/:/)) {
+                if (levels[ix].match(/(.*):(.*)/)) {
+                    this.granularLevels[RegExp.$1] = this.granularLevels[RegExp.$1] || {};
+                    this.granularLevels[RegExp.$1] = RegExp.$2;
+                }
+                else {
+                    this.level = levels[ix];
+                }
+            }
+            else {
+                this.level = levela;
+            }
+        }
+    }
 
     // Remove any properties recorded by setContext
     clearContextProps(contextToClear) {
         for (const prop in contextToClear) {
             delete this.context[prop];
         }
+    }
+
+    // Create a new logger and copy over it's context
+    createChildLogger(context): SupertypeLogger {
+        let child: { [key: string]: any } = {};
+
+        for (let prop in this) {
+            child[prop] = this[prop];
+        }
+
+        child.context = context || {};
+
+        for (let proper in this.context) {
+            child.context[proper] = this.context[proper];
+        }
+
+        return child as SupertypeLogger; // bad practice but should fix
     }
 
     formatDateTime(date): string {
@@ -158,15 +197,16 @@ export class SupertypeLogger implements HavenLogger {
      *
      * @param logLevel - log level
      * @param logObject - formatted log object, passed in from consumer
+     * @param rawLogData - unformatted and unprocessed version of "logObject" param
      */
-    protected sendToLog(logLevel, logObject) {
+    protected sendToLog(logLevel, logObject, ...rawLogData) {
         console.log(this.prettyPrint(logLevel, logObject));     // eslint-disable-line no-console
     }
 
     prettyPrint(level, json) {
         let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
 
-        return this.formatDateTime(new Date()) + ' - ' +
+        return this.formatDateTime(new Date(json.time)) + ': ' +
             level.toUpperCase() + ': ' +
             addColonIfToken(split[1].name, ': ') +
             addColonIfToken(split[1].msg, ': ') +
@@ -206,5 +246,22 @@ export class SupertypeLogger implements HavenLogger {
         }
 
         return [a, b];
+    }
+
+    // Logging is enabled if either the level threshold is met or the granular level matches
+    private isEnabled(level, obj) {
+        level = strToLevel[level];
+
+        if (level >= strToLevel[this.level]) {
+            return true;
+        }
+
+        if (this.granularLevels) {
+            for (let levelr in this.granularLevels) {
+                if (obj[levelr] && obj[levelr] == this.granularLevels[levelr]) {
+                    return true;
+                }
+            }
+        }
     }
 }

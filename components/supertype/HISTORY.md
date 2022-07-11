@@ -1,5 +1,5 @@
-## 6.0.0
-* Update SupertypeLogger to follow amorphic-contracts logging
+## 5.1.0
+* Allow setting of logger on ObjectTemplate
 ## 5.0.1
 * bump nconf version due to security vulnerability
 ## 5.0.0
