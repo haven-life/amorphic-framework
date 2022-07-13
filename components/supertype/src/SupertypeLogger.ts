@@ -12,18 +12,23 @@ function isObject(obj) {
 type LoggerFunction = (logLevel: string, logObject: any, ...rawLogData) => void;
 
 type LogObject = {
-    level: string | number;
-    time: string;
-    msg: string;
-    module?: any;
-    activity?: any;
-    __amorphicContext: any;
+    level?: string | number,
+    module?: string,
+    function?: string,
+    category?: 'security' | 'availability' | 'request' | 'milestone',
+    message?: string,
+    context?: any,
+    error?: any,
+    request?: Request,
+    response?: Response,
+    data?: any
 };
 
 export class SupertypeLogger {
     context: any;
     granularLevels: any;
     level: any;
+    logger: any;
 
     // for overriding
     // sendToLog: Function;
@@ -62,59 +67,61 @@ export class SupertypeLogger {
      * assign a custom send to log functionality.
      * @param {(level: string, data: any) => void} loggerFunction
      */
-    setLogger(loggerFunction: LoggerFunction) {
-        this.sendToLog = loggerFunction;
+    setLogger(logger) {
+        if (typeof logger.info !== 'function' ||
+            typeof logger.error !== 'function' ||
+            typeof logger.debug !== 'function' ||
+            typeof logger.warn !== 'function') {
+            throw new Error('Please specify a logger with the info, error, debug, and warn functions');
+        }
+        this.logger = logger;
     }
 
     // Log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
-    private log(level: number, ...data: any[]): void {
-        let msg = '';
-        const obj: LogObject = {
-            time: (new Date()).toISOString(),
-            msg: '',
-            level: 'info', //default info
-            __amorphicContext: {}
-        };
+    private log(level: number, ...args: any[]): void {
+        const fields = this['fields'];
+        const data = fields && fields.data;
+        const properties = args && Array.isArray(args) ? args.slice() : args;
 
-        const amorphicContext = {};
-        // Copy amorphic context into the data
-        for (const prop in this.context) {
-            obj[prop] = this.context[prop];
-            amorphicContext[prop] = this.context[prop];
-        }
-
-        obj.level = level;
-        obj.__amorphicContext = amorphicContext;
-
-        data.forEach((arg, index) => {
-            if (index === 0 && isObject(arg)) {
-                for (const proper in arg) {
-                    obj[proper] = arg[proper];
+        if (Array.isArray(properties) && properties.length > 0) {
+            let obj: LogObject = {};
+            obj.data = {};
+            let startIndex = 0;
+            if (typeof properties[startIndex] === 'object') {
+                obj = Object.assign({}, !(properties[startIndex] instanceof Error) ? properties[startIndex] : {});
+                if (properties[startIndex] && (properties[startIndex] instanceof Error || Object.keys(properties[startIndex]).includes('error'))) {
+                    obj.error = properties[startIndex] instanceof Error ? properties[startIndex] : properties[startIndex].error;
                 }
-            }
-            else {
-                msg += `${arg} `;
-            }
-        });
-
-        if (obj.msg.length) {
-            obj.msg += ' ';
-        }
-
-        if (msg.length) {
-            if (obj.module && obj.activity) {
-                obj.msg += `${obj.module}[${obj.activity}] - `;
+                if (data && Object.keys(data).length > 0) {
+                    obj.data = Object.assign({}, data, properties[startIndex] && properties[startIndex].data);
+                } else {
+                    obj.data = properties[startIndex] || {};
+                }
+                startIndex++;
             }
 
-            obj.msg += msg;
-        }
-        else if (obj.module && obj.activity) {
-            obj.msg += `${obj.module}[${obj.activity}]`;
+            //Handle the case where log function is (message, functionName, piiLevel(optional))
+            if (typeof properties[startIndex] === 'string' && typeof properties[startIndex + 1] === 'string'
+                && level === 30) {
+                obj.message = properties[startIndex];
+                obj.function = properties[startIndex+1];
+                startIndex += 2;
+            }
+
+            obj.level = level;
+            obj.data.__amorphicContext = { ...this.context };
+            if (this.isEnabled(levelToStr[obj.level], obj)) {
+                this.sendToLog(levelToStr[obj.level], obj, ...properties.slice(startIndex));
+            }
+            return;
         }
 
-        if (this.isEnabled(levelToStr[obj.level], obj)) {
-            this.sendToLog(levelToStr[obj.level], obj, ...data);
+        properties['level'] = level;
+        properties['__amorphicContext'] = { ...this.context };
+        if (this.isEnabled(levelToStr[properties['level']], properties)) {
+            this.sendToLog(levelToStr[properties['level']], properties);
         }
+        return;
     }
 
     startContext(context) {
@@ -162,7 +169,7 @@ export class SupertypeLogger {
     }
 
     // Create a new logger and copy over it's context
-    createChildLogger(context): SupertypeLogger {
+    createChildLogger(context, rootValues?, dataValues?): SupertypeLogger {
         let child: { [key: string]: any } = {};
 
         for (let prop in this) {
@@ -173,6 +180,11 @@ export class SupertypeLogger {
 
         for (let proper in this.context) {
             child.context[proper] = this.context[proper];
+        }
+
+        if (this.logger) {
+            let childLogger = this.logger.childLogger(rootValues, dataValues);
+            child.logger = childLogger;
         }
 
         return child as SupertypeLogger; // bad practice but should fix
@@ -200,6 +212,23 @@ export class SupertypeLogger {
      * @param rawLogData - unformatted and unprocessed version of "logObject" param
      */
     protected sendToLog(logLevel, logObject, ...rawLogData) {
+        if (this.logger) {
+            let levelForLog = typeof logLevel === 'string' ? strToLevel[logLevel] : logLevel;
+            switch (levelForLog) {
+                case 20:
+                    this.logger.debug(logObject, ...rawLogData);
+                    return;
+                case 30:
+                    this.logger.info(logObject, ...rawLogData);
+                    return;
+                case 40:
+                    this.logger.warn(logObject, ...rawLogData);
+                    return;
+                case 50:
+                    this.logger.warn(logObject, ...rawLogData);
+                    return;
+            }
+        }
         console.log(this.prettyPrint(logLevel, logObject));     // eslint-disable-line no-console
     }
 

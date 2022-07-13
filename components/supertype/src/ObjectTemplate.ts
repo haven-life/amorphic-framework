@@ -119,6 +119,7 @@ export class ObjectTemplate {
     static __anonymousId__: number;
     static __templatesToInject__: {};
     static logger: any;
+    logger: SupertypeLogger;
     static __templateUsage__: any;
     static __injections__: Function[];
     static __toClient__: boolean;
@@ -1091,24 +1092,6 @@ export class ObjectTemplate {
         return new SupertypeLogger();
     }
 
-    /**
-    * Purpose unknown
-    * @param {unknown} originally took a context that it threw away
-    * @returns {SupertypeLogger}
-    */
-    static getLogger(logger?) {
-        if (logger) {
-            if (typeof logger.info !== 'function' ||
-                typeof logger.error !== 'function' ||
-                typeof logger.debug !== 'function' ||
-                typeof logger.warn !== 'function') {
-                throw new Error('Please specify a logger with the info, error, debug, and warn functions');
-            }
-            this.logger = logger;
-        }
-        
-        return this.logger = this.logger || ObjectTemplate.createLogger();
-    }
 }
 
 
