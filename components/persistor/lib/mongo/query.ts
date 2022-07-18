@@ -1,5 +1,5 @@
 module.exports = function (PersistObjectTemplate) {
-
+    const moduleName = 'Persistor Mongo Query';
     var Promise = require('bluebird');
 
     PersistObjectTemplate.getFromPersistWithMongoId = function (template, id, cascade, isTransient, idMap, _logger) {
@@ -74,6 +74,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.getTemplateFromMongoPOJO = function (pojo, template, promises, defineProperty, idMap, cascade, establishedObj, specificProperties, isTransient, logger)
     {
+        const functionName = 'getTemplateFromMongoPOJO';
         // For reco
         // rding back refs
         if (!idMap)
@@ -220,8 +221,15 @@ module.exports = function (PersistObjectTemplate) {
                             var foreignKey = schema.children[prop].id;
                             query[foreignKey] = id.toString().match(/:/) ? id.toString() : new this.ObjectID(id.toString());
                         }
-                        (logger || this.logger).debug({component: 'persistor', module: 'query.getTemplateFromMongoPOJO', activity: 'pre'},
-                            'fetching ' + prop + ' cascading ' + JSON.stringify(cascadeFetch) + ' ' + JSON.stringify(query) + ' ' + JSON.stringify(options));
+                        (logger || this.logger).debug({
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'fetching ' + prop + ' cascading ' + JSON.stringify(cascadeFetch) + ' ' + JSON.stringify(query) + ' ' + JSON.stringify(options),
+                            data: {
+                                activity: 'pre'
+                            }
+                        });
                         self = this;
                         (function () {
                             var closureProp = prop;
@@ -343,8 +351,15 @@ module.exports = function (PersistObjectTemplate) {
                             if (foreignId) {
                                 query = {_id: new this.ObjectID(foreignId.replace(/:.*/, ''))};
                                 options = {};
-                                (logger || this.logger).debug({component: 'persistor', module: 'query.getTemplateFromMongoPOJ', activity: 'processing'},
-                                    'fetching ' + prop + ' cascading ' + JSON.stringify(cascadeFetch));
+                                (logger || this.logger).debug({
+                                    module: moduleName,
+                                    function: functionName,
+                                    category: 'milestone',
+                                    message: 'fetching ' + prop + ' cascading ' + JSON.stringify(cascadeFetch),
+                                    data: {
+                                        activity: 'processing'
+                                    }
+                                });
                                 self = this;
                                 (function () {
                                     var closureProp = prop;
@@ -388,9 +403,16 @@ module.exports = function (PersistObjectTemplate) {
                                                                 closureDefineProperty, idMap, closureCascade, null, null, isTransient, logger);
                                                         }
                                                     } else {
-                                                        (logger || this.logger).debug({component: 'persistor', module: 'query.getTemplateFromMongoPOJO', activity: 'processing'},
-                                                            'Orphaned subdoc on ' + obj.__template__.__name__ + '[' + closureProp + ':' + obj._id + '] ' +
-                                                            'foreign key: ' + closureForeignId + ' query: ' + JSON.stringify(this.createSubDocQuery(null, closureType, logger)));
+                                                        (logger || this.logger).debug({
+                                                            module: moduleName,
+                                                            function: functionName,
+                                                            category: 'milestone',
+                                                            message: 'Orphaned subdoc on ' + obj.__template__.__name__ + '[' + closureProp + ':' + obj._id + '] ' +
+                                                                     'foreign key: ' + closureForeignId + ' query: ' + JSON.stringify(this.createSubDocQuery(null, closureType, logger)),
+                                                            data: {
+                                                                activity: 'processing'
+                                                            }
+                                                        });
                                                     }
                                                 } else
                                                 if (!idMap[pojos[0]._id.toString()])
@@ -552,6 +574,7 @@ module.exports = function (PersistObjectTemplate) {
      */
     PersistObjectTemplate.createSubDocQuery = function (targetQuery, targetTemplate, logger)
     {
+        const functionName = 'createSubDocQuery';
         var topTemplate = targetTemplate.__topTemplate__;
 
         // Build up an array of string paths that traverses down to the desired template
@@ -586,7 +609,15 @@ module.exports = function (PersistObjectTemplate) {
             if (targetQuery) {
                 queryTraverse(newQuery, targetQuery);
                 results.query['$or'].push(newQuery);
-                (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'processing'}, 'subdocument query for ' + targetTemplate.__name__ + '; ' + JSON.stringify(results.query));
+                (logger || this.logger).debug({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'subdocument query for ' + targetTemplate.__name__ + '; ' + JSON.stringify(results.query),
+                    data: {
+                        activity: 'processing'
+                    }
+                });
             }
         }
         return results;

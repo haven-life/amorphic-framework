@@ -1,6 +1,7 @@
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
 
 module.exports = function (PersistObjectTemplate) {
+    const moduleName = 'Persistor query';
 
     var Promise = require('bluebird');
     var _ = require('underscore');
@@ -167,13 +168,21 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getTemplateFromKnexPOJO =
         async function (pojo, template, requests, idMap, cascade, isTransient, defineProperty, establishedObj, specificProperties, prefix, joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
         {
+            const functionName = 'getTemplateFromKnexPOJO';
             let remoteDocService = null;
             var self = this;
             prefix = prefix || '';
 
-            (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'process',
-                data: {template: template.__name__, id: pojo[prefix + '_id'], persistedTemplate: pojo[prefix + '_template']}});
-
+            (logger || this.logger).debug({
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                data: {
+                    activity: functionName,
+                    template: template.__name__, id: pojo[prefix + '_id'], 
+                    persistedTemplate: pojo[prefix + '_template']
+                }
+            });
 
             // For recording back refs
             if (!idMap)
@@ -191,8 +200,15 @@ module.exports = function (PersistObjectTemplate) {
                     if (o)
                         return o._id == pojo[prefix + '_id']
                     else {
-                        (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
-                            data: 'getTemplateFromKnexPOJO found an empty establishedObj ' + template.__name__});
+                        (logger || this.logger).debug({ 
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'getTemplateFromKnexPOJO found an empty establishedObj ' + template.__name__,
+                            data: {
+                                activity: functionName
+                            }
+                        });
                     }
                 });
 
@@ -325,14 +341,28 @@ module.exports = function (PersistObjectTemplate) {
                                 obj[prop] = document;
                             });
                         } catch (e) {
-                            (logger || this.logger).error({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
-                                data: `there was a problem downloading the remote object from source. Error: ${e}.`});
+                            (logger || this.logger).error({
+                                module: moduleName,
+                                function: functionName,
+                                category: 'milestone',
+                                message: `there was a problem downloading the remote object from source. Error: ${e}.`,
+                                data: {
+                                    activity: functionName
+                                }
+                            });
 
                             throw new Error('there was a problem downloading the remote object from source');
                         }
                     } else {
-                        (logger || this.logger).log({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
-                            data: 'fetch called on remote object with no remote address value' });
+                        (logger || this.logger).info({
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'fetch called on remote object with no remote address value',
+                            data: {
+                                activity: functionName
+                            }
+                        });
                     }
                 }
                 else {
@@ -348,8 +378,15 @@ module.exports = function (PersistObjectTemplate) {
                                 try {
                                     obj[prop] = value ? JSON.parse(value) : null;
                                 } catch (e) {
-                                    (logger || this.logger).debug({component: 'persistor', module: 'query', activity: 'getTemplateFromKnexPOJO',
-                                        data: 'Error retrieving ' + obj.__id__ + '.' + prop + ' -- ' + e.message});
+                                    (logger || this.logger).debug({
+                                        module: moduleName,
+                                        function: functionName,
+                                        category: 'milestone',
+                                        message: 'Error retrieving ' + obj.__id__ + '.' + prop + ' -- ' + e.message,
+                                        data: {
+                                            activity: functionName
+                                        }
+                                    });
                                     obj[prop] = null;
                                 }
                             }

@@ -1,15 +1,7 @@
+import { isModuleNamespaceObject } from "util/types";
+
 const levelToStr = { 60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace' };
 const strToLevel = { 'fatal': 60, 'error': 50, 'warn': 40, 'info': 30, 'debug': 20, 'trace': 10 };
-
-function isObject(obj) {
-    return obj != null
-        && typeof (obj) === 'object'
-        && !(obj instanceof Array)
-        && !(obj instanceof Date)
-        && !(obj instanceof Error);
-}
-
-type LoggerFunction = (logLevel: string, logObject: any, ...rawLogData) => void;
 
 type LogObject = {
     level?: string | number,
@@ -25,6 +17,7 @@ type LogObject = {
 };
 
 export class SupertypeLogger {
+    static moduleName: string = SupertypeLogger.name;
     context: any;
     granularLevels: any;
     level: any;
@@ -56,16 +49,18 @@ export class SupertypeLogger {
     info(...data: any[]): void {
         this.log(30, ...data);
     }
+
     debug(...data: any[]): void {
         this.log(20, ...data);
     }
+
     trace(...data: any[]): void {
         this.log(10, ...data);
     }
 
     /**
      * assign a custom send to log functionality.
-     * @param {(level: string, data: any) => void} loggerFunction
+     * @param logger - logger must fit the format of info/error/debug/warn
      */
     setLogger(logger) {
         if (typeof logger.info !== 'function' ||
@@ -109,6 +104,7 @@ export class SupertypeLogger {
             }
 
             obj.level = level;
+            this.setContextLog(obj.data);
             obj.data.__amorphicContext = { ...this.context };
             if (this.isEnabled(levelToStr[obj.level], obj)) {
                 this.sendToLog(levelToStr[obj.level], obj, ...properties.slice(startIndex));
@@ -117,11 +113,15 @@ export class SupertypeLogger {
         }
 
         properties['level'] = level;
-        properties['__amorphicContext'] = { ...this.context };
+        this.setContextLog(properties);
         if (this.isEnabled(levelToStr[properties['level']], properties)) {
             this.sendToLog(levelToStr[properties['level']], properties);
         }
         return;
+    }
+
+    setContextLog(object) {
+        object['__amorphicContext'] = { ...this.context };
     }
 
     startContext(context) {
@@ -212,9 +212,20 @@ export class SupertypeLogger {
      * @param rawLogData - unformatted and unprocessed version of "logObject" param
      */
     protected sendToLog(logLevel, logObject, ...rawLogData) {
+        const functionName = this.sendToLog.name;
         if (this.logger) {
             let levelForLog = typeof logLevel === 'string' ? strToLevel[logLevel] : logLevel;
             switch (levelForLog) {
+                case 10:
+                    this.logger.warn({
+                        module: SupertypeLogger.moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'trace is no longer used, logged with debug instead',
+                        data: {
+                            logObject: logObject
+                        }
+                    });
                 case 20:
                     this.logger.debug(logObject, ...rawLogData);
                     return;
@@ -224,8 +235,18 @@ export class SupertypeLogger {
                 case 40:
                     this.logger.warn(logObject, ...rawLogData);
                     return;
+                case 60:
+                    this.logger.warn({
+                        module: SupertypeLogger.moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'fatal is no longer used, logged with error instead',
+                        data: {
+                            logObject: logObject
+                        }
+                    });
                 case 50:
-                    this.logger.warn(logObject, ...rawLogData);
+                    this.logger.error(logObject, ...rawLogData);
                     return;
             }
         }

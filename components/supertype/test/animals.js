@@ -238,7 +238,7 @@ describe('Freeze Dried Arks', function () {
         ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '30:(foo="bar1"data={"foo":"bar1","__amorphicContext":{"name":"supertype"}})40:(foo="bar2"data={"foo":"bar2","__amorphicContext":{"name":"supertype","permFoo":"permBar1"}})40:(foo="bar3"data={"foo":"bar3","__amorphicContext":{"name":"supertype"}})40:(foo="bar4"data={"foo":"bar4","__amorphicContext":{"name":"supertype","permFoo":"childFoo"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"__amorphicContext":{"name":"supertype2"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"__amorphicContext":{"name":"supertype2"}})';
+        var result = '30:(foo="bar1"data={"foo":"bar1","__amorphicContext":{"name":"supertype"}})40:(foo="bar2"data={"foo":"bar2","__amorphicContext":{"name":"supertype","permFoo":"permBar1"}})50:(foo="bar3"data={"foo":"bar3","__amorphicContext":{"name":"supertype"}})40:(foo="bar4"data={"foo":"bar4","__amorphicContext":{"name":"supertype","permFoo":"childFoo"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"__amorphicContext":{"name":"supertype2"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"foo":"bar6","woopie":{"yea":true,"oh":"2010-11-11T00:00:00.000Z"},"__amorphicContext":{"name":"supertype2"}})';
 
         expect(output).to.equal(result);
     });
