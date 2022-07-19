@@ -1,5 +1,5 @@
 ## 5.0.2
-* During createCopy clone process _id was populated by prototype objectId method. This fix sets all _id values to null during cloning. If necessary _id is populated directly by persistor.
+* During createCopy clone process, _id was populated by prototype objectId method. This fix sets all persistor _id values to null, during cloning. If applicable _id value is populated directly by persistor.
 ## 5.0.1
 * bump nconf version due to security vulnerability
 ## 5.0.0
