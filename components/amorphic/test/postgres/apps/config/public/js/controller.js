@@ -33,7 +33,7 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             serverController = this;
         },
         processPost: {on: 'server', body: function (uri, body, req, res) {
-            var retVal = body.test;
+            var retVal = JSON.stringify(body.test);
             if (body.error) {
                 throw 'error';
             }

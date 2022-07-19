@@ -1,6 +1,10 @@
-## 8.0.1
+## 8.0.3
 * Added executionPromise to knex commit and rollback
 * Explicitly return promise from knex transaction
+## 8.0.2
+* bump nconf version due to security vulnerability.
+## 8.0.1
+* Applied a short term solution to move out index updates from a transaction, so that in case of conflicts, other index creation entries are not impacted.
 ## 8.0.0
 * Upgraded to node 16
 * Bumped dependencies to major versions

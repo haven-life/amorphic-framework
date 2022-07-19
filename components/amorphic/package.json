@@ -4,7 +4,7 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "10.1.0",
+	"version": "10.3.0",
 	"dependencies": {
 		"@haventech/persistor": "8.x",
 		"@haventech/semotus": "6.x",
@@ -16,8 +16,9 @@
 		"express-session": "1.17.2",
 		"formidable": "2.0.1",
 		"mongodb": "^3.5.5",
-		"nconf": "0.11.3",
-		"uglify-js": "2.7.5"
+		"nconf": "^0.12.0",
+		"uglify-js": "2.7.5",
+		"validator": "13.6.0"
 	},
 	"devDependencies": {
 		"@types/chai": "4.3.0",
@@ -56,8 +57,9 @@
 		"recreateDist": "rm -rf ./dist/ && mkdir ./dist/",
 		"test": "mocha test/* --exit",
 		"test:docker": "docker-compose up --build",
+        "test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",
 		"test:trace": "nyc npm run test",
-		"test:debug": "mocha --inspect test/*",
+        "test:debug": "mocha test/* --inspect-brk=0.0.0.0:9229",
 		"test:daemon": "mocha test/daemon/*",
 		"test:daemon_auto": "mocha test/daemon_auto/*",
 		"test:postgres": "mocha test/postgres",

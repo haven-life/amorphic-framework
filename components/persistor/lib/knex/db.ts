@@ -791,55 +791,105 @@ module.exports = function (PersistObjectTemplate) {
             return dbChanges;
         };
 
-        var applyTableChanges = function(dbChanges) {
-            function syncIndexesForHierarchy (operation, diffs, table) {
-                _.map(diffs[operation], (function (object, _key) {
-                    var type = object.def.type;
-                    var columns = object.def.columns;
-                    if (type !== 'unique' && type !== 'index')
-                        throw new Error('index type can be only "unique" or "index"');
+        var applyTableChanges = async function(dbChanges) {
+            function logTableChangesWarningMessage(columns, type, indexName, operation, error) {
+                const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
+                if (logger) {
+                    logger.warn({
+                        function: 'syncIndexesForHierarchy',
+                        data: {
+                            type,
+                            columns,
+                            operation,
+                            indexName,
+                            tableName
+                        },
+                        module: 'db - applyTableChanges',
+                        error: error
+                    }, 'Executing one index at a time - Unable to update index');
+                }
+            }
+            /**
+             * This function loops through index changes (add/change/delete) and 
+             * executes them one by one. In case of errors, while executing indexes, 
+             * we will log a warning message. This approach handles each index at 
+             * its own merit without impacting the behavior or another index. 
+             * This is a change from previous code where were trying to run index 
+             * changes together in a transaction. 
+             * @param operation 
+             * @param diffs 
+             */
+            async function syncIndexesForHierarchy (operation, diffs) {
+                for (const _key in diffs[operation]) {
+                    try {
+                        const object = diffs[operation][_key];
+                        var type = object.def.type;
+                        var columns = object.def.columns;
+                        if (type !== 'unique' && type !== 'index') {
+                            throw new Error('index type can be only "unique" or "index"');
+                        }
 
-                    var name = _.reduce(object.def.columns, function (name, col) {
-                        return name + '_' + col;
-                    }, 'idx_' + tableName);
+                        var name = _.reduce(object.def.columns, function (name, col) {
+                            return name + '_' + col;
+                        }, 'idx_' + tableName);
 
-                    name = name.toLowerCase();
-                    if (operation === 'add') {
-                        table[type](columns, name);
+                        name = name.toLowerCase();
+                        if (operation === 'add') {
+                            try {
+                                await knex.schema.table(tableName, async function (table) {
+                                    // This table function callback does not necessarily need to be 
+                                    // an async callback, but making the callback async/await as a guard.
+                                    await table[type](columns, name);
+                                });
+                            }
+                            catch(error) {
+                                logTableChangesWarningMessage(columns, type, name, operation, error);
+                            }
+                        }
+                        else if (operation === 'delete') {
+                            type = type.replace(/index/, 'Index');
+                            type = type.replace(/unique/, 'Unique');
+                            try {
+                                await knex.schema.table(tableName, async function (table) {
+                                    // This table function callback does not necessarily need to be 
+                                    // an async callback, but making the callback async/await as a guard.
+                                    await table['drop' + type]([], name);
+                                });
+                            }
+                            catch (error) {
+                                    logTableChangesWarningMessage(columns, type, name, operation, error);
+                            };
+                        }
+                        else {
+                            try {
+                                await knex.schema.table(tableName, async function (table) {
+                                    // This table function callback does not necessarily need to be 
+                                    // an async callback, but making the callback async/await as a guard.
+                                    await table[type](columns, name);
+                                });
+                            } catch(error) {
+                                logTableChangesWarningMessage(columns, type, name, operation, error);
+                            };
+                        }
                     }
-                    else if (operation === 'delete') {
-                        type = type.replace(/index/, 'Index');
-                        type = type.replace(/unique/, 'Unique');
-                        table['drop' + type]([], name);
-                    }
-                    else
-                        table[type](columns, name);
-
-                }));
+                    catch(error) {    
+                        const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
+                        if (logger) {
+                            logger.warn({
+                                module: 'db',
+                                function: 'applyTableChanges',
+                                error: error && (error.stack || error.message),
+                            }, 'Unable to apply index changes for '+ tableName);
+                        }
+                    };
+                }
             }
 
-
-            return knex.transaction(function (trx) {
-                return trx.schema.table(tableName, function (table) {
-                    syncIndexesForHierarchy('delete', dbChanges, table);
-                    syncIndexesForHierarchy('add', dbChanges, table);
-                    syncIndexesForHierarchy('change', dbChanges, table);
-                }).catch(function (error) {
-                    if (error && error.message && error.message === 'index type can be only "unique" or "index"') {
-                        throw error;
-                    }
-                    const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
-                    if (logger) {
-                        logger.warn({
-                            component: 'persistor',
-                            dbChanges: dbChanges,
-                            module: 'db',
-                            activity: 'synchronizeIndexes',
-                            error: error
-                        }, 'Unable to update index');
-                    }
-                });
-            });       
+            return Promise.all([
+                syncIndexesForHierarchy('delete', dbChanges), 
+                syncIndexesForHierarchy('add', dbChanges), 
+                syncIndexesForHierarchy('change', dbChanges)
+            ]);
         };
 
         var isSchemaChanged = function(object) {

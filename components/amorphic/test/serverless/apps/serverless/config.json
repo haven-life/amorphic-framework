@@ -1,4 +1,5 @@
 {
+  "serverMode": "serverless",
   "createControllerFor": "#",
   "ver":          "0",
   "modules":      {},
@@ -9,9 +10,5 @@
   "dbUser": "postgres",
   "dbPassword": "postgres",
   "keepOriginalIdForSavedObjects": "yes",
-  "amorphicEnableStatsd": true,
-  "validatorAllowList": "",
-  "validatorDenyList": "\\;\\<\\>\\﹤\\﹥\\^\\*\\|\\_\\%\\'\\/\\=\\+\\,",
-  "validatorLog": true,
-  "validatorEscapeHTML": true
+  "amorphicEnableStatsd": true
 }

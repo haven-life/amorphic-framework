@@ -5,13 +5,11 @@ let AmorphicContext = require('./AmorphicContext');
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
 let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
-let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
-let createServer = AmorphicServer.createServer;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
+let resolveVersions = require('./listen').resolveVersions;
 
 const packageVersions = resolveVersions([
-	'@haventech/semotus',
 	'@haventech/supertype',
 	'@haventech/persistor',
 	'@haventech/bindster'
@@ -19,32 +17,15 @@ const packageVersions = resolveVersions([
 
 packageVersions['amorphic'] = require('../../package.json').version;
 
-function resolveVersions(packages) {
-	const versions = {};
-
-	packages.forEach(function(dependency) {
-		try {
-			const packageLocation = require.resolve(dependency);
-			const index = packageLocation.lastIndexOf(dependency);
-			const packageJsonLocation = packageLocation.substring(0, index).concat(dependency + '/package.json');
-
-			versions[dependency] = require(packageJsonLocation).version;
-		} catch (e) {}
-	});
-
-	return versions;
-}
-
 /**
- * asynchronous listener function (returns a promise)
+ * asynchronous start persistor function (returns a promise)
  *
  * @param {unknown} appDirectory unknown
- * @param {unknown} sessionStore unknown
- * @param {unknown} preSessionInject unknown
- * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
+ * @param {unknown} statsdClient unknown
+ * @param {unknown} configStore unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
+function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
@@ -71,24 +52,6 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 
 	logMessage('Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions));
 
-	let sessionConfig = {
-		secret: amorphicOptions.sessionSecret,
-		cookie: {
-			maxAge: amorphicOptions.sessionExpiration
-		},
-		resave: false,
-		saveUninitialized: true,
-		rolling: true
-	};
-	if(configStore[mainApp].get('sameSiteCookie')) {
-		sessionConfig.cookie.sameSite = configStore[mainApp].get('sameSiteCookie');
-	}
-	if(configStore[mainApp].get('secureCookie')) {
-		sessionConfig.cookie.secure = configStore[mainApp].get('secureCookie');
-	};
-	if (sessionStore) {
-		sessionConfig['store'] = sessionStore;
-	}
 	// Initialize applications
 	let appList = amorphicOptions.appList;
 	let appStartList = amorphicOptions.appStartList;
@@ -96,24 +59,13 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 
 	for (let appKey in appList) {
 		if (appStartList.indexOf(appKey) >= 0) {
-			promises.push(startApplication(appKey, appDirectory, appList, configStore, sessionStore));
+			promises.push(startApplication(appKey, appDirectory, appList, configStore));
 		}
 	}
 
 	return Promise.all(promises)
-		.then(
-			createServer.bind(
-				this,
-				preSessionInject,
-				postSessionInject,
-				appList,
-				appStartList,
-				appDirectory,
-				sessionConfig
-			)
-		)
 		.then(function logStart() {
-			logMessage('Amorphic has been started with versions: ');
+			logMessage('Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ');
 			for (let packageVer in packageVersions) {
 				logMessage(packageVer + ': ' + packageVersions[packageVer]);
 			}
@@ -124,6 +76,5 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 }
 
 module.exports = {
-	listen: listen,
-	resolveVersions: resolveVersions
+	startPersistorMode: startPersistorMode
 };

@@ -29,6 +29,8 @@ let ObjectTemplate = require('@haventech/supertype').default;
 // Local Modules
 let getTemplates = require('./lib/getTemplates').getTemplates;
 let listen = require('./lib/listen').listen;
+let resolveVersions = require('./lib/listen').resolveVersions;
+let startPersistorMode = require('./lib/startPersistorMode').startPersistorMode;
 let typescript = require('./lib/typescript');   // Only used for the typescript path
 
 // Module Global Variables
@@ -121,6 +123,8 @@ function Bindable (Base) {
 let toExport = {
     getTemplates: getTemplates,
     listen: listen,
+    resolveVersions: resolveVersions,
+    startPersistorMode: startPersistorMode,
     Remoteable: Remoteable,
 	Bindable: Bindable,
     Persistable: Persistor.Persistable,
