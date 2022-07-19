@@ -405,7 +405,7 @@ describe('persist newapi tests', function () {
     
             var tx =  PersistObjectTemplate.beginTransaction();
             await phoneTemp.persist({transaction: tx, cascade: false});
-            await PersistObjectTemplate.commit();
+            await PersistObjectTemplate.commit({transaction: tx});
             const phones =  await Phone.persistorFetchByQuery({number: `${i}`});
             expect(phones.length).to.equal(1);
         }
