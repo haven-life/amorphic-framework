@@ -84,16 +84,15 @@ export function fromPOJO(pojo, template, defineProperty?, idMap?, idQualifier?, 
         if (!obj) {
             this.noInit = true;
             obj = new template();
+            //Object id should be set by persistor at save.
+            if (obj && obj._id) {
+                obj._id = null;
+            }
             this.noInit = false;
         }
     }
     else {
         obj = this._createEmptyObject(template, getId(pojo.__id__.toString()), defineProperty, pojo.__transient__);
-    }
-
-    //Object id should be set by persistor at save.
-    if (obj && obj._id) {
-        obj._id = null;
     }
    
     idMap[getId(pojo.__id__.toString())] = obj;
