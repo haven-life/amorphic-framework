@@ -15,6 +15,7 @@ var schema = {};
 var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role;
 var PersistObjectTemplate, ObjectTemplate;
+var uuid = require('uuid');
 
 describe('persist newapi tests', function () {
     // this.timeout(5000);
@@ -64,7 +65,7 @@ describe('persist newapi tests', function () {
                 fetch: true}
         };
         schema.Employee.children = {
-            roles: {id: 'employee_id'}
+            roles: {id: 'employee_id', fetch: true}
         };
 
         schema.Employee.enableChangeTracking = true;
@@ -582,5 +583,52 @@ describe('persist newapi tests', function () {
             emp1.persist({transaction: tx, cascade: false});
             return PersistObjectTemplate.commit({transaction: tx});
         }
+    });
+
+    it('create an object copy and save, _id only assigned at db save', async  () => {
+        var emp1 = new Employee();
+        var add1 = new Address();
+        var phone1 = new Phone();
+        phone1.number = '222222222';
+        add1.city = 'New York1';
+        add1.state = 'New York1';
+        add1.phone = phone1;
+        emp1.name = 'EmployeeObject';
+        emp1.homeAddress = add1;
+
+        var roleTest = new Role();
+        roleTest.name = 'firstTestRole';
+        roleTest.employee = emp1;
+        var roleTest2 = new Role();
+        roleTest2.name = 'secondTestRole';
+        roleTest2.employee = emp1;
+
+        emp1.roles.push(roleTest);
+        emp1.roles.push(roleTest2);
+        
+        var tx =  PersistObjectTemplate.beginTransaction();
+        emp1.setDirty(tx);
+        await PersistObjectTemplate.commit({transaction: tx});
+        const employee = await Employee.persistorFetchByQuery({name: 'EmployeeObject'});
+        
+        const clonedEmp = emp1.createCopy(function(obj, prop, template){
+            return null;
+        });
+        
+        expect(clonedEmp._id).to.equal(undefined);
+        expect(clonedEmp?.roles[0]?._id).to.equal(undefined);
+        expect(clonedEmp?.roles[1]?._id).to.equal(undefined);
+        clonedEmp.name = 'ClonedEmployeeObject';
+        var tx =  PersistObjectTemplate.beginTransaction();
+        clonedEmp.setDirty(tx);
+        await PersistObjectTemplate.commit({transaction: tx});
+        const employeesClonedSaved = await Employee.persistorFetchByQuery({name: 'ClonedEmployeeObject'});
+        expect(employeesClonedSaved.length).to.equal(1);
+        expect(employeesClonedSaved[0].roles[0]._id).to.equal(clonedEmp?.roles[0]._id);
+        expect(employeesClonedSaved[0].roles[1]._id).to.equal(clonedEmp?.roles[1]._id);
+        expect(employeesClonedSaved[0].roles[0]._id).to.not.equal(employeesClonedSaved[0].roles[1]._id);
+        expect(employee[0]?._id).to.not.equal(employeesClonedSaved[0]?._id);
+        expect(employee[0]?.roles[0]?._id).to.not.equal(employeesClonedSaved[0]?.roles[0]?._id);
+        expect(employee[0]?.roles[1]?._id).to.not.equal(employeesClonedSaved[0]?.roles[1]?._id);
     });
 });

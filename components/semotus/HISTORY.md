@@ -1,3 +1,5 @@
+## 6.1.0
+* package-lock bump to pick up latest supertype version.
 ## 6.0.1
 * bump nconf version due to security vulnerability.
 ## 6.0.0
