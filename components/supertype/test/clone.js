@@ -85,4 +85,6 @@ it('can clone', function () {
     expect(main2.subsA.length).to.equal(0);
     expect(main2.subsB.length).to.equal(2);
     expect(main2.subA).to.equal(null);
+    expect(main2.subsB[0]._id).to.equal(undefined);
+    expect(main2.subsB[1]._id).to.equal(undefined);
 });
