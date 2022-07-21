@@ -15,7 +15,6 @@ var schema = {};
 var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role;
 var PersistObjectTemplate, ObjectTemplate;
-var uuid = require('uuid');
 
 describe('persist newapi tests', function () {
     // this.timeout(5000);
