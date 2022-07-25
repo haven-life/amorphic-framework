@@ -1375,7 +1375,7 @@ module.exports = function (PersistObjectTemplate) {
                 if (persistorTransaction.updateConflict) {
                     throw 'Update Conflict';
                 }
-                await knexTransaction.commit();
+                knexTransaction.commit();
                 return knexTransaction.executionPromise;
             }
 
