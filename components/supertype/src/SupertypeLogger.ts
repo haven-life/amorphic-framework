@@ -11,8 +11,8 @@ type LogObject = {
     message?: string,
     context?: any,
     error?: any,
-    request?: Request,
-    response?: Response,
+    request?: any,
+    response?: any,
     data?: any
 };
 
