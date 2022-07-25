@@ -244,7 +244,8 @@ module.exports = function (PersistObjectTemplate) {
             data: {
                 activity: 'dataLogging',
                 template: obj.__template__.__name__, 
-                _id: pojo._id, values: dataSaved
+                _id: pojo._id, 
+                values: dataSaved
             }
         });
 

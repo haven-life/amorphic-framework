@@ -3,7 +3,6 @@
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
-let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
 let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
@@ -47,10 +46,16 @@ function resolveVersions(packages) {
 function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
+	const moduleName = 'amorphic';
+	const functionName = listen.name;
 
 	if (typeof sendToLogFunction === 'function') {
-		AmorphicContext.appContext.sendToLog = sendToLogFunction;
-		SupertypeSession.logger.setLogger(sendToLogFunction);
+		SupertypeSession.logger.warn({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			message: 'sendToLog is deprecated, please use getLogger instead for getting and setting the logger to be used in amorphic'
+		});
 	}
 
 	buildStartUpParams(configStore);
@@ -69,7 +74,12 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 	let sanitizedAmorphicOptions = Object.assign({}, amorphicOptions);
 	delete sanitizedAmorphicOptions.sessionSecret;
 
-	logMessage('Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions));
+	SupertypeSession.logger.info({
+		module: moduleName,
+		function: functionName,
+		category: 'request',
+		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
+	});
 
 	let sessionConfig = {
 		secret: amorphicOptions.sessionSecret,
@@ -113,13 +123,28 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 			)
 		)
 		.then(function logStart() {
-			logMessage('Amorphic has been started with versions: ');
+			let msg = 'Amorphic has been started with versions: ';
 			for (let packageVer in packageVersions) {
-				logMessage(packageVer + ': ' + packageVersions[packageVer]);
+				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';
 			}
+			SupertypeSession.logger.info({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: msg,
+				data: {
+					packageVersions: packageVersions
+				}
+			});
 		})
 		.catch(function error(e) {
-			logMessage(e.message + ' ' + e.stack);
+			SupertypeSession.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: e.message + ' ' + e.stack,
+				error: e
+			});
 		});
 }
 

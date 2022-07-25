@@ -1,7 +1,5 @@
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
-let Logger = require('./utils/logger');
-let logMessage = Logger.logMessage;
 let uploadRouter = require('./routers/uploadRouter').uploadRouter;
 let initializePerformance = require('./utils/initializePerformance').initializePerformance;
 let amorphicEntry = require('./amorphicEntry').amorphicEntry;
@@ -23,6 +21,7 @@ import * as fs from 'fs';
 import * as compression from 'compression';
 import * as http from 'http';
 import * as https from 'https';
+import { SupertypeSession } from '@haventech/supertype';
 
 type Options = {
     amorphicOptions: any;
@@ -48,6 +47,7 @@ export class AmorphicServer {
     app: express.Express;
     private serverMode: string;
     routers: { path: string; router: express.Router }[] = [];
+    private moduleName = AmorphicServer.name;
 
     /**
     *
@@ -181,6 +181,7 @@ export class AmorphicServer {
     }
 
     setupAmorphicRouter(options: Options) {
+        const functionName = this.setupAmorphicRouter.name;
         let { amorphicOptions,
             preSessionInject,
             postSessionInject,
@@ -229,7 +230,12 @@ export class AmorphicServer {
                     this.app.use('/', express.static(appPath, { index: 'index.html' }));
                 }
 
-                logMessage(`${appName} connected to ${appPath}`);
+                SupertypeSession.logger.info({
+                    module: this.moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: `${appName} connected to ${appPath}`
+                });
             }
         }
 
@@ -264,6 +270,10 @@ export class AmorphicServer {
             .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
+        
+        if (SupertypeSession.logger.logger && typeof SupertypeSession.logger.logger.setApiContextMiddleware === 'function') {
+            amorphicRouter.use(SupertypeSession.logger.logger.setApiContextMiddleware);
+        }
 
         if (postSessionInject) {
             postSessionInject.call(null, this.app);

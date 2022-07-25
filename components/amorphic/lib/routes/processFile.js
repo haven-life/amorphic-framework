@@ -15,10 +15,17 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  * @param {unknown} downloads unknown
  */
 function processFile(req, resp, next, downloads) {
+    const moduleName = 'amorphic';
+    const functionName = processFile.name;
     let processFileTime = process.hrtime();
 
     if (!downloads) {
-        logMessage('no download directory');
+        logMessage(2, {
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: 'no download directory'
+        });
         next();
 
         return;
@@ -46,7 +53,12 @@ function processFile(req, resp, next, downloads) {
 
         // there was an error attempting to parse the form. log it out, and send back an error response.
         if (err) {
-            logMessage(err);
+            logMessage(0, {
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                error: err
+            });
             resp.writeHead(500, {'Content-Type': 'text/plain'});
             resp.end('unable to parse form');
             statsdUtils.computeTimingAndSend(
@@ -62,15 +74,32 @@ function processFile(req, resp, next, downloads) {
 
         try {
             let file = files.file.path;
-            logMessage(file);
+            logMessage(2, {
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                data: {
+                    file: file
+                }
+            });
 
             setTimeout(function yz() {
                 fs.unlink(file, function zy(err) {
                     if (err) {
-                        logMessage(err);
+                        logMessage(0, {
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            error: err
+                        });
                     }
                     else {
-                        logMessage(file + ' deleted');
+                        logMessage(2, {
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: file + ' deleted'
+                        });
                     }
                 });
             }, 60000);
@@ -87,7 +116,12 @@ function processFile(req, resp, next, downloads) {
         } catch (err) {
             resp.writeHead(400, {'Content-Type': 'text/plain'});
             resp.end('Invalid request parameters');
-            logMessage(err);
+            logMessage(0, {
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                error: err
+            });
             statsdUtils.computeTimingAndSend(
                 processFileTime,
                 'amorphic.webserver.process_file.response_time',

@@ -88,6 +88,7 @@ declare var define;
 	 * @param {unknown} data unknown
 	 */
 	RemoteObjectTemplate.log = function log(level, data) {
+		const functionName = log.name;
 		// OBSOLETE
 		if (level > this.logLevel) {
 			return;
@@ -114,11 +115,47 @@ declare var define;
 
 		const message = time + '(' + this.currentSession + extraID + ') ' + 'RemoteObjectTemplate:' + data;
 
-		this.logger.info({
-			module: RemoteObjectTemplate.moduleName,
-			category: 'milestone',
-			message: message
-		});
+		let logObject: any = {};
+		logObject.data = {};
+		if (typeof data === 'object') {
+			logObject = Object.assign({}, !(data instanceof Error) ? data : {});
+			logObject.data = {};
+			if (data && (data instanceof Error || Object.keys(data).includes('error'))) {
+				logObject.error = data instanceof Error ? data : data.error;
+			}
+			if (Object.keys(data).includes('data') && typeof data.data === 'object') {
+				logObject.data = Object.assign({}, data.data);
+			}
+		} else if (typeof data === 'string') {
+			logObject.message = message;
+		}
+		logObject.data.time = time;
+		logObject.data.currentSession = this.currentSession;
+		logObject.data.extraID = extraID;
+
+        switch (level) {
+            case 0:
+                this.logger.error(logObject);
+                return;
+            case 1:
+                this.logger.warn(logObject);
+                return;
+            case 2:
+                this.logger.info(logObject);
+                return;
+            case 3:
+                this.logger.debug(logObject);
+                return;
+            default:
+				this.logger.warn({
+					module: RemoteObjectTemplate.moduleName,
+					function: functionName,
+					category: 'request',
+					message: 'invalid level, using info'
+				});
+				this.logger.info(logObject);
+                return;
+        }
 	};
 
 	/**

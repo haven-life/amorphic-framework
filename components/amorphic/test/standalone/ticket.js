@@ -26,7 +26,13 @@ var db, client;
 
 Person.inject(function personInject() {
     Person.sendEmail = function sendEmail(email, subject) {
-        logMessage(email + ' ' + subject);
+        const functionName = sendEmail.name;
+        logMessage(2, {
+            module: 'ticket',
+            function: functionName,
+            category: 'request',
+            message: email + ' ' + subject
+        });
     };
 });
 
@@ -45,6 +51,7 @@ cfg.argv().env();
 var mongoHost=cfg.get('mongoHost') ? cfg.get('mongoHost') : 'localhost';
 
 describe('Ticket System Test Suite', function () {
+    const moduleName = this.title;
 
     it ('can perform injections', function () {
         PersistObjectTemplate.globalInject(function (obj) {
@@ -67,7 +74,13 @@ describe('Ticket System Test Suite', function () {
     var semotusId;
 
     it ('clears the ticket system', function (done) {
-        logMessage(1);
+        const functionName = this.test.title;
+        logMessage(2, {
+            module: moduleName,
+            function: functionName,
+            category: 'request',
+            message: 1
+        });
         clearCollection('ticket').then(function (count) {
             expect(count).to.equal(0);
             return clearCollection('ticketItem');
@@ -250,8 +263,14 @@ describe('Ticket System Test Suite', function () {
 
     it ('closes the database', function (done) {
         this.timeout(10000);
+        const functionName = this.test.title;
         client.close().then(function () {
-            logMessage('ending ticket test');
+            logMessage(2, {
+                module: moduleName,
+                function: functionName,
+                category: 'request',
+                message: 'ending ticket test'
+            });
             done();
         });
     });

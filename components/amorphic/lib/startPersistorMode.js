@@ -3,7 +3,6 @@
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
-let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
@@ -26,12 +25,18 @@ packageVersions['amorphic'] = require('../../package.json').version;
  * @param {unknown} configStore unknown
  */
 function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, configStore = null) {
+	const moduleName = 'amorphic';
+	const functionName = startPersistorMode.name;
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
 	if (typeof sendToLogFunction === 'function') {
-		AmorphicContext.appContext.sendToLog = sendToLogFunction;
-		SupertypeSession.logger.setLogger(sendToLogFunction);
+		SupertypeSession.logger.warn({
+			module: 'listen',
+			function: 'listen',
+			category: 'request',
+			message: 'sendToLog is deprecated, please use getLogger instead for getting and setting the logger to be used in amorphic'
+		});
 	}
 
 	buildStartUpParams(configStore);
@@ -50,7 +55,12 @@ function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, confi
 	let sanitizedAmorphicOptions = Object.assign({}, amorphicOptions);
 	delete sanitizedAmorphicOptions.sessionSecret;
 
-	logMessage('Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions));
+	SupertypeSession.logger.info({
+		module: moduleName,
+		function: functionName,
+		category: 'milestone',
+		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
+	});
 
 	// Initialize applications
 	let appList = amorphicOptions.appList;
@@ -65,13 +75,28 @@ function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, confi
 
 	return Promise.all(promises)
 		.then(function logStart() {
-			logMessage('Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ');
+			let msg = 'Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ';
 			for (let packageVer in packageVersions) {
-				logMessage(packageVer + ': ' + packageVersions[packageVer]);
+				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';
 			}
+			SupertypeSession.logger.info({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: msg,
+				data: {
+					packageVersions: packageVersions
+				}
+			});
 		})
 		.catch(function error(e) {
-			logMessage(e.message + ' ' + e.stack);
+			SupertypeSession.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: e.message + ' ' + e.stack,
+				error: e
+			});
 		});
 }
 

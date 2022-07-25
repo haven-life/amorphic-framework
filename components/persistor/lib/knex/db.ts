@@ -682,9 +682,14 @@ module.exports = function (PersistObjectTemplate) {
                 if (knex.client.config.client === 'pg' && comment !== '') {
                     return knex.raw('COMMENT ON COLUMN "' + table + '"."' + column + '" IS \'' + comment.replace(/'/g, '\'\'') + '\';')
                         .then(function() {}, function (e) {
-                            /*eslint-disable no-console*/
-                            console.log(e)
-                            /*eslint-enable no-console*/
+                            PersistObjectTemplate.logger.info({
+                                module: moduleName,
+                                function: functionName,
+                                category: 'milestone',
+                                data: {
+                                    commentOn: e
+                                }
+                            });
                         });
                 }
                 return;

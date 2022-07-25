@@ -90,7 +90,7 @@ export class SupertypeLogger {
                 if (data && Object.keys(data).length > 0) {
                     obj.data = Object.assign({}, data, properties[startIndex] && properties[startIndex].data);
                 } else {
-                    obj.data = properties[startIndex] || {};
+                    obj.data = properties[startIndex].data || {};
                 }
                 startIndex++;
             }
@@ -248,6 +248,18 @@ export class SupertypeLogger {
                 case 50:
                     this.logger.error(logObject, ...rawLogData);
                     return;
+                default: 
+                    this.logger.error({
+                        module: SupertypeLogger.moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'invalid level used',
+                        data: {
+                            logLevel: logLevel,
+                            logObject: logObject
+                        }
+                    });
+                    return;
             }
         }
         console.log(this.prettyPrint(logLevel, logObject));     // eslint-disable-line no-console
@@ -256,7 +268,7 @@ export class SupertypeLogger {
     prettyPrint(level, json) {
         let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
 
-        return this.formatDateTime(new Date(json.time)) + ': ' +
+        return this.formatDateTime(json.time ? new Date(json.time) : new Date()) + ': ' +
             level.toUpperCase() + ': ' +
             addColonIfToken(split[1].name, ': ') +
             addColonIfToken(split[1].msg, ': ') +

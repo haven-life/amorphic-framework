@@ -17,7 +17,8 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  * @param {unknown} controllers unknown
  */
 function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers) {
-
+    const moduleName = 'amorphic';
+    const functionName = processMessage.name;
     let processMessageStartTime = process.hrtime();
 
     let session = req.session;
@@ -28,7 +29,12 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
 
     if (!message.sequence) {
         const invalidSequence = 'Invalid or no sequence number detected. Ignoring message - will not process this message';
-        log(1, req.session.id, invalidSequence, nonObjTemplatelogLevel);
+        log(1, req.session.id, {
+            module: 'amorphic',
+            functionName: functionName,
+            category: 'milestone',
+            message: invalidSequence
+        }, nonObjTemplatelogLevel);
         res.writeHead(500, {'Content-Type': 'text/plain'});
         res.end(invalidSequence);
 
@@ -77,18 +83,23 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
 
         // If we expired just return a message telling the client to reset itself
             if (semotus.newSession || newPage || forceReset) {
+                let msg;
                 if (semotus.newSession) {
-                    ourObjectTemplate.logger.info({
-                        component: 'amorphic',
-                        module: 'processMessage',
-                        activity: 'reset'
-                    }, remoteSessionId,
-                    'Force reset on ' + message.type + ' ' + 'new session' + ' [' + message.sequence + ']');
+                    msg = 'Force reset on ' + message.type + ' ' + 'new session' + ' [' + message.sequence + ']';
                 }
                 else {
-                    ourObjectTemplate.logger.info({component: 'amorphic', module: 'processMessage', activity: 'reset'},
-                    remoteSessionId, 'Force reset on ' + message.type + ' ' +  ' [' + message.sequence + ']');
+                    msg = 'Force reset on ' + message.type + ' ' +  ' [' + message.sequence + ']';
                 }
+                ourObjectTemplate.logger.info({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: msg,
+                    data: {
+                        activity: 'reset',
+                        remoteSessionId: remoteSessionId
+                    }
+                });
 
                 semotus.save(path, session, req);
                 startMessageProcessing = process.hrtime();
@@ -157,10 +168,14 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
             }
             catch (error) {
                 ourObjectTemplate.logger.info({
-                    component: 'amorphic',
-                    module: 'processMessage',
-                    activity: 'error'
-                }, error.message + error.stack);
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: error.message + error.stack,
+                    data: {
+                        activity: 'error'
+                    }
+                });
 
                 res.writeHead(500, {'Content-Type': 'text/plain'});
                 ourObjectTemplate.logger.clearContextProps(context);
@@ -173,7 +188,13 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
             }
 
         }).catch(function failure(error) {
-            log(0, req.session.id, error.message + error.stack, nonObjTemplatelogLevel);
+            log(0, req.session.id, {
+                module: 'amorphic',
+                functionName: functionName,
+                category: 'milestone',
+                message: error.message + error.stack,
+                error: error
+            }, nonObjTemplatelogLevel);
             res.writeHead(500, {'Content-Type': 'text/plain'});
             res.end(error.toString());
 

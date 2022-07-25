@@ -1,6 +1,6 @@
 'use strict';
 
-let Semotus = require('@haventech/semotus');
+let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 
 /**
  * Purpose unknown
@@ -8,9 +8,9 @@ let Semotus = require('@haventech/semotus');
  * @param {unknown} req unknown
  */
 function displayPerformance(req) {
-    let logger = Semotus.createLogger();
-
-    logger.setContextProps(req.amorphicTracking.loggingContext);
+    const moduleName = 'amorphic';
+    const functionName = displayPerformance.name;
+    SupertypeSession.logger.setContextProps(req.amorphicTracking.loggingContext);
 
     let diff = process.hrtime(req.amorphicTracking.startTime);
     let totalTime = (diff[0] * 1e9 + diff[1]) / 1000000;
@@ -20,14 +20,18 @@ function displayPerformance(req) {
         taskTime += task.time;
     });
 
-    logger.info({
-        component: 'amorphic',
-        module: 'listen',
-        duration: totalTime,
-        browserPerformance: req.amorphicTracking.browser,
-        serverTasks: req.amorphicTracking.serverTasks,
-        unaccounted: totalTime - taskTime},
-        'Request Performance');
+    SupertypeSession.logger.info({
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        message: 'Request Performance',
+        data: {
+            duration: totalTime,
+            browserPerformance: req.amorphicTracking.browser,
+            serverTasks: req.amorphicTracking.serverTasks,
+            unaccounted: totalTime - taskTime
+        }
+    });
 }
 
 module.exports = {
