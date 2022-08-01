@@ -17,7 +17,7 @@ function setupCustomRoutes(filePath, router) {
         const exportedRouterFunctions = Object.keys(routers);
 
         if(exportedRouterFunctions.length === 0) {
-            SupertypeSession.warn.debug({
+            SupertypeSession.logger.warn({
                 module: moduleName,
                 function: functionName,
                 category: 'milestone',

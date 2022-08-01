@@ -41,21 +41,28 @@ function resolveVersions(packages) {
  * @param {unknown} sessionStore unknown
  * @param {unknown} preSessionInject unknown
  * @param {unknown} postSessionInject unknown
- * @param {unknown} sendToLogFunction unknown
+ * @param {unknown} logger unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 	const moduleName = 'amorphic';
 	const functionName = listen.name;
 
-	if (typeof sendToLogFunction === 'function') {
-		SupertypeSession.logger.warn({
-			module: moduleName,
-			function: functionName,
-			category: 'request',
-			message: 'sendToLog is deprecated, please use getLogger instead for getting and setting the logger to be used in amorphic'
-		});
+	if (typeof logger === 'function') {
+        if (typeof logger.info === 'function' ||
+            typeof logger.error === 'function' ||
+            typeof logger.debug === 'function' ||
+            typeof logger.warn === 'function') {
+			SupertypeSession.logger.setLogger(logger);
+        } else {
+			SupertypeSession.logger.warn({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: 'sendToLog is deprecated, please pass in a logger here instead'
+			});
+		}
 	}
 
 	buildStartUpParams(configStore);

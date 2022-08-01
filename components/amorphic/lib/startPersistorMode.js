@@ -20,23 +20,30 @@ packageVersions['amorphic'] = require('../../package.json').version;
  * asynchronous start persistor function (returns a promise)
  *
  * @param {unknown} appDirectory unknown
- * @param {unknown} sendToLogFunction unknown
+ * @param {unknown} logger unknown
  * @param {unknown} statsdClient unknown
  * @param {unknown} configStore unknown
  */
-function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, configStore = null) {
+function startPersistorMode(appDirectory, logger, statsdClient, configStore = null) {
 	const moduleName = 'amorphic';
 	const functionName = startPersistorMode.name;
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
-	if (typeof sendToLogFunction === 'function') {
-		SupertypeSession.logger.warn({
-			module: 'listen',
-			function: 'listen',
-			category: 'request',
-			message: 'sendToLog is deprecated, please use getLogger instead for getting and setting the logger to be used in amorphic'
-		});
+	if (typeof logger === 'function') {
+        if (typeof logger.info === 'function' ||
+            typeof logger.error === 'function' ||
+            typeof logger.debug === 'function' ||
+            typeof logger.warn === 'function') {
+			SupertypeSession.logger.setLogger(logger);
+        } else {
+			SupertypeSession.logger.warn({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: 'sendToLog is deprecated, please pass in a logger here instead'
+			});
+		}
 	}
 
 	buildStartUpParams(configStore);

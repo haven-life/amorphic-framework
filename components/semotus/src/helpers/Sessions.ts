@@ -1,4 +1,3 @@
-import e = require('express');
 import {SavedSession, Semotus, SendMessage, Session} from './Types';
 
 const moduleName = 'semotus sessions';

@@ -3,21 +3,9 @@ import { isModuleNamespaceObject } from "util/types";
 const levelToStr = { 60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace' };
 const strToLevel = { 'fatal': 60, 'error': 50, 'warn': 40, 'info': 30, 'debug': 20, 'trace': 10 };
 
-type LogObject = {
-    level?: string | number,
-    module?: string,
-    function?: string,
-    category?: 'security' | 'availability' | 'request' | 'milestone',
-    message?: string,
-    context?: any,
-    error?: any,
-    request?: any,
-    response?: any,
-    data?: any
-};
-
 export class SupertypeLogger {
     static moduleName: string = SupertypeLogger.name;
+    private amorphicContext = '__amorphicContext';
     context: any;
     granularLevels: any;
     level: any;
@@ -69,51 +57,27 @@ export class SupertypeLogger {
             typeof logger.warn !== 'function') {
             throw new Error('Please specify a logger with the info, error, debug, and warn functions');
         }
-        this.logger = logger;
+        this.logger = logger.childLogger ? logger.childLogger({error: {isHumanRelated: false}}) : logger.child({error: {isHumanRelated: false}});
     }
 
     // Log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
     private log(level: number, ...args: any[]): void {
-        const fields = this['fields'];
-        const data = fields && fields.data;
-        const properties = args && Array.isArray(args) ? args.slice() : args;
+        const properties: any[] = args && Array.isArray(args) ? args.slice() : args;
 
-        if (Array.isArray(properties) && properties.length > 0) {
-            let obj: LogObject = {};
-            obj.data = {};
-            let startIndex = 0;
-            if (typeof properties[startIndex] === 'object') {
-                obj = Object.assign({}, !(properties[startIndex] instanceof Error) ? properties[startIndex] : {});
-                if (properties[startIndex] && (properties[startIndex] instanceof Error || Object.keys(properties[startIndex]).includes('error'))) {
-                    obj.error = properties[startIndex] instanceof Error ? properties[startIndex] : properties[startIndex].error;
-                }
-                if (data && Object.keys(data).length > 0) {
-                    obj.data = Object.assign({}, data, properties[startIndex] && properties[startIndex].data);
-                } else {
-                    obj.data = properties[startIndex].data || {};
-                }
-                startIndex++;
+        if (typeof properties[0] === 'object')  {
+            let logObj = properties[0];
+            if (!logObj.data) {
+                logObj.data = {};
             }
-
-            //Handle the case where log function is (message, functionName, piiLevel(optional))
-            if (typeof properties[startIndex] === 'string' && typeof properties[startIndex + 1] === 'string'
-                && level === 30) {
-                obj.message = properties[startIndex];
-                obj.function = properties[startIndex+1];
-                startIndex += 2;
-            }
-
-            obj.level = level;
-            this.setContextLog(obj.data);
-            obj.data.__amorphicContext = { ...this.context };
-            if (this.isEnabled(levelToStr[obj.level], obj)) {
-                this.sendToLog(levelToStr[obj.level], obj, ...properties.slice(startIndex));
+            this.setContextLog(logObj.data);
+            logObj['level'] = level;
+            if (this.isEnabled(levelToStr[logObj['level']], logObj)) {
+                this.sendToLog(levelToStr[logObj['level']], logObj, ...properties.slice(1));
             }
             return;
         }
 
         properties['level'] = level;
-        this.setContextLog(properties);
         if (this.isEnabled(levelToStr[properties['level']], properties)) {
             this.sendToLog(levelToStr[properties['level']], properties);
         }
@@ -121,7 +85,14 @@ export class SupertypeLogger {
     }
 
     setContextLog(object) {
-        object['__amorphicContext'] = { ...this.context };
+        object[this.amorphicContext] = { ...this.context };
+    }
+
+    getContextLog(object) {
+        if (!object[this.amorphicContext]) {
+            this.setContextLog(object);
+        }
+        return object[this.amorphicContext];
     }
 
     startContext(context) {
