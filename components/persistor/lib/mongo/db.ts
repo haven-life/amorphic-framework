@@ -1,5 +1,8 @@
+import * as path from 'path';
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+
 module.exports = function (PersistObjectTemplate) {
-    const moduleName = 'Persistor Mongo';
     /* Mongo implementation of save */
     PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, _txn, logger) {
         const functionName = 'savePojoToMongo';

@@ -9,6 +9,9 @@ let semotus = require('@haventech/semotus');
 let getTemplates = require('./getTemplates').getTemplates;
 let getSessionCache = require('./session/getSessionCache').getSessionCache;
 let decompressSessionData = require('./session/decompressSessionData').decompressSessionData;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Create a controller template that has a unique Semotus instance that is
@@ -32,7 +35,6 @@ let decompressSessionData = require('./session/decompressSessionData').decompres
  */
 function getController(path, controllerPath, initObjectTemplate, expressSession, objectCacheExpiration, sessionStore,
                        newPage, reset, controllerId, req, controllers, nonObjTemplatelogLevel, sessions) {
-    const moduleName = 'amorphic';
     const functionName = getController.name;
     let applicationConfig = AmorphicContext.applicationConfig;
     let sessionId = expressSession.id;

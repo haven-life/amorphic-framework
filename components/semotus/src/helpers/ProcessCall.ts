@@ -1,7 +1,8 @@
 import {delay, getError, logTime} from './Utilities';
 import {CallContext, ProcessCallPayload, RemoteCall, Semotus, Session} from './Types';
+import * as path from 'path';
 
-const moduleName = 'ProcessCall';
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * We process the call the remote method in stages starting by letting the controller examine the
@@ -339,8 +340,7 @@ async function resolveErrorHandler(logger, controller: any, type, remoteCall: Re
                 message: 'User defined postServerErrorHandler threw an error',
                 data: {
                     activity: 'postCall.resolveErrorHandler',
-                    call: remoteCall.name,
-                    message: error.message ? error.message : JSON.stringify(error)
+                    call: remoteCall.name
                 }
             };
             logger.error(logBody);

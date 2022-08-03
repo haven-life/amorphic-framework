@@ -3,9 +3,11 @@
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 
 const fs = require('fs');
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 function setupCustomRoutes(filePath, router) {
-    const moduleName = 'amorphic';
     const functionName = setupCustomRoutes.name;
     const routerFilePath = `${filePath}/routers/index.js`;
 

@@ -5,6 +5,9 @@ let establishServerSession = require('../session/establishServerSession').establ
 let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Process a post request by establishing a session and calling the controllers processPost method
@@ -17,7 +20,6 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  */
 
 function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
-	const moduleName = 'amorphic';
 	const functionName = processPost.name;
 	let processPostStartTime = process.hrtime();
 

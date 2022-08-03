@@ -1,7 +1,9 @@
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
+import * as path from 'path';
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 module.exports = function (PersistObjectTemplate) {
-    const moduleName = 'Persistor';
     var Promise = require('bluebird');
     var _ = require('underscore');
 

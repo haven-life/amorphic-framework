@@ -266,7 +266,6 @@ export interface Semotus {
     nextSessionId: number;
     controller: ISemotusController;
     changeString: string;
-    moduleName: string;
 
 
     _getSession(_sid?: any): Session;

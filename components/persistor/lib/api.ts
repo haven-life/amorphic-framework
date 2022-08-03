@@ -11,7 +11,9 @@
  */
 
 import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import * as path from 'path';
 
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     let supertypeRequire = require('@haventech/supertype');
@@ -19,8 +21,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
     var Promise = require('bluebird');
     var _ = require('underscore');
-    const moduleName = 'Persistor API'
-
 
     function getTime() {
         return process.hrtime();

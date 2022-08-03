@@ -12,6 +12,8 @@ let UsesV2ReturnPass1 = require('./UsesV2ReturnPass1');
 // Npm modules
 let path = require('path');
 
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+
 /**
  * Purpose unknown
  *
@@ -25,7 +27,6 @@ let path = require('path');
  * @returns {unknown} unknown
  */
 function getTemplates(persistObjectTemplate, appPath, templates, config, appName) {
-    const moduleName = 'amorphic';
     const functionName = getTemplates.name;
     let amorphicOptions = AmorphicContext.amorphicOptions;
     let applicationSource = AmorphicContext.applicationSource;

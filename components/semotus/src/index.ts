@@ -33,6 +33,9 @@ import * as Changes from './helpers/Changes';
 import * as ChangeGroups from './helpers/ChangeGroups';
 import {Request, Response} from 'express';
 import {processCall} from "./helpers/ProcessCall";
+import * as path from 'path';
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 declare var define;
 
@@ -52,7 +55,6 @@ declare var define;
 
 	var ObjectTemplate = SupertypeModule.default;
 	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject();
-	RemoteObjectTemplate.moduleName = 'RemoteObjectTemplate';
 
 	RemoteObjectTemplate._useGettersSetters = typeof window === 'undefined';
 
@@ -148,7 +150,7 @@ declare var define;
                 return;
             default:
 				this.logger.warn({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'request',
 					message: 'invalid level, using info'
@@ -306,7 +308,7 @@ declare var define;
 		switch (remoteCall.type) {
 			case 'ping':
 				this.logger.info({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					data: {
@@ -318,7 +320,7 @@ declare var define;
 
 			case 'sync':
 				this.logger.info({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					data: {
@@ -331,7 +333,7 @@ declare var define;
 				// or return an error response so the caller will roll back
 				if (!this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
 					this.logger.error({
-						module: RemoteObjectTemplate.moduleName,
+						module: moduleName,
 						function: functionName,
 						category: 'milestone',
 						message: 'Could not apply changes on sync message',
@@ -356,7 +358,7 @@ declare var define;
 							delay(5000).then(
 								function a() {
 									this.logger.warn({
-										module: RemoteObjectTemplate.moduleName,
+										module: moduleName,
 										function: functionName,
 										category: 'milestone',
 										data: {
@@ -409,7 +411,7 @@ declare var define;
 				let doProcessQueue = true;
 
 				this.logger.info({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					data: {
@@ -423,7 +425,7 @@ declare var define;
 				// if a session is restored but their are pending calls
 				if (!session.pendingRemoteCalls[remoteCallId]) {
 					this.logger.error({
-						module: RemoteObjectTemplate.moduleName,
+						module: moduleName,
 						function: functionName,
 						category: 'milestone',
 						message: 'No remote call pending',
@@ -490,7 +492,7 @@ declare var define;
 		const functionName = RemoteObjectTemplate.serializeAndGarbageCollect.name;
 
 		this.logger.debug({
-			module: RemoteObjectTemplate.moduleName,
+			module: moduleName,
 			function: functionName,
 			category: 'milestone',
 			data: { 
@@ -523,7 +525,7 @@ declare var define;
 				});
 			} catch (e) {
 				this.logger.error({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					message: 'Error serializing session ' + e.message + e.stack,
@@ -802,7 +804,7 @@ declare var define;
 				}
 
 				self.logger.info({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					data: {
@@ -999,7 +1001,7 @@ declare var define;
 						}
 					} catch (e) {
 						objectTemplate.logger.error({
-							module: RemoteObjectTemplate.moduleName,
+							module: moduleName,
 							function: functionName,
 							category: 'milestone',
 							message: 'caught exception trying to stringify ' + prop,
@@ -1528,7 +1530,7 @@ declare var define;
 					obj = this._createEmptyObject(template, objId);
 				} else {
 					this.logger.error({
-						module: RemoteObjectTemplate.moduleName,
+						module: moduleName,
 						function: functionName,
 						category: 'milestone',
 						message: 'Could not find template for ' + objId,
@@ -1572,7 +1574,7 @@ declare var define;
 				this._rollback(rollback);
 				this._deleteChanges();
 				this.logger.error({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					message: 'Could not apply changes to ' + objId,
@@ -1600,7 +1602,7 @@ declare var define;
 			this._rollback(rollback);
 			this._deleteChanges();
 			this.logger.error({
-				module: RemoteObjectTemplate.moduleName,
+				module: moduleName,
 				function: functionName,
 				category: 'milestone',
 				message: 'Flagged by controller to not process this change set.',
@@ -1618,7 +1620,7 @@ declare var define;
          */
 		this.processingSubscription = null;
 		this.logger.debug({
-			module: RemoteObjectTemplate.moduleName,
+			module: moduleName,
 			function: functionName,
 			category: 'milestone',
 			data: {
@@ -1658,7 +1660,7 @@ declare var define;
 
 			if (!defineProperty) {
 				this.logger.error({
-					module: RemoteObjectTemplate.moduleName,
+					module: moduleName,
 					function: functionName,
 					category: 'milestone',
 					message: `Could not apply change to ${obj.__template__.__name__}.${prop} property not defined in template`,
@@ -1825,7 +1827,7 @@ declare var define;
 			}
 		} catch (e) {
 			this.logger.error({
-				module: RemoteObjectTemplate.moduleName,
+				module: moduleName,
 				function: functionName,
 				category: 'milestone',
 				message: 'Could not apply change to ' + obj.__template__.__name__ + '.' + prop + ' based on property definition',
@@ -1858,7 +1860,7 @@ declare var define;
 				`Could not apply change to ${obj.__template__.__name__}.${prop} expecting ${this.cleanPrivateValues(prop, oldValueConverted, defineProperty)} but presently ${this.cleanPrivateValues(prop, currentValueConverted, defineProperty)}`;
 
 			const conflictErrorData = { 
-				module: RemoteObjectTemplate.moduleName,
+				module: moduleName,
 				function: functionName,
 				category: 'milestone',
 				message: conflictErrorString,
@@ -1879,7 +1881,7 @@ declare var define;
 		// either a fundamental type or a templated object, creating it if needed
         if (!Changes.accept(defineProperty, obj.__template__, this)) {
 			this.logger.error({
-				module: RemoteObjectTemplate.moduleName,
+				module: moduleName,
 				function: functionName,
 				category: 'milestone',
 				message: `Could not accept changes to ${obj.__template__.__name__}.${prop} based on property definition`,
@@ -1940,7 +1942,7 @@ declare var define;
 					newValue = session.objects[objId];
 				} else {
 					this.logger.error({
-						module: RemoteObjectTemplate.moduleName,
+						module: moduleName,
 						function: functionName,
 						category: 'milestone',
 						message: `Could not apply change to ${obj.__template__.__name__}.${prop} - ID (${objId}) is TYPE ${session.objects[objId].__template__.__name__}`,

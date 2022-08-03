@@ -5,11 +5,11 @@ const strToLevel = { 'fatal': 60, 'error': 50, 'warn': 40, 'info': 30, 'debug': 
 
 export class SupertypeLogger {
     static moduleName: string = SupertypeLogger.name;
-    private amorphicContext = '__amorphicContext';
+    private _amorphicContext = '__amorphicContext';
     context: any;
     granularLevels: any;
     level: any;
-    logger: any;
+    private _clientLogger: any;
 
     // for overriding
     // sendToLog: Function;
@@ -46,6 +46,10 @@ export class SupertypeLogger {
         this.log(10, ...data);
     }
 
+    get clientLogger() {
+        return this._clientLogger;
+    }
+
     /**
      * assign a custom send to log functionality.
      * @param logger - logger must fit the format of info/error/debug/warn
@@ -57,7 +61,15 @@ export class SupertypeLogger {
             typeof logger.warn !== 'function') {
             throw new Error('Please specify a logger with the info, error, debug, and warn functions');
         }
-        this.logger = logger.childLogger ? logger.childLogger({error: {isHumanRelated: false}}) : logger.child({error: {isHumanRelated: false}});
+        if (typeof logger.childLogger === 'function') {
+            this._clientLogger = logger.childLogger({error: {isHumanRelated: false}});
+            return;
+        }
+        if (typeof logger.child === 'function') {
+            this._clientLogger = logger.child({error: {isHumanRelated: false}});
+            return;
+        }
+        this._clientLogger = logger;
     }
 
     // Log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
@@ -85,14 +97,14 @@ export class SupertypeLogger {
     }
 
     setContextLog(object) {
-        object[this.amorphicContext] = { ...this.context };
+        object[this._amorphicContext] = { ...this.context };
     }
 
     getContextLog(object) {
-        if (!object[this.amorphicContext]) {
+        if (!object[this._amorphicContext]) {
             this.setContextLog(object);
         }
-        return object[this.amorphicContext];
+        return object[this._amorphicContext];
     }
 
     startContext(context) {
@@ -153,8 +165,8 @@ export class SupertypeLogger {
             child.context[proper] = this.context[proper];
         }
 
-        if (this.logger) {
-            let childLogger = this.logger.childLogger(rootValues, dataValues);
+        if (this._clientLogger) {
+            let childLogger = this._clientLogger.childLogger(rootValues, dataValues);
             child.logger = childLogger;
         }
 
@@ -184,43 +196,25 @@ export class SupertypeLogger {
      */
     protected sendToLog(logLevel, logObject, ...rawLogData) {
         const functionName = this.sendToLog.name;
-        if (this.logger) {
+        if (this._clientLogger) {
             let levelForLog = typeof logLevel === 'string' ? strToLevel[logLevel] : logLevel;
             switch (levelForLog) {
                 case 10:
-                    this.logger.warn({
-                        module: SupertypeLogger.moduleName,
-                        function: functionName,
-                        category: 'milestone',
-                        message: 'trace is no longer used, logged with debug instead',
-                        data: {
-                            logObject: logObject
-                        }
-                    });
                 case 20:
-                    this.logger.debug(logObject, ...rawLogData);
+                    this._clientLogger.debug(logObject, ...rawLogData);
                     return;
                 case 30:
-                    this.logger.info(logObject, ...rawLogData);
+                    this._clientLogger.info(logObject, ...rawLogData);
                     return;
                 case 40:
-                    this.logger.warn(logObject, ...rawLogData);
+                    this._clientLogger.warn(logObject, ...rawLogData);
                     return;
                 case 60:
-                    this.logger.warn({
-                        module: SupertypeLogger.moduleName,
-                        function: functionName,
-                        category: 'milestone',
-                        message: 'fatal is no longer used, logged with error instead',
-                        data: {
-                            logObject: logObject
-                        }
-                    });
                 case 50:
-                    this.logger.error(logObject, ...rawLogData);
+                    this._clientLogger.error(logObject, ...rawLogData);
                     return;
                 default: 
-                    this.logger.error({
+                    this._clientLogger.error({
                         module: SupertypeLogger.moduleName,
                         function: functionName,
                         category: 'milestone',

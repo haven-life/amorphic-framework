@@ -1,6 +1,9 @@
 'use strict';
 let os = require('os');
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 //TODO: Switch these over to be logs.
 
@@ -52,7 +55,6 @@ function log(level, sessionId, data, logLevel) {
  * @param {String} message A message to be printed to the console.
  */
 function logMessage(...args) {
-    const moduleName = 'amorphic logger';
     const functionName = logMessage.name;
     if (typeof args[0] === 'number') {
         let level = args[0];

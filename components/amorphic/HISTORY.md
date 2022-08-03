@@ -1,4 +1,4 @@
-## 10.4.0
+## 11.0.0
 * Logger updates to use SupertypeLogger and the internal logger changes
 ## 10.3.0
 * Add validator middleware to express server, config settings for whitelist, blacklist, escape

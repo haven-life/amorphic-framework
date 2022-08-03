@@ -7,6 +7,9 @@ let startApplication = require('./startApplication').startApplication;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 let resolveVersions = require('./listen').resolveVersions;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 const packageVersions = resolveVersions([
 	'@haventech/supertype',
@@ -25,7 +28,6 @@ packageVersions['amorphic'] = require('../../package.json').version;
  * @param {unknown} configStore unknown
  */
 function startPersistorMode(appDirectory, logger, statsdClient, configStore = null) {
-	const moduleName = 'amorphic';
 	const functionName = startPersistorMode.name;
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;

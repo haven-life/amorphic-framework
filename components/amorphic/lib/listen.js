@@ -8,6 +8,7 @@ let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
+const path = require('path');
 
 const packageVersions = resolveVersions([
 	'@haventech/semotus',
@@ -17,6 +18,8 @@ const packageVersions = resolveVersions([
 ]);
 
 packageVersions['amorphic'] = require('../../package.json').version;
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 function resolveVersions(packages) {
 	const versions = {};
@@ -46,7 +49,6 @@ function resolveVersions(packages) {
 function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
-	const moduleName = 'amorphic';
 	const functionName = listen.name;
 
 	if (typeof logger === 'function') {

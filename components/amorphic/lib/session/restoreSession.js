@@ -4,6 +4,9 @@ let getSessionCache = require('./getSessionCache').getSessionCache;
 let getObjectTemplate = require('../utils/getObjectTemplate');
 let decompressSessionData = require('./decompressSessionData').decompressSessionData;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Purpose unknown
@@ -16,7 +19,6 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  * @returns {unknown} unknown
  */
 function restoreSession(path, session, controller, sessions) {
-    const moduleName = 'amorphic';
     const functionName = restoreSession.name;
     let restoreSessionTime = process.hrtime();
 

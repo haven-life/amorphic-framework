@@ -1,6 +1,9 @@
 'use strict';
 
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Purpose unknown
@@ -8,7 +11,6 @@ let SupertypeSession = require('@haventech/supertype').SupertypeSession;
  * @param {unknown} req unknown
  */
 function displayPerformance(req) {
-    const moduleName = 'amorphic';
     const functionName = displayPerformance.name;
     SupertypeSession.logger.setContextProps(req.amorphicTracking.loggingContext);
 

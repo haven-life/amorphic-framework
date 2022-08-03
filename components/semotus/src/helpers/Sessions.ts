@@ -1,6 +1,7 @@
 import {SavedSession, Semotus, SendMessage, Session} from './Types';
+import * as path from 'path';
 
-const moduleName = 'semotus sessions';
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Obtain a session for tracking subscriptions

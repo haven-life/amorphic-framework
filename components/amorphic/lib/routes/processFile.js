@@ -5,6 +5,9 @@ let logMessage = Logger.logMessage;
 let formidable = require('formidable');
 let fs = require('fs');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
+const path = require('path');
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Purpose unknown
@@ -15,7 +18,6 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  * @param {unknown} downloads unknown
  */
 function processFile(req, resp, next, downloads) {
-    const moduleName = 'amorphic';
     const functionName = processFile.name;
     let processFileTime = process.hrtime();
 
