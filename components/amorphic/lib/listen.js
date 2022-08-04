@@ -58,12 +58,14 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
             typeof logger.warn === 'function') {
 			SupertypeSession.logger.setLogger(logger);
         } else {
-			SupertypeSession.logger.warn({
+			SupertypeSession.logger.error({
 				module: moduleName,
 				function: functionName,
 				category: 'request',
-				message: 'sendToLog is deprecated, please pass in a logger here instead'
+				isHumanRelated: true,
+				message: 'no bunyan logger passed in'
 			});
+			throw new Error('sendToLog is deprecated, please pass in a bunyan logger');
 		}
 	}
 
