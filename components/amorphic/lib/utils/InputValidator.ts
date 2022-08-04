@@ -2,6 +2,9 @@ import * as validator from 'validator';
 import { Request, Response } from 'express';
 import * as AmorphicContext from '../AmorphicContext';
 import { SupertypeSession } from '@haventech/supertype';
+import * as path from 'path';
+
+const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 export class InputValidator {
     /**
@@ -62,6 +65,7 @@ export class InputValidator {
     }
 
     private static logAndCounterValue(originalValue: string, validatedValue: string, validatorLog: boolean, counterField: string, additionalLogs) {
+        const functionName = this.logAndCounterValue.name;
         if (validatedValue !== originalValue) {
             const statsdClient = SupertypeSession.statsdClient;
             if(statsdClient
@@ -70,16 +74,17 @@ export class InputValidator {
                 statsdClient.counter(`amorphic.server.validator.${counterField}.counter`, 1);
             }
             if (validatorLog) {
-                SupertypeSession.logger.info(
-                    {
-                        component: 'amorphic',
-                        module: 'InputValidator',
+                SupertypeSession.logger.info({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    data: {
                         activity: 'performValidations',
                         originalValue: originalValue,
                         validatedValue: validatedValue,
-                        ...additionalLogs
+                        additionalLogs: additionalLogs
                     }
-                );
+                });
             }
             return validatedValue;
         }

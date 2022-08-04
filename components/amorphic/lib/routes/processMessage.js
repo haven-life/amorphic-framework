@@ -32,7 +32,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
     if (!message.sequence) {
         const invalidSequence = 'Invalid or no sequence number detected. Ignoring message - will not process this message';
         log(1, req.session.id, {
-            module: 'amorphic',
+            module: moduleName,
             functionName: functionName,
             category: 'milestone',
             message: invalidSequence
@@ -191,7 +191,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
 
         }).catch(function failure(error) {
             log(0, req.session.id, {
-                module: 'amorphic',
+                module: moduleName,
                 functionName: functionName,
                 category: 'milestone',
                 message: error.message + error.stack,
