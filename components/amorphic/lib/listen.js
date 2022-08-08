@@ -52,21 +52,32 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 	const functionName = listen.name;
 
 	if (typeof logger === 'function') {
-        if (typeof logger.info === 'function' ||
+		const message = 'sendToLog is deprecated, please pass in a bunyan logger';
+		SupertypeSession.logger.error({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			isHumanRelated: true,
+			message
+		});
+		throw new Error(message);
+	}
+
+	if (logger && typeof logger === 'object' && 
+			(typeof logger.info === 'function' ||
             typeof logger.error === 'function' ||
             typeof logger.debug === 'function' ||
-            typeof logger.warn === 'function') {
+            typeof logger.warn === 'function')) {
 			SupertypeSession.logger.setLogger(logger);
-        } else {
-			SupertypeSession.logger.error({
-				module: moduleName,
-				function: functionName,
-				category: 'request',
-				isHumanRelated: true,
-				message: 'no bunyan logger passed in'
-			});
-			throw new Error('sendToLog is deprecated, please pass in a bunyan logger');
-		}
+	}
+    else {
+		SupertypeSession.logger.warn({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			isHumanRelated: true,
+			message: 'A valid logger was not passed at initialization. Defaulting to supertype logger.'
+		});
 	}
 
 	buildStartUpParams(configStore);
@@ -153,7 +164,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 				module: moduleName,
 				function: functionName,
 				category: 'request',
-				message: e.message + ' ' + e.stack,
+				message: 'Error encountered while initializing amorphic.',
 				error: e
 			});
 		});

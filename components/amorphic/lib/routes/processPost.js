@@ -57,11 +57,8 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 								module: moduleName,
 								function: functionName,
 								category: 'milestone',
-								message: 'Error ' + e.message + e.stack,
-								error: e,
-								data: {
-									activity: 'error'
-								}
+								message: 'Error encountered while establishing server session.',
+								error: e
 							}
 						);
 

@@ -177,7 +177,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: template.__name__, 
                     id: id 
                 }
@@ -223,7 +222,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: template.__name__ 
                 }
             });
@@ -297,7 +295,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: template.__name__, 
                     id: id 
                 }
@@ -369,7 +366,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: template.__name__ 
                 }
             });
@@ -455,7 +451,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: template.__name__, 
                     id: id 
                 }
@@ -494,7 +489,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: template.__name__ 
                 }
             });
@@ -670,7 +664,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     function: functionName,
                     category: 'milestone',
                     data: { 
-                        activity: functionName,
                         template: this.__template__.__name__, 
                         id: this.__id__ 
                     }
@@ -714,7 +707,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     function: functionName,
                     category: 'milestone',
                     data: { 
-                        activity: functionName,
                         template: this.__template__.__name__, 
                         id: this.__id__ 
                     }
@@ -751,7 +743,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                         function: functionName,
                         category: 'milestone',
                         data: { 
-                            activity: functionName,
                             template: this.__template__.__name__, 
                             id: this.__id__ 
                         }
@@ -830,7 +821,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: { 
-                    activity: functionName,
                     template: this.__template__.__name__, 
                     id: this.__id__ 
                 }
@@ -872,8 +862,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 module: moduleName,
                 function: functionName,
                 category: 'milestone',
-                data: { 
-                    activity: functionName,
+                data: {
                     template: this.__template__.__name__, 
                     id: this.__id__ 
                 }
@@ -922,8 +911,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 module: moduleName,
                 function: functionName,
                 category: 'milestone',
-                data: { 
-                    activity: functionName,
+                data: {
                     template: this.__template__.__name__, 
                     id: this.__id__ 
                 }
@@ -964,7 +952,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 function: functionName,
                 category: 'milestone',
                 data: {
-                    activity: functionName,
                     template: this.__template__.__name__, 
                     id: this.__id__
                 }
@@ -992,8 +979,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 module: moduleName,
                 function: functionName,
                 category: 'milestone',
-                data: { 
-                    activity: functionName,
+                data: {
                     template: this.__template__.__name__, 
                     id: this.__id__ 
                 }
@@ -1076,8 +1062,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 module: moduleName,
                 function: functionName,
                 category: 'milestone',
-                data: { 
-                    activity: functionName,
+                data: {
                     template: this.__template__.__name__, 
                     id: this.__id__ 
                 }
@@ -1171,10 +1156,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                     module: moduleName,
                     function: functionName,
                     category: 'milestone',
-                    message: 'Warning: setDirty called for ' + obj.__id__ + ' which is an orphan',
-                    data: {
-                        activity: functionName
-                    }
+                    message: 'Warning: setDirty called for ' + obj.__id__ + ' which is an orphan'
                 });
             }
             if (topObject && topObject.__template__.__schema__.cascadeSave) {

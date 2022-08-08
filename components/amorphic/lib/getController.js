@@ -155,7 +155,6 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     // Either restore the controller from the serialized string in the session or create a new one
     let controller;
     let loggingDetails;
-    let loggingMessage;
 
     if (!expressSession.semotus.controllers[path]) {
         if (controllerId) {
@@ -186,11 +185,12 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
             module: moduleName,
             function: functionName,
             category: 'milestone',
-            message: (newPage ? 'Creating new controller new page ' : 'Creating new controller ') + browser,
+            message: (newPage ? 'Creating new controller new page ' : 'Creating new controller '),
             data: {
                 activity: 'new',
                 controllerId: controller.__id__,
-                requestedControllerId: controllerId || 'none'
+                requestedControllerId: controllerId || 'none',
+                browser
             }
         };
 

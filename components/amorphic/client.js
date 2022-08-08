@@ -70,7 +70,7 @@ RemoteObjectTemplate._injectIntoTemplate = function (template) {
 };
 
 const amorphicModule = {exports: {}};
-const moduleName = 'amorphic client';
+const moduleName = 'AmorphicClient';
 
 amorphic = // Needs to be global to make mocha tests work
 {
@@ -267,8 +267,8 @@ amorphic = // Needs to be global to make mocha tests work
 
                 if (self.logLevel > 0) {
                     RemoteObjectTemplate.logger.info({
-                        module: 'amorphic',
-                        function: 'client',
+                        module: moduleName,
+                        function: '_post',
                         category: 'milestone',
                         message: 'receiving ' + message.type + ' ' + message.name + ' serverAppVersion=' + message.ver +
                                  'executionTime=' + ((new Date()).getTime() - self.lastServerInteraction) +
@@ -279,8 +279,8 @@ amorphic = // Needs to be global to make mocha tests work
                     // If app version in message not uptodate
                 if (self.appVersion && message.ver != self.appVersion) {
                     RemoteObjectTemplate.logger.info({
-                        module: 'amorphic',
-                        function: 'client',
+                        module: moduleName,
+                        function: '_post',
                         category: 'milestone',
                         message: 'Application version ' + self.appVersion + ' out of date - ' + message.ver + ' is available - reloading in 5 seconds'
                     });

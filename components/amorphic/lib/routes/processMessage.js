@@ -173,10 +173,8 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                     module: moduleName,
                     function: functionName,
                     category: 'milestone',
-                    message: error.message + error.stack,
-                    data: {
-                        activity: 'error'
-                    }
+                    error,
+                    message: 'Error encountered while calling processMessage on object template'
                 });
 
                 res.writeHead(500, {'Content-Type': 'text/plain'});
@@ -194,7 +192,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 module: moduleName,
                 functionName: functionName,
                 category: 'milestone',
-                message: error.message + error.stack,
+                message: error.message,
                 error: error
             }, nonObjTemplatelogLevel);
             res.writeHead(500, {'Content-Type': 'text/plain'});

@@ -969,7 +969,7 @@ module.exports = function (PersistObjectTemplate) {
                                 function: functionName,
                                 category: 'milestone',
                                 message: 'Unable to apply index changes for '+ tableName,
-                                error: error && (error.stack || error.message),
+                                error: error,
                             });
                         }
                     };

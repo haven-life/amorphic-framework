@@ -179,7 +179,6 @@ module.exports = function (PersistObjectTemplate) {
                 function: functionName,
                 category: 'milestone',
                 data: {
-                    activity: functionName,
                     template: template.__name__, id: pojo[prefix + '_id'], 
                     persistedTemplate: pojo[prefix + '_template']
                 }
@@ -205,10 +204,7 @@ module.exports = function (PersistObjectTemplate) {
                             module: moduleName,
                             function: functionName,
                             category: 'milestone',
-                            message: 'getTemplateFromKnexPOJO found an empty establishedObj ' + template.__name__,
-                            data: {
-                                activity: functionName
-                            }
+                            message: 'getTemplateFromKnexPOJO found an empty establishedObj ' + template.__name__
                         });
                     }
                 });
@@ -346,10 +342,8 @@ module.exports = function (PersistObjectTemplate) {
                                 module: moduleName,
                                 function: functionName,
                                 category: 'milestone',
-                                message: `there was a problem downloading the remote object from source. Error: ${e}.`,
-                                data: {
-                                    activity: functionName
-                                }
+                                message: `there was a problem downloading the remote object from source.`,
+                                error: e
                             });
 
                             throw new Error('there was a problem downloading the remote object from source');
@@ -359,10 +353,7 @@ module.exports = function (PersistObjectTemplate) {
                             module: moduleName,
                             function: functionName,
                             category: 'milestone',
-                            message: 'fetch called on remote object with no remote address value',
-                            data: {
-                                activity: functionName
-                            }
+                            message: 'fetch called on remote object with no remote address value'
                         });
                     }
                 }
@@ -384,9 +375,7 @@ module.exports = function (PersistObjectTemplate) {
                                         function: functionName,
                                         category: 'milestone',
                                         message: 'Error retrieving ' + obj.__id__ + '.' + prop + ' -- ' + e.message,
-                                        data: {
-                                            activity: functionName
-                                        }
+                                        error: e
                                     });
                                     obj[prop] = null;
                                 }

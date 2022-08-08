@@ -17,7 +17,7 @@ const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
  * @param {unknown} data unknown
  * @param {unknown} logLevel unknown
  */
-function log(level, sessionId, data, logLevel) {
+function log(level, sessionId, logObjectParam, logLevel) {
     if (level > logLevel) {
         return;
     }
@@ -29,21 +29,18 @@ function log(level, sessionId, data, logLevel) {
     t.toTimeString().replace(/ .*/, '') + ':' + t.getMilliseconds();
 
     let logObject = {};
-    logObject.data = {};
-    if (typeof data === 'object') {
-        logObject = Object.assign({}, !(data instanceof Error) ? data : {});
+    if (typeof data === 'string') {
         logObject.data = {};
-        if (data && (data instanceof Error || Object.keys(data).includes('error'))) {
-            logObject.error = data instanceof Error ? data : data.error;
-        }
-        if (Object.keys(data).includes('data') && typeof data.data === 'object') {
-            logObject.data = Object.assign({}, data.data);
-        }
-    } else if (typeof data === 'string') {
-        logObject.message = (time + '(' + sessionId + ') ' + 'Semotus:' + data);
+        logObject.context = {};
+        logObject.message = (time + '(' + sessionId + ') ' + 'Semotus:' + logObjectParam);
+        logObject.data.amorphicGeneratedTime = time;
+        logObject.context.sessionId = sessionId;
     }
-    logObject.data.time = time;
-    logObject.data.sessionId = sessionId;
+    else {
+        logObject = logObjectParam;
+        logObject.data ? logObject.data.amorphicGeneratedTime = time : logObject.data = { amorphicGeneratedTime: time };
+        logObject.context ? logObject.context.sessionId = sessionId : logObject.context = { sessionId: sessionId };
+    }
 
     logMessage(level, logObject);
 }

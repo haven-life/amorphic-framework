@@ -29,7 +29,6 @@ module.exports = function (PersistObjectTemplate) {
             function: functionName,
             category: 'milestone',
             data: {
-                activity: functionName,
                 template: obj.__template__.__name__, 
                 id: obj.__id__, 
                 _id: obj._id
@@ -189,7 +188,6 @@ module.exports = function (PersistObjectTemplate) {
                             category: 'milestone',
                             message: 'we are uploading the document with params',
                             data: {
-                                activity: functionName,
                                 template: obj.__template__.__name__,
                                 documentBody: documentBody,
                                 objectKey: objectKey,
@@ -215,7 +213,6 @@ module.exports = function (PersistObjectTemplate) {
                             message: 'there was a problem uploading the document',
                             error: e,
                             data: {
-                                activity: functionName,
                                 template: obj.__template__.__name__,
                             }
                         });
