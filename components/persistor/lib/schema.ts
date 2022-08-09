@@ -9,6 +9,9 @@ module.exports = function (PersistObjectTemplate) {
         }
         else {
             Object.keys(schema).forEach(key => {
+                if (Object.keys(this._schema).includes(key)) {
+                    throw new Error(`Unable to set schema definitions as ${key} already exists in the schema`)
+                }
                 this._schema[key] = schema[key];
             });
         }
