@@ -4,15 +4,18 @@ module.exports = function (PersistObjectTemplate) {
 
 
     PersistObjectTemplate.setSchema = function (schema) {
-        this._schema = schema;
-    }
-
-    PersistObjectTemplate.appendSchema = function (schema) {
-        Object.keys(schema).forEach(key => {
-            this._schema[key] = schema[key];
-        });
-
-        PersistObjectTemplate._verifySchema();
+        if (!this._schema) {
+            this._schema = schema;
+        }
+        else {
+            Object.keys(schema).forEach(key => {
+                this._schema[key] = schema[key];
+            });
+        }
+        
+        if (this.schemaVerified){
+            PersistObjectTemplate._verifySchema();
+        }
     }
 
     /**

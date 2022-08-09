@@ -87,7 +87,6 @@ export class Persistor extends SupertypeSession {
     dropKnexTable (template : string) : any {};
     synchronizeKnexTableFromTemplate (template : string, changeNotificationCallback? : any, forceSync? : boolean) : any {};
     setSchema(schema : any) {};
-    appendSchema(schema : any) {};
     performInjections() {}
     config: any
     __transient__ : any

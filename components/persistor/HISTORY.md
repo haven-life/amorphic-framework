@@ -1,3 +1,6 @@
+## 8.0.3
+* Removing appendSchema functioning as it's not being used.
+* Changed setSchema to allow this to be called multiple times, this will allow individual modules to maintain thir owne schemas.
 ## 8.0.2
 * bump nconf version due to security vulnerability.
 ## 8.0.1
