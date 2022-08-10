@@ -66,7 +66,7 @@ export class SupertypeLogger {
             return;
         }
         if (typeof logger.child === 'function') {
-            this._clientLogger = logger.child({error: {isHumanRelated: false}});
+            this._clientLogger = logger.child();
             return;
         }
         this._clientLogger = logger;
@@ -166,7 +166,13 @@ export class SupertypeLogger {
         }
 
         if (this._clientLogger) {
-            let childLogger = this._clientLogger.childLogger(rootValues, dataValues);
+            let childLogger;
+            if (this._clientLogger.childLogger === 'function') {
+                childLogger = this._clientLogger.childLogger(rootValues, dataValues);
+            }
+            else if (this._clientLogger.child === 'function') {
+                childLogger = this._clientLogger.child({...rootValues, data: {dataValues}});
+            }
             child.logger = childLogger;
         }
 
