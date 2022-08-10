@@ -12,7 +12,7 @@ let UsesV2ReturnPass1 = require('./UsesV2ReturnPass1');
 // Npm modules
 let path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/getTemplates`;
 
 /**
  * Purpose unknown

@@ -1,9 +1,8 @@
 'use strict';
 
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
-const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/utils/displayPerformance`;
 
 /**
  * Purpose unknown

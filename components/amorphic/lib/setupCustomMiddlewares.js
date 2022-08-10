@@ -3,9 +3,8 @@
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 
 const fs = require('fs');
-const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/setupCustomMiddlewares`;
 
 function setupCustomMiddlewares(filePath, router) {
     const functionName = setupCustomMiddlewares.name;

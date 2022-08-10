@@ -19,7 +19,7 @@ const packageVersions = resolveVersions([
 
 packageVersions['amorphic'] = require('../../package.json').version;
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/listen`;
 
 function resolveVersions(packages) {
 	const versions = {};

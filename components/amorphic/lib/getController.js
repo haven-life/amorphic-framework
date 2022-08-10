@@ -11,7 +11,7 @@ let getSessionCache = require('./session/getSessionCache').getSessionCache;
 let decompressSessionData = require('./session/decompressSessionData').decompressSessionData;
 const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/getController`;
 
 /**
  * Create a controller template that has a unique Semotus instance that is
