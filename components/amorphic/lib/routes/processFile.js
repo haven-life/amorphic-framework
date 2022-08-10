@@ -5,9 +5,6 @@ let logMessage = Logger.logMessage;
 let formidable = require('formidable');
 let fs = require('fs');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
-const path = require('path');
-
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Purpose unknown
@@ -18,6 +15,7 @@ const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
  * @param {unknown} downloads unknown
  */
 function processFile(req, resp, next, downloads) {
+    const moduleName = `amorphic/lib/routes/processFile`;
     const functionName = processFile.name;
     let processFileTime = process.hrtime();
 

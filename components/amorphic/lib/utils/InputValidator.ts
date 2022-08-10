@@ -2,9 +2,8 @@ import * as validator from 'validator';
 import { Request, Response } from 'express';
 import * as AmorphicContext from '../AmorphicContext';
 import { SupertypeSession } from '@haventech/supertype';
-import * as path from 'path';
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/utils/InputValidator`;
 
 export class InputValidator {
     /**

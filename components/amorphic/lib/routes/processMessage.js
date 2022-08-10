@@ -7,9 +7,6 @@ let getSessionCache = require('../session/getSessionCache').getSessionCache;
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let displayPerformance = require('../utils/displayPerformance').displayPerformance;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
-const path = require('path');
-
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Process JSON request message
@@ -20,6 +17,7 @@ const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
  * @param {unknown} controllers unknown
  */
 function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers) {
+    const moduleName = `amorphic/lib/routes/processMessage`;
     const functionName = processMessage.name;
     let processMessageStartTime = process.hrtime();
 

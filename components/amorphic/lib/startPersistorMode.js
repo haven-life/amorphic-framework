@@ -7,9 +7,8 @@ let startApplication = require('./startApplication').startApplication;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 let resolveVersions = require('./listen').resolveVersions;
-const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/startPersistorMode`;
 
 const packageVersions = resolveVersions([
 	'@haventech/supertype',

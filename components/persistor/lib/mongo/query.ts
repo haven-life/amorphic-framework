@@ -1,8 +1,5 @@
-import * as path from 'path';
-
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
-
 module.exports = function (PersistObjectTemplate) {
+    const moduleName = `persistor/lib/mongo/query`;
     var Promise = require('bluebird');
 
     PersistObjectTemplate.getFromPersistWithMongoId = function (template, id, cascade, isTransient, idMap, _logger) {
