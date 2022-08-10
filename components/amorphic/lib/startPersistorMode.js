@@ -33,7 +33,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
 	if (typeof logger === 'function') {
-		const message = 'sendToLog is deprecated, please pass in a bunyan logger';
+		const message = 'sendToLog is deprecated, please pass in a valid bunyan logger instead of sendToLog function';
 		SupertypeSession.logger.error({
 			module: moduleName,
 			function: functionName,
@@ -45,10 +45,11 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 	}
 
 	if (logger && typeof logger === 'object' && 
-			(typeof logger.info === 'function' ||
-            typeof logger.error === 'function' ||
-            typeof logger.debug === 'function' ||
-            typeof logger.warn === 'function')) {
+			(typeof logger.info === 'function' &&
+            typeof logger.error === 'function' &&
+            typeof logger.debug === 'function' &&
+            typeof logger.warn === 'function' && 
+			typeof logger.child === 'function')) {
 			SupertypeSession.logger.setLogger(logger);
 	}
     else {
@@ -57,7 +58,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 			function: functionName,
 			category: 'request',
 			isHumanRelated: true,
-			message: 'A valid logger was not passed at initialization. Defaulting to supertype logger.'
+			message: 'A valid bunyan logger was not passed at initialization. Defaulting to internal supertype logger.'
 		});
 	}
 
