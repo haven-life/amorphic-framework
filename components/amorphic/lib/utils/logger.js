@@ -31,10 +31,13 @@ function log(level, sessionId, logObjectParam, logLevel) {
     let logObject = {};
     if (typeof data === 'string') {
         logObject.data = {};
-        logObject.context = {};
         logObject.message = (time + '(' + sessionId + ') ' + 'Semotus:' + logObjectParam);
         logObject.data.amorphicGeneratedTime = time;
-        logObject.context.sessionId = sessionId;
+        if (sessionId) {
+            logObject.context = {};
+            logObject.context.sessionId = sessionId;
+        }
+        
     }
     else {
         logObject = logObjectParam;
