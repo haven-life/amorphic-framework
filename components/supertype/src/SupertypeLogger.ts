@@ -174,18 +174,16 @@ export class SupertypeLogger {
         for (let proper in this.context) {
             child.context[proper] = this.context[proper];
         }
-
         if (this._clientLogger) {
             let childLogger;
             if (this._clientLogger.childLogger === 'function') {
                 childLogger = this._clientLogger.childLogger(rootValues, dataValues);
-                return childLogger;
+                child = childLogger;
             }
             else if (this._clientLogger.child === 'function') {
                 childLogger = this._clientLogger.child({...rootValues, data: {dataValues}});
-                return childLogger;
+                child = childLogger;
             }
-            return this._clientLogger;
         }
 
         return child as SupertypeLogger; // bad practice but should fix
