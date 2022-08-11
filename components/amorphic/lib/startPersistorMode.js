@@ -37,7 +37,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 			module: moduleName,
 			function: functionName,
 			category: 'request',
-			isHumanRelated: true,
+			error: { isHumanRelated: true },
 			message
 		});
 		throw new Error(message);
@@ -55,8 +55,8 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 			module: moduleName,
 			function: functionName,
 			category: 'request',
-			isHumanRelated: true,
-			message: 'A valid logger was not passed at initialization. Defaulting to supertype logger.'
+			error: { isHumanRelated: true },
+			message: 'A valid bunyan logger was not passed at initialization. Defaulting to internal supertype logger.'
 		});
 	}
 
@@ -104,10 +104,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 				module: moduleName,
 				function: functionName,
 				category: 'request',
-				message: msg,
-				data: {
-					packageVersions: packageVersions
-				}
+				message: msg
 			});
 		})
 		.catch(function error(e) {

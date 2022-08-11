@@ -272,7 +272,7 @@ export class AmorphicServer {
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
         
         if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
-            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware);
+            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing: true}));
         }
 
         if (postSessionInject) {
