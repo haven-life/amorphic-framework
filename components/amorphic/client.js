@@ -226,7 +226,7 @@ amorphic = // Needs to be global to make mocha tests work
         var self = this;
 
         this.sendMessage = function (message) {
-            const functionName = this.sendMessage.name;
+            const functionName = 'establishClientSession/sendMessage';
             message.sequence = self.sequence++;
             message.loggingContext = self.loggingContext;
             message.performanceLogging = self.performanceLogging.getData();
@@ -268,7 +268,7 @@ amorphic = // Needs to be global to make mocha tests work
                 if (self.logLevel > 0) {
                     RemoteObjectTemplate.logger.info({
                         module: moduleName,
-                        function: '_post',
+                        function: `${functionName}/_post`,
                         category: 'milestone',
                         message: 'receiving ' + message.type + ' ' + message.name + ' serverAppVersion=' + message.ver +
                                  'executionTime=' + ((new Date()).getTime() - self.lastServerInteraction) +
@@ -280,7 +280,7 @@ amorphic = // Needs to be global to make mocha tests work
                 if (self.appVersion && message.ver != self.appVersion) {
                     RemoteObjectTemplate.logger.info({
                         module: moduleName,
-                        function: '_post',
+                        function: `${functionName}/_post`,
                         category: 'milestone',
                         message: 'Application version ' + self.appVersion + ' out of date - ' + message.ver + ' is available - reloading in 5 seconds'
                     });

@@ -92,12 +92,12 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                 }
                 ourObjectTemplate.logger.info({
                     module: moduleName,
-                    function: functionName,
+                    function: `${functionName}.establishServerSession`,
                     category: 'milestone',
                     message: msg,
+                    context: { sessionId: remoteSessionId },
                     data: {
-                        activity: 'reset',
-                        remoteSessionId: remoteSessionId
+                        activity: 'reset'
                     }
                 });
 
@@ -171,6 +171,7 @@ function processMessage(req, res, sessions, nonObjTemplatelogLevel, controllers)
                     module: moduleName,
                     function: functionName,
                     category: 'milestone',
+                    context: { sessionId: req?.session?.id },
                     error,
                     message: 'Error encountered while calling processMessage on object template'
                 });

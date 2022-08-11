@@ -1545,9 +1545,9 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 revertVersionsOnAllObjects();
                 return knexTransaction.rollback(innerError).then(() => {
-                    (logger || this.logger).debug({
+                    (logger || this.logger).error({
                         module: moduleName,
-                        function: functionName,
+                        function: `${functionName}/rollback`,
                         category: 'milestone',
                         message: 'transaction rolled back ' + innerError.message + (deadlock ? ' from deadlock' : ''),
                         data: {

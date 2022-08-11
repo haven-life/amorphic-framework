@@ -45,7 +45,6 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
     if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.cached.js.map/)) {
         appName = RegExp.$1;
 
-        req.amorphicTracking.loggingContext.app = appName;
         resp.setHeader('Content-Type', 'application/javascript');
         resp.setHeader('Cache-Control', 'public, max-age=31556926');
         resp.end(applicationSourceMap[appName]);
@@ -56,7 +55,6 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
     else if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.cached.js/)) {
         appName = RegExp.$1;
 
-        req.amorphicTracking.loggingContext.app = appName;
         resp.setHeader('Content-Type', 'application/javascript');
         resp.setHeader('Cache-Control', 'public, max-age=31556926');
 
@@ -82,8 +80,6 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
         // This is where you come to when you hit the page the first time
         let url = req.originalUrl;
         appName = RegExp.$1;
-
-        req.amorphicTracking.loggingContext.app = appName;
 
         logMessage(2, {
             module: moduleName,
