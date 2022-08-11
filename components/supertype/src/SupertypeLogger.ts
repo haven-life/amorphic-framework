@@ -1,5 +1,3 @@
-import { isModuleNamespaceObject } from "util/types";
-
 const levelToStr = { 60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace' };
 const strToLevel = { 'fatal': 60, 'error': 50, 'warn': 40, 'info': 30, 'debug': 20, 'trace': 10 };
 
@@ -81,7 +79,13 @@ export class SupertypeLogger {
             if (!logObj.data) {
                 logObj.data = {};
             }
-            this.setContextLog(logObj.data);
+            if (!logObj.context) {
+                logObj.context = {};
+            }
+
+            this.setLogsAmorphicContext(logObj.data);
+            this.setLogsSessionId(logObj);
+
             logObj['level'] = level;
             if (this.isEnabled(levelToStr[logObj['level']], logObj)) {
                 this.sendToLog(levelToStr[logObj['level']], logObj, ...properties.slice(1));
@@ -96,15 +100,21 @@ export class SupertypeLogger {
         return;
     }
 
-    setContextLog(object) {
-        object[this._amorphicContext] = { ...this.context };
+    private setLogsSessionId(logObj: any) {
+        if (logObj.data?.__amorphicContext?.session) {
+            logObj.context.sessionId = logObj.data.__amorphicContext.session;
+            delete logObj.data.__amorphicContext.session;
+        }
     }
 
-    getContextLog(object) {
-        if (!object[this._amorphicContext]) {
-            this.setContextLog(object);
+    private setLogsAmorphicContext(object) {
+        if (this.context && Object.keys(this.context).length > 0) {
+            object[this._amorphicContext] = { ...this.context };
         }
-        return object[this._amorphicContext];
+    }
+
+    getAmorphicContext(): any {
+        return { __amorphicContext: { ...this.context } };
     }
 
     startContext(context) {
@@ -169,11 +179,13 @@ export class SupertypeLogger {
             let childLogger;
             if (this._clientLogger.childLogger === 'function') {
                 childLogger = this._clientLogger.childLogger(rootValues, dataValues);
+                return childLogger;
             }
             else if (this._clientLogger.child === 'function') {
                 childLogger = this._clientLogger.child({...rootValues, data: {dataValues}});
+                return childLogger;
             }
-            child.logger = childLogger;
+            return this._clientLogger;
         }
 
         return child as SupertypeLogger; // bad practice but should fix
@@ -193,6 +205,15 @@ export class SupertypeLogger {
         }
     }
 
+    private deleteEmptyLogProperties(logObject: any) {
+        const keys = ['context', 'data'];
+        keys.forEach((key) => {
+            if (logObject[key] && Object.keys(logObject[key]).length < 1) {
+                delete logObject[key];
+            }
+        })
+    }
+
     /**
      * this function is designed to be replaced by the consumer of this class.
      *
@@ -202,6 +223,7 @@ export class SupertypeLogger {
      */
     protected sendToLog(logLevel, logObject, ...rawLogData) {
         const functionName = this.sendToLog.name;
+        this.deleteEmptyLogProperties(logObject);
         if (this._clientLogger) {
             let levelForLog = typeof logLevel === 'string' ? strToLevel[logLevel] : logLevel;
             switch (levelForLog) {

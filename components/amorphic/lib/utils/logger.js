@@ -38,8 +38,12 @@ function log(level, sessionId, logObjectParam, logLevel) {
     }
     else {
         logObject = logObjectParam;
-        logObject.data ? logObject.data.amorphicGeneratedTime = time : logObject.data = { amorphicGeneratedTime: time };
-        logObject.context ? logObject.context.sessionId = sessionId : logObject.context = { sessionId: sessionId };
+        if (time) {
+            logObject.data ? logObject.data.amorphicGeneratedTime = time : logObject.data = { amorphicGeneratedTime: time };
+        }
+        if (sessionId) {
+            logObject.context ? logObject.context.sessionId = sessionId : logObject.context = { sessionId: sessionId };
+        }
     }
 
     logMessage(level, logObject);
@@ -102,11 +106,14 @@ function logMessage(...args) {
  */
 function getLoggingContext(app, context) {
     context = context || {};
-    context.environment = process.env.NODE_ENV || 'local';
-    context.name = app;
-    context.hostname = os.hostname();
-    context.pid = process.pid;
-
+    //Assumtion is that passed client logger will have these properties set 
+    if (!SupertypeSession.logger.clientLogger) {
+        context.environment = process.env.NODE_ENV || 'local';
+        context.name = app;
+        context.hostname = os.hostname();
+        context.pid = process.pid;
+    }
+    
     return context;
 }
 
