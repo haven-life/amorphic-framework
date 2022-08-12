@@ -83,8 +83,7 @@ export class SupertypeLogger {
                 logObj.context = {};
             }
 
-            this.setLogsAmorphicContext(logObj.data);
-            this.setLogsSessionId(logObj);
+            this.setLogsAmorphicContext(logObj.context);
 
             logObj['level'] = level;
             if (this.isEnabled(levelToStr[logObj['level']], logObj)) {
@@ -100,16 +99,22 @@ export class SupertypeLogger {
         return;
     }
 
-    private setLogsSessionId(logObj: any) {
-        if (logObj.data?.__amorphicContext?.session) {
-            logObj.context.sessionId = logObj.data.__amorphicContext.session;
-            delete logObj.data.__amorphicContext.session;
-        }
-    }
-
+    //This method extracts sessionId from the each request's context
+    //and places it in the context.sessionId. All other context properties are 
+    //placed in context.data object.
     private setLogsAmorphicContext(object) {
         if (this.context && Object.keys(this.context).length > 0) {
-            object[this._amorphicContext] = { ...this.context };
+            if (!object.data) {
+                object.data = {};
+            }
+            if (typeof object.data === 'object'){
+                const sessionId = this.context.session;
+                object.data[this._amorphicContext] = { ...this.context };
+                if (object.data[this._amorphicContext] && sessionId) {
+                    object.data[this._amorphicContext].session = sessionId;
+                    delete object.data[this._amorphicContext].session;
+                }
+            }
         }
     }
 
