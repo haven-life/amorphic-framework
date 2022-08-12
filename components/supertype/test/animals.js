@@ -135,7 +135,7 @@ describe('Freeze Dried Arks', function () {
         ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(foo="bar1"data={"__amorphicContext":{"name":"supertype"}}context={})(foo="bar2"data={"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}context={})(foo="bar3"data={"__amorphicContext":{"name":"supertype"}}context={})(foo="bar4"data={"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}context={})(foo="bar5"data={"__amorphicContext":{"name":"supertype"}}context={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"__amorphicContext":{"name":"supertype2"}}context={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"__amorphicContext":{"name":"supertype2"}}context={})';
+        var result = '(foo="bar1"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}})(foo="bar2"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}})(foo="bar3"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}})(foo="bar4"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}})(foo="bar5"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}})';
 
         sinon.restore();
         expect(output).to.equal(result);
@@ -239,7 +239,7 @@ describe('Freeze Dried Arks', function () {
         ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '30:(foo="bar1"data={"__amorphicContext":{"name":"supertype"}})40:(foo="bar2"data={"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}})50:(foo="bar3"data={"__amorphicContext":{"name":"supertype"}})40:(foo="bar4"data={"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"__amorphicContext":{"name":"supertype2"}})20:(foo="bar5"data={"__amorphicContext":{"name":"supertype2"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"__amorphicContext":{"name":"supertype2"}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={"__amorphicContext":{"name":"supertype2"}})';
+        var result = '30:(foo="bar1"context={"data":{"__amorphicContext":{"name":"supertype"}}})40:(foo="bar2"context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}})50:(foo="bar3"context={"data":{"__amorphicContext":{"name":"supertype"}}})40:(foo="bar4"context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}})20:(foo="bar5"context={"data":{"__amorphicContext":{"name":"supertype2"}}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}})';
 
         expect(output).to.equal(result);
     });
