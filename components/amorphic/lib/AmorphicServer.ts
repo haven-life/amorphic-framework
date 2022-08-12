@@ -194,6 +194,14 @@ export class AmorphicServer {
         let reqBodySizeLimit = appConfig.reqBodySizeLimit || '50mb';
         let controllers = {};
         let sessions = {};
+        
+        //By default we dont generate the context.
+        let generateContextIfMissing = false;
+        const genContext = appConfig.appConfig.generateAmorphicServerLogContextIfMissing;
+        if (genContext && (typeof genContext === 'string' && genContext === 'true') ||
+        (typeof genContext === 'boolean' && genContext === true) ) {
+            generateContextIfMissing = true;
+        }
 
         const downloads = generateDownloadsDir();
 
@@ -272,7 +280,7 @@ export class AmorphicServer {
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
         
         if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
-            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing: true}));
+            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing}));
         }
 
         if (postSessionInject) {
