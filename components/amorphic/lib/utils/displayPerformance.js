@@ -1,8 +1,6 @@
 'use strict';
 
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
-const path = require('path');
-
 
 /**
  * Purpose unknown

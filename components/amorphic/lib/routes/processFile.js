@@ -5,7 +5,6 @@ let logMessage = Logger.logMessage;
 let formidable = require('formidable');
 let fs = require('fs');
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
-const path = require('path');
 
 /**
  * Purpose unknown

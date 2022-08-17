@@ -7,7 +7,6 @@ let getSessionCache = require('../session/getSessionCache').getSessionCache;
 let establishServerSession = require('../session/establishServerSession').establishServerSession;
 let displayPerformance = require('../utils/displayPerformance').displayPerformance;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
-const path = require('path');
 
 /**
  * Process JSON request message

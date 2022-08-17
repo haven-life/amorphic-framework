@@ -5,7 +5,6 @@ let establishServerSession = require('../session/establishServerSession').establ
 let Logger = require('../utils/logger');
 let logMessage = Logger.logMessage;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
-const path = require('path');
 
 /**
  * Process a post request by establishing a session and calling the controllers processPost method

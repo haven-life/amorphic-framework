@@ -10,7 +10,6 @@ let getTemplates = require('./getTemplates').getTemplates;
 let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 let superType = require('@haventech/supertype').default;
-const path = require('path');
 
 const moduleName = `amorphic/lib/startApplication`;
 
