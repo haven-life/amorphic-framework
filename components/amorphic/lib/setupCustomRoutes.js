@@ -5,7 +5,7 @@ let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 const fs = require('fs');
 const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `amorphic/lib/setupCustomRoutes`;
 
 function setupCustomRoutes(filePath, router) {
     const functionName = setupCustomRoutes.name;

@@ -5,14 +5,12 @@ let logMessage = require('./utils/logger').logMessage;
 let establishServerSession = require('./session/establishServerSession').establishServerSession;
 let displayPerformance = require('./utils/displayPerformance').displayPerformance;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
-const path = require('path');
-
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /*
     Set up amorphic for the first time
  */
 function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
+    const moduleName = `amorphic/lib/amorphicEntry`;
     let amorphicEntryTime = process.hrtime();
     let amorphicOptions;
     let applicationSource;

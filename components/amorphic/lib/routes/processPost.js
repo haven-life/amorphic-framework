@@ -7,8 +7,6 @@ let logMessage = Logger.logMessage;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
 const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
-
 /**
  * Process a post request by establishing a session and calling the controllers processPost method
  * which can return a response to be sent back
@@ -20,6 +18,7 @@ const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
  */
 
 function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
+	const moduleName = `amorphic/lib/routes/processPost`;
 	const functionName = processPost.name;
 	let processPostStartTime = process.hrtime();
 

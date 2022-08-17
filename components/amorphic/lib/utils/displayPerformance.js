@@ -3,7 +3,6 @@
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 const path = require('path');
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
 
 /**
  * Purpose unknown
@@ -11,6 +10,7 @@ const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
  * @param {unknown} req unknown
  */
 function displayPerformance(req) {
+    const moduleName = `amorphic/lib/utils/displayPerformance`;
     const functionName = displayPerformance.name;
     SupertypeSession.logger.setContextProps(req.amorphicTracking.loggingContext);
 

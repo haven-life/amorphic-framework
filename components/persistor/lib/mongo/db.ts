@@ -1,6 +1,4 @@
-import * as path from 'path';
-
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `persistor/lib/mongo/db`;
 
 module.exports = function (PersistObjectTemplate) {
     /* Mongo implementation of save */

@@ -33,9 +33,8 @@ import * as Changes from './helpers/Changes';
 import * as ChangeGroups from './helpers/ChangeGroups';
 import {Request, Response} from 'express';
 import {processCall} from "./helpers/ProcessCall";
-import * as path from 'path';
 
-const moduleName = `${path.basename(__dirname)}/${path.basename(__filename)}`;
+const moduleName = `semotus/src/index`;
 
 declare var define;
 
