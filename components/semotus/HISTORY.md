@@ -1,5 +1,3 @@
-## 6.1.0
-* update supertype to use new logging
 ## 6.0.1
 * bump nconf version due to security vulnerability.
 ## 6.0.0

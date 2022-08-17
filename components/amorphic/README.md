@@ -18,8 +18,6 @@ Create an `app.js` entry point as follows:
 
     require('amorphic').listen(__dirname);
 
-The listen function also has a parameter for a bunyan type logger to be passed in to be used with amorphic. This can be accessed with clientLogger on the SupertypeLogger in SupertypeSession or the object template. In the past this parameter was a sendToLog function but that has been deprecated. sendToLog is now an internal function in SupertypeLogger to pass logs to the logger that is passed in.
-
 Create a `config.json` file top level at least the following options set:
 
     {

@@ -1,5 +1,3 @@
-## 8.1.0
-* update supertype to use new logging
 ## 8.0.2
 * bump nconf version due to security vulnerability.
 ## 8.0.1
