@@ -198,7 +198,7 @@ export class AmorphicServer {
         //By default we dont generate the context.
         let generateContextIfMissing = false;
         const genContext = appConfig.appConfig.generateAmorphicServerLogContextIfMissing;
-        if (genContext && (typeof genContext === 'string' && genContext === 'true') ||
+        if (genContext && (typeof genContext === 'string' && genContext.toLowerCase() === 'true') ||
         (typeof genContext === 'boolean' && genContext === true) ) {
             generateContextIfMissing = true;
         }
