@@ -12,6 +12,8 @@ let UsesV2ReturnPass1 = require('./UsesV2ReturnPass1');
 // Npm modules
 let path = require('path');
 
+const moduleName = `amorphic/lib/getTemplates`;
+
 /**
  * Purpose unknown
  *
@@ -25,7 +27,7 @@ let path = require('path');
  * @returns {unknown} unknown
  */
 function getTemplates(persistObjectTemplate, appPath, templates, config, appName) {
-
+    const functionName = getTemplates.name;
     let amorphicOptions = AmorphicContext.amorphicOptions;
     let applicationSource = AmorphicContext.applicationSource;
     let applicationSourceMap = AmorphicContext.applicationSourceMap;
@@ -144,7 +146,12 @@ function getTemplates(persistObjectTemplate, appPath, templates, config, appName
                     requiredTemplates[appSource][templatea].__toClient__ = false;
                 }
                 else {
-                    logMessage(templatea + ' not found in requiredTemplates for ' + appSource);
+                    logMessage(2, {
+                        module: moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: templatea + ' not found in requiredTemplates for ' + appSource
+                    });
                 }
             }
         }
@@ -156,13 +163,20 @@ function getTemplates(persistObjectTemplate, appPath, templates, config, appName
             currentModule = config.appConfig.modules[moduleKey];
 
             if (!currentModule.require) {
-                messageToLog = 'Module: ' + moduleKey + ' - missing a "require" property';
-                logMessage(messageToLog);
+                logMessage(2, {
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Module: ' + moduleKey + ' - missing a "require" property'
+                });
             }
             else if (typeof(require(currentModule.require)[moduleKey + '_mixins']) !== 'function') {
-                messageToLog = currentModule.require + ' must export a '
-                    + moduleKey + '_mixins property which is an initialization function';
-                logMessage(messageToLog);
+                logMessage(2, {
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: currentModule.require + ' must export a ' + moduleKey + '_mixins property which is an initialization function'
+                });
             }
             else {
                 addModuleToSource(moduleKey, currentModule);

@@ -3,12 +3,12 @@
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
-let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
 let AmorphicServer = require('./AmorphicServer').AmorphicServer;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let createServer = AmorphicServer.createServer;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
+const path = require('path');
 
 const packageVersions = resolveVersions([
 	'@haventech/semotus',
@@ -18,6 +18,8 @@ const packageVersions = resolveVersions([
 ]);
 
 packageVersions['amorphic'] = require('../../package.json').version;
+
+const moduleName = `amorphic/lib/listen`;
 
 function resolveVersions(packages) {
 	const versions = {};
@@ -42,15 +44,41 @@ function resolveVersions(packages) {
  * @param {unknown} sessionStore unknown
  * @param {unknown} preSessionInject unknown
  * @param {unknown} postSessionInject unknown
- * @param {unknown} sendToLogFunction unknown
+ * @param {unknown} logger unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
+	const functionName = listen.name;
 
-	if (typeof sendToLogFunction === 'function') {
-		AmorphicContext.appContext.sendToLog = sendToLogFunction;
-		SupertypeSession.logger.setLogger(sendToLogFunction);
+	if (typeof logger === 'function') {
+		const message = 'sendToLog is deprecated, please pass in a valid bunyan logger instead of sendToLog function';
+		SupertypeSession.logger.error({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			error: { isHumanRelated: true },
+			message
+		});
+		throw new Error(message);
+	}
+
+	if (logger && typeof logger === 'object' && 
+			(typeof logger.info === 'function' &&
+            typeof logger.error === 'function' &&
+            typeof logger.debug === 'function' &&
+            typeof logger.warn === 'function'  &&
+			typeof logger.child === 'function')) {
+			SupertypeSession.logger.setLogger(logger);
+	}
+    else {
+		SupertypeSession.logger.warn({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			error: { isHumanRelated: true },
+			message: 'A valid bunyan logger was not passed at initialization. Defaulting to internal supertype logger.'
+		});
 	}
 
 	buildStartUpParams(configStore);
@@ -69,7 +97,12 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 	let sanitizedAmorphicOptions = Object.assign({}, amorphicOptions);
 	delete sanitizedAmorphicOptions.sessionSecret;
 
-	logMessage('Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions));
+	SupertypeSession.logger.info({
+		module: moduleName,
+		function: functionName,
+		category: 'request',
+		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
+	});
 
 	let sessionConfig = {
 		secret: amorphicOptions.sessionSecret,
@@ -113,13 +146,25 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 			)
 		)
 		.then(function logStart() {
-			logMessage('Amorphic has been started with versions: ');
+			let msg = 'Amorphic has been started with versions: ';
 			for (let packageVer in packageVersions) {
-				logMessage(packageVer + ': ' + packageVersions[packageVer]);
+				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';
 			}
+			SupertypeSession.logger.info({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: msg
+			});
 		})
 		.catch(function error(e) {
-			logMessage(e.message + ' ' + e.stack);
+			SupertypeSession.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: 'Error encountered while initializing amorphic.',
+				error: e
+			});
 		});
 }
 

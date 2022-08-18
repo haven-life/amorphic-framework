@@ -9,6 +9,9 @@ let semotus = require('@haventech/semotus');
 let getTemplates = require('./getTemplates').getTemplates;
 let getSessionCache = require('./session/getSessionCache').getSessionCache;
 let decompressSessionData = require('./session/decompressSessionData').decompressSessionData;
+const path = require('path');
+
+const moduleName = `amorphic/lib/getController`;
 
 /**
  * Create a controller template that has a unique Semotus instance that is
@@ -32,6 +35,7 @@ let decompressSessionData = require('./session/decompressSessionData').decompres
  */
 function getController(path, controllerPath, initObjectTemplate, expressSession, objectCacheExpiration, sessionStore,
                        newPage, reset, controllerId, req, controllers, nonObjTemplatelogLevel, sessions) {
+    const functionName = getController.name;
     let applicationConfig = AmorphicContext.applicationConfig;
     let sessionId = expressSession.id;
     let config = applicationConfig[path];
@@ -63,18 +67,32 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     let timeoutAction = function teamOutAction() {
         sessionStore.get(sessionId, function aa(_error, expressSession) {
             if (!expressSession) {
-                log(1, sessionId, 'Session has expired', nonObjTemplatelogLevel);
+                log(1, sessionId, {
+                    module: moduleName,
+                    functionName: functionName,
+                    category: 'milestone',
+                    message: 'Session has expired'
+                }, nonObjTemplatelogLevel);
             }
 
             if (!expressSession ||
                 cachedController.controller.__template__.objectTemplate.getPendingCallCount() === 0) {
                 controllers[sessionId + path] = null;
-                log(1, sessionId, 'Expiring controller cache for ' + path, nonObjTemplatelogLevel);
+                log(1, sessionId, {
+                    module: moduleName,
+                    functionName: functionName,
+                    category: 'milestone',
+                    message: 'Expiring controller cache for ' + path
+                }, nonObjTemplatelogLevel);
             }
             else {
                 cachedController.timeout = setTimeout(timeoutAction, objectCacheExpiration);
-                log(2, sessionId, 'Extending controller cache timeout because of pending calls for ' + path,
- -                    nonObjTemplatelogLevel);
+                log(2, sessionId, {
+                    module: moduleName,
+                    functionName: functionName,
+                    category: 'milestone',
+                    message: 'Extending controller cache timeout because of pending calls for ' + path
+                }, nonObjTemplatelogLevel);
             }
         });
     };
@@ -83,7 +101,12 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     if (cachedController.controller) {
         clearTimeout(cachedController.timeout);
         cachedController.timeout = setTimeout(timeoutAction, objectCacheExpiration);
-        log(2, sessionId, 'Extending controller cache timeout because of reference ', nonObjTemplatelogLevel);
+        log(2, sessionId, {
+            module: moduleName,
+            functionName: functionName,
+            category: 'milestone',
+            message: 'Extending controller cache timeout because of reference '
+        }, nonObjTemplatelogLevel);
 
         return cachedController.controller;
     }
@@ -132,7 +155,6 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
     // Either restore the controller from the serialized string in the session or create a new one
     let controller;
     let loggingDetails;
-    let loggingMessage;
 
     if (!expressSession.semotus.controllers[path]) {
         if (controllerId) {
@@ -160,15 +182,19 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
         }
 
         loggingDetails = {
-            component: 'amorphic',
-            module: 'getController',
-            activity: 'new',
-            controllerId: controller.__id__,
-            requestedControllerId: controllerId || 'none'
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: (newPage ? 'Creating new controller new page ' : 'Creating new controller '),
+            data: {
+                activity: 'new',
+                controllerId: controller.__id__,
+                requestedControllerId: controllerId || 'none',
+                browser
+            }
         };
 
-        loggingMessage = newPage ? 'Creating new controller new page ' : 'Creating new controller ';
-        persistableSemotableTemplate.logger.info(loggingDetails, loggingMessage + browser);
+        persistableSemotableTemplate.logger.info(loggingDetails);
     }
     else {
         persistableSemotableTemplate.withoutChangeTracking(function cc() {
@@ -186,12 +212,16 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
 
             if (unserialized.serializationTimeStamp !== sessionData.serializationTimeStamp) {
                 persistableSemotableTemplate.logger.warn({
-                    component: 'amorphic',
-                    module: 'getController',
-                    activity: 'restore',
-                    savedAs: sessionData.serializationTimeStamp,
-                    foundToBe: unserialized.serializationTimeStamp
-                }, 'Session data not as saved');
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Session data not as saved',
+                    data: {
+                        activity: 'restore',
+                        savedAs: sessionData.serializationTimeStamp,
+                        foundToBe: unserialized.serializationTimeStamp
+                    }
+                });
             }
 
             // Make sure no duplicate ids are issued
@@ -204,10 +234,14 @@ function getController(path, controllerPath, initObjectTemplate, expressSession,
             }
 
             persistableSemotableTemplate.logger.info({
-                component: 'amorphic',
-                module: 'getController',
-                activity: 'restore'
-            }, 'Restoring saved controller ' + (newPage ? ' new page ' : '') + browser);
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                message: 'Restoring saved controller ' + (newPage ? ' new page ' : '') + browser,
+                data: {
+                    activity: 'restore'
+                }
+            });
 
             if (!newPage) { // No changes queued as a result unless we need it for init.js
                 persistableSemotableTemplate.syncSession();

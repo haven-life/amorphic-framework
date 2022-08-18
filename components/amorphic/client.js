@@ -70,6 +70,7 @@ RemoteObjectTemplate._injectIntoTemplate = function (template) {
 };
 
 const amorphicModule = {exports: {}};
+const moduleName = 'AmorphicClient';
 
 amorphic = // Needs to be global to make mocha tests work
 {
@@ -152,6 +153,7 @@ amorphic = // Needs to be global to make mocha tests work
      * expire the user's session
      */
     logoutFunction: function logoutUser() {
+        const functionName = logoutUser.name;
         if (this.state === 'live') {
             // check to see if the consuming app has defined logout functionality to use
             if (this.controller.publicExpireSession && typeof this.controller.publicExpireSession === 'function') {
@@ -159,7 +161,12 @@ amorphic = // Needs to be global to make mocha tests work
             }
             // consuming app has NOT specified logout behavior. use our default.
             else {
-                console.log('Server session ready to expire, resetting controller to be offline');
+                RemoteObjectTemplate.logger.info({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Server session ready to expire, resetting controller to be offline'
+                });
                 this.expireController();
             }
         }
@@ -209,25 +216,6 @@ amorphic = // Needs to be global to make mocha tests work
             this._post(self.url, message);
         };
 
-        RemoteObjectTemplate.logger.sendToLog = function (level, data) {
-            var output = RemoteObjectTemplate.logger.prettyPrint(level, data);
-
-            var component = data.component;
-
-            console.log(output);
-
-            var levelStatus = level === 'error' || level === 'fatal';
-            var clientOverride = component && component === 'browser';
-
-            if ( levelStatus || clientOverride) {
-                this.sendLoggingMessage(level, data);
-
-                if (this.controller && typeof(this.controller.displayError) === 'function') {
-                    this.controller.displayError(output);
-                }
-            }
-        }.bind(this);
-
         this.setContextProps = RemoteObjectTemplate.logger.setContextProps;
 
             /**
@@ -238,6 +226,7 @@ amorphic = // Needs to be global to make mocha tests work
         var self = this;
 
         this.sendMessage = function (message) {
+            const functionName = 'establishClientSession/sendMessage';
             message.sequence = self.sequence++;
             message.loggingContext = self.loggingContext;
             message.performanceLogging = self.performanceLogging.getData();
@@ -247,10 +236,23 @@ amorphic = // Needs to be global to make mocha tests work
             if (self.rootId) {
                 message.rootId = self.rootId;
                 self.rootId = null;
-                console.log('Forcing new controller on server');
+                RemoteObjectTemplate.logger.info({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Forcing new controller on server',
+                    data: {
+                        rootId: message.rootId
+                    }
+                });
             }
             if (self.logLevel > 0) {
-                console.log ('sending ' + message.type + ' ' + message.name);
+                RemoteObjectTemplate.logger.info({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'sending ' + message.type + ' ' + message.name
+                });
             }
 
             self.lastServerInteraction = (new Date()).getTime();
@@ -264,14 +266,24 @@ amorphic = // Needs to be global to make mocha tests work
                 var message = JSON.parse(request.responseText);
 
                 if (self.logLevel > 0) {
-                    console.log('receiving ' + message.type + ' ' + message.name + ' serverAppVersion=' + message.ver +
-                            'executionTime=' + ((new Date()).getTime() - self.lastServerInteraction) +
-                            'ms messageSize=' + Math.round(request.responseText.length / 1000) + 'K');
+                    RemoteObjectTemplate.logger.info({
+                        module: moduleName,
+                        function: `${functionName}/_post`,
+                        category: 'milestone',
+                        message: 'receiving ' + message.type + ' ' + message.name + ' serverAppVersion=' + message.ver +
+                                 'executionTime=' + ((new Date()).getTime() - self.lastServerInteraction) +
+                                 'ms messageSize=' + Math.round(request.responseText.length / 1000) + 'K'
+                    });
                 }
 
                     // If app version in message not uptodate
                 if (self.appVersion && message.ver != self.appVersion) {
-                    console.log('Application version ' + self.appVersion + ' out of date - ' + message.ver + ' is available - reloading in 5 seconds');
+                    RemoteObjectTemplate.logger.info({
+                        module: moduleName,
+                        function: `${functionName}/_post`,
+                        category: 'milestone',
+                        message: 'Application version ' + self.appVersion + ' out of date - ' + message.ver + ' is available - reloading in 5 seconds'
+                    });
 
                     self.shutdown = true;
                     self.reload();
@@ -380,7 +392,12 @@ amorphic = // Needs to be global to make mocha tests work
             this.rootId = null;  // Cancel forcing our controller on server
             this.refreshSession();
 
-            console.log('Getting live again - fetching state from server');
+            RemoteObjectTemplate.logger.info({
+                module: moduleName,
+                function: '_windowActivity',
+                category: 'milestone',
+                message: 'Getting live again - fetching state from server'
+            });
         }
 
         this.setCookie('session' + this.app, this.session, 0);
@@ -394,8 +411,13 @@ amorphic = // Needs to be global to make mocha tests work
                 this.state = 'zombie';
                 this.expireController();
 
+                RemoteObjectTemplate.logger.info({
+                    module: moduleName,
+                    function: '_zombieCheck',
+                    category: 'milestone',
+                    message: 'Another browser took over, entering zombie state'
+                });
                 RemoteObjectTemplate.enableSendMessage(false);  // Queue stuff as a zombie we will toss it later
-                console.log('Another browser took over, entering zombie state');
             }
         }
     },
@@ -458,7 +480,12 @@ amorphic = // Needs to be global to make mocha tests work
         RemoteObjectTemplate.controller = this.controller;
 
         if (appVersion && message.ver != appVersion) {
-            console.log('Application version ' + appVersion + ' out of date - ' + message.ver + ' is available - reloading in 5 seconds');
+            RemoteObjectTemplate.logger.info({
+                module: moduleName,
+                function: '_reset',
+                category: 'milestone',
+                message: 'Application version ' + appVersion + ' out of date - ' + message.ver + ' is available - reloading in 5 seconds'
+            });
 
             this.shutdown = true;
             this.bindController.call(null, this.controller, message.sessionExpiration);
@@ -499,6 +526,7 @@ amorphic = // Needs to be global to make mocha tests work
         }
 
         request.onreadystatechange = function () {
+            const functionName = 'request.onreadystatechange';
             if (request.readyState != 4) {
                 return;
             }
@@ -514,16 +542,31 @@ amorphic = // Needs to be global to make mocha tests work
 
             if (status === 200) {
                 if (this.logLevel > 0) {
-                    console.log('Got response for: ' + message.type + ' ' + message.name);
+                    RemoteObjectTemplate.logger.info({
+                        module: moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'Got response for: ' + message.type + ' ' + message.name
+                    });
                 }
 
                 success.call(this, request);
             }
             else {
-                console.log('Error: ' + message.type + ' ' + message.name + ' status: ' + status + ' - ' + statusText);
+                RemoteObjectTemplate.logger.error({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Error: ' + message.type + ' ' + message.name + ' status: ' + status + ' - ' + statusText
+                });
 
                 if (isRetriableErrorStatus(status) && --retries) {
-                    console.log('temporary error retrying in ' + retryInterval / 1000 + ' seconds');
+                    RemoteObjectTemplate.logger.error({
+                        module: moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'temporary error retrying in ' + retryInterval / 1000 + ' seconds'
+                    });
 
                     setTimeout(function () {
                         return self._post(url, message, success, failure, retries, retryInterval);

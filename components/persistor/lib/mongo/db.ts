@@ -1,8 +1,17 @@
 module.exports = function (PersistObjectTemplate) {
-
+    const moduleName = `persistor/lib/mongo/db`;
     /* Mongo implementation of save */
     PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, _txn, logger) {
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'write'}, 'saving ' + obj.__template__.__name__ + ' to ' + obj.__template__.__collection__);
+        const functionName = 'savePojoToMongo';
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: 'saving ' + obj.__template__.__name__ + ' to ' + obj.__template__.__collection__,
+            data: {
+                activity: 'write'
+            }
+        });
         var origVer = obj.__version__;
         obj.__version__ = obj.__version__ ? obj.__version__ + 1 : 1;
         pojo.__version__ = obj.__version__;
@@ -42,7 +51,16 @@ module.exports = function (PersistObjectTemplate) {
     };
 
     PersistObjectTemplate.getPOJOFromMongoQuery = async function(template, query, options, logger) {
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'read'}, 'db.' + template.__collection__ + '.find({" + JSON.stringify(query) + "})');
+        const functionName = 'getPOJOFromMongoQuery';
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: 'db.' + template.__collection__ + '.find({" + JSON.stringify(query) + "})',
+            data: {
+                activity: 'read'
+            }
+        });
         var db = this.getDB(this.getDBAlias(template.__collection__)).connection;
         var collection = db.collection(this.dealias(template.__collection__));
         options = options || {};

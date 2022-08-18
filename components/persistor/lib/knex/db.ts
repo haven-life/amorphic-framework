@@ -1,7 +1,7 @@
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
 
 module.exports = function (PersistObjectTemplate) {
-
+    const moduleName = `persistor/lib/knex/db`;
     var Promise = require('bluebird');
     var _ = require('underscore');
 
@@ -22,6 +22,7 @@ module.exports = function (PersistObjectTemplate) {
 
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
+        const functionName = 'getPOJOsFromKnexQuery';
 
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
@@ -62,8 +63,16 @@ module.exports = function (PersistObjectTemplate) {
             select = select.offset(options.offset);
         }
 
-        (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'pre',
-            data: {template: template.__name__, query: queryOrChains}});
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            data: {
+                activity: 'pre',
+                template: template.__name__, 
+                query: queryOrChains
+            }
+        });
 
         var selectString = select.toString();
         if (map && map[selectString])
@@ -75,8 +84,17 @@ module.exports = function (PersistObjectTemplate) {
 
         return select.then(processResults.bind(this), processError.bind(this));
         function processResults(res) {
-            (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'post',
-                data: {count: res.length, template: template.__name__, query: queryOrChains}});
+            (logger || this.logger).debug({
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                data: {
+                    activity: 'post',
+                    count: res.length, 
+                    template: template.__name__, 
+                    query: queryOrChains
+                }
+            });
             if (map && map[selectString]) {
                 map[selectString].forEach(function(resolve) {
                     resolve(res)
@@ -87,8 +105,15 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function processError(err) {
-            (logger || this.logger).debug({component: 'persistor', module: 'db.getPOJOsFromKnexQuery', activity: 'select',
-                error: JSON.stringify(err)});
+            (logger || this.logger).debug({
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                error: err,
+                data: {
+                    activity: 'select'
+                }
+            });
             throw err;
         }
 
@@ -266,6 +291,7 @@ module.exports = function (PersistObjectTemplate) {
         var defineProperty = template.getProperties()[property];
         var tableName = this.dealias(defineProperty.of.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
+        const functionName = 'knexPruneOrphans';
         if (txn && txn.knex) {
             knex.transacting(txn.knex);
         }
@@ -284,8 +310,17 @@ module.exports = function (PersistObjectTemplate) {
         }
         knex = knex.delete().then(function (res) {
             if (res)
-                (logger || this.logger).debug({component: 'persistor', module: 'db.knexPruneOrphans', activity: 'post',
-                    data: {count: res, table: tableName, id: obj._id}});
+                (logger || this.logger).debug({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    data: {
+                        activity: 'post',
+                        count: res, 
+                        table: tableName, 
+                        id: obj._id
+                    }
+                });
         }.bind(this));
 
         return knex;
@@ -327,13 +362,25 @@ module.exports = function (PersistObjectTemplate) {
         var origVer = obj.__version__;
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
+        const functionName = 'saveKnexPojo';
 
         obj.__version__ = obj.__version__ ? obj.__version__ * 1 + 1 : 1;
         logChange();
         pojo.__version__ = obj.__version__;
-        (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'pre',
-            data: {txn: (txn ? txn.id + ' ' : '-#- '), type: (updateID ? 'updating ' : 'insert '),
-                template: obj.__template__.__name__, id: obj.__id__, _id: obj._id, __version__: pojo.__version__}});
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            data: {
+                activity: 'pre',
+                txn: (txn ? txn.id + ' ' : '-#- '), 
+                type: (updateID ? 'updating ' : 'insert '),
+                template: obj.__template__.__name__, 
+                id: obj.__id__, 
+                _id: obj._id, 
+                __version__: pojo.__version__
+            }
+        });
         if (txn && txn.knex) {
             knex.transacting(txn.knex)
         }
@@ -360,19 +407,18 @@ module.exports = function (PersistObjectTemplate) {
         function revertVersion(error) {
             //we need revert the version wheen there is an exception thrown by the db.
             if (error.message !== 'Update Conflict') {
-                (logger || this.logger).error(
-                    {
-                        component: 'persistor',
-                        module: 'db',
+                (logger || this.logger).error({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    error: error,
+                    data: {
                         activity: 'saveKnexPojo',
-                        error,
-                        data: {
-                            template: obj.__template__.__name__,
-                            _id: obj._id,
-                            __version__: pojo.__version__
-                        }
+                        template: obj.__template__.__name__,
+                        _id: obj._id,
+                        __version__: pojo.__version__
                     }
-                );
+                });
                 //If there is a db error, revert the version value to the original version.
                 obj.__version__ = origVer;
             }
@@ -380,8 +426,16 @@ module.exports = function (PersistObjectTemplate) {
         }
         function checkUpdateResults(countUpdated) {
             if (countUpdated < 1) {
-                (logger || this.logger).info({component: 'persistor', module: 'db.saveKnexPojo', activity: 'updateConflict',
-                    data: {txn: (txn ? txn.id : '-#-'), id: obj.__id__, __version__: origVer}});
+                (logger || this.logger).info({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    data: {
+                        activity: 'updateConflict',
+                        txn: (txn ? txn.id : '-#-'), 
+                        id: obj.__id__, __version__: origVer
+                    }
+                });
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
@@ -406,8 +460,17 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         function logSuccessAndTrack() {
-            (logger || this.logger).debug({component: 'persistor', module: 'db.saveKnexPojo', activity: 'post',
-                data: {template: obj.__template__.__name__, table: obj.__template__.__table__, __version__: obj.__version__}});
+            (logger || this.logger).debug({
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                data: {
+                    activity: 'post',
+                    template: obj.__template__.__name__, 
+                    table: obj.__template__.__table__, 
+                    __version__: obj.__version__
+                }
+            });
             if (txn && txn.knex && txn.queriesToNotify) {
                 generateNotifyQueries(obj.__template__, txn.queriesToNotify, sqlToRun);
             }
@@ -425,6 +488,7 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.synchronizeKnexTableFromTemplate = function (template, changeNotificationCallback, forceSync) {
         var aliasedTableName = template.__table__;
         var tableName = this.dealias(aliasedTableName);
+        const functionName = 'synchronizeKnexTableFromTemplate';
         //no need to synchronize Query objects if there is an entry for the corresponding main object in schema.json
         if (template.name.match(/Query$/) && isTableCorrespondsToOtherSchemaEntry.call(this, template.name, tableName)) {
             return Promise.resolve();
@@ -525,7 +589,15 @@ module.exports = function (PersistObjectTemplate) {
             function processComment(columnName) {
                 var prop = columnNameToProp(columnName);
                 if (!prop) {
-                    PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'}, 'Extra column ' + columnName + ' on ' + table);
+                    PersistObjectTemplate.logger.info({
+                        module: moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'Extra column ' + columnName + ' on ' + table,
+                        data: {
+                            activity: 'discoverColumns'
+                        }
+                    });
                     return commentOn(table, columnName, 'now obsolete');
                 } else {
                     if (prop == '_id')
@@ -551,8 +623,15 @@ module.exports = function (PersistObjectTemplate) {
                     return false;
                 for (var parent in schema.parents) {
                     if (columnName == schema.parents[parent].id && !props[parent]) {
-                        PersistObjectTemplate.logger.info({component: 'persistor', module: 'db.synchronizeKnexTableFromTemplate', activity: 'discoverColumns'},
-                            'schema out-of-sync: schema contains ' + columnName + ' on ' + table + ', which is not defined in the template');
+                        PersistObjectTemplate.logger.info({
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'schema out-of-sync: schema contains ' + columnName + ' on ' + table + ', which is not defined in the template',
+                            data: {
+                                activity: 'discoverColumns'
+                            }
+                        });
                         return false;
                     }
                     else if (columnName == schema.parents[parent].id)
@@ -603,9 +682,14 @@ module.exports = function (PersistObjectTemplate) {
                 if (knex.client.config.client === 'pg' && comment !== '') {
                     return knex.raw('COMMENT ON COLUMN "' + table + '"."' + column + '" IS \'' + comment.replace(/'/g, '\'\'') + '\';')
                         .then(function() {}, function (e) {
-                            /*eslint-disable no-console*/
-                            console.log(e)
-                            /*eslint-enable no-console*/
+                            PersistObjectTemplate.logger.info({
+                                module: moduleName,
+                                function: functionName,
+                                category: 'milestone',
+                                data: {
+                                    commentOn: e
+                                }
+                            });
                         });
                 }
                 return;
@@ -660,6 +744,7 @@ module.exports = function (PersistObjectTemplate) {
 
         var aliasedTableName = template.__table__;
         tableName = this.dealias(aliasedTableName);
+        const functionName = synchronizeIndexes.name;
 
         while (template.__parent__) {
             template =  template.__parent__;
@@ -796,17 +881,19 @@ module.exports = function (PersistObjectTemplate) {
                 const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                 if (logger) {
                     logger.warn({
-                        function: 'syncIndexesForHierarchy',
+                        module: moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'Executing one index at a time - Unable to update index',
+                        error: error,
                         data: {
                             type,
                             columns,
                             operation,
                             indexName,
                             tableName
-                        },
-                        module: 'db - applyTableChanges',
-                        error: error
-                    }, 'Executing one index at a time - Unable to update index');
+                        }
+                    });
                 }
             }
             /**
@@ -876,10 +963,12 @@ module.exports = function (PersistObjectTemplate) {
                         const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                         if (logger) {
                             logger.warn({
-                                module: 'db',
-                                function: 'applyTableChanges',
-                                error: error && (error.stack || error.message),
-                            }, 'Unable to apply index changes for '+ tableName);
+                                module: moduleName,
+                                function: functionName,
+                                category: 'milestone',
+                                message: 'Unable to apply index changes for '+ tableName,
+                                error: error,
+                            });
                         }
                     };
                 }
@@ -978,8 +1067,17 @@ module.exports = function (PersistObjectTemplate) {
     }
 
     PersistObjectTemplate.persistTouchKnex = function(obj, txn, logger) {
-        (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'pre',
-            data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
+        const functionName = 'persistTouchKnex';
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            data: {
+                activity: 'pre',
+                template: obj.__template__.__name__, 
+                table: obj.__template__.__table__
+            }
+        });
         var tableName = this.dealias(obj.__template__.__table__);
         var knex = this.getDB(this.getDBAlias(obj.__template__.__table__)).connection(tableName);
         obj.__version__++;
@@ -990,8 +1088,16 @@ module.exports = function (PersistObjectTemplate) {
             .where('_id', '=', obj._id)
             .increment('__version__', 1)
             .then(function () {
-                (logger || this.logger).debug({component: 'persistor', module: 'db.persistTouchKnex', activity: 'post',
-                    data: {template: obj.__template__.__name__, table: obj.__template__.__table__}});
+                (logger || this.logger).debug({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    data: {
+                        activity: 'post',
+                        template: obj.__template__.__name__, 
+                        table: obj.__template__.__table__
+                    }
+                });
             }.bind(this))
     };
 
@@ -1277,7 +1383,16 @@ module.exports = function (PersistObjectTemplate) {
 
 
     PersistObjectTemplate._commitKnex = function _commitKnex(persistorTransaction, logger, notifyChanges, notifyQueries) {
-        logger.debug({component: 'persistor', module: 'api', activity: 'commit'}, 'end of transaction ');
+        const functionName = _commitKnex.name;
+        logger.debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: 'end of transaction ',
+            data: {
+                activity: 'commit'
+            }
+        });
         var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction.dirtyObjects;
         var touchObjects = persistorTransaction.touchObjects;
@@ -1394,11 +1509,14 @@ module.exports = function (PersistObjectTemplate) {
 
                 if (persistorTransaction.remoteObjects && persistorTransaction.remoteObjects.size > 0) {
                     (logger || this.logger).info({
-                            component: 'persistor',
-                            module: 'api',
+                        module: moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: `Rolling back transaction of remote keys`,
+                        data: {
                             activity: 'end'
-                        },
-                        `Rolling back transaction of remote keys`);
+                        }
+                    });
 
                     let remoteDocService = RemoteDocService.new(this.environment, this.remoteDocHostURL);
 
@@ -1408,15 +1526,16 @@ module.exports = function (PersistObjectTemplate) {
                         toDeletePromiseArr.push(
                             remoteDocService.deleteDocument(key, this.bucketName, versionId)
                             .catch(error => {
-                                (logger || this.logger).error(
-                                    {
-                                        component: 'persistor',
-                                        module: 'api',
-                                        activity: 'end',
-                                        error
-                                    },
-                                    'unable to rollback remote document with key:' + key + ' and bucket: ', this.bucketName
-                                );
+                                (logger || this.logger).error({
+                                    module: moduleName,
+                                    function: functionName,
+                                    category: 'milestone',
+                                    message: 'unable to rollback remote document with key:' + key + ' and bucket: ' + this.bucketName,
+                                    error: error,
+                                    data: {
+                                        activity: 'end'
+                                    }
+                                });
                             })
                         );
                     });
@@ -1426,11 +1545,15 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 revertVersionsOnAllObjects();
                 return knexTransaction.rollback(innerError).then(() => {
-                    (logger || this.logger).debug({
-                        component: 'persistor',
-                        module: 'api',
-                        activity: 'end'},
-                        'transaction rolled back ' + innerError.message + (deadlock ? ' from deadlock' : ''));
+                    (logger || this.logger).error({
+                        module: moduleName,
+                        function: `${functionName}/rollback`,
+                        category: 'milestone',
+                        message: 'transaction rolled back ' + innerError.message + (deadlock ? ' from deadlock' : ''),
+                        data: {
+                            activity: 'end'
+                        }
+                    });
                 });
             }
 
@@ -1532,12 +1655,26 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
         }.bind(this)).then(function () {
-            (logger || this.logger).debug({component: 'persistor', module: 'api'}, 'end - transaction completed');
+            (logger || this.logger).debug({
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                message: 'end - transaction completed'
+            });
             return true;
         }.bind(this)).catch(function (e) {
             var err = e || innerError;
             if (err && err.message && err.message != 'Update Conflict') {
-                (logger || this.logger).error({component: 'persistor', module: 'api', activity: 'end', error: err.message + err.stack}, 'transaction ended with error');
+                (logger || this.logger).error({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'transaction ended with error',
+                    error: err,
+                    data: {
+                        activity: 'end',
+                    }
+                });
             } //@TODO: Why throw error in all cases but log only in some cases
             throw (e || innerError);
         }.bind(this))
