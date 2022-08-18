@@ -1,7 +1,6 @@
 import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
 
-
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/update`;
     var Promise = require('bluebird');

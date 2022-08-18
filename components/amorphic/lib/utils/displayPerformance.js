@@ -2,14 +2,13 @@
 
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 
-const moduleName = `amorphic/lib/utils/displayPerformance`;
-
 /**
  * Purpose unknown
  *
  * @param {unknown} req unknown
  */
 function displayPerformance(req) {
+    const moduleName = `amorphic/lib/utils/displayPerformance`;
     const functionName = displayPerformance.name;
     SupertypeSession.logger.setContextProps(req.amorphicTracking.loggingContext);
 

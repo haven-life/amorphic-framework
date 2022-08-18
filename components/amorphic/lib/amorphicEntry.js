@@ -12,6 +12,7 @@ const moduleName = `amorphic/lib/amorphicEntry`;
     Set up amorphic for the first time
  */
 function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
+    const moduleName = `amorphic/lib/amorphicEntry`;
     let amorphicEntryTime = process.hrtime();
     let amorphicOptions;
     let applicationSource;
