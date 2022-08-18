@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 ## 6.0.0
 * Upgrade Supertype logger to use ClientLogger (client passed logger).
->>>>>>> origin
 ## 5.1.0
 * Allow setting of logger on ObjectTemplate
 ## 5.0.1

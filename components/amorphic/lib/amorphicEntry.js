@@ -6,8 +6,6 @@ let establishServerSession = require('./session/establishServerSession').establi
 let displayPerformance = require('./utils/displayPerformance').displayPerformance;
 let statsdUtils = require('@haventech/supertype').StatsdHelper;
 
-const moduleName = `amorphic/lib/amorphicEntry`;
-
 /*
     Set up amorphic for the first time
  */
