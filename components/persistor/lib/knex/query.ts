@@ -2,7 +2,6 @@ import { RemoteDocService } from '../remote-doc/RemoteDocService';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
-
     var Promise = require('bluebird');
     var _ = require('underscore');
 

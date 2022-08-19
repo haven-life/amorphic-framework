@@ -18,7 +18,31 @@ Create an `app.js` entry point as follows:
 
     require('amorphic').listen(__dirname);
 
-The listen function also has a parameter for a bunyan type logger to be passed in to be used with amorphic. This can be accessed with clientLogger on the SupertypeLogger in SupertypeSession or the object template. In the past this parameter was a sendToLog function but that has been deprecated. sendToLog is now an internal function in SupertypeLogger to pass logs to the logger that is passed in.
+Version 11.0.0 introduces a breaking change to the way listen params were passed. In the past clients passed
+could use `sendToLog` function to inject their own logger, at the time of initialization. This logger must atleast have 
+basic bunyan log functions such as 'debug', 'error', 'info', 'warn' and also a child logger function of 'child'.
+
+**Old listen and startPersistorMode signature:**
+
+```
+ listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLog, statsdClient, configStore = null)
+ 
+ startPersistorMode(appDirectory, sendToLog, statsdClient, configStore = null)
+
+```
+
+With this change client would need to pass a `logger` object instead of `sendToLog` function. The `sendToLog` function should 
+no longer be used to inject the logger like in the past. This function is being deprecated for external use and is only used internally. 
+
+**New listen and startPersistorMode signature:**
+
+```
+ listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null)
+ 
+ startPersistorMode(appDirectory, logger, statsdClient, configStore = null)
+
+```
+If a client chooses to pass an `undefined` instead of logger object, then amoprhic would use the built in SuperType Logger to log.
 
 Create a `config.json` file top level at least the following options set:
 

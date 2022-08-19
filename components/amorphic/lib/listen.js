@@ -45,6 +45,8 @@ function resolveVersions(packages) {
  * @param {unknown} preSessionInject unknown
  * @param {unknown} postSessionInject unknown
  * @param {unknown} logger unknown
+ * @param {unknown} statsdClient unknown
+ * @param {unknown} configStore unknown
  */
 function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
@@ -68,7 +70,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
             typeof logger.error === 'function' &&
             typeof logger.debug === 'function' &&
             typeof logger.warn === 'function'  &&
-			typeof logger.child === 'function' )) {
+			typeof logger.child === 'function')) {
 			SupertypeSession.logger.setLogger(logger);
 	}
     else {

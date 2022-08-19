@@ -1,6 +1,11 @@
 ## 11.0.0
-* Logger updates to use SupertypeLogger and the internal logger changes
-* changing sendToLog in listen and startPersistorMode to be logger instead for passing in a client logger to SupertypeLogger
+* BREAKING CHANGES: 
+    With this upgrade we have changed the way logger is used by amorphic. In the past clients passed
+    a `sendToLog` function at the time of initialization. The signature on `listen` and `startPersistorMode` 
+    now expects a `logger` object instead, with at least 'info', 'warn', 'error', 'debug' and 'child' properties. 
+    Clients may also choose to pass an `undefined` instead of a logger and amorphic would instead use a built-in supertype
+    logger.
+* Reformatted all logs for improved readability.
 ## 10.3.0
 * Add validator middleware to express server, config settings for whitelist, blacklist, escape
 ## 10.2.1

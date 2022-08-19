@@ -47,7 +47,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 			(typeof logger.info === 'function' &&
             typeof logger.error === 'function' &&
             typeof logger.debug === 'function' &&
-            typeof logger.warn === 'function' && 
+            typeof logger.warn === 'function'  &&
 			typeof logger.child === 'function')) {
 			SupertypeSession.logger.setLogger(logger);
 	}
