@@ -12,7 +12,6 @@
 
 import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
 
-
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     const moduleName = `persistor/lib/api`;
     let supertypeRequire = require('@haventech/supertype');
