@@ -1,11 +1,14 @@
 ## 11.0.0
 * BREAKING CHANGES: 
-    With this upgrade we have changed the way logger is used by amorphic. In the past clients passed
-    a `sendToLog` function at the time of initialization. The signature on `listen` and `startPersistorMode` 
-    now expects a `logger` object instead, with at least 'info', 'warn', 'error', 'debug' and 'child' properties. 
-    Clients may also choose to pass an `undefined` instead of a logger and amorphic would instead use a built-in supertype
-    logger.
+    With this upgrade we have changed the way logger is used by amorphic. In the past, clients passed
+    a `sendToLog` function, at the time of initialization, to `listen` and `startPersistorMode` functions.
+    The signature on `listen` and `startPersistorMode` has changed and now expect a `logger` object instead. We require that 
+    this passed logger object must at least have basic bunyan functions like 'info', 'warn', 'error', 'debug' and 'child' implemented. 
+    Clients may also choose to pass an `undefined` instead of a logger to `listen` and `startPersistorMode` functions, 
+    and amorphic would then use a built-in SuperType Logger.
 * Reformatted all logs for improved readability.
+* A new `setApiContextMiddleware` middleware is also introduced to allow client passed loggers run some middleware code
+on server calls. This middleware may also have different functionalities that can be controlled using a new boolean `generateAmorphicServerLogContextIfMissing` config.
 ## 10.3.0
 * Add validator middleware to express server, config settings for whitelist, blacklist, escape
 ## 10.2.1
