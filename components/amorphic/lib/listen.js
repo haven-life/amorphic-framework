@@ -45,6 +45,8 @@ function resolveVersions(packages) {
  * @param {unknown} preSessionInject unknown
  * @param {unknown} postSessionInject unknown
  * @param {unknown} logger unknown
+ * @param {unknown} statsdClient unknown
+ * @param {unknown} configStore unknown
  */
 function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
