@@ -1,6 +1,8 @@
 import {delay, getError, logTime} from './Utilities';
 import {CallContext, ProcessCallPayload, RemoteCall, Semotus, Session} from './Types';
 
+const moduleName = `semotus/src/helpers/ProcessCall`;
+
 /**
  * We process the call the remote method in stages starting by letting the controller examine the
  * changes (preCallHook) and giving it a chance to refresh data if it needs to.  Then we apply any
@@ -54,17 +56,18 @@ async function retryCall(payload: ProcessCallPayload) {
  */
 async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): Promise<any> {
     const {semotus, remoteCall, session, callContext, HTTPObjs} = payload;
+    const functionName = preCallHook.name;
     semotus.logger.info(
         {
-            component: 'semotus',
-            module: 'processCall',
-            activity: 'preServerCall',
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
             data: {
+                activity: 'preServerCall',
                 call: remoteCall.name,
                 sequence: remoteCall.sequence
             }
-        },
-        remoteCall.name
+        }
     );
 
     if (semotus.controller && semotus.controller.preServerCall) {
@@ -89,14 +92,16 @@ async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): 
         }
         else {
             semotus.logger.error({
-                component: 'semotus',
-                module: 'processCall',
-                activity: 'preServerCall',
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                message: 'Could not find template for ' + objId,
                 data: {
+                    activity: 'preServerCall',
                     call: remoteCall.name,
                     sequence: remoteCall.sequence
                 }
-            }, 	'Could not find template for ' + objId);
+            });
         }
 
         return semotus.controller.preServerCall.call(
@@ -122,19 +127,20 @@ async function preCallHook(payload: ProcessCallPayload, forceupdate?: boolean): 
  */
 function applyChangesAndValidateCall(payload: ProcessCallPayload): boolean {
     const {semotus, remoteCall, callContext, session, subscriptionId, remoteCallId, restoreSessionCallback} = payload;
+    const functionName = applyChangesAndValidateCall.name;
 
     semotus.logger.info(
         {
-            component: 'semotus',
-            module: 'processCall',
-            activity: 'applyChangesAndValidateCall',
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
             data: {
+                activity: 'applyChangesAndValidateCall',
                 call: remoteCall.name,
                 sequence: remoteCall.sequence,
                 remoteCallId: remoteCall.id
             }
-        },
-        remoteCall.name
+        }
     );
 
     let changes = JSON.parse(remoteCall.changes);
@@ -173,12 +179,14 @@ function applyChangesAndValidateCall(payload: ProcessCallPayload): boolean {
  */
 function customValidation(payload: ProcessCallPayload, isValid: boolean): boolean {
     const {semotus, remoteCall, callContext, session, subscriptionId, remoteCallId, restoreSessionCallback} = payload;
+    const functionName = customValidation.name;
 
     let loggerObject = {
-        component: 'semotus',
-        module: 'processCall',
-        activity: 'customValidation',
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
         data: {
+            activity: 'customValidation',
             call: remoteCall.name,
             sequence: remoteCall.sequence,
             remoteCallId: remoteCall.id
@@ -187,7 +195,7 @@ function customValidation(payload: ProcessCallPayload, isValid: boolean): boolea
 
     let remoteObject = session.objects[remoteCall.id];
 
-    semotus.logger.info(loggerObject, remoteCall.name);
+    semotus.logger.info(loggerObject);
 
     if (!isValid) {
         return false;
@@ -214,19 +222,21 @@ function customValidation(payload: ProcessCallPayload, isValid: boolean): boolea
  */
 async function callIfValid(payload: ProcessCallPayload, isValid: boolean) {
     const {semotus, remoteCall, callContext, session, subscriptionId, remoteCallId, restoreSessionCallback} = payload;
+    const functionName = callIfValid.name;
 
     let loggerObject = {
-        component: 'semotus',
-        module: 'processCall',
-        activity: 'callIfValid',
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
         data: {
+            activity: 'callIfValid',
             call: remoteCall.name,
             sequence: remoteCall.sequence,
             remoteCallId: remoteCall.id
         }
     };
 
-    semotus.logger.info(loggerObject, remoteCall.name);
+    semotus.logger.info(loggerObject);
 
     let obj = session.objects[remoteCall.id];
 
@@ -272,19 +282,20 @@ async function postCallHook(payload: ProcessCallPayload, returnValue) {
  */
 function postCallSuccess(payload: ProcessCallPayload, ret): void {
     const {semotus, remoteCall, callContext, session, remoteCallId} = payload;
+    const functionName = postCallSuccess.name;
 
     semotus.logger.info(
         {
-            component: 'semotus',
-            module: 'processCall',
-            activity: 'postCall.success',
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
             data: {
+                activity: 'postCall.success',
                 call: remoteCall.name,
                 callTime: logTime(callContext),
                 sequence: remoteCall.sequence
             }
-        },
-        remoteCall.name
+        }
     );
 
     packageChanges(semotus, session,{
@@ -309,35 +320,29 @@ function postCallSuccess(payload: ProcessCallPayload, ret): void {
  * @param session
  */
 async function resolveErrorHandler(logger, controller: any, type, remoteCall: RemoteCall, remoteCallId, callContext: CallContext, changeString, session: Session) {
-
+    const functionName = resolveErrorHandler.name;
     if (controller && controller.postServerErrorHandler) {
         let errorType = type;
-        let functionName = remoteCall.name;
+        let remoteCallName = remoteCall.name;
         let obj = undefined;
         if (session.objects[remoteCall.id]) {
             obj = session.objects[remoteCall.id];
         }
-        let logBody = {
-            component: 'semotus',
-            module: 'processCall.failure',
-            activity: 'postCall.resolveErrorHandler',
-            data: {
-                call: remoteCall.name,
-                message: undefined
-            }
-        };
-
         try {
-            await controller.postServerErrorHandler.call(controller, errorType, remoteCallId, obj, functionName, callContext, changeString);
+            await controller.postServerErrorHandler.call(controller, errorType, remoteCallId, obj, remoteCallName, callContext, changeString);
         } catch (error) {
-            if (error.message) {
-                logBody.data.message = error.message;
-                logger.error(error.message);
-            } else {
-                logBody.data.message = JSON.stringify(error);
-            }
-
-            logger.error(logBody, 'User defined postServerErrorHandler threw an error');
+            let logBody = {
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                error: error,
+                message: 'User defined postServerErrorHandler threw an error',
+                data: {
+                    activity: 'postCall.resolveErrorHandler',
+                    call: remoteCall.name
+                }
+            };
+            logger.error(logBody);
         }
     }
 }
@@ -467,23 +472,21 @@ function packageChanges(semotus: Semotus, session: Session, message) {
  * @param callContext
  */
 export function postCallErrorLog(logger, activity, message, logType, logString, remoteCall: RemoteCall, callContext: CallContext) {
+    const functionName = processCall.name;
+    
     let logBody = {
-        component: 'semotus',
-        module: 'processCall.failure',
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        message: logString,
         data: {
+            message: message,
+            activity: activity,
             call: remoteCall.name,
             callTime: logTime(callContext),
             sequence: remoteCall.sequence,
-            message: undefined
-        },
-        activity: undefined
+        }
     };
 
-    logBody.activity = activity;
-
-    if (logger.data) {
-        logBody.data.message = message;
-    }
-
-    logger[logType](logBody, logString);
+    logger[logType](logBody);
 }

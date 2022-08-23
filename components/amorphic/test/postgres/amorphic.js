@@ -62,8 +62,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
 
     // need to inject the amorphicStatic send to log because due to loading up both client and server in the same module resolution
-    // we override our sendToLog with the the clients sometimes
-    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, sendToLog, statsClient);
+    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, undefined, statsClient);
     var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     var controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
