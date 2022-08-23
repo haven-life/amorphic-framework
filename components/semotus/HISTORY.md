@@ -1,3 +1,5 @@
+## 7.0.0
+* update semotus to use client passed logger.
 ## 6.0.1
 * bump nconf version due to security vulnerability.
 ## 6.0.0

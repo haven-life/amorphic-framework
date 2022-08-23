@@ -3,11 +3,12 @@
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
 let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
-let logMessage = require('./utils/logger').logMessage;
 let startApplication = require('./startApplication').startApplication;
 let SupertypeSession = require('@haventech/supertype').SupertypeSession;
 let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
 let resolveVersions = require('./listen').resolveVersions;
+
+const moduleName = `amorphic/lib/startPersistorMode`;
 
 const packageVersions = resolveVersions([
 	'@haventech/supertype',
@@ -21,17 +22,43 @@ packageVersions['amorphic'] = require('../../package.json').version;
  * asynchronous start persistor function (returns a promise)
  *
  * @param {unknown} appDirectory unknown
- * @param {unknown} sendToLogFunction unknown
+ * @param {unknown} logger unknown
  * @param {unknown} statsdClient unknown
  * @param {unknown} configStore unknown
  */
-function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, configStore = null) {
+function startPersistorMode(appDirectory, logger, statsdClient, configStore = null) {
+	const functionName = startPersistorMode.name;
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
-	if (typeof sendToLogFunction === 'function') {
-		AmorphicContext.appContext.sendToLog = sendToLogFunction;
-		SupertypeSession.logger.setLogger(sendToLogFunction);
+	if (typeof logger === 'function') {
+		const message = 'sendToLog is deprecated, please pass in a valid bunyan logger instead of sendToLog function';
+		SupertypeSession.logger.error({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			error: { isHumanRelated: true },
+			message
+		});
+		throw new Error(message);
+	}
+
+	if (logger && typeof logger === 'object' && 
+			(typeof logger.info === 'function' &&
+            typeof logger.error === 'function' &&
+            typeof logger.debug === 'function' &&
+            typeof logger.warn === 'function'  &&
+			typeof logger.child === 'function')) {
+			SupertypeSession.logger.setLogger(logger);
+	}
+    else {
+		SupertypeSession.logger.warn({
+			module: moduleName,
+			function: functionName,
+			category: 'request',
+			error: { isHumanRelated: true },
+			message: 'A valid bunyan logger was not passed at initialization. Defaulting to internal supertype logger.'
+		});
 	}
 
 	buildStartUpParams(configStore);
@@ -50,7 +77,12 @@ function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, confi
 	let sanitizedAmorphicOptions = Object.assign({}, amorphicOptions);
 	delete sanitizedAmorphicOptions.sessionSecret;
 
-	logMessage('Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions));
+	SupertypeSession.logger.info({
+		module: moduleName,
+		function: functionName,
+		category: 'milestone',
+		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
+	});
 
 	// Initialize applications
 	let appList = amorphicOptions.appList;
@@ -65,13 +97,25 @@ function startPersistorMode(appDirectory, sendToLogFunction, statsdClient, confi
 
 	return Promise.all(promises)
 		.then(function logStart() {
-			logMessage('Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ');
+			let msg = 'Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ';
 			for (let packageVer in packageVersions) {
-				logMessage(packageVer + ': ' + packageVersions[packageVer]);
+				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';
 			}
+			SupertypeSession.logger.info({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: msg
+			});
 		})
 		.catch(function error(e) {
-			logMessage(e.message + ' ' + e.stack);
+			SupertypeSession.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: 'Error encountered while initializing amorphic in PersistorMode',
+				error: e
+			});
 		});
 }
 

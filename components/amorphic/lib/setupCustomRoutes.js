@@ -1,8 +1,13 @@
 'use strict';
 
+let SupertypeSession = require('@haventech/supertype').SupertypeSession;
+
 const fs = require('fs');
 
+const moduleName = `amorphic/lib/setupCustomRoutes`;
+
 function setupCustomRoutes(filePath, router) {
+    const functionName = setupCustomRoutes.name;
     const routerFilePath = `${filePath}/routers/index.js`;
 
     let routers;
@@ -13,7 +18,12 @@ function setupCustomRoutes(filePath, router) {
         const exportedRouterFunctions = Object.keys(routers);
 
         if(exportedRouterFunctions.length === 0) {
-            console.warn('A custom router file was defined, but no exported functions were found. Using default amorphic routes');
+            SupertypeSession.logger.warn({
+                module: moduleName,
+                function: functionName,
+                category: 'milestone',
+                message: 'A custom router file was defined, but no exported functions were found. Using default amorphic routes'
+            });
             return;
         }
 
@@ -21,14 +31,24 @@ function setupCustomRoutes(filePath, router) {
         for (const routerFunction of exportedRouterFunctions) {
 
             if (typeof routers[routerFunction] === 'function') {
-                console.debug('Evaluating router: ' + routerFunction);
+                SupertypeSession.logger.debug({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Evaluating router: ' + routerFunction
+                });
                 routers[routerFunction](router);
             }
         }
 
         return router;
     } else {
-        console.info('No custom routes found to process.');
+        SupertypeSession.logger.info({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: 'No custom routes found to process.'
+        });
         return router;
     }
 }
