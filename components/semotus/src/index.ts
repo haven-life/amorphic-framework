@@ -34,6 +34,8 @@ import * as ChangeGroups from './helpers/ChangeGroups';
 import {Request, Response} from 'express';
 import {processCall} from "./helpers/ProcessCall";
 
+const moduleName = `semotus/src/index`;
+
 declare var define;
 
 // @TODO: Check if we attach Promise as a keyword in the webpack build
@@ -87,6 +89,7 @@ declare var define;
 	 * @param {unknown} data unknown
 	 */
 	RemoteObjectTemplate.log = function log(level, data) {
+		const functionName = log.name;
 		// OBSOLETE
 		if (level > this.logLevel) {
 			return;
@@ -113,7 +116,47 @@ declare var define;
 
 		const message = time + '(' + this.currentSession + extraID + ') ' + 'RemoteObjectTemplate:' + data;
 
-		this.logger.info(message);
+		let logObject: any = {};
+		logObject.data = {};
+		if (typeof data === 'object') {
+			logObject = Object.assign({}, !(data instanceof Error) ? data : {});
+			logObject.data = {};
+			if (data && (data instanceof Error || Object.keys(data).includes('error'))) {
+				logObject.error = data instanceof Error ? data : data.error;
+			}
+			if (Object.keys(data).includes('data') && typeof data.data === 'object') {
+				logObject.data = Object.assign({}, data.data);
+			}
+		} else if (typeof data === 'string') {
+			logObject.message = message;
+		}
+		logObject.data.time = time;
+		logObject.data.currentSession = this.currentSession;
+		logObject.data.extraID = extraID;
+
+        switch (level) {
+            case 0:
+                this.logger.error(logObject);
+                return;
+            case 1:
+                this.logger.warn(logObject);
+                return;
+            case 2:
+                this.logger.info(logObject);
+                return;
+            case 3:
+                this.logger.debug(logObject);
+                return;
+            default:
+				this.logger.warn({
+					module: moduleName,
+					function: functionName,
+					category: 'request',
+					message: 'invalid level, using info'
+				});
+				this.logger.info(logObject);
+                return;
+        }
 	};
 
 	/**
@@ -255,6 +298,7 @@ declare var define;
 			return;
 		}
 
+		let functionName = RemoteObjectTemplate.processMessage.name;
 		let callContext;
 		let hadChanges = 0;
         const session = Sessions.get(this);
@@ -263,28 +307,39 @@ declare var define;
 		switch (remoteCall.type) {
 			case 'ping':
 				this.logger.info({
-					component: 'semotus',
-					module: 'processMessage',
-					activity: 'ping'
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					data: {
+						activity: 'ping'
+					}
 				});
 				session.sendMessage({ type: 'pinged', sync: true, value: null, name: null, changes: null });
 				break;
 
 			case 'sync':
-				this.logger.info({ component: 'semotus', module: 'processMessage', activity: 'sync' });
+				this.logger.info({
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					data: {
+						activity: 'sync'
+					}
+				});
 
 				// Apply any pending changes passed along as part of the call and then either
 				// Call the method, sending back the result in a response message
 				// or return an error response so the caller will roll back
 				if (!this._applyChanges(JSON.parse(remoteCall.changes), this.role == 'client', subscriptionId)) {
-					this.logger.error(
-						{
-							component: 'semotus',
-							module: 'processMessage',
+					this.logger.error({
+						module: moduleName,
+						function: functionName,
+						category: 'milestone',
+						message: 'Could not apply changes on sync message',
+						data: {
 							activity: 'syncError'
-						},
-						'Could not apply changes on sync message'
-					);
+						}
+					});
 					this._convertArrayReferencesToChanges();
 					this._deleteChanges();
 					this._processQueue();
@@ -301,18 +356,16 @@ declare var define;
 						if (this.memSession.semotus.callStartTime + this.maxCallTime > new Date().getTime()) {
 							delay(5000).then(
 								function a() {
-									this.logger.warn(
-										{
-											component: 'semotus',
-											module: 'processMessage',
-											activity: 'blockingCall',
-											data: {
-												call: remoteCall.name,
-												sequence: remoteCall.sequence
-											}
-										},
-										remoteCall.name
-									);
+									this.logger.warn({
+										module: moduleName,
+										function: functionName,
+										category: 'milestone',
+										data: {
+											call: remoteCall.name,
+											sequence: remoteCall.sequence,
+											activity: 'blockingCall'
+										}
+									});
 									session.sendMessage({
 										type: 'response',
 										sync: false,
@@ -357,24 +410,30 @@ declare var define;
 				let doProcessQueue = true;
 
 				this.logger.info({
-					component: 'semotus',
-					module: 'processMessage',
-					activity: remoteCall.type,
-					data: { call: remoteCall.name, sequence: remoteCall.sequence }
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					data: {
+						call: remoteCall.name,
+						sequence: remoteCall.sequence,
+						activity: remoteCall.type
+					}
 				});
 
 				// If we are out of sync queue up a set Root if on server.  This could occur
 				// if a session is restored but their are pending calls
 				if (!session.pendingRemoteCalls[remoteCallId]) {
-					this.logger.error(
-						{
-							component: 'semotus',
-							module: 'processMessage',
-							activity: remoteCall.type,
-							data: { call: remoteCall.name, sequence: remoteCall.sequence }
-						},
-						'No remote call pending'
-					);
+					this.logger.error({
+						module: moduleName,
+						function: functionName,
+						category: 'milestone',
+						message: 'No remote call pending',
+						data: {
+							call: remoteCall.name,
+							sequence: remoteCall.sequence,
+							activity: remoteCall.type
+						}
+					});
 				} else {
 					if (typeof remoteCall.sync !== 'undefined') {
 						if (remoteCall.sync) {
@@ -429,12 +488,17 @@ declare var define;
 		const serial = serialize.call(this, this.controller);
 		session.objects = idMap;
 		const itemsAfter = count(idMap);
+		const functionName = RemoteObjectTemplate.serializeAndGarbageCollect.name;
 
 		this.logger.debug({
-			component: 'semotus',
-			module: 'serializeAndGarbageCollect',
-			activity: 'post',
-			data: { objectsFreed: itemsAfter - itemsBefore, sessionSizeKB: Math.floor(serial.length / 1000) }
+			module: moduleName,
+			function: functionName,
+			category: 'milestone',
+			data: { 
+				objectsFreed: itemsAfter - itemsBefore, 
+				sessionSizeKB: Math.floor(serial.length / 1000),
+				activity: 'post'
+			}
 		});
 
 		return serial;
@@ -459,15 +523,16 @@ declare var define;
 					return value;
 				});
 			} catch (e) {
-				this.logger.error(
-					{
-						component: 'semotus',
-						module: 'serializeAndGarbageCollect',
-						activity: 'post',
-						data: { last_object_ref: objectKey, last_prop_ref: propKey }
-					},
-					'Error serializing session ' + e.message + e.stack
-				);
+				this.logger.error({
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					message: 'Error serializing session ' + e.message + e.stack,
+					data: { 
+						last_object_ref: objectKey, 
+						last_prop_ref: propKey 
+					}
+				});
 				return null;
 			}
 		}
@@ -714,6 +779,7 @@ declare var define;
 		/** @type {RemoteObjectTemplate} */
 		let objectTemplate = this;
 		const self = this;
+		const functionName = RemoteObjectTemplate._setupFunction.name;
 
 		if (!role || role == this.role) {
 			if (role === 'server') {
@@ -737,10 +803,13 @@ declare var define;
 				}
 
 				self.logger.info({
-					component: 'semotus',
-					module: 'setupFunction',
-					activity: 'pre',
-					data: {call: propertyName}
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					data: {
+						activity: 'pre',
+						call: propertyName
+					}
 				});
 
 				// @TODO: remove dependency on Q for future optimizations on FE (perhaps part of ESNext effort)
@@ -781,6 +850,7 @@ declare var define;
 		objectProperties,
 		defineProperties
 	) {
+		const functionName = RemoteObjectTemplate._setupProperty.name;
 		//determine whether value needs to be re-initialized in constructor
 		let value = null;
 
@@ -929,10 +999,17 @@ declare var define;
 							return JSON.stringify(data);
 						}
 					} catch (e) {
-						objectTemplate.logger.error(
-							{ component: 'semotus', module: 'setter', activity: 'stingify', data: { property: prop } },
-							'caught exception trying to stringify ' + prop
-						);
+						objectTemplate.logger.error({
+							module: moduleName,
+							function: functionName,
+							category: 'milestone',
+							message: 'caught exception trying to stringify ' + prop,
+							data: {
+								activity: 'stingify',
+								property: prop
+							},
+							error: e
+						});
 						return data;
 					}
 				}
@@ -1425,6 +1502,7 @@ declare var define;
 	RemoteObjectTemplate._applyChanges = function applyChanges(changes, force, subscriptionId, callContext) {
         const session = Sessions.get(this);
 		const rollback = [];
+		const functionName = RemoteObjectTemplate._applyChanges.name;
 
 		this.processingSubscription = this._getSubscription(subscriptionId);
 
@@ -1450,10 +1528,15 @@ declare var define;
 					force = true;
 					obj = this._createEmptyObject(template, objId);
 				} else {
-					this.logger.error(
-						{ component: 'semotus', module: 'applyChanges', activity: 'processing' },
-						'Could not find template for ' + objId
-					);
+					this.logger.error({
+						module: moduleName,
+						function: functionName,
+						category: 'milestone',
+						message: 'Could not find template for ' + objId,
+						data: {
+							activity: 'processing'
+						}
+					});
 				}
 			}
 
@@ -1489,10 +1572,15 @@ declare var define;
 				this.processingSubscription = false;
 				this._rollback(rollback);
 				this._deleteChanges();
-				this.logger.error(
-					{ component: 'semotus', module: 'applyChanges', activity: 'processing' },
-					'Could not apply changes to ' + objId
-				);
+				this.logger.error({
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					message: 'Could not apply changes to ' + objId,
+					data: {
+						activity: 'processing'
+					}
+				});
 				this.changeString = {};
 				return 0;
 			}
@@ -1512,10 +1600,15 @@ declare var define;
 			this.processingSubscription = false;
 			this._rollback(rollback);
 			this._deleteChanges();
-			this.logger.error(
-				{ component: 'semotus', module: 'applyChanges', activity: 'validateServerIncomingObjects' },
-				'Flagged by controller to not process this change set.'
-			);
+			this.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'milestone',
+				message: 'Flagged by controller to not process this change set.',
+				data: {
+					activity: 'validateServerIncomingObjects'
+				}
+			});
 			this.changeString = {};
 			return 0;
 		}
@@ -1526,10 +1619,14 @@ declare var define;
          */
 		this.processingSubscription = null;
 		this.logger.debug({
-			component: 'semotus',
-			module: 'applyChanges',
-			activity: 'dataLogging',
-			data: { count: this.changeCount, values: this.changeString }
+			module: moduleName,
+			function: functionName,
+			category: 'milestone',
+			data: {
+				activity: 'dataLogging',
+				count: this.changeCount, 
+				values: this.changeString
+			}
 		});
 
 		if (hasObjects) {
@@ -1552,6 +1649,7 @@ declare var define;
 	 * @private
 	 */
 	RemoteObjectTemplate._applyObjectChanges = function applyObjectChanges(changes, rollback, obj, force) {
+		const functionName = RemoteObjectTemplate._applyObjectChanges.name;
 		// Go through each recorded change which is a pair of old and new values
 		for (var prop in changes[obj.__id__]) {
 			const change = changes[obj.__id__][prop];
@@ -1560,15 +1658,17 @@ declare var define;
 			const defineProperty = this._getDefineProperty(prop, obj.__template__);
 
 			if (!defineProperty) {
-				this.logger.error(
-					{
-						component: 'semotus',
-						module: 'applyObjectChanges',
-						activity: 'processing',
-						data: { template: obj.__template__.__name__, property: prop }
-					},
-					`Could not apply change to ${obj.__template__.__name__}.${prop} property not defined in template`
-				);
+				this.logger.error({
+					module: moduleName,
+					function: functionName,
+					category: 'milestone',
+					message: `Could not apply change to ${obj.__template__.__name__}.${prop} property not defined in template`,
+					data: {
+						activity: 'processing', 
+						template: obj.__template__.__name__, 
+						property: prop 
+					}
+				});
 				return false;
 			}
 
@@ -1714,6 +1814,7 @@ declare var define;
 		force
 	) {
         const session = Sessions.get(this);
+		const functionName = RemoteObjectTemplate._applyPropertyChange.name;
 		let currentValue;
 
 		// Get old, new and current value to determine if change is still applicable
@@ -1724,10 +1825,15 @@ declare var define;
 				currentValue = obj[prop];
 			}
 		} catch (e) {
-			this.logger.error(
-				{ component: 'semotus', module: 'applyPropertyChange', activity: 'processing' },
-				'Could not apply change to ' + obj.__template__.__name__ + '.' + prop + ' based on property definition'
-			);
+			this.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'milestone',
+				message: 'Could not apply change to ' + obj.__template__.__name__ + '.' + prop + ' based on property definition',
+				data: {
+					activity: 'processing'
+				}
+			});
 
 			return false;
 		}
@@ -1748,26 +1854,40 @@ declare var define;
 		// Make sure old value that is reported matches current value
 		if (!singleDirection && !force && oldValueConverted != currentValueConverted) {
 			// conflict will have to roll back
-			const conflictErrorData = { component: 'semotus', module: 'applyPropertyChange', activity: 'processing' };
 
 			const conflictErrorString =
 				`Could not apply change to ${obj.__template__.__name__}.${prop} expecting ${this.cleanPrivateValues(prop, oldValueConverted, defineProperty)} but presently ${this.cleanPrivateValues(prop, currentValueConverted, defineProperty)}`;
 
+			const conflictErrorData = { 
+				module: moduleName,
+				function: functionName,
+				category: 'milestone',
+				message: conflictErrorString,
+				data: {
+					activity: 'processing',
+				}
+			};
+
 			if (this.__conflictMode__ == 'hard') {
-				this.logger.error(conflictErrorData, conflictErrorString);
+				this.logger.error(conflictErrorData);
 				return false;
 			} else {
-				this.logger.warn(conflictErrorData, conflictErrorString);
+				this.logger.warn(conflictErrorData);
 			}
 		}
 
 		// Based on type of property we convert the value from it's string representation into
 		// either a fundamental type or a templated object, creating it if needed
         if (!Changes.accept(defineProperty, obj.__template__, this)) {
-			this.logger.error(
-				{ component: 'semotus', module: 'applyPropertyChange', activity: 'processing' },
-				`Could not accept changes to ${obj.__template__.__name__}.${prop} based on property definition`
-			);
+			this.logger.error({
+				module: moduleName,
+				function: functionName,
+				category: 'milestone',
+				message: `Could not accept changes to ${obj.__template__.__name__}.${prop} based on property definition`,
+				data: {
+					activity: 'processing'
+				}
+			});
 
 			return false;
 		}
@@ -1820,10 +1940,15 @@ declare var define;
 				if (session.objects[objId] instanceof type) {
 					newValue = session.objects[objId];
 				} else {
-					this.logger.error(
-						{ component: 'semotus', module: 'applyPropertyChange', activity: 'processing' },
-						`Could not apply change to ${obj.__template__.__name__}.${prop} - ID (${objId}) is TYPE ${session.objects[objId].__template__.__name__}`
-					);
+					this.logger.error({
+						module: moduleName,
+						function: functionName,
+						category: 'milestone',
+						message: `Could not apply change to ${obj.__template__.__name__}.${prop} - ID (${objId}) is TYPE ${session.objects[objId].__template__.__name__}`,
+						data: {
+							activity: 'processing'
+						}
+					});
 
 					return false;
 				}

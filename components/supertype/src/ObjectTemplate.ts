@@ -125,6 +125,7 @@ export class ObjectTemplate {
     static __toClient__: boolean;
     static __statsdClient__: StatsdClientInterface;
     static amorphicStatic = ObjectTemplate;
+    private static moduleName = ObjectTemplate.name;
 
     // Nconf is the SupertypeConfig object for this app, and configStore is the list of AppConfigs
     // This property is initialized in Amorphic, not in Supertype
@@ -301,6 +302,7 @@ export class ObjectTemplate {
      * @returns {*} the object template
      */
     static extend(parentTemplate, name: string | CreateTypeForName, properties) {
+        const functionName = this.extend.name;
         let props;
         let createProps;
 
@@ -330,7 +332,12 @@ export class ObjectTemplate {
             if (existingTemplate.__parent__ != parentTemplate) {
                 if (existingTemplate.__parent__.__name__ != parentTemplate.__name__) {
                     // eslint-disable-next-line no-console
-                    console.log(`WARN: Attempt to extend ${parentTemplate.__name__} as ${name} but ${name} was already extended from ${existingTemplate.__parent__.__name__}`);
+                    this.logger.warn({
+                        module: this.moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: `WARN: Attempt to extend ${parentTemplate.__name__} as ${name} but ${name} was already extended from ${existingTemplate.__parent__.__name__}`
+                    });
                 }
             }
             else {
@@ -1231,8 +1238,9 @@ function bindParams(templateName, objectTemplate, functionProperties,
     defineProperties, parentTemplate, propertiesOrTemplate,
     createProperties, objectProperties, templatePrototype,
     createTemplateNow, mixinTemplate) {
-
+    const moduleName = bindParams.name;
     function template() {
+        const functionName = template.name;
         objectTemplate.createIfNeeded(template, this);
         let templateRef: ConstructorType = <ConstructorType><Function>template;
 
@@ -1258,7 +1266,12 @@ function bindParams(templateName, objectTemplate, functionProperties,
                 Object.defineProperties(this, prunedDefineProperties); // This method will be added pre-EMCA 5
             }
         } catch (e) {
-            console.log(e); // eslint-disable-line no-console
+            objectTemplate.logger.error({
+                module: moduleName,
+                const: functionName,
+                category: 'milestone',
+                error: e
+            });
         }
 
         this.fromRemote = this.fromRemote || objectTemplate._stashObject(this, templateRef);

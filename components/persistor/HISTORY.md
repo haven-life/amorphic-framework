@@ -1,7 +1,12 @@
-## 8.1.0
+## 9.0.2
 * package-lock bump to pick up latest supertype version.
 * added test case for testing _ids during object cloning.
-# 8.0.2
+## 9.0.1
+* Added executionPromise to knex commit and rollback
+* Explicitly return promise from knex transaction
+## 9.0.0
+* update persistor to use client passed logger.
+## 8.0.2
 * bump nconf version due to security vulnerability.
 ## 8.0.1
 * Applied a short term solution to move out index updates from a transaction, so that in case of conflicts, other index creation entries are not impacted.
