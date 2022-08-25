@@ -10,10 +10,12 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
     Set up amorphic for the first time
  */
 function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp, next) {
+    const moduleName = `amorphic/lib/amorphicEntry`;
     let amorphicEntryTime = process.hrtime();
     let amorphicOptions;
     let applicationSource;
     let applicationSourceMap;
+    const functionName = amorphicEntry.name;
 
     // If we're not initalizing
     if (!req.originalUrl.match(/amorphic\/init/)) {
@@ -24,7 +26,12 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
     applicationSource = amorphicContext.applicationSource;
     applicationSourceMap = amorphicContext.applicationSourceMap;
 
-    logMessage('Requesting ' + req.originalUrl);
+    logMessage(2, {
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        message: 'Requesting ' + req.originalUrl
+    });
 
     req.amorphicTracking.loggingContext.session = req.session.id;
 
@@ -37,7 +44,6 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
     if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.cached.js.map/)) {
         appName = RegExp.$1;
 
-        req.amorphicTracking.loggingContext.app = appName;
         resp.setHeader('Content-Type', 'application/javascript');
         resp.setHeader('Cache-Control', 'public, max-age=31556926');
         resp.end(applicationSourceMap[appName]);
@@ -48,7 +54,6 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
     else if (req.originalUrl.match(/([A-Za-z0-9_-]*)\.cached.js/)) {
         appName = RegExp.$1;
 
-        req.amorphicTracking.loggingContext.app = appName;
         resp.setHeader('Content-Type', 'application/javascript');
         resp.setHeader('Cache-Control', 'public, max-age=31556926');
 
@@ -75,8 +80,12 @@ function amorphicEntry(sessions, controllers, nonObjTemplatelogLevel, req, resp,
         let url = req.originalUrl;
         appName = RegExp.$1;
 
-        req.amorphicTracking.loggingContext.app = appName;
-        logMessage('Establishing ' + appName);
+        logMessage(2, {
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: 'Establishing ' + appName
+        });
 
         establishServerSession(req, appName, 'initial', false, null, sessions, controllers, nonObjTemplatelogLevel)
             .then(function a(session) {

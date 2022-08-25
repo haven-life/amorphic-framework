@@ -11,6 +11,8 @@ let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 let superType = require('@haventech/supertype').default;
 
+const moduleName = `amorphic/lib/startApplication`;
+
 /**
  * Purpose unknown
  *
@@ -305,6 +307,7 @@ function loadTSTemplates(appName) {
  * @param {Object> classes - amorphic dictionary from getClasses()
  */
 function checkTypes(classes) {
+    const functionName = checkTypes.name;
     var classCount = 0, nullType = 0, nullOf = 0, propCount = 0;
     for (var classKey in classes) {
         ++classCount;
@@ -312,16 +315,31 @@ function checkTypes(classes) {
             var defineProperty = classes[classKey].amorphicProperties[definePropertyKey];
             if (!defineProperty.type) {
                 ++nullType;
-                console.log('Warning: ' + classKey + '.' + definePropertyKey + ' has no type');
+                logMessage(1, {
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Warning: ' + classKey + '.' + definePropertyKey + ' has no type'
+                });
             }
             if (defineProperty instanceof Array && !defineProperty.of) {
-                console.log('Warning: ' + classKey + '.' + definePropertyKey + ' has no of');
+                logMessage(1, {
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Warning: ' + classKey + '.' + definePropertyKey + ' has no of'
+                });
                 ++nullOf
             }
             ++propCount;
         }
     }
-    console.log(classCount + ' classes loaded with ' + propCount + ' properties (' + nullType + ' null types, ' + nullOf + ' null ofs)');
+    logMessage(2, {
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        message: classCount + ' classes loaded with ' + propCount + ' properties (' + nullType + ' null types, ' + nullOf + ' null ofs)'
+    });
 }
 /**
  * Build the base template based on the app config.
@@ -356,6 +374,7 @@ function buildBaseTemplate(appConfig, processTypescript) {
  * @param {Object} appTemplates - unknown
  */
 function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates) {
+    const functionName = finishDaemonIfNeeded.name;
 	if (config.serverMode === 'daemon' || config.serverMode === 'api' || config.serverMode === 'serverless') {
 		let ControllerTemplate = AmorphicContext.applicationTSController[appName] ||
 			appTemplates[prop].Controller;
@@ -364,7 +383,12 @@ function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTe
 			throw new Error('Missing controller template in ' + prefix + prop + '.js');
 		}
 		startDaemon(baseTemplate, ControllerTemplate, config);
-		logMessage(appName + ' started as a ' + config.serverMode);
+        logMessage(2, {
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            message: appName + ' started as a ' + config.serverMode
+        });
 	}
 }
 

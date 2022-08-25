@@ -123,7 +123,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
 
         const s3Conn = await this.getConnection(bucket);
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             s3Conn.deleteObject(params, (err: Error, data: S3.DeleteObjectOutput) => {
                 if (err) {
                     reject(err.message);

@@ -1,5 +1,7 @@
 import {SavedSession, Semotus, SendMessage, Session} from './Types';
 
+const moduleName = `semotus/src/helpers/Sessions`;
+
 /**
  * Obtain a session for tracking subscriptions
  *
@@ -115,7 +117,16 @@ export function sync(semotus: Semotus, sessionId) {
 export function restore(semotus: Semotus, sessionId, savedSession: SavedSession, sendMessage: SendMessage) {
     semotus.setSession(sessionId);
     const session = semotus.sessions[sessionId];
-    semotus.logger.debug({component: 'semotus', module: 'restore', activity: 'save'});
+    const functionName = restore.name;
+
+    semotus.logger.debug({
+        module: moduleName, 
+        function: functionName,
+        category: 'milestone',
+        data: {
+            activity: 'save'
+        }
+    });
 
     if (session) {
         if (session.savedSessionId == savedSession.revision) {
@@ -141,6 +152,7 @@ export function restore(semotus: Semotus, sessionId, savedSession: SavedSession,
  */
 export function save(semotus: Semotus, sessionId): SavedSession {
     const session = get(semotus, sessionId);
+    const functionName = save.name;
 
     session.nextSaveSessionId = session.nextSaveSessionId + 1;
     session.savedSessionId = session.nextSaveSessionId;
@@ -155,7 +167,14 @@ export function save(semotus: Semotus, sessionId): SavedSession {
     };
 
     session.objects = objects;
-    semotus.logger.debug({component: 'semotus', module: 'save', activity: 'save'});
+    semotus.logger.debug({
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        data: {
+            activity: 'save'
+        }
+    });
 
     return savedSession;
 }
