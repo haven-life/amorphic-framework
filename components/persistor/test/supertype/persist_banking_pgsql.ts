@@ -1036,7 +1036,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(__amorphicContext={"name":"@haventech/supertype"}foo="bar1")(__amorphicContext={"name":"@haventech/supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"@haventech/supertype"}foo="bar3")(__amorphicContext={"name":"@haventech/supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"@haventech/supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
+        var result = '(foo="bar1"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype"}}})(foo="bar2"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype","permFoo":"permBar1"}}})(foo="bar3"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype"}}})(foo="bar4"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype","permFoo":"childFoo"}}})(foo="bar5"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype"}}})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}})';
 
         expect(output).to.equal(result);
         sam.amorphic.logger = oldSendToLog;

@@ -17,6 +17,8 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  */
 
 function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
+	const moduleName = `amorphic/lib/routes/processPost`;
+	const functionName = processPost.name;
 	let processPostStartTime = process.hrtime();
 
 	let session = req.session;
@@ -48,13 +50,14 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 						);
 					})
 					.catch(function hh(e) {
-						ourObjectTemplate.logger.info(
+						ourObjectTemplate.logger.error(
 							{
-								component: 'amorphic',
-								module: 'processPost',
-								activity: 'error'
-							},
-							'Error ' + e.message + e.stack
+								module: moduleName,
+								function: functionName,
+								category: 'milestone',
+								message: 'Error encountered while establishing server session.',
+								error: e
+							}
 						);
 
 						res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -71,7 +74,17 @@ function processPost(req, res, sessions, controllers, nonObjTemplatelogLevel) {
 			}
 		})
 		.catch(function ii(error) {
-			logMessage('Error establishing session for processPost ', req.session.id, error.message + error.stack);
+			logMessage(0, {
+				module: moduleName,
+				function: functionName,
+				category: 'request',
+				message: 'Error establishing session for processPost',
+				error: error,
+				data: {
+					id: req.session.id,
+
+				}
+			});
 			res.writeHead(500, { 'Content-Type': 'text/plain' });
 			res.end('Internal Error');
 

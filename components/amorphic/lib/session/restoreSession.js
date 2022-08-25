@@ -16,6 +16,8 @@ let statsdUtils = require('@haventech/supertype').StatsdHelper;
  * @returns {unknown} unknown
  */
 function restoreSession(path, session, controller, sessions) {
+    const moduleName = `amorphic/lib/session/restoreSession`;
+    const functionName = restoreSession.name;
     let restoreSessionTime = process.hrtime();
 
     let ourObjectTemplate = getObjectTemplate(controller);
@@ -32,19 +34,30 @@ function restoreSession(path, session, controller, sessions) {
 
         if (unserialized.serializationTimeStamp !== sessionData.serializationTimeStamp) {
             ourObjectTemplate.logger.warn({
-                component: 'amorphic',
-                module: 'restoreSession',
-                activity: 'restore',
-                savedAs: sessionData.serializationTimeStamp,
-                foundToBe: unserialized.serializationTimeStamp
-            }, 'Session data not as saved');
+                module: moduleName,
+                function: functionName, 
+                category: 'milestone',
+                message: 'Session data not as saved',
+                data: {
+                    activity: 'restore',
+                    savedAs: sessionData.serializationTimeStamp,
+                    foundToBe: unserialized.serializationTimeStamp
+                }
+            });
         }
 
         if (session.semotus.objectMap && session.semotus.objectMap[path]) {
             ourObjectTemplate.objectMap = session.semotus.objectMap[path];
         }
 
-        ourObjectTemplate.logger.info({component: 'amorphic', module: 'restoreSession', activity: 'restoring'});
+        ourObjectTemplate.logger.info({
+            module: moduleName,
+            function: functionName, 
+            category: 'milestone',
+            data: {
+                activity: 'restoring'
+            }
+        });
         ourObjectTemplate.syncSession();  // Clean tracking of changes
     });
 

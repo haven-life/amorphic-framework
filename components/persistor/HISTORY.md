@@ -1,3 +1,8 @@
+## 9.0.1
+* Added executionPromise to knex commit and rollback
+* Explicitly return promise from knex transaction
+## 9.0.0
+* update persistor to use client passed logger.
 ## 8.0.2
 * bump nconf version due to security vulnerability.
 ## 8.0.1
