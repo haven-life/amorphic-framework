@@ -12,7 +12,7 @@ let readFile = require('./utils/readFile').readFile;
  *
  * @returns {unknown} unknown.
  */
-function startup(configPath, schemaPath, configStore = null) {
+function startup(configPath, schemaPath, configStore = null, externalSchemas) {
     if (!configPath) {
         throw new Error('startup(configPath, schemaPath?) called without a config path');
     }
@@ -25,7 +25,9 @@ function startup(configPath, schemaPath, configStore = null) {
     config.nconf = configStore['root']; // Global config
     config.configStore = configStore;
 
-    let schema = JSON.parse((readFile(schemaPath + '/schema.json')).toString());
+    const schemaDef = readFile(schemaPath + '/schema.json');
+    let schema = schemaDef ? JSON.parse(schemaDef).toString() : {};
+    Object.assign(schema, externalSchemas);
 
     return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema)
         .then (function a(injectObjectTemplate) {

@@ -44,7 +44,7 @@ function resolveVersions(packages) {
  * @param {unknown} postSessionInject unknown
  * @param {unknown} sendToLogFunction unknown
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null) {
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLogFunction, statsdClient, configStore = null, externalSchemas) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 
@@ -96,7 +96,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 
 	for (let appKey in appList) {
 		if (appStartList.indexOf(appKey) >= 0) {
-			promises.push(startApplication(appKey, appDirectory, appList, configStore, sessionStore));
+			promises.push(startApplication(appKey, appDirectory, appList, configStore, sessionStore, externalSchemas));
 		}
 	}
 
