@@ -26,7 +26,7 @@ function startup(configPath, schemaPath, configStore = null, externalSchemas) {
     config.configStore = configStore;
 
     const schemaDef = readFile(schemaPath + '/schema.json');
-    let schema = schemaDef ? JSON.parse(schemaDef).toString() : {};
+    let schema = schemaDef ? JSON.parse(schemaDef.toString()) : {};
     Object.assign(schema, externalSchemas);
 
     return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema)

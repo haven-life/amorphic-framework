@@ -34,7 +34,7 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
         controllerJsDir = path + '/js/';
     }
     const schemaDef = readFile(path + '/schema.json') || readFile(commonPath + '/schema.json');
-    let schema = schemaDef ? JSON.parse(schemaDef).toString() : {};
+    let schema = schemaDef ? JSON.parse(schemaDef.toString()) : {};
 
     Object.assign(schema, externalSchemas);
 
