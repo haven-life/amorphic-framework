@@ -22,7 +22,7 @@ let superType = require('@haventech/supertype').default;
  *
  * @returns {unknown} unknown
  */
-function startApplication(appName, appDirectory, appList, configStore, sessionStore) {
+function startApplication(appName, appDirectory, appList, configStore, sessionStore, externalSchemas) {
 
     let path = appDirectory + '/' + appList[appName] + '/';
     let commonPath = appDirectory + '/apps/common/';
@@ -33,8 +33,10 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
     if (config.serverMode === 'daemon' || config.serverMode === 'api') {
         controllerJsDir = path + '/js/';
     }
+    const schemaDef = readFile(path + '/schema.json') || readFile(commonPath + '/schema.json');
+    let schema = schemaDef ? JSON.parse(schemaDef).toString() : {};
 
-    let schema = JSON.parse((readFile(path + '/schema.json') || readFile(commonPath + '/schema.json')).toString());
+    Object.assign(schema, externalSchemas);
 
     let controllerPath = (config.controller || 'controller.js');
     let matches = controllerPath.match(/(.*?)([0-9A-Za-z_]*)\.js$/);
