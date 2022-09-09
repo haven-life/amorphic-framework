@@ -1,3 +1,5 @@
+## 11.0.1
+* Small update to change wording to allowlist and denylist
 ## 11.0.0
 * BREAKING CHANGES: 
     With this upgrade we have changed the way logger is used by amorphic. In the past, clients passed
@@ -10,7 +12,7 @@
 * A new `setApiContextMiddleware` middleware is also introduced to allow client passed loggers run some middleware code
 on server calls. This middleware may also have different functionalities that can be controlled using a new boolean `generateAmorphicServerLogContextIfMissing` config.
 ## 10.3.0
-* Add validator middleware to express server, config settings for whitelist, blacklist, escape
+* Add validator middleware to express server, config settings for allowlist, denylist, escape
 ## 10.2.1
 * bump nconf version due to security vulnerability.
 ## 10.2.0
