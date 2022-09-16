@@ -20,8 +20,8 @@ function processLoggingMessage(req, res) {
 	let session = req.session;
 	let message = req.body;
 
-	const validLoggingLevel = ['error', 'warn', 'info', 'debug'];
-	if(validLoggingLevel.indexOf(message.loggingLevel) === -1) {
+	const validLoggingLevel = new Set(['error', 'warn', 'info', 'debug']);
+	if(!validLoggingLevel.has(message.loggingLevel)) {
 		throw new Error(`Unsupported loggingLevel ${message.loggingLevel}`);
 	}
 
