@@ -49,7 +49,6 @@ function processLoggingMessage(req, res) {
 	});
 
 	message.loggingData.from = 'browser';
-
 	persistableSemotableTemplate.logger[message.loggingLevel](message.loggingData);
 	res.writeHead(200, { 'Content-Type': 'text/plain' });
 	res.end('');
