@@ -20,6 +20,11 @@ function processLoggingMessage(req, res) {
 	let session = req.session;
 	let message = req.body;
 
+	const validLoggingLevel = ['error', 'warn', 'info', 'debug'];
+	if(validLoggingLevel.indexOf(message.loggingLevel) === -1) {
+		throw new Error(`Unsupported loggingLevel ${message.loggingLevel}`);
+	}
+
 	let persistableSemotableTemplate = persistor(null, null, semotus);
 
 	if (!session.semotus) {
@@ -44,6 +49,7 @@ function processLoggingMessage(req, res) {
 	});
 
 	message.loggingData.from = 'browser';
+
 	persistableSemotableTemplate.logger[message.loggingLevel](message.loggingData);
 	res.writeHead(200, { 'Content-Type': 'text/plain' });
 	res.end('');
