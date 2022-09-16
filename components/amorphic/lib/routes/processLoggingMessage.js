@@ -8,6 +8,8 @@ let url = require('url');
 let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 
+const validLoggingLevel = new Set(['error', 'warn', 'info', 'debug']);
+
 /**
  * Purpose unknown
  *
@@ -20,7 +22,6 @@ function processLoggingMessage(req, res) {
 	let session = req.session;
 	let message = req.body;
 
-	const validLoggingLevel = new Set(['error', 'warn', 'info', 'debug']);
 	if(!validLoggingLevel.has(message.loggingLevel)) {
 		throw new Error(`Unsupported loggingLevel ${message.loggingLevel}`);
 	}
