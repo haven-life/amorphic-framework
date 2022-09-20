@@ -23,7 +23,9 @@ function processLoggingMessage(req, res) {
 	let message = req.body;
 
 	if(!validLoggingLevel.has(message.loggingLevel)) {
-		throw new Error(`Unsupported loggingLevel ${message.loggingLevel}`);
+		res.writeHead(400, {'Content-Type': 'text/plain'});
+		res.end(`Error: Unsupported loggingLevel ${message.loggingLevel}`);
+		return;
 	}
 
 	let persistableSemotableTemplate = persistor(null, null, semotus);
