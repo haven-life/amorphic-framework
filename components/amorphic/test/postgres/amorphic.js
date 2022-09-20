@@ -47,6 +47,7 @@ const sendToLog = SupertypeSession.logger.sendToLog;
 
 // Fire up amorphic as the client
 require('../../client.js');
+const {processLoggingMessage} = require('../../dist/lib/routes/processLoggingMessage');
 
 function afterEachDescribe(done) {
     if (amorphicContext.appContext.server) {
@@ -815,18 +816,19 @@ describe('validation', function() {
 });
 
 describe('processLoggingMessage', function() {
+    let sandbox = sinon.createSandbox();
     before(function(done) {
         return beforeEachDescribe(done, 'test', 'no');
     });
 
     beforeEach(function() {
-        sinon.spy(amorphic, '_post');
+        sandbox.spy(amorphic, '_post');
     });
 
     after(afterEachDescribe);
 
     afterEach(function() {
-        amorphic._post.restore();
+        sandbox.restore();
     });
 
     it('should post a message to the server of type "logging"', function() {
@@ -842,6 +844,54 @@ describe('processLoggingMessage', function() {
 
         expect(amorphic._post.calledOnce).to.be.true;
         expect(amorphic._post.calledWith(url, sinon.match(payload))).to.be.true;
+    });
+
+    it('should receive 200 when logging level is supported', function() {
+        const reqFake = {
+            originalUrl: 'http://localhost:3001/amorphic/xhr?path=test',
+            session: {id: 'fake-session-id'},
+            headers: [],
+            connection: {},
+            body: {
+                type: 'logging',
+                loggingLevel: 'warn',
+                loggingContext: {},
+                loggingData: { foo: 'bar' }
+            }
+        };
+        const writeHeadSpy = sandbox.spy();
+        const endSpy = sandbox.spy();
+        const res = {writeHead: writeHeadSpy, end: endSpy};
+
+        processLoggingMessage(reqFake, res);
+
+        expect(writeHeadSpy.calledOnce).to.be.true;
+        expect(writeHeadSpy.lastCall.args).to.eql([200, {'Content-Type': 'text/plain'}]);
+        expect(endSpy.calledOnce).to.be.true;
+        expect(endSpy.lastCall.args).to.eql(['']);
+    });
+
+    it('should receive 400 when logging level is not supported', function() {
+        const reqFake = {
+            originalUrl: 'http://localhost:3001/amorphic/xhr?path=test',
+            session: {id: 'fake-session-id'},
+            body: {
+                type: 'logging',
+                loggingLevel: 'get',
+                loggingContext: {},
+                loggingData: { foo: 'bar' }
+            }
+        };
+        const writeHeadSpy = sandbox.spy();
+        const endSpy = sandbox.spy();
+        const res = {writeHead: writeHeadSpy, end: endSpy};
+
+        processLoggingMessage(reqFake, res);
+
+        expect(writeHeadSpy.calledOnce).to.be.true;
+        expect(writeHeadSpy.lastCall.args).to.eql([400, {'Content-Type': 'text/plain'}]);
+        expect(endSpy.calledOnce).to.be.true;
+        expect(endSpy.lastCall.args).to.eql(['Error: Unsupported loggingLevel get']);
     });
 });
 
