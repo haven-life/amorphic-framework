@@ -826,7 +826,7 @@ describe('processLoggingMessage', function() {
     after(afterEachDescribe);
 
     afterEach(function() {
-        sinon.restore();
+        amorphic._post.restore();
     });
 
     it('should post a message to the server of type "logging"', function() {
