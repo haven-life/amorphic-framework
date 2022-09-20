@@ -25,6 +25,7 @@ function processLoggingMessage(req, res) {
 	if(!validLoggingLevel.has(message.loggingLevel)) {
 		res.writeHead(400, {'Content-Type': 'text/plain'});
 		res.end(`Error: Unsupported loggingLevel ${message.loggingLevel}`);
+
 		return;
 	}
 
