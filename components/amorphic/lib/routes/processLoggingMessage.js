@@ -8,7 +8,7 @@ let url = require('url');
 let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 
-const validLoggingLevel = new Set(['error', 'warn', 'info', 'debug']);
+const validLoggingLevel = new Set(['error', 'warn', 'info', 'debug', 'trace', 'fatal']);
 
 /**
  * Purpose unknown
