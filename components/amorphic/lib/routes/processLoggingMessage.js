@@ -8,6 +8,8 @@ let url = require('url');
 let persistor = require('@haventech/persistor');
 let semotus = require('@haventech/semotus');
 
+const validLoggingLevel = new Set(['error', 'warn', 'info', 'debug', 'trace', 'fatal']);
+
 /**
  * Purpose unknown
  *
@@ -19,6 +21,13 @@ function processLoggingMessage(req, res) {
 	let path = url.parse(req.originalUrl, true).query.path;
 	let session = req.session;
 	let message = req.body;
+
+	if(!validLoggingLevel.has(message.loggingLevel)) {
+		res.writeHead(400, {'Content-Type': 'text/plain'});
+		res.end(`Error: Unsupported loggingLevel ${message.loggingLevel}`);
+
+		return;
+	}
 
 	let persistableSemotableTemplate = persistor(null, null, semotus);
 
