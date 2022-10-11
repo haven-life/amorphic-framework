@@ -1,3 +1,5 @@
+## 11.0.1
+* Restrict loggingLevel passing to backend to log functions.
 ## 11.0.0
 * BREAKING CHANGES: 
     With this upgrade we have changed the way logger is used by amorphic. In the past, clients passed
