@@ -267,6 +267,9 @@ export class AmorphicServer {
 
         const amorphicRouter: express.Router = express.Router();
 
+        if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
+            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing}));
+        }
         amorphicRouter.use(validatorMiddleware.validateUrlParams);
         amorphicRouter.use(initializePerformance);
         amorphicRouter.use(cookieMiddleware)
@@ -278,10 +281,6 @@ export class AmorphicServer {
             .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
-        
-        if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
-            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing}));
-        }
 
         if (postSessionInject) {
             postSessionInject.call(null, this.app);

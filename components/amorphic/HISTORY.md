@@ -1,3 +1,5 @@
+## 11.0.2
+* Move logger middleware on server up the order to capture maximum logs.
 ## 11.0.1
 * Restrict loggingLevel passing to backend to log functions.
 ## 11.0.0
