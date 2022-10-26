@@ -17,10 +17,10 @@
         "uuid": "8.3.2"
     },
     "peerDependencies": {
-        "@haventech/supertype": "6.x"
+        "@haventech/supertype": "6.0.0"
     },
     "devDependencies": {
-        "@haventech/supertype": "6.x",
+        "@haventech/supertype": "6.0.0",
         "@types/bluebird": "*",
         "@types/chai": "4.3.0",
         "@types/mocha": "10.0.0",
@@ -55,7 +55,7 @@
         "compile:tests": "tsc -p ./test/supertype/tsconfig.test.json",
         "compile:all": "npm run compile && npm run compile:tests",
         "prepublishOnly": "npm run compile",
-        "test": "mocha --exit -- test/*.js",
+        "test": "mocha --timeout 10000 --exit -- test/*.js",
         "test:coverage": "nyc npm test",
         "test:debug": "mocha test/*.js --inspect-brk=0.0.0.0:5858",
         "test:docker": "docker-compose up --build",

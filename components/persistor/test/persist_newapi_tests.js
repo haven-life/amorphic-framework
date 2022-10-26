@@ -619,28 +619,31 @@ describe('persist newapi tests', function () {
         emp1.roles.push(roleTest2);
         
         var tx =  PersistObjectTemplate.beginTransaction();
-        emp1.setDirty(tx);
+        await emp1.persist({transaction: tx, cascade: true});
         await PersistObjectTemplate.commit({transaction: tx});
         const employee = await Employee.persistorFetchByQuery({name: 'EmployeeObject'});
         
-        const clonedEmp = emp1.createCopy(function(obj, prop, template){
+        const clonedEmp = employee[0].createCopy(function(obj, prop, template){
             return null;
         });
         
         expect(clonedEmp._id).to.equal(undefined);
-        expect(clonedEmp?.roles[0]?._id).to.equal(undefined);
-        expect(clonedEmp?.roles[1]?._id).to.equal(undefined);
+        expect(clonedEmp.roles[0]._id).to.equal(undefined);
+        expect(clonedEmp.roles[1]._id).to.equal(undefined);
+
         clonedEmp.name = 'ClonedEmployeeObject';
         var tx =  PersistObjectTemplate.beginTransaction();
-        clonedEmp.setDirty(tx);
+        await clonedEmp.persist({transaction: tx, cascade: true});
         await PersistObjectTemplate.commit({transaction: tx});
+        
         const employeesClonedSaved = await Employee.persistorFetchByQuery({name: 'ClonedEmployeeObject'});
+        
         expect(employeesClonedSaved.length).to.equal(1);
         expect(employeesClonedSaved[0].roles[0]._id).to.equal(clonedEmp?.roles[0]._id);
         expect(employeesClonedSaved[0].roles[1]._id).to.equal(clonedEmp?.roles[1]._id);
         expect(employeesClonedSaved[0].roles[0]._id).to.not.equal(employeesClonedSaved[0].roles[1]._id);
-        expect(employee[0]?._id).to.not.equal(employeesClonedSaved[0]?._id);
-        expect(employee[0]?.roles[0]?._id).to.not.equal(employeesClonedSaved[0]?.roles[0]?._id);
-        expect(employee[0]?.roles[1]?._id).to.not.equal(employeesClonedSaved[0]?.roles[1]?._id);
+        expect(employee[0]._id).to.not.equal(employeesClonedSaved[0]._id);
+        expect(employee[0].roles[0]._id).to.not.equal(employeesClonedSaved[0].roles[0]._id);
+        expect(employee[0].roles[1]._id).to.not.equal(employeesClonedSaved[0].roles[1]._id);
     });
 });
