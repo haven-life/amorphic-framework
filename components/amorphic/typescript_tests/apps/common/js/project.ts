@@ -1,9 +1,9 @@
-import {Supertype, supertypeClass, property, Remoteable, Persistable}  from '../../../../dist/index.js';
+import {Supertype, supertypeClass, property, Remoteable, Persistable, Bindable}  from '../../../../dist/index.js';
 import {Person} from './person';
 import {Ticket} from './ticket';
 console.log("Compiling Project");
 @supertypeClass
-export class Project extends Remoteable(Persistable(Supertype)) {
+export class Project extends Persistable(Remoteable(Bindable(Supertype))) {
 
 	// Name
 	@property({length: 40, rule: ["name", "required"]})

@@ -1,14 +1,13 @@
-import {Supertype, supertypeClass, property, remote, Remoteable, Persistable}  from '../../../../dist/index.js';
-import {Person} from './person';
+import {Supertype, supertypeClass, property, remote, Remoteable, Persistable, Bindable}  from '../../../../dist/index.js';
 import {Project} from './project';
 import {TicketItemComment} from './ticketItemComment';
 import {TicketItem} from './ticketItem';
-import {Created, Constructable} from './created'
+import {Created} from './created'
 console.log("Compiling Ticket");
 @supertypeClass
 
 
-export class Ticket  extends Created(Remoteable(Persistable(Supertype))){
+export class Ticket  extends (Created(Persistable(Remoteable(Bindable(Supertype))))) {
 
     @property({rule: ['required']})
     title:			string;
