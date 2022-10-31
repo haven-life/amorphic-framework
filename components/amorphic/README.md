@@ -76,23 +76,23 @@ The Amorphic server has validation middleware that will validate requests coming
 There are four fields to put in the config.json for the amorphic app. These fields are:
 
 ```
-    validatorAllowList: characters that are allowed in the request, a white list
-    validatorDenyList: characters that are not allowed in the request, a black list
-    validatorLog: boolean for logging whenever a request is blacklisted, whitelisted, or has HTML values escaped
+    validatorAllowList: characters that are allowed in the request
+    validatorDenyList: characters that are not allowed in the request
+    validatorLog: boolean for logging whenever a request is denylisted, allowlisted, or has HTML values escaped
     validatorEscapeHTML: boolean for allowing HTML characters to be escaped
 ```
 
-The whitelist and blacklist fields follow the format here: https://www.npmjs.com/package/validator
+The allowlist and denylist fields follow the format here: https://www.npmjs.com/package/validator
 
-The whitelist field is especially dangerous to use as it will only allow characters that match the format to pass the validator.
+The allowlist field is especially dangerous to use as it will only allow characters that match the format to pass the validator.
 
-The blacklist field also has certain characters that should not be blocked, such as '-', as that will most likely corrupt the amorphic message and cause problems.
+The denylist field also has certain characters that should not be blocked, such as '-', as that will most likely corrupt the amorphic message and cause problems.
 
-The order that this validation is performed is blacklist, escape, whitelist.
+The order that this validation is performed is denylist, escape, allowlist.
 
 The config.json found for the amorphic postgres unit test found here: components/amorphic/test/postgres/apps/test/config.json, contains examples of how these fields should be used.
 
-There is also a counter under statsd for 'amorphic.server.validator.whitelist.counter', 'amorphic.server.validator.blacklist.counter', and 'amorphic.server.validator.escape.counter' that will count the times requests are blacklisted, whitelisted, or escaped.
+There is also a counter under statsd for 'amorphic.server.validator.allowlist.counter', 'amorphic.server.validator.denylist.counter', and 'amorphic.server.validator.escape.counter' that will count the times requests are denylisted, allowlisted, or escaped.
 
 ## Testing
 

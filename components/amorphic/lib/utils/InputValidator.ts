@@ -103,13 +103,13 @@ export class InputValidator {
         const validatorEscapeHTML = getBoolean(appConfig.appConfig.validatorEscapeHTML);
     
         if (denyList) {
-            value = this.logAndCounterValue(value, validator.blacklist(value, denyList), validatorLog, 'blacklist', { denyList: denyList });
+            value = this.logAndCounterValue(value, validator.blacklist(value, denyList), validatorLog, 'denylist', { denyList: denyList });
         }
         if (validatorEscapeHTML) {
             value = this.logAndCounterValue(value, validator.escape(value), validatorLog, 'escape', {});
         }
         if (allowList) {
-            value = this.logAndCounterValue(value, validator.whitelist(value, allowList), validatorLog, 'whitelist', { allowList: allowList });
+            value = this.logAndCounterValue(value, validator.whitelist(value, allowList), validatorLog, 'allowlist', { allowList: allowList });
         }
 
         return value;
