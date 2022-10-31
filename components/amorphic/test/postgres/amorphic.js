@@ -843,6 +843,30 @@ describe('processLoggingMessage', function() {
         expect(amorphic._post.calledOnce).to.be.true;
         expect(amorphic._post.calledWith(url, sinon.match(payload))).to.be.true;
     });
+
+    it('should receive 200 when logging level is supported', function() {
+        return axios.post('http://localhost:3001/amorphic/xhr?path=test', {
+            type: 'logging',
+            loggingLevel: 'warn',
+            loggingContext: {},
+            loggingData: {foo: 'bar'}
+        }).catch(function (response) {
+            expect(response.response.status).to.eql(200);
+            expect(response.response.data).to.eql('');
+        });
+    });
+
+    it('should receive 400 when logging level is not supported', function() {
+        return axios.post('http://localhost:3001/amorphic/xhr?path=test', {
+            type: 'logging',
+            loggingLevel: 'get',
+            loggingContext: {},
+            loggingData: {foo: 'bar'}
+        }, {}).catch(function (response) {
+            expect(response.response.status).to.eql(400);
+            expect(response.response.data).to.eql('Error: Unsupported loggingLevel get');
+        });
+    });
 });
 
 describe('source mode prod testing', function () {

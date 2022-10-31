@@ -1,5 +1,7 @@
-## 11.0.1
+## 11.0.2
 * Small update to change wording to allowlist and denylist
+## 11.0.1
+* Restrict loggingLevel passing to backend to log functions.
 ## 11.0.0
 * BREAKING CHANGES: 
     With this upgrade we have changed the way logger is used by amorphic. In the past, clients passed
