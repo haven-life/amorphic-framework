@@ -1,3 +1,5 @@
+## 7.0.1
+* package-lock bump to pick up latest supertype version.
 ## 7.0.0
 * update semotus to use client passed logger.
 ## 6.0.1
