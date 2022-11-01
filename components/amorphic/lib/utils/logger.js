@@ -1,6 +1,8 @@
 'use strict';
-let AmorphicContext = require('../AmorphicContext');
 let os = require('os');
+let SupertypeSession = require('@haventech/supertype').SupertypeSession;
+
+const moduleName = `amorphic/lib/utils/logger`;
 
 //TODO: Switch these over to be logs.
 
@@ -14,7 +16,7 @@ let os = require('os');
  * @param {unknown} data unknown
  * @param {unknown} logLevel unknown
  */
-function log(level, sessionId, data, logLevel) {
+function log(level, sessionId, logObjectParam, logLevel) {
     if (level > logLevel) {
         return;
     }
@@ -25,9 +27,28 @@ function log(level, sessionId, data, logLevel) {
     let time = t.getFullYear() + '-' + (t.getMonth() + 1) + '-' + t.getDate() + ' ' +
     t.toTimeString().replace(/ .*/, '') + ':' + t.getMilliseconds();
 
-    let message = (time + '(' + sessionId + ') ' + 'Semotus:' + data);
+    let logObject = {};
+    if (typeof data === 'string') {
+        logObject.data = {};
+        logObject.message = (time + '(' + sessionId + ') ' + 'Semotus:' + logObjectParam);
+        logObject.data.amorphicGeneratedTime = time;
+        if (sessionId) {
+            logObject.context = {};
+            logObject.context.sessionId = sessionId;
+        }
+        
+    }
+    else {
+        logObject = logObjectParam;
+        if (time) {
+            logObject.data ? logObject.data.amorphicGeneratedTime = time : logObject.data = { amorphicGeneratedTime: time };
+        }
+        if (sessionId) {
+            logObject.context ? logObject.context.sessionId = sessionId : logObject.context = { sessionId: sessionId };
+        }
+    }
 
-    logMessage(message);
+    logMessage(level, logObject);
 }
 
 
@@ -36,8 +57,45 @@ function log(level, sessionId, data, logLevel) {
  * NOTE: Default function for sendToLog that is passed to us as the log function to use.
  * @param {String} message A message to be printed to the console.
  */
-function logMessage(message) {
-    console.log(message);
+function logMessage(...args) {
+    const functionName = logMessage.name;
+    if (typeof args[0] === 'number') {
+        let level = args[0];
+        switch (level) {
+            case 0:
+                SupertypeSession.logger.error(...args.slice(1));
+                return;
+            case 1:
+                SupertypeSession.logger.warn(...args.slice(1));
+                return;
+            case 2:
+                SupertypeSession.logger.info(...args.slice(1));
+                return;
+            case 3:
+                SupertypeSession.logger.debug(...args.slice(1));
+                return;
+            default:
+                SupertypeSession.logger.error({
+                    module: moduleName,
+                    function: functionName,
+                    category: 'request',
+                    message: 'invalid level used',
+                    data: {
+                        level: level,
+                        log: args.slice(1)
+                    }
+                });
+                return;
+        }
+    } else {
+        SupertypeSession.logger.warn({
+            module: moduleName,
+            function: functionName,
+            category: 'request',
+            message: 'no level specified, using info'
+        });
+        SupertypeSession.logger.info(...args);
+    }
 }
 
 /**
@@ -50,17 +108,20 @@ function logMessage(message) {
  */
 function getLoggingContext(app, context) {
     context = context || {};
-    context.environment = process.env.NODE_ENV || 'local';
-    context.name = app;
-    context.hostname = os.hostname();
-    context.pid = process.pid;
-
+    //Assumtion is that passed client logger will have these properties set 
+    if (!SupertypeSession.logger.clientLogger) {
+        context.environment = process.env.NODE_ENV || 'local';
+        context.name = app;
+        context.hostname = os.hostname();
+        context.pid = process.pid;
+    }
+    
     return context;
 }
 
 /**
- * To setup the logger based on a sendToLog function that is passed in from the application
- * to the listen function.
+ * Uses the SupertypeLogger to start the context and level for logger. 
+ * To specify an internal logger, use setLogger on SupertypeLogger
  *
  * @param {unknown} logger unknown
  * @param {unknown} path unknown
@@ -70,10 +131,6 @@ function getLoggingContext(app, context) {
 function setupLogger(logger, path, context, applicationConfig) {
     logger.startContext(context);
     logger.setLevel(applicationConfig[path].logLevel);
-
-    if (AmorphicContext.appContext.sendToLog) {
-        logger.sendToLog = AmorphicContext.appContext.sendToLog;
-    }
 }
 
 module.exports = {

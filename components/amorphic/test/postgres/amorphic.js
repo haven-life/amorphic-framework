@@ -62,8 +62,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
 
     // need to inject the amorphicStatic send to log because due to loading up both client and server in the same module resolution
-    // we override our sendToLog with the the clients sometimes
-    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, sendToLog, statsClient);
+    serverAmorphic.listen(__dirname + '/', undefined, undefined, undefined, undefined, statsClient);
     var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     var controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
@@ -843,6 +842,30 @@ describe('processLoggingMessage', function() {
 
         expect(amorphic._post.calledOnce).to.be.true;
         expect(amorphic._post.calledWith(url, sinon.match(payload))).to.be.true;
+    });
+
+    it('should receive 200 when logging level is supported', function() {
+        return axios.post('http://localhost:3001/amorphic/xhr?path=test', {
+            type: 'logging',
+            loggingLevel: 'warn',
+            loggingContext: {},
+            loggingData: {foo: 'bar'}
+        }).catch(function (response) {
+            expect(response.response.status).to.eql(200);
+            expect(response.response.data).to.eql('');
+        });
+    });
+
+    it('should receive 400 when logging level is not supported', function() {
+        return axios.post('http://localhost:3001/amorphic/xhr?path=test', {
+            type: 'logging',
+            loggingLevel: 'get',
+            loggingContext: {},
+            loggingData: {foo: 'bar'}
+        }, {}).catch(function (response) {
+            expect(response.response.status).to.eql(400);
+            expect(response.response.data).to.eql('Error: Unsupported loggingLevel get');
+        });
     });
 });
 
