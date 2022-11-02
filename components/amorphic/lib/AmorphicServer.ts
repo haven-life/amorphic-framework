@@ -2,6 +2,7 @@
 let AmorphicContext = require('./AmorphicContext');
 let uploadRouter = require('./routers/uploadRouter').uploadRouter;
 let initializePerformance = require('./utils/initializePerformance').initializePerformance;
+let loggerApiContextMiddleware = require('./utils/loggerApiContextMiddleware').loggerApiContextMiddleware;
 let amorphicEntry = require('./amorphicEntry').amorphicEntry;
 let postRouter = require('./routers/postRouter').postRouter;
 let downloadRouter = require('./routers/downloadRouter').downloadRouter;
@@ -267,13 +268,11 @@ export class AmorphicServer {
 
         const amorphicRouter: express.Router = express.Router();
 
-        if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
-            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing}));
-        }
-        amorphicRouter.use(validatorMiddleware.validateUrlParams);
-        amorphicRouter.use(initializePerformance);
         amorphicRouter.use(cookieMiddleware)
             .use(expressSesh)
+            .use(loggerApiContextMiddleware.bind(null, generateContextIfMissing))
+            .use(validatorMiddleware.validateUrlParams)
+            .use(initializePerformance)
             .use(uploadRouter.bind(null, downloads))
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)
