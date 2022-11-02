@@ -24,10 +24,18 @@ function startup(configPath, schemaPath, configStore = null, externalSchemas) {
 
     config.nconf = configStore['root']; // Global config
     config.configStore = configStore;
-
-    const schemaDef = readFile(schemaPath + '/schema.json');
-    let schema = schemaDef ? JSON.parse(schemaDef.toString()) : {};
-    Object.assign(schema, externalSchemas);
+    let schema = null;
+    if (externalSchemas) {
+        schema = externalSchemas;
+    }
+    else {
+        const schemaDef = readFile(schemaPath + '/schema.json');
+        schema = schemaDef ? JSON.parse(schemaDef.toString()) : schema;
+    }
+    
+    if (!schema) {
+        throw new Error('schema definitions are not provided and are not available in the schemPath provided');
+    }
 
     return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema)
         .then (function a(injectObjectTemplate) {

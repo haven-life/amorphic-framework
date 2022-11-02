@@ -35,10 +35,19 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
     if (config.serverMode === 'daemon' || config.serverMode === 'api') {
         controllerJsDir = path + '/js/';
     }
-    const schemaDef = readFile(path + '/schema.json') || readFile(commonPath + '/schema.json');
-    let schema = schemaDef ? JSON.parse(schemaDef.toString()) : {};
-
-    Object.assign(schema, externalSchemas);
+    
+    let schema = null;
+    if (externalSchemas) {
+        schema = externalSchemas;
+    }
+    else {
+        const schemaDef = readFile(path + '/schema.json') || readFile(commonPath + '/schema.json');
+        schema = schemaDef ? JSON.parse(schemaDef.toString()) : schema;
+    }
+    
+    if (!schema) {
+        throw new Error('schema definitions are not provided and are not available in either common folder or schemaPath provided');
+    }
 
     let controllerPath = (config.controller || 'controller.js');
     let matches = controllerPath.match(/(.*?)([0-9A-Za-z_]*)\.js$/);

@@ -1,4 +1,6 @@
 ## 9.0.2
+* cloning knex object when capturing the sqls to avoid "Update called multiple times with objects." warning.
+## 9.0.2
 * package-lock bump to pick up latest supertype version.
 * added test case for testing _ids during object cloning.
 ## 9.0.1
