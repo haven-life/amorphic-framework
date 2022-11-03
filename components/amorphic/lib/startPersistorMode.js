@@ -80,7 +80,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 	SupertypeSession.logger.info({
 		module: moduleName,
 		function: functionName,
-		category: 'milestone',
+		category: 'availability',
 		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
 	});
 

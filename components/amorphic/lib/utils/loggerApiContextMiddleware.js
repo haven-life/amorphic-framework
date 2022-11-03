@@ -11,13 +11,32 @@ let SupertypeSession = require('@haventech/supertype').SupertypeSession;
  * @param {unknown} next unknown
  */
 function loggerApiContextMiddleware(generateContextIfMissing, req, res, next) {
-    if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
-        SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing});
-    }
     
+    if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
+        if (res.locals && res.locals.__loggerRequestContext) {
+            const context = res.locals.__loggerRequestContext;
+            SupertypeSession.logger.clientLogger.setContextFromSourceMiddleware({generateContextIfMissing, context}, next);
+            res.locals = {
+                __loggerRequestContext: undefined
+            };
+        }
+    }
+    else {
+        next();
+    }
+}
+
+function saveCurrentLoggerContext(req, res, next) {
+    if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
+        const context = SupertypeSession.logger.clientLogger.getContextFromLocalStorage();
+        res.locals = {
+            __loggerRequestContext: context
+        };
+    }
     next();
 }
 
 module.exports = {
-    loggerApiContextMiddleware: loggerApiContextMiddleware
+    loggerApiContextMiddleware: loggerApiContextMiddleware,
+    saveCurrentLoggerContext: saveCurrentLoggerContext
 };
