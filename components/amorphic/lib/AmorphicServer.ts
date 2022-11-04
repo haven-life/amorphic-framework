@@ -10,8 +10,7 @@ let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownl
 let setupCustomRoutes = require('./setupCustomRoutes').setupCustomRoutes;
 let setupCustomMiddlewares = require('./setupCustomMiddlewares').setupCustomMiddlewares;
 let validatorMiddleware = require('./utils/InputValidator').InputValidator;
-let loggerApiContextMiddleware = require('./utils/loggerApiContextMiddleware').loggerApiContextMiddleware;
-let saveCurrentLoggerContext = require('./utils/loggerApiContextMiddleware').saveCurrentLoggerContext;
+let loggerApiContextMiddleware = require('./utils/LoggerApiContextProcessor').LoggerApiContextProcessor;
 
 let nonObjTemplatelogLevel = 1;
 
@@ -270,14 +269,16 @@ export class AmorphicServer {
         const amorphicRouter: express.Router = express.Router();
 
         if (SupertypeSession.logger.clientLogger && typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function') {
-            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing}));
+            amorphicRouter.use(SupertypeSession.logger.clientLogger.setApiContextMiddleware({generateContextIfMissing}))
+                .use(loggerApiContextMiddleware.saveCurrentRequestContext);
         }
+
         amorphicRouter.use(validatorMiddleware.validateUrlParams);
         amorphicRouter.use(initializePerformance);
         amorphicRouter.use(cookieMiddleware)
-            .use(saveCurrentLoggerContext)
+            .use(loggerApiContextMiddleware.saveCurrentLoggerContext)
             .use(expressSesh)
-            .use(loggerApiContextMiddleware.bind(null, false))
+            .use(loggerApiContextMiddleware.applyloggerApiContextMiddleware.bind(null,false))
             .use(uploadRouter.bind(null, downloads))
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)

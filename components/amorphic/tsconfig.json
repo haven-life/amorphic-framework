@@ -1,7 +1,8 @@
 {
   "files": [
     "./lib/AmorphicServer.ts",
-    "./lib/utils/InputValidator.ts"
+    "./lib/utils/InputValidator.ts",
+    "./lib/utils/LoggerApiContextProcessor"
   ],
   "compilerOptions": {
     "module": "commonjs",
