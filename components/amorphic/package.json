@@ -54,7 +54,7 @@
 		"lint": "eslint .",
 		"prepublishOnly": "npm run build",
 		"recreateDist": "rm -rf ./dist/ && mkdir ./dist/",
-		"test": "mocha test/* --exit",
+		"test": "mocha --timeout 10000 test/* --exit",
 		"test:docker": "docker-compose up --build",
 		"test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",
 		"test:trace": "nyc npm run test",

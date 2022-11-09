@@ -15,6 +15,7 @@ export class LoggerApiContextProcessor {
                     module: moduleName,
                     function: 'applyloggerApiContextMiddleware',
                     category: 'milestone',
+                    message: `retreive and propagete logger's context object`,
                     data: {
                         loggerContext: context,
                         req: req.body && req.body.loggingContext && req.body.loggingContext.requestID
@@ -43,6 +44,7 @@ export class LoggerApiContextProcessor {
                 module: moduleName,
                 function: 'saveCurrentLoggerContext',
                 category: 'milestone',
+                message: `save current Logger's context object`,
                 data: {
                     context: res.locals.__loggerRequestContext,
                     req: req.body && req.body.loggingContext && req.body.loggingContext.requestID
@@ -61,6 +63,7 @@ export class LoggerApiContextProcessor {
             module: moduleName,
             function: 'saveCurrentRequestContext',
             category: 'milestone',
+            message: `save request's logging context`,
             data: {
                 context
             }
