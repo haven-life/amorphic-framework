@@ -1,5 +1,5 @@
 ## 11.1.0
-* Schemas can be injected in the app initialization process.
+* Schemas can be injected in the app initialization process. Get more details from README.md.
 ## 11.0.1
 * Restrict loggingLevel passing to backend to log functions.
 ## 11.0.0
