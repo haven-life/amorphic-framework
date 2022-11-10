@@ -17,26 +17,13 @@ function startup(configPath, schemaPath, configStore = null, externalSchemas) {
         throw new Error('startup(configPath, schemaPath?) called without a config path');
     }
 
-    schemaPath = schemaPath || configPath;
-
-	configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);
+    configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);
     let config = configStore['root'].get();
 
     config.nconf = configStore['root']; // Global config
     config.configStore = configStore;
-    let schema = null;
-    if (externalSchemas) {
-        schema = externalSchemas;
-    }
-    else {
-        const schemaDef = readFile(schemaPath + '/schema.json');
-        schema = schemaDef ? JSON.parse(schemaDef.toString()) : schema;
-    }
+    const schema = startApplication.loadSchema(schemaPath, configPath, externalSchemas);
     
-    if (!schema) {
-        throw new Error('schema definitions are not provided and are not available in the schemPath provided');
-    }
-
     return startApplication.setUpInjectObjectTemplate('__noapp__', config, schema)
         .then (function a(injectObjectTemplate) {
             return injectObjectTemplate(this);
