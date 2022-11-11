@@ -10,8 +10,8 @@ export class LoggerApiContextProcessor {
         if (clientLogger && typeof clientLogger.setApiContextMiddleware === 'function' && res.locals && res.locals.__loggerRequestContext) {
             const context = res.locals.__loggerRequestContext;
             if (context) {
-                SupertypeSession.logger.clientLogger.setContextFromSourceMiddleware({generateContextIfMissing, context}, next);
-                SupertypeSession.logger.clientLogger.debug({
+                clientLogger.setContextFromSourceMiddleware({generateContextIfMissing, context}, next);
+                clientLogger.debug({
                     module: moduleName,
                     function: 'applyloggerApiContextMiddleware',
                     category: 'milestone',
@@ -40,7 +40,7 @@ export class LoggerApiContextProcessor {
                 __loggerRequestContext: context
             };
             
-            SupertypeSession.logger.clientLogger.debug({
+            clientLogger.debug({
                 module: moduleName,
                 function: 'saveCurrentLoggerContext',
                 category: 'milestone',
@@ -55,8 +55,11 @@ export class LoggerApiContextProcessor {
     }
 
     public static saveCurrentRequestContext(req, res, next) {
-        const context = req && req.body && req.body.loggingContext;
-        if (context) {
+        let context = req && req.body && req.body.loggingContext;
+        const sessionId = req.session && req.session.id;
+        context ? context.session = sessionId : context = { session: sessionId };
+
+        if (context && Object.keys(context).length > 0) {
             SupertypeSession.logger.setContextProps(context);
         }
         SupertypeSession.logger.clientLogger.debug({
@@ -64,6 +67,23 @@ export class LoggerApiContextProcessor {
             function: 'saveCurrentRequestContext',
             category: 'milestone',
             message: `save request's logging context`,
+            data: {
+                context
+            }
+        });
+        next();
+    }
+
+    public static clearCurrentSavedContext(req, res, next) {
+        const context = SupertypeSession.logger && SupertypeSession.logger.context;
+        if (context) {
+            SupertypeSession.logger.clearContextProps(context);
+        }
+        SupertypeSession.logger.clientLogger.debug({
+            module: moduleName,
+            function: 'clearCurrentSavedContext',
+            category: 'milestone',
+            message: `clear any existing context`,
             data: {
                 context
             }

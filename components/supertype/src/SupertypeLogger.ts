@@ -109,6 +109,9 @@ export class SupertypeLogger {
             }
             if (typeof object.data === 'object'){
                 const sessionId = this.context.session;
+                if (!object.sessionId) {
+                    object.sessionId = sessionId;
+                }
                 object.data[this._amorphicContext] = { ...this.context };
                 if (object.data[this._amorphicContext] && sessionId) {
                     object.data[this._amorphicContext].session = sessionId;

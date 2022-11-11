@@ -1,6 +1,6 @@
 ## 11.0.2
 * Move logger middleware on server up the order to capture maximum logs.
-* Add uiLogger end points that can now be automatilcally attached to amorphic server along with relevant middlewares by passing in a relevant logger and setting the `addMiddlewareOnUILoggerRoutes` to true.
+* Add uiLogger end points that can now be automatically attached to amorphic server along with relevant middlewares by passing in a client logger and setting the `enableUILoggerEndpointsWithMiddleware` to true.
 ## 11.0.1
 * Restrict loggingLevel passing to backend to log functions.
 ## 11.0.0

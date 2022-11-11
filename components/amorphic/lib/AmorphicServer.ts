@@ -194,7 +194,7 @@ export class AmorphicServer {
         const mainApp = amorphicOptions.mainApp;
         let appConfig = AmorphicContext.applicationConfig[mainApp];
         let reqBodySizeLimit = appConfig.reqBodySizeLimit || '50mb';
-        const addMiddlewareOnUILoggerRoutes = amorphicUtils.toBool(appConfig.appConfig.addMiddlewareOnUILoggerRoutes);;
+        const enableUILoggerEndpointsWithMiddleware = amorphicUtils.toBool(appConfig.appConfig.enableUILoggerEndpointsWithMiddleware);;
 
         let controllers = {};
         let sessions = {};
@@ -268,7 +268,7 @@ export class AmorphicServer {
         if (this.hasClientLogger()) {
             const clientLogger = SupertypeSession.logger.clientLogger;
             amorphicRouter.use(clientLogger.setApiContextMiddleware({generateContextIfMissing}))
-                .use(loggerApiContextMiddleware.saveCurrentRequestContext);
+                .use(loggerApiContextMiddleware.clearContextProps);
         }
 
         amorphicRouter.use(validatorMiddleware.validateUrlParams);
@@ -281,11 +281,12 @@ export class AmorphicServer {
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)
             .use(urlEncodedMiddleWare)
+            .use(loggerApiContextMiddleware.saveCurrentRequestContext)
             .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
 
-        if (addMiddlewareOnUILoggerRoutes && this.hasClientLogger()) {
+        if (enableUILoggerEndpointsWithMiddleware && this.hasClientLogger()) {
             const uiLoggerPathsRouter: express.Router = express.Router();
             const clientLogger = SupertypeSession.logger.clientLogger;
             uiLoggerPathsRouter.use(clientLogger.setApiContextMiddleware({generateContextIfMissing}))
