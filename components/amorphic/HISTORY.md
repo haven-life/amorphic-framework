@@ -1,3 +1,5 @@
+## 11.1.1
+* update package-lock to pull in latest versions.
 ## 11.1.0
 * Schemas can be injected in the app initialization process. Get more details from README.md.
 ## 11.0.1
