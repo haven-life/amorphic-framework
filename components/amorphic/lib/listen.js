@@ -47,8 +47,9 @@ function resolveVersions(packages) {
  * @param {unknown} logger unknown
  * @param {unknown} statsdClient unknown
  * @param {unknown} configStore unknown
+ * @param {unknown} externalSchemas can inject schemas directly by the apps
  */
-function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null) {
+function listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null, externalSchemas) {
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
 	const functionName = listen.name;
@@ -131,7 +132,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 
 	for (let appKey in appList) {
 		if (appStartList.indexOf(appKey) >= 0) {
-			promises.push(startApplication(appKey, appDirectory, appList, configStore, sessionStore));
+			promises.push(startApplication(appKey, appDirectory, appList, configStore, sessionStore, externalSchemas));
 		}
 	}
 

@@ -386,7 +386,7 @@ module.exports = function (PersistObjectTemplate) {
         }
         var sqlToRun;
         if (updateID) {
-            sqlToRun = knex
+            sqlToRun = knex.clone()
             .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
             .update(pojo).toString();
             return Promise.resolve(knex
