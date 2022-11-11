@@ -21,6 +21,18 @@ Create an `app.js` entry point as follows:
 Version 11.0.0 introduces a breaking change to the `listen` and `startPersistorMode` signatures. In the past, clients passed
 `sendToLog` function to these functions. They also optionally injected their own logger within the `sendToLog` function. 
 
+Version 11.1.0 introduces a way to inject schemas when initializing amorphic apps.
+In the past, we are only allowed to define table definitions in common folder or app specific folder. Now every module can define their own schemas and apps can consolidate the objects and use it for amorphic initialization.
+E.g.: OrcaSchema in the following example is imported directly from the module.
+    import { OrcaSchema } from '@hit/orca';
+
+    const rootPath = `${__dirname}`;
+    const appsPath = `${rootPath}/apps`;
+    const appSchema = JSON.parse(String(fs.readFileSync(`${appsPath}/common/schema.json`)));
+    Object.assign(appSchema, OrcaSchema);
+    return require('@haventech/amorphic').listen(__dirname, sessionStore, null, null, log, null, appSchema);
+
+Note that the validations are not included if there are dupes in the definitions.
 **Old listen and startPersistorMode signature:**
 
 ```

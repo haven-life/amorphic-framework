@@ -24,7 +24,7 @@ const moduleName = `amorphic/lib/startApplication`;
  *
  * @returns {unknown} unknown
  */
-function startApplication(appName, appDirectory, appList, configStore, sessionStore) {
+function startApplication(appName, appDirectory, appList, configStore, sessionStore, externalSchemas) {
 
     let path = appDirectory + '/' + appList[appName] + '/';
     let commonPath = appDirectory + '/apps/common/';
@@ -35,9 +35,9 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
     if (config.serverMode === 'daemon' || config.serverMode === 'api') {
         controllerJsDir = path + '/js/';
     }
-
-    let schema = JSON.parse((readFile(path + '/schema.json') || readFile(commonPath + '/schema.json')).toString());
-
+    
+    const schema = loadSchema(path, commonPath, externalSchemas);
+    
     let controllerPath = (config.controller || 'controller.js');
     let matches = controllerPath.match(/(.*?)([0-9A-Za-z_]*)\.js$/);
     let prefix = matches[1];
@@ -54,6 +54,22 @@ function startApplication(appName, appDirectory, appList, configStore, sessionSt
             const appTemplates = templates[1];
             return finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates);
         }.bind(this));
+}
+
+function loadSchema(appSchemaPath, commonSchemaPath, externalSchemas) {
+    let schema = null;
+    if (externalSchemas) {
+        schema = externalSchemas;
+    }
+    else {
+        const schemaDef = readFile(appSchemaPath + '/schema.json') || readFile(commonSchemaPath + '/schema.json');
+        schema = schemaDef ? JSON.parse(schemaDef.toString()) : schema;
+    }
+    
+    if (!schema) {
+        throw new Error('schema definitions are not provided and are not available in either common folder or schemaPath provided');
+    }
+    return schema;
 }
 
 /**
@@ -421,3 +437,4 @@ function startDaemon(persistableTemplate, MainControllerTemplate, config) {
 // TODO: Why?
 module.exports.startApplication = startApplication;
 module.exports.setUpInjectObjectTemplate = setUpInjectObjectTemplate;
+module.exports.loadSchema = loadSchema;
