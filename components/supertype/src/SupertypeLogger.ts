@@ -83,7 +83,11 @@ export class SupertypeLogger {
                 logObj.context = {};
             }
 
-            this.setLogsAmorphicContext(logObj.context);
+            if (!logObj.request) {
+                logObj.request = {};
+            }
+
+            this.setLogsAmorphicContext(logObj.context, logObj.request);
 
             logObj['level'] = level;
             if (this.isEnabled(levelToStr[logObj['level']], logObj)) {
@@ -99,23 +103,27 @@ export class SupertypeLogger {
         return;
     }
 
-    //This method extracts sessionId from the each request's context
-    //and places it in the context.sessionId. All other context properties are 
+    //This method extracts sessionId, ipAddress from the each request's context
+    //and places it in the context.sessionId and request.clientIpAddress. All other context properties are 
     //placed in context.data object.
-    private setLogsAmorphicContext(object) {
+    private setLogsAmorphicContext(context: any, request: any) {
         if (this.context && Object.keys(this.context).length > 0) {
-            if (!object.data) {
-                object.data = {};
+            if (!context.data) {
+                context.data = {};
             }
-            if (typeof object.data === 'object'){
+            if (typeof context.data === 'object'){
                 const sessionId = this.context.session;
-                if (!object.sessionId) {
-                    object.sessionId = sessionId;
+                if (!context.sessionId) {
+                    context.sessionId = sessionId;
                 }
-                object.data[this._amorphicContext] = { ...this.context };
-                if (object.data[this._amorphicContext] && sessionId) {
-                    object.data[this._amorphicContext].session = sessionId;
-                    delete object.data[this._amorphicContext].session;
+                context.data[this._amorphicContext] = { ...this.context };
+                if (context.data[this._amorphicContext] && sessionId) {
+                    context.data[this._amorphicContext].session = sessionId;
+                    delete context.data[this._amorphicContext].session;
+                }
+                if (context.data[this._amorphicContext] && context.data[this._amorphicContext].ipaddress) {
+                    request.clientIpAddress = context.data[this._amorphicContext].ipaddress;
+                    delete context.data[this._amorphicContext].ipaddress;
                 }
             }
         }
