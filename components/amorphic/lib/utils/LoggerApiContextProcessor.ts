@@ -11,7 +11,7 @@ export class LoggerApiContextProcessor {
             const context = res.locals.__loggerRequestContext;
             if (context) {
                 clientLogger.setContextFromSourceMiddleware({generateContextIfMissing, context}, next);
-                clientLogger.debug({
+                SupertypeSession.logger.debug({
                     module: moduleName,
                     function: 'applyloggerApiContextMiddleware',
                     category: 'milestone',
@@ -40,7 +40,7 @@ export class LoggerApiContextProcessor {
                 __loggerRequestContext: context
             };
             
-            clientLogger.debug({
+            SupertypeSession.logger.debug({
                 module: moduleName,
                 function: 'saveCurrentLoggerContext',
                 category: 'milestone',
@@ -62,7 +62,7 @@ export class LoggerApiContextProcessor {
         if (context && Object.keys(context).length > 0) {
             SupertypeSession.logger.setContextProps(context);
         }
-        SupertypeSession.logger.clientLogger.debug({
+        SupertypeSession.logger.debug({
             module: moduleName,
             function: 'saveCurrentRequestContext',
             category: 'milestone',
@@ -79,7 +79,7 @@ export class LoggerApiContextProcessor {
         if (context) {
             SupertypeSession.logger.clearContextProps(context);
         }
-        SupertypeSession.logger.clientLogger.debug({
+        SupertypeSession.logger.debug({
             module: moduleName,
             function: 'clearCurrentSavedContext',
             category: 'milestone',

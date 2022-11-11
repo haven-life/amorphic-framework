@@ -10,8 +10,6 @@ let generateDownloadsDir = require('./utils/generateDownloadsDir').generateDownl
 let setupCustomRoutes = require('./setupCustomRoutes').setupCustomRoutes;
 let setupCustomMiddlewares = require('./setupCustomMiddlewares').setupCustomMiddlewares;
 let validatorMiddleware = require('./utils/InputValidator').InputValidator;
-let loggerApiContextMiddleware = require('./utils/LoggerApiContextProcessor').LoggerApiContextProcessor;
-let amorphicUtils = require('./utils/AmorphicUtils').AmorphicUtils;
 
 let nonObjTemplatelogLevel = 1;
 
@@ -24,6 +22,8 @@ import * as compression from 'compression';
 import * as http from 'http';
 import * as https from 'https';
 import { SupertypeSession } from '@haventech/supertype';
+import { LoggerApiContextProcessor } from './utils/LoggerApiContextProcessor';
+import { AmorphicUtils } from './utils/AmorphicUtils';
 
 type Options = {
     amorphicOptions: any;
@@ -194,13 +194,13 @@ export class AmorphicServer {
         const mainApp = amorphicOptions.mainApp;
         let appConfig = AmorphicContext.applicationConfig[mainApp];
         let reqBodySizeLimit = appConfig.reqBodySizeLimit || '50mb';
-        const enableUILoggerEndpointsWithMiddleware = amorphicUtils.toBool(appConfig.appConfig.enableUILoggerEndpointsWithMiddleware);;
+        const enableUILoggerEndpointsWithMiddleware = AmorphicUtils.toBool(appConfig.appConfig.enableUILoggerEndpointsWithMiddleware);;
 
         let controllers = {};
         let sessions = {};
         
         //By default we dont generate the context.
-        const generateContextIfMissing = amorphicUtils.toBool(appConfig.appConfig.generateAmorphicServerLogContextIfMissing);
+        const generateContextIfMissing = AmorphicUtils.toBool(appConfig.appConfig.generateAmorphicServerLogContextIfMissing);
         const downloads = generateDownloadsDir();
 
         /*
@@ -267,21 +267,20 @@ export class AmorphicServer {
 
         if (this.hasClientLogger()) {
             const clientLogger = SupertypeSession.logger.clientLogger;
-            amorphicRouter.use(clientLogger.setApiContextMiddleware({generateContextIfMissing}))
-                .use(loggerApiContextMiddleware.clearContextProps);
+            this.app.use(clientLogger.setApiContextMiddleware({generateContextIfMissing}));
         }
-
-        amorphicRouter.use(validatorMiddleware.validateUrlParams);
-        amorphicRouter.use(initializePerformance);
-        amorphicRouter.use(cookieMiddleware)
-            .use(loggerApiContextMiddleware.saveCurrentLoggerContext)
+        amorphicRouter.use(LoggerApiContextProcessor.clearCurrentSavedContext)
+            .use(validatorMiddleware.validateUrlParams)
+            .use(initializePerformance)
+            .use(cookieMiddleware)
+            .use(LoggerApiContextProcessor.saveCurrentLoggerContext)
             .use(expressSesh)
-            .use(loggerApiContextMiddleware.applyloggerApiContextMiddleware.bind(null,false))
+            .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null,false))
             .use(uploadRouter.bind(null, downloads))
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)
             .use(urlEncodedMiddleWare)
-            .use(loggerApiContextMiddleware.saveCurrentRequestContext)
+            .use(LoggerApiContextProcessor.saveCurrentRequestContext)
             .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
@@ -289,8 +288,7 @@ export class AmorphicServer {
         if (enableUILoggerEndpointsWithMiddleware && this.hasClientLogger()) {
             const uiLoggerPathsRouter: express.Router = express.Router();
             const clientLogger = SupertypeSession.logger.clientLogger;
-            uiLoggerPathsRouter.use(clientLogger.setApiContextMiddleware({generateContextIfMissing}))
-                .use(validatorMiddleware.validateUrlParams)
+            uiLoggerPathsRouter.use(validatorMiddleware.validateUrlParams)
                 .use(bodyLimitMiddleWare)
                 .use(urlEncodedMiddleWare)
                 .use(validatorMiddleware.validateBodyParams)
