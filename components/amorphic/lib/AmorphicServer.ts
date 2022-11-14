@@ -275,11 +275,11 @@ export class AmorphicServer {
             .use(cookieMiddleware)
             .use(LoggerApiContextProcessor.saveCurrentLoggerContext)
             .use(expressSesh)
-            .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null,false))
             .use(uploadRouter.bind(null, downloads))
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)
             .use(urlEncodedMiddleWare)
+            .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null,false))
             .use(LoggerApiContextProcessor.saveCurrentRequestContext)
             .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
@@ -288,10 +288,13 @@ export class AmorphicServer {
         if (enableUILoggerEndpointsWithMiddleware && this.hasClientLogger()) {
             const uiLoggerPathsRouter: express.Router = express.Router();
             const clientLogger = SupertypeSession.logger.clientLogger;
-            uiLoggerPathsRouter.use(validatorMiddleware.validateUrlParams)
+            uiLoggerPathsRouter.use(LoggerApiContextProcessor.saveCurrentLoggerContext)
                 .use(bodyLimitMiddleWare)
                 .use(urlEncodedMiddleWare)
+                .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null,false))
+                .use(validatorMiddleware.validateUrlParams)
                 .use(validatorMiddleware.validateBodyParams)
+                .use(AmorphicUtils.setLogMetadataAttributes)
             const uiLogConfig = '/uiLogConfig';
             const uiLog = '/uiLog';
             this.app.use(`${uiLogConfig}`, uiLoggerPathsRouter);
