@@ -113,15 +113,19 @@ export class SupertypeLogger {
             }
             if (typeof context.data === 'object') {
                 const sessionId = this.context.session;
-                if (!context.sessionId) {
+                if (!context.sessionId && sessionId) {
                     context.sessionId = sessionId;
                 }
+
                 context.data[this._amorphicContext] = { ...this.context };
-                if (context.data[this._amorphicContext] && sessionId) {
-                    context.data[this._amorphicContext].session = sessionId;
+                const amorphicContextObjectExists = context.data[this._amorphicContext] &&
+                    Object.keys(context.data[this._amorphicContext]) &&
+                    Object.keys(context.data[this._amorphicContext]).length > 0;
+
+                if (amorphicContextObjectExists && context.data[this._amorphicContext].session) {
                     delete context.data[this._amorphicContext].session;
                 }
-                if (context.data[this._amorphicContext] && context.data[this._amorphicContext].ipaddress) {
+                if (amorphicContextObjectExists && context.data[this._amorphicContext].ipaddress) {
                     request.clientIpAddress = context.data[this._amorphicContext].ipaddress;
                     delete context.data[this._amorphicContext].ipaddress;
                 }
