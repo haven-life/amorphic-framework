@@ -103,25 +103,29 @@ export class SupertypeLogger {
         return;
     }
 
-    //This method extracts sessionId, ipAddress from the each request's context
-    //and places it in the context.sessionId and request.clientIpAddress. All other context properties are 
-    //placed in context.data object.
+    //This method extracts sessionId from the each request's context 
+    // and places it in the context.sessionId. All other context properties are 
+    // placed in context.data object.
     private setLogsAmorphicContext(context: any, request: any) {
         if (this.context && Object.keys(this.context).length > 0) {
             if (!context.data) {
                 context.data = {};
             }
-            if (typeof context.data === 'object'){
+            if (typeof context.data === 'object') {
                 const sessionId = this.context.session;
-                if (!context.sessionId) {
+                if (!context.sessionId && sessionId) {
                     context.sessionId = sessionId;
                 }
+
                 context.data[this._amorphicContext] = { ...this.context };
-                if (context.data[this._amorphicContext] && sessionId) {
-                    context.data[this._amorphicContext].session = sessionId;
+                const amorphicContextObjectExists = context.data[this._amorphicContext] &&
+                    Object.keys(context.data[this._amorphicContext]) &&
+                    Object.keys(context.data[this._amorphicContext]).length > 0;
+
+                if (amorphicContextObjectExists && context.data[this._amorphicContext].session) {
                     delete context.data[this._amorphicContext].session;
                 }
-                if (context.data[this._amorphicContext] && context.data[this._amorphicContext].ipaddress) {
+                if (amorphicContextObjectExists && context.data[this._amorphicContext].ipaddress) {
                     request.clientIpAddress = context.data[this._amorphicContext].ipaddress;
                     delete context.data[this._amorphicContext].ipaddress;
                 }
