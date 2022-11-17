@@ -1,3 +1,5 @@
+## 7.1.0
+* package-lock bump to pick up latest supertype version.
 ## 7.0.1
 * package-lock bump to pick up latest supertype version.
 ## 7.0.0
