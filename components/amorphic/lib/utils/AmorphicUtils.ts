@@ -7,9 +7,11 @@ export class AmorphicUtils {
           case 'boolean':
             return value;
           case 'string':
-            return value.toLowerCase() !== 'false';
+            if (value.toLowerCase() === 'true') {
+                return true;
+            }
         }
-        return Boolean(value);
+        return false;
     }
 
     static setLogMetadataAttributes(req: any, res: any, next: any) {
