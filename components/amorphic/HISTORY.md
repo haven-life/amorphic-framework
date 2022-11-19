@@ -1,6 +1,7 @@
 ## 11.2.0
 * Move logger middleware on server up the order to capture maximum logs.
 * Add uiLogger end points that can now be automatically attached to amorphic server along with relevant middlewares by passing in a client logger and setting the `enableUILoggerEndpointsWithMiddleware` to true.
+* add back previously deleted override sendToLog function on `client.js` to send `amorphicStatic` `error` and `fatal` log to back end.
 ## 11.1.1
 * update package-lock to pull in latest versions.
 ## 11.1.0
