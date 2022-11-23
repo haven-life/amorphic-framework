@@ -219,14 +219,14 @@ amorphic = // Needs to be global to make mocha tests work
         RemoteObjectTemplate.logger.sendToLog = function (level, data) {
             var output = RemoteObjectTemplate.logger.prettyPrint(level, data);
 
-            var component = data.component;
+            var component = data.component || data.data && data.data.component;
 
             console.log(output);
 
             var levelStatus = level === 'error' || level === 'fatal';
             var clientOverride = component && component === 'browser';
 
-            if ( levelStatus || clientOverride) {
+            if (( levelStatus || clientOverride) && window !== undefined && document !== undefined) {
                 this.sendLoggingMessage(level, data);
 
                 if (this.controller && typeof(this.controller.displayError) === 'function') {
@@ -572,7 +572,7 @@ amorphic = // Needs to be global to make mocha tests work
                 success.call(this, request);
             }
             else {
-                RemoteObjectTemplate.logger.error({
+                RemoteObjectTemplate.logger.warn({
                     module: moduleName,
                     function: functionName,
                     category: 'milestone',
@@ -580,7 +580,7 @@ amorphic = // Needs to be global to make mocha tests work
                 });
 
                 if (isRetriableErrorStatus(status) && --retries) {
-                    RemoteObjectTemplate.logger.error({
+                    RemoteObjectTemplate.logger.warn({
                         module: moduleName,
                         function: functionName,
                         category: 'milestone',

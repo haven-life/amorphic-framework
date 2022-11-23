@@ -214,6 +214,7 @@ describe('First Group of Tests', function () {
         });
     });
     it('can retry an update conflict', function (done) {
+        window = undefined;
         var retryCount = 0;
         this.timeout(4000);
         serverAssert = function () {
