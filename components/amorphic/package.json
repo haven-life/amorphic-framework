@@ -12,13 +12,13 @@
 		"amorphic-bindster": "2.0.*",
 		"compression": "1.7.4",
 		"cookie-parser": "1.4.6",
-		"express": "4.17.2",
-		"express-session": "1.17.2",
+		"express": "4.17.3",
+		"express-session": "1.17.3",
 		"formidable": "2.0.1",
 		"mongodb": "^3.5.5",
 		"nconf": "^0.12.0",
 		"uglify-js": "2.7.5",
-		"validator": "13.6.0"
+		"validator": "13.7.0"
 	},
 	"devDependencies": {
 		"@types/chai": "4.3.0",
@@ -37,12 +37,12 @@
 		"mocha": "10.1.0",
 		"mock-fs": "5.1.2",
 		"nyc": "^15.1.0",
-		"pg": "8.7.1",
+		"pg": "8.7.3",
 		"request": "2.88.2",
-		"sinon": "13.0.1",
+		"sinon": "13.0.2",
 		"ts-node": "10.5.0",
 		"typescript": "4.2.3",
-		"underscore": "^1.13.2",
+		"underscore": "^1.13.6",
 		"xmlhttprequest-cookie": "0.9.9"
 	},
 	"scripts": {
