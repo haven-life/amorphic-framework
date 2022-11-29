@@ -21,6 +21,7 @@ export class LoggerApiContextProcessor {
                         req: req.body && req.body.loggingContext && req.body.loggingContext.requestID
                     }
                 });
+                delete res.locals.__loggerRequestContext;
             }
             else {
                 next();
