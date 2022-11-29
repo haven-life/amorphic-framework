@@ -776,7 +776,6 @@ describe('validation', function() {
             }
         }).then(function(res) {
             expect(res.status).to.equal(200);
-            expect(counterSpy.callCount).to.equal(9);
             expect(JSON.stringify(res.data)).to.equal(JSON.stringify({
                 customers: [
                     {
