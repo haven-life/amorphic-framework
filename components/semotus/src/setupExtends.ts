@@ -2,7 +2,7 @@
 // and since classes use these in their extends hierarchy they must be defined.
 
 const __extends =
-    (this && this.__extends) ||
+    (this && (this as any).__extends) ||
     (function () {
         const extendStatics =
             Object.setPrototypeOf ||
