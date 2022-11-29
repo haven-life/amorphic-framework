@@ -1,124 +1,194 @@
 'use strict';
 
 // Internal modules
-let AmorphicContext = require('./AmorphicContext');
-let buildStartUpParams = require('./buildStartUpParams').buildStartUpParams;
-let startApplication = require('./startApplication').startApplication;
-let SupertypeSession = require('@haventech/supertype').SupertypeSession;
-let BuildSupertypeConfig = require('@haventech/supertype').BuildSupertypeConfig;
-let resolveVersions = require('./listen').resolveVersions;
+const AmorphicContext = require('./AmorphicContext');
+const logMessage = require('./utils/logger').logMessage;
+const SupertypeSession = require('@haventech/supertype').SupertypeSession;
 
-const moduleName = `amorphic/lib/startPersistorMode`;
+// Npm modules
+const persistor = require('@haventech/persistor');
+const superType = require('@haventech/supertype').default;
 
-const packageVersions = resolveVersions([
-	'@haventech/supertype',
-	'@haventech/persistor',
-	'@haventech/bindster'
-]);
-
-packageVersions['amorphic'] = require('../../package.json').version;
+const moduleName = startPersistorMode.name;
 
 /**
- * asynchronous start persistor function (returns a promise)
+ * Use this to bootstrap persistor in a "single" app.
  *
- * @param {unknown} appDirectory unknown
- * @param {unknown} logger unknown
- * @param {unknown} statsdClient unknown
- * @param {unknown} configStore unknown
+ * @param {Object} dbConfig - The db config object.
+ * @param {object} schema - The db schema.
+ * @param {object} logger - bunyan logger
+ *
+ * @returns {void} Promise that resolves when persistor is bootstrapped.
  */
-function startPersistorMode(appDirectory, logger, statsdClient, configStore = null) {
-	const functionName = startPersistorMode.name;
-	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
-	let amorphicOptions = AmorphicContext.amorphicOptions;
-
-	if (typeof logger === 'function') {
-		const message = 'sendToLog is deprecated, please pass in a valid bunyan logger instead of sendToLog function';
-		SupertypeSession.logger.error({
-			module: moduleName,
-			function: functionName,
-			category: 'request',
-			error: { isHumanRelated: true },
-			message
-		});
-		throw new Error(message);
-	}
-
-	if (logger && typeof logger === 'object' && 
-			(typeof logger.info === 'function' &&
-            typeof logger.error === 'function' &&
-            typeof logger.debug === 'function' &&
-            typeof logger.warn === 'function'  &&
-			typeof logger.child === 'function')) {
-			SupertypeSession.logger.setLogger(logger);
-	}
-    else {
-		SupertypeSession.logger.warn({
-			module: moduleName,
-			function: functionName,
-			category: 'request',
-			error: { isHumanRelated: true },
-			message: 'A valid bunyan logger was not passed at initialization. Defaulting to internal supertype logger.'
-		});
-	}
-
-	buildStartUpParams(configStore);
-
-	// fetch main app after building startup configs, which populates 'mainApp' field.
-	const mainApp = AmorphicContext.amorphicOptions.mainApp;
-
-	// check the app level config to see if we should be sending stats.
-	let shouldEnableStatsdSending = configStore[mainApp] ? configStore[mainApp].get('amorphicEnableStatsd') : false;
-
-	// if we decide we want to send stats, and we also have a stats client to use, make it available via the session.
-	if (shouldEnableStatsdSending && statsdClient) {
-		SupertypeSession.statsdClient = statsdClient;
-	}
-
-	let sanitizedAmorphicOptions = Object.assign({}, amorphicOptions);
-	delete sanitizedAmorphicOptions.sessionSecret;
-
-	SupertypeSession.logger.info({
-		module: moduleName,
-		function: functionName,
-		category: 'milestone',
-		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
-	});
-
-	// Initialize applications
-	let appList = amorphicOptions.appList;
-	let appStartList = amorphicOptions.appStartList;
-	let promises = [];
-
-	for (let appKey in appList) {
-		if (appStartList.indexOf(appKey) >= 0) {
-			promises.push(startApplication(appKey, appDirectory, appList, configStore));
-		}
-	}
-
-	return Promise.all(promises)
-		.then(function logStart() {
-			let msg = 'Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ';
-			for (let packageVer in packageVersions) {
-				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';
-			}
-			SupertypeSession.logger.info({
-				module: moduleName,
-				function: functionName,
-				category: 'request',
-				message: msg
-			});
-		})
-		.catch(function error(e) {
-			SupertypeSession.logger.error({
-				module: moduleName,
-				function: functionName,
-				category: 'request',
-				message: 'Error encountered while initializing amorphic in PersistorMode',
-				error: e
-			});
-		});
+function startPersistorMode(dbConfig, schema, logger) {
+    SupertypeSession.logger.setLogger(logger);
+    return setUpInjectObjectTemplate(dbConfig, schema)
+        .then(loadTSTemplates.bind(this))
+        .then((baseTemplate) => finishDaemonIfNeeded(baseTemplate));
 }
 
-module.exports = {
-	startPersistorMode: startPersistorMode
-};
+/**
+ * Sets up the injectObjectTemplate function used when loading templates to make them PersistableSemotable or
+ *   simply Persistable.
+ *
+ * @param {Object} dbConfig - The db config object.
+ * @param {String} schema - The app schema.
+ *
+ * @returns {Function} A bound function to be used when loading templates.
+ */
+function setUpInjectObjectTemplate(dbConfig, schema) {
+    const amorphicOptions = AmorphicContext.amorphicOptions || {};
+    const knex = require('knex')({
+        client: dbConfig.dbType,
+        debug: dbConfig.knexDebug,
+        connection: {
+            host:       dbConfig.dbPath,
+            database:   dbConfig.dbName,
+            user:       dbConfig.dbUser,
+            password:   dbConfig.dbPassword,
+            port:       dbConfig.dbPort,
+            application_name: dbConfig.appName
+        },
+        pool: {
+            min: 0,
+            max: dbConfig.dbConnections
+        },
+        acquireConnectionTimeout: dbConfig.dbConnectionTimeout
+    });
+
+
+    return Promise.resolve(knex)
+        .then(returnBoundInjectTemplate.bind(this, amorphicOptions, schema));
+}
+
+
+/**
+ * Returns a bound version of injectObjectTemplate.  Needed because...
+ *
+ * @param {Object} amorphicOptions - unknown
+ * @param {String} schema - The app schema.
+ * @param {Object} knex - A connection to the database.
+ *
+ * @returns {Function} A bound version of injectObjectTemplate.
+ */
+function returnBoundInjectTemplate(amorphicOptions, schema, knex) {
+    return injectObjectTemplate.bind(null, amorphicOptions, schema, knex);
+}
+
+/**
+ * Used to add inject props during get/load templates.
+ *
+ * @param {Object} amorphicOptions - unknown
+ * @param {String} schema - The app schema.
+ * @param {Object} knex - The db connection.
+ * @param {Object} objectTemplate - Object template passed in later.
+ */
+function injectObjectTemplate(amorphicOptions, schema, knex, objectTemplate) {
+    objectTemplate.setDB(knex, 'knex');
+    objectTemplate.setSchema(schema);
+    objectTemplate.logLevel = 1;
+    objectTemplate.__conflictMode__ = amorphicOptions.conflictMode;
+}
+
+/**
+ * Used to add inject props during get/load templates.
+ *
+ * @param {Function} initObjectTemplateFunc - A bound version of injectObjectTemplate.
+ *
+ * @returns {[Object, Object]}
+ */
+function loadTSTemplates(initObjectTemplateFunc) {
+    const baseTemplate = buildBaseTemplate();
+
+    // Inject into it any db or persist attributes needed for application
+    initObjectTemplateFunc(baseTemplate);
+
+    require('../index.js').bindDecorators(baseTemplate);
+
+    checkTypes(baseTemplate.getClasses());
+    baseTemplate.performInjections();
+
+    return baseTemplate;
+}
+
+/**
+ * Make sure there are no null types
+ *
+ * @param {object} classes - amorphic dictionary from getClasses()
+ */
+function checkTypes(classes) {
+    const functionName = checkTypes.name;
+    var classCount = 0, nullType = 0, nullOf = 0, propCount = 0;
+    for (var classKey in classes) {
+        ++classCount;
+        for (var definePropertyKey in classes[classKey].amorphicProperties) {
+            var defineProperty = classes[classKey].amorphicProperties[definePropertyKey];
+            if (!defineProperty.type) {
+                ++nullType;
+                logMessage(1, {
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Warning: ' + classKey + '.' + definePropertyKey + ' has no type'
+                });
+            }
+            if (defineProperty instanceof Array && !defineProperty.of) {
+                logMessage(1, {
+                    module: moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: 'Warning: ' + classKey + '.' + definePropertyKey + ' has no of'
+                });
+                ++nullOf;
+            }
+            ++propCount;
+        }
+    }
+    logMessage(2, {
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        message: `${classCount} classes loaded with ${propCount} props (${nullType} null types, ${nullOf} null ofs)`
+    });
+}
+
+/**
+ * Build the base template.
+ *
+ * @returns {Object} The base template object.
+ */
+function buildBaseTemplate() {
+    return persistor(null, null, superType);
+}
+
+/**
+ * Start Deamon if necessary.
+ *
+ * @param {Object} baseTemplate - unknown
+ */
+function finishDaemonIfNeeded(baseTemplate) {
+    const functionName = finishDaemonIfNeeded.name;
+    startDaemon(baseTemplate);
+    logMessage(2, {
+        module: moduleName,
+        function: functionName,
+        category: 'milestone',
+        message: 'Amorphic bootstrapped started in persistor mode'
+    });
+}
+
+/**
+ * Start an app in daemon mode.
+ *
+ * @param {Object} persistableTemplate - The base persistor template for the app. (the objectTemplate injected
+ *   into all the files)
+ */
+function startDaemon(persistableTemplate) {
+    // With a brand new controller we don't want old object to persist id mappings
+    if (persistableTemplate.objectMap) {
+        persistableTemplate.objectMap = {};
+    }
+}
+
+module.exports.startPersistorMode = startPersistorMode;
+module.exports.setUpInjectObjectTemplate = setUpInjectObjectTemplate;
