@@ -226,7 +226,7 @@ amorphic = // Needs to be global to make mocha tests work
             var levelStatus = level === 'error' || level === 'fatal';
             var clientOverride = component && component === 'browser';
 
-            if (( levelStatus || clientOverride) && window !== undefined && document !== undefined) {
+            if (( levelStatus || clientOverride) && typeof window === 'object' && typeof document === 'object') {
                 this.sendLoggingMessage(level, data);
             }
         }.bind(this);
