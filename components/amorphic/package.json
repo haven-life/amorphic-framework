@@ -18,7 +18,7 @@
 		"mongodb": "^3.5.5",
 		"nconf": "^0.12.0",
 		"uglify-js": "2.7.5",
-		"validator": "13.6.0"
+		"validator": "13.7.0"
 	},
 	"devDependencies": {
 		"@types/chai": "4.3.0",
