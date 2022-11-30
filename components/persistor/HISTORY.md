@@ -1,3 +1,5 @@
+## 9.2.0
+* defining schema type in persistor
 ## 9.1.0
 * cloning knex object when capturing the sqls to avoid "Update called multiple times with objects." warning.
 ## 9.0.2

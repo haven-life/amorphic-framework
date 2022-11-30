@@ -1,0 +1,1 @@
+export type Schema = { [k: string]: string | string[] | boolean | Schema };

@@ -128,3 +128,5 @@ module.exports.Persistor = {
 Object.defineProperty(module.exports.Persistable.prototype, 'persistor', {get: function () {
     return this.__objectTemplate__
 }});
+
+module.exports.Schema = require('./types/Schema')
