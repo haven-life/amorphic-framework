@@ -219,14 +219,15 @@ amorphic = // Needs to be global to make mocha tests work
         RemoteObjectTemplate.logger.sendToLog = function (level, data) {
             var output = RemoteObjectTemplate.logger.prettyPrint(level, data);
 
-            var component = data.component || data.data && data.data.component;
+            var dataObjectExists = data && Object.keys(data).length;
+            var component = dataObjectExists && (data.component || data.data && data.data.component);
 
             console.log(output);
 
             var levelStatus = level === 'error' || level === 'fatal';
             var clientOverride = component && component === 'browser';
 
-            if (( levelStatus || clientOverride) && typeof window === 'object' && typeof document === 'object') {
+            if (( levelStatus || clientOverride) && dataObjectExists && typeof window === 'object' && typeof document === 'object' ) {
                 this.sendLoggingMessage(level, data);
             }
         }.bind(this);

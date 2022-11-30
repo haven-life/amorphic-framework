@@ -18,13 +18,13 @@ export class AmorphicUtils {
         const rawData = req && req.body;
         if (rawData) {
             const clientIpAddress = AmorphicUtils.getIpAddressFromRequest(req);
-            rawData.request ? rawData.request.clientIpAddress = clientIpAddress : 
+            rawData.request && Object.keys(rawData.request).length >= 0 ? rawData.request.clientIpAddress = clientIpAddress : 
                 rawData.request = { clientIpAddress };
         }
         next();
     }
 
-    static getIpAddressFromRequest(req: any) {
+    static getIpAddressFromRequest(req: any): string {
         const unknown = 'unknown';
         if (!req || !req.headers || !req.connection) {
             return unknown;
