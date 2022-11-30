@@ -1,3 +1,5 @@
+## 9.3.0
+* defining schema type in persistor
 ## 9.2.0
 * package-lock bump to pick up latest supertype version.
 ## 9.1.0
