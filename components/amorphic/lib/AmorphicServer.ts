@@ -289,7 +289,7 @@ export class AmorphicServer {
             const uiLoggerPathsRouter: express.Router = express.Router();
             const clientLogger = SupertypeSession.logger.clientLogger;
 
-            amorphicRouter.use(LoggerApiContextProcessor.saveCurrentLoggerContext)
+            uiLoggerPathsRouter.use(LoggerApiContextProcessor.saveCurrentLoggerContext)
                 .use(bodyLimitMiddleWare)
                 .use(urlEncodedMiddleWare)
                 .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null,false))

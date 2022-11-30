@@ -219,7 +219,7 @@ amorphic = // Needs to be global to make mocha tests work
         RemoteObjectTemplate.logger.sendToLog = function (level, data) {
             var output = RemoteObjectTemplate.logger.prettyPrint(level, data);
 
-            var dataObjectExists = data && Object.keys(data).length;
+            var dataObjectExists = data && Object.keys(data).length >= 0;
             var component = dataObjectExists && (data.component || data.data && data.data.component);
 
             console.log(output);
