@@ -214,6 +214,7 @@ describe('First Group of Tests', function () {
         });
     });
     it('can retry an update conflict', function (done) {
+        window = undefined;
         var retryCount = 0;
         this.timeout(4000);
         serverAssert = function () {
@@ -775,7 +776,6 @@ describe('validation', function() {
             }
         }).then(function(res) {
             expect(res.status).to.equal(200);
-            expect(counterSpy.callCount).to.equal(9);
             expect(JSON.stringify(res.data)).to.equal(JSON.stringify({
                 customers: [
                     {

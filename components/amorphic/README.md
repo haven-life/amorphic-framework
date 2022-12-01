@@ -18,43 +18,6 @@ Create an `app.js` entry point as follows:
 
     require('amorphic').listen(__dirname);
 
-Version 11.0.0 introduces a breaking change to the `listen` and `startPersistorMode` signatures. In the past, clients passed
-`sendToLog` function to these functions. They also optionally injected their own logger within the `sendToLog` function. 
-
-Version 11.1.0 introduces a way to inject schemas when initializing amorphic apps.
-In the past, we are only allowed to define table definitions in common folder or app specific folder. Now every module can define their own schemas and apps can consolidate the objects and use it for amorphic initialization.
-E.g.: OrcaSchema in the following example is imported directly from the module.
-    import { OrcaSchema } from '@hit/orca';
-
-    const rootPath = `${__dirname}`;
-    const appsPath = `${rootPath}/apps`;
-    const appSchema = JSON.parse(String(fs.readFileSync(`${appsPath}/common/schema.json`)));
-    Object.assign(appSchema, OrcaSchema);
-    return require('@haventech/amorphic').listen(__dirname, sessionStore, null, null, log, null, appSchema);
-
-Note that the validations are not included if there are dupes in the definitions.
-**Old listen and startPersistorMode signature:**
-
-```
- listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLog, statsdClient, configStore = null)
- 
- startPersistorMode(appDirectory, sendToLog, statsdClient, configStore = null)
-
-```
-
-With this change client would need to pass a `logger` object instead of `sendToLog` function. We require that the new logger object must atleast have basic bunyan log functions such as 'debug', 'error', 'info', 'warn' and also a child logger create function of 'child'. The `sendToLog` function should no longer be used to inject the logger like in the pastas it is being deprecated for external use and is only used internally. 
-
-**New listen and startPersistorMode signature:**
-
-```
- listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null)
- 
- startPersistorMode(appDirectory, logger, statsdClient, configStore = null)
-
-```
-
-If a client chooses to pass an `undefined` instead of `logger` object, then amoprhic would use the built in SuperType Logger to log.
-
 Create a `config.json` file top level at least the following options set:
 
     {
@@ -105,6 +68,54 @@ The order that this validation is performed is blacklist, escape, whitelist.
 The config.json found for the amorphic postgres unit test found here: components/amorphic/test/postgres/apps/test/config.json, contains examples of how these fields should be used.
 
 There is also a counter under statsd for 'amorphic.server.validator.whitelist.counter', 'amorphic.server.validator.blacklist.counter', and 'amorphic.server.validator.escape.counter' that will count the times requests are blacklisted, whitelisted, or escaped.
+
+## Changes 
+
+This section lists significant changes to the amorphic component. 
+
+### Version 11.0.0 
+This version introduces a breaking change to the `listen` and `startPersistorMode` signatures. In the past, clients passed
+`sendToLog` function to these functions. They also optionally injected their own logger within the `sendToLog` function. 
+
+**Old listen and startPersistorMode signature:**
+
+```
+ listen(appDirectory, sessionStore, preSessionInject, postSessionInject, sendToLog, statsdClient, configStore = null)
+ 
+ startPersistorMode(appDirectory, sendToLog, statsdClient, configStore = null)
+
+```
+
+With this change client would need to pass a `logger` object instead of `sendToLog` function. We require that the new logger object must atleast have basic bunyan log functions such as 'debug', 'error', 'info', 'warn' and also a child logger create function of 'child'. The `sendToLog` function should no longer be used to inject the logger like in the pastas it is being deprecated for external use and is only used internally. 
+
+**New listen and startPersistorMode signature:**
+
+```
+ listen(appDirectory, sessionStore, preSessionInject, postSessionInject, logger, statsdClient, configStore = null)
+ 
+ startPersistorMode(appDirectory, logger, statsdClient, configStore = null)
+
+```
+
+If a client chooses to pass an `undefined` instead of `logger` object, then amoprhic would use the built in SuperType Logger to log.
+
+### Version 11.1.0 
+This version introduces a way to inject schemas when initializing amorphic apps.
+In the past, we are only allowed to define table definitions in common folder or app specific folder. Now every module can define their own schemas and apps can consolidate the objects and use it for amorphic initialization.
+E.g.: OrcaSchema in the following example is imported directly from the module.
+    import { OrcaSchema } from '@hit/orca';
+
+    const rootPath = `${__dirname}`;
+    const appsPath = `${rootPath}/apps`;
+    const appSchema = JSON.parse(String(fs.readFileSync(`${appsPath}/common/schema.json`)));
+    Object.assign(appSchema, OrcaSchema);
+    return require('@haventech/amorphic').listen(__dirname, sessionStore, null, null, log, null, appSchema);
+
+Note that the validations are not included if there are dupes in the definitions.
+
+### Version 11.2.0 
+This version adds `enableUILoggerEndpointsWithMiddleware` config. If set to true, this flag may be used to automatically include `HavenLogger` UI endpoints (`/uiLog`, `uiLogConfig`) along with necessary middlewares.
+You must pass `HavenLogger` to take advantage of this feature.
 
 ## Testing
 

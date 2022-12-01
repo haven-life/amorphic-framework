@@ -59,7 +59,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 		SupertypeSession.logger.error({
 			module: moduleName,
 			function: functionName,
-			category: 'request',
+			category: 'availability',
 			error: { isHumanRelated: true },
 			message
 		});
@@ -103,7 +103,7 @@ function listen(appDirectory, sessionStore, preSessionInject, postSessionInject,
 	SupertypeSession.logger.info({
 		module: moduleName,
 		function: functionName,
-		category: 'request',
+		category: 'availability',
 		message: 'Starting Amorphic with options: ' + JSON.stringify(sanitizedAmorphicOptions)
 	});
 
