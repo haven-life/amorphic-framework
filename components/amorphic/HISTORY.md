@@ -1,3 +1,5 @@
+## 11.2.1
+* setting formidable to a lower version for bug resolution. Will be setting it back to the latest at a later release.
 ## 11.2.0
 * Move logger middleware on server up the order to capture maximum logs.
 * Add uiLogger end points that can now be automatically attached to amorphic server along with relevant middlewares by passing in a client logger and setting the `enableUILoggerEndpointsWithMiddleware` to true.
