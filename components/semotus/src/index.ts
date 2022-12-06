@@ -2290,13 +2290,14 @@ declare var define;
 		objectTemplate = objectTemplate || this;
 
 		this.supertypeClass = supertypeClass.bind(RemoteObjectTemplate, objectTemplate, SupertypeModule);
-		this.Supertype = function () {
+		this.Supertype = () => {
 			return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
-		};
+		}
+
 		this.Supertype.prototype = SupertypeModule.Supertype.prototype;
-		this.property = function (props) {
-			return property(objectTemplate, SupertypeModule, props, (RemoteObjectTemplate as any).toClientRuleSet, (RemoteObjectTemplate as any).toServerRuleSet);
-		};
+		this.property = (props) => {
+			return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
+		}
 		this.remote = remote.bind(null, objectTemplate);
 	};
 
