@@ -1,4 +1,5 @@
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
+import { PersistorUtils } from '../utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
@@ -249,7 +250,7 @@ module.exports = function (PersistObjectTemplate) {
                 defineProperty = props[prop];
                 var type = defineProperty.type;
                 var of = defineProperty.of;
-                const isRemoteDoc = defineProperty.isRemoteObject;
+                const isRemoteDoc = PersistorUtils.isRemoteObjectSetToTrue(this.globallyOverrideIsRemoteObjectProperties, defineProperty.isRemoteObject);
                 var cascadeFetch = (cascade && typeof(cascade[prop] != 'undefined')) ? cascade[prop] : null;
                 if (cascadeFetch && cascadeFetch.fetch) {
                     Object.keys(cascadeFetch.fetch).map(key => {

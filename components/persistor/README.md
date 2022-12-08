@@ -163,6 +163,20 @@ The account object connected to the fetched role is also automatically when a ro
                     "internalConsoleOptions": "openOnSessionStart"
                 }
         
+## Important features:
+### Version 7.4.0
+With this version we are introducing a config `globallyOverrideIsRemoteObjectProperties` as a feature, to override any or all `isRemoteObject` property on individual records, if they are set to false. This feature is useful if you are using modules that have records that may be set as `isRemoteObject: false`. By setting this flag to true on the client side, you may override the behavior set by the module, and allow for docs to be saved in a remote s3 bucket.
+
+**Behavior:**
+if `isRemoteObject` is `false` and `globallyOverrideIsRemoteObjectProperties` is `true` -> persistor will store in the remote s3 bucket.
+if `isRemoteObject` is `false` and `globallyOverrideIsRemoteObjectProperties` is `false` -> persistor will store in db.
+if `isRemoteObject` is `true` and `globallyOverrideIsRemoteObjectProperties` is `true` -> persistor will store in the remote s3 bucket.
+if `isRemoteObject` is `true` and `globallyOverrideIsRemoteObjectProperties` is `false` -> persistor will store in the remote s3 bucket.
+if `isRemoteObject` is `undefined` or not set on record property and `globallyOverrideIsRemoteObjectProperties` is `true` -> persistor will store in db.
+if `isRemoteObject` is `undefined` or not set on record property and `globallyOverrideIsRemoteObjectProperties` is `false` -> persistor will store in db.
+if `isRemoteObject` is `false` and `globallyOverrideIsRemoteObjectProperties` is `undefined` or not set on client -> persistor will store in db.
+if `isRemoteObject` is `true` and `globallyOverrideIsRemoteObjectProperties` is `undefined` or not set on client -> persistor will store in remote s3 bucket.
+if `isRemoteObject` is `undefined` or not set on record property and `globallyOverrideIsRemoteObjectProperties` is `undefined` or not set on client -> persistor will store in db.
 
 ## License
 
