@@ -366,8 +366,13 @@ function checkTypes(classes) {
  */
 function buildBaseTemplate(appConfig, processTypescript) {
     const config = appConfig.appConfig;
+    const overrideConfig = config && config.globallyOverrideIsRemoteObjectProperties &&
+        (config.globallyOverrideIsRemoteObjectProperties === 'true' || 
+         config.globallyOverrideIsRemoteObjectProperties === true) ? true : undefined;
     if (config && (config.serverMode === 'daemon' || config.serverMode === 'api' || config.serverMode === 'serverless')) {
-        return persistor(null, null, superType);
+        let persistorSupertypeBaseTemplate = persistor(null, null, superType);
+        persistorSupertypeBaseTemplate.globallyOverrideIsRemoteObjectProperties = overrideConfig;
+        return persistorSupertypeBaseTemplate;
     }
 
     let baseTemplate = persistor(null, null, semotus);
@@ -375,7 +380,7 @@ function buildBaseTemplate(appConfig, processTypescript) {
     if (processTypescript) {
         semotus.bindDecorators(baseTemplate);
     }
-
+    baseTemplate.globallyOverrideIsRemoteObjectProperties = overrideConfig;
     return baseTemplate;
 }
 

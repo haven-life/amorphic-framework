@@ -13,5 +13,6 @@
   "validatorAllowList": "",
   "validatorDenyList": "\\;\\<\\>\\﹤\\﹥\\^\\*\\|\\_\\%\\'\\/\\=\\+\\,",
   "validatorLog": true,
-  "validatorEscapeHTML": true
+  "validatorEscapeHTML": true,
+  "globallyOverrideIsRemoteObjectProperties": true
 }

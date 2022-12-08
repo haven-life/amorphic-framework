@@ -1,3 +1,5 @@
+## 11.3.0
+* Add `globallyOverrideIsRemoteObjectProperties` config to allow for override of any or all isRemoteObject properties set as false.
 ## 11.2.1
 * setting formidable to a lower version for bug resolution. Will be setting it back to the latest at a later release.
 ## 11.2.0

@@ -12,5 +12,6 @@
     "conflictMode": "hard",
     "commonPath": "apps/common",
     "templateMode": "auto",
-    "controller": "Controller.js"
+    "controller": "Controller.js",
+    "globallyOverrideIsRemoteObjectProperties": "true"
 }

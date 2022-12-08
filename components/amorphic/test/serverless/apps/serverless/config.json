@@ -10,5 +10,6 @@
   "dbUser": "postgres",
   "dbPassword": "postgres",
   "keepOriginalIdForSavedObjects": "yes",
-  "amorphicEnableStatsd": true
+  "amorphicEnableStatsd": true,
+  "globallyOverrideIsRemoteObjectProperties": true
 }
