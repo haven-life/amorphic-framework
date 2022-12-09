@@ -250,7 +250,7 @@ module.exports = function (PersistObjectTemplate) {
                 defineProperty = props[prop];
                 var type = defineProperty.type;
                 var of = defineProperty.of;
-                const isRemoteDoc = PersistorUtils.isRemoteObjectSetToTrue(this.globallyOverrideIsRemoteObjectProperties, defineProperty.isRemoteObject);
+                const isRemoteDoc = PersistorUtils.isRemoteObjectSetToTrue(this.config && this.config.globallyOverrideIsRemoteObjectProperties, defineProperty.isRemoteObject);
                 var cascadeFetch = (cascade && typeof(cascade[prop] != 'undefined')) ? cascade[prop] : null;
                 if (cascadeFetch && cascadeFetch.fetch) {
                     Object.keys(cascadeFetch.fetch).map(key => {

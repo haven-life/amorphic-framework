@@ -20,7 +20,7 @@ const sandbox = sinon.createSandbox();
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
 PersistObjectTemplate.logger.setLevel(logLevel);
-PersistObjectTemplate.globallyOverrideIsRemoteObjectProperties = false;
+PersistObjectTemplate.config = { globallyOverrideIsRemoteObjectProperties: false };
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {
@@ -1240,7 +1240,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         const samRemoteDoc = await Customer.getFromPersistWithId(sam._id);
         samRemoteDoc.bankingDocument = 'bank note';
         sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
-        const overrideProperyStub = sinon.stub(PersistObjectTemplate, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
+        const overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
             return undefined;
         });
         await samRemoteDoc.persistSave();
@@ -1274,7 +1274,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         const addressId = accountOutput[1].address._id;
         const remoteDoc = await Address.getFromPersistWithId(addressId);
         remoteDoc.publicDocument = 'Deed Recording';
-        const overrideProperyStub = sinon.stub(PersistObjectTemplate, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
+        const overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
             return true;
         });
         sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
@@ -1297,7 +1297,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         const addressId = accountOutput[1].address._id;
         const remoteDoc = await Address.getFromPersistWithId(addressId);
         remoteDoc.publicDocument = 'Second Deed Recording';
-        const overrideProperyStub = sinon.stub(PersistObjectTemplate, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
+        const overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
             return undefined;
         });
         sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
