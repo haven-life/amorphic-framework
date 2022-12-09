@@ -165,7 +165,7 @@ The account object connected to the fetched role is also automatically when a ro
         
 ## Important features:
 ### Version 7.4.0
-With this version we are introducing a config `globallyOverrideIsRemoteObjectProperties` as a feature, to override any or all `isRemoteObject` property on individual records, if they are set to false. This feature is useful if you are using modules that have records that may be set as `isRemoteObject: false`. By setting this flag to true on the client side, you may override the behavior set by the module, and allow for docs to be saved in a remote s3 bucket.
+With this version we are introducing a config `globallyOverrideIsRemoteObjectProperties` as a feature, to override any or all `isRemoteObject: false` properties on records. This feature is useful if you are using modules that may have properties set as `isRemoteObject: false` and you want to override that behavior. By setting this flag to `true` on the client side, you may override the behavior set by the module, and allow for docs to be saved in a remote s3 bucket. NOTE: This is an all or nothing feature and client teams would need to be cautious using this feature.
 
 **Behavior:**
 if `isRemoteObject` is `false` and `globallyOverrideIsRemoteObjectProperties` is `true` -> persistor will store in the remote s3 bucket.
