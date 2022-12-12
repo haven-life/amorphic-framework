@@ -20,7 +20,7 @@ const sandbox = sinon.createSandbox();
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
 PersistObjectTemplate.logger.setLevel(logLevel);
-PersistObjectTemplate.config = { globallyOverrideIsRemoteObjectProperties: false };
+PersistObjectTemplate.config = { enableIsRemoteObjectFeature: true };
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {
@@ -98,12 +98,6 @@ Address.mixin({
     returnedMail: {type: Array, of: ReturnedMail, value: []},
     addReturnedMail: function (date) {
         this.returnedMail.push(new ReturnedMail(this, date));
-    },
-    publicDocument: {
-        type: String,
-        isRemoteObject: false,
-        remoteKeyBase: 'test-remote-key-for-public-doc',
-        value: 'publicDoc'
     }
 });
 var Role = PersistObjectTemplate.create('Role', {
@@ -115,12 +109,34 @@ var Role = PersistObjectTemplate.create('Role', {
         this.setDirty();
     },
     relationship: {type: String, value: 'primary', logChanges: true},
+    customer:     {type: Customer}
+});
+
+var StorageTracker = PersistObjectTemplate.create('StorageTracker', {
+    init: function(customer) {
+        this.customer = customer;
+        this.setDirty();
+    },
     customer:     {type: Customer},
-    personalDocument: {
+    storageDocument: {
+        type: String,
+        isRemoteObject: true,
+        remoteKeyBase: 'test-remote-key-for-storage-doc',
+        value: 'storageDoc'
+    }
+});
+
+var DocTracker = PersistObjectTemplate.create('DocTracker', {
+    init: function(customer) {
+        this.customer = customer;
+        this.setDirty();
+    },
+    customer:     {type: Customer},
+    storageDocument: {
         type: String,
         isRemoteObject: false,
-        remoteKeyBase: 'test-remote-key-for-personal-doc',
-        value: 'personalBirthCertificate'
+        remoteKeyBase: 'test-remote-key-for-docStorage-doc',
+        value: 'storageDoc'
     }
 });
 
@@ -249,6 +265,8 @@ var schema = {
         documentOf: 'pg/customer',
         children: {
             roles: {id: 'customer_id'},
+            storageTrackers: {id: 'customer_id'},
+            docTrackers: {id: 'customer_id'},
             referrers: {id: 'referred_id', filter: {property: 'type', value: 'primary'}},
             secondaryReferrers: {id: 'referred_id', filter: {property: 'type', value: 'secondary'}},
             primaryAddresses: {id: 'customer_id', fetch: true, filter: {property: 'type', value: 'primary'}, pruneOrphans: true},
@@ -321,6 +339,18 @@ var schema = {
             cascadeCheck: {id: 'firstlevel_id'},
             address: {id: 'address_id'}
         }
+    },
+    StorageTracker: {
+        documentOf: 'pg/StorageTracker',
+        parents: {
+            customer: {id: 'customer_id', fetch: 'yes'}
+        }
+    },
+    DocTracker: {
+        documentOf: 'pg/DocTracker',
+        parents: {
+            customer: {id: 'customer_id', fetch: 'yes'}
+        }
     }
 }
 
@@ -338,8 +368,16 @@ function clearCollection(template) {
 
 describe('Banking from pgsql Example persist_banking_pgsql', function () {
     var knex;
+    var overrideProperyStub;
+    beforeEach(function() {
+        sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
+    })
     afterEach(function() {
         sinon.restore();
+        if (overrideProperyStub) {
+            overrideProperyStub.restore();
+        }
+        sandbox.restore();
     });
 
     it ('opens the database Postgres', function () {
@@ -391,6 +429,12 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             }).then(function (count) {
                 expect(count).to.equal(0);
                 return clearCollection(FirstLevel)
+            }).then(function (count) {
+                expect(count).to.equal(0);
+                return clearCollection(StorageTracker)
+            }).then(function (count) {
+                expect(count).to.equal(0);
+                return clearCollection(DocTracker)
             }).then(function (count) {
                 expect(count).to.equal(0);
             }).catch(function (e) {
@@ -1222,10 +1266,9 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         });
     });
 
-    it('can save / retrieve a document to remote store', async () => {
+    it('can save / retrieve a document to remote store if enableIsRemoteObjectFeature is true and isRemoteObject is true', async () => {
         const samRemoteDoc = await Customer.getFromPersistWithId(sam._id);
         samRemoteDoc.bankingDocument = 'meow!';
-        sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
         await samRemoteDoc.persistSave();
         expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(true);
         expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args.length).to.eql(4);
@@ -1233,82 +1276,68 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args[1]).contains('test-remote-key-');
         const customerOutput = await Customer.getFromPersistWithId(sam._id);
         expect(customerOutput.bankingDocument).to.equal('meow!');
-        sandbox.restore();
     });
 
-    it('can save / retrieve a document to remote store if globallyOverrideIsRemoteObjectProperties is undefined', async () => {
-        const samRemoteDoc = await Customer.getFromPersistWithId(sam._id);
-        samRemoteDoc.bankingDocument = 'bank note';
-        sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
-        const overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
+    it('can save / retrieve a document in db if enableIsRemoteObjectFeature is undefined and isRemoteObject is true', async () => {
+        overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'enableIsRemoteObjectFeature').get(()=> {
             return undefined;
         });
-        await samRemoteDoc.persistSave();
-        expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(true);
-        expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args.length).to.eql(4);
-        expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args[0]).to.eql('bank note');
-        expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args[1]).contains('test-remote-key-');
-        const customerOutput = await Customer.getFromPersistWithId(sam._id);
-        expect(customerOutput.bankingDocument).to.equal('bank note');
-        sandbox.restore();
-        overrideProperyStub.restore();
-    });
-
-    it('can save / retrieve a personal document from db, if globallyOverrideIsRemoteObjectProperties is false', async () => {
-        const accountOutput = await Account.getFromPersistWithQuery(null, {address: true, transactions: false, fromAccountTransactions: false});
-        const roleId = accountOutput[0].roles[0]._id;
-        const remoteDoc = await Role.getFromPersistWithId(roleId);
-        remoteDoc.personalDocument = 'Birth Certificate!';
-        sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
-        await remoteDoc.persistSave();
-       
+        const customer = await Customer.getFromPersistWithId(sam._id);
+        const storageTracker = new StorageTracker(customer, 'Deed Recording');
+        storageTracker.storageDocument = 'Deed Recording';
+        await storageTracker.persistSave();
+        const storageTrackerOutput = await StorageTracker.getFromPersistWithQuery(null, {});
         expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(false);
-        
-        const roleOutput = await Role.getFromPersistWithId(roleId);
-        expect(roleOutput.personalDocument).to.equal('Birth Certificate!');
-        sandbox.restore();
+        expect(storageTrackerOutput[0].storageDocument).to.equal('Deed Recording');
     });
-
-    it('can save / retrieve a personal document to remote store, if globallyOverrideIsRemoteObjectProperties is true', async () => {
-        const accountOutput = await Account.getFromPersistWithQuery(null, {address: true, transactions: false, fromAccountTransactions: false});
-        const addressId = accountOutput[1].address._id;
-        const remoteDoc = await Address.getFromPersistWithId(addressId);
-        remoteDoc.publicDocument = 'Deed Recording';
-        const overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
-            return true;
+    
+    it('can save / retrieve a document in db if enableIsRemoteObjectFeature is false and isRemoteObject is true', async () => {
+        overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'enableIsRemoteObjectFeature').get(()=> {
+            return false;
         });
-        sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
-        await remoteDoc.persistSave();
-       
-        expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(true);
-        expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args.length).to.eql(4);
-        expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args[0]).to.eql('Deed Recording');
-        expect(LocalStorageDocClient.prototype.uploadDocument.getCall(0).args[1]).contains('test-remote-key-for-public-doc-');
-        
-        
-        const addressOutput = await Address.getFromPersistWithId(addressId);
-        expect(addressOutput.publicDocument).to.equal('Deed Recording');
-        overrideProperyStub.restore();
-        sandbox.restore();
+        const customer = await Customer.getFromPersistWithId(sam._id);
+        const storageTracker = new StorageTracker(customer, 'Deed Recording');
+        storageTracker.storageDocument = 'Second Deed Recording';
+        await storageTracker.persistSave();
+        const storageTrackerOutput = await StorageTracker.getFromPersistWithQuery(null, {});
+        expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(false);
+        expect(storageTrackerOutput[1].storageDocument).to.equal('Second Deed Recording');
     });
 
-    it('can save / retrieve a personal document to remote store, if globallyOverrideIsRemoteObjectProperties is undefined', async () => {
-        const accountOutput = await Account.getFromPersistWithQuery(null, {address: true, transactions: false, fromAccountTransactions: false});
-        const addressId = accountOutput[1].address._id;
-        const remoteDoc = await Address.getFromPersistWithId(addressId);
-        remoteDoc.publicDocument = 'Second Deed Recording';
-        const overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'globallyOverrideIsRemoteObjectProperties').get(()=> {
+    it('can save / retrieve a document in db if enableIsRemoteObjectFeature is undefined and isRemoteObject is false', async () => {
+        overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'enableIsRemoteObjectFeature').get(()=> {
             return undefined;
         });
-        sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
-        await remoteDoc.persistSave();
-       
+        const customer = await Customer.getFromPersistWithId(sam._id);
+        const docTracker = new DocTracker(customer, 'Deed Recording');
+        docTracker.storageDocument = 'Deed Recording';
+        await docTracker.persistSave();
+        const docTrackerOutput = await DocTracker.getFromPersistWithQuery(null, {});
         expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(false);
-        
-        const addressOutput = await Address.getFromPersistWithId(addressId);
-        expect(addressOutput.publicDocument).to.equal('Second Deed Recording');
-        overrideProperyStub.restore();
-        sandbox.restore();
+        expect(docTrackerOutput[0].storageDocument).to.equal('Deed Recording');
+    });
+
+    it('can save / retrieve a document in db if enableIsRemoteObjectFeature is false and isRemoteObject is false', async () => {
+        overrideProperyStub = sinon.stub(PersistObjectTemplate.config, 'enableIsRemoteObjectFeature').get(()=> {
+            return false;
+        });
+        const customer = await Customer.getFromPersistWithId(sam._id);
+        const docTracker = new DocTracker(customer, 'Deed Recording');
+        docTracker.storageDocument = 'Second Deed Recording';
+        await docTracker.persistSave();
+        const docTrackerOutput = await DocTracker.getFromPersistWithQuery(null, {});
+        expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(false);
+        expect(docTrackerOutput[1].storageDocument).to.equal('Second Deed Recording');
+    });
+
+    it('can save / retrieve a document in db if enableIsRemoteObjectFeature is true and isRemoteObject is false', async () => {
+        const customer = await Customer.getFromPersistWithId(sam._id);
+        const docTracker = new DocTracker(customer, 'Deed Recording');
+        docTracker.storageDocument = 'Second Deed Recording';
+        await docTracker.persistSave();
+        const docTrackerOutput = await DocTracker.getFromPersistWithQuery(null, {});
+        expect(LocalStorageDocClient.prototype.uploadDocument.calledOnce).to.eql(false);
+        expect(docTrackerOutput[2].storageDocument).to.equal('Second Deed Recording');
     });
 
     it('should rollback transaction on failure to save to remote store', function(done) {

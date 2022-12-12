@@ -160,7 +160,7 @@ module.exports = function (PersistObjectTemplate) {
 
                 dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
-            } else if (PersistorUtils.isRemoteObjectSetToTrue(this.config && this.config.globallyOverrideIsRemoteObjectProperties, defineProperty.isRemoteObject)) {
+            } else if (PersistorUtils.isRemoteObjectSetToTrue(this.config && this.config.enableIsRemoteObjectFeature, defineProperty.isRemoteObject)) {
                 const uniqueIdentifier = obj._id;
 
                 // contents of the object itself

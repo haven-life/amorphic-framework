@@ -1,11 +1,9 @@
 export class PersistorUtils {
 
-    static isRemoteObjectSetToTrue(overrideConfig: any, isRemoteObject: any): boolean  {
-        if (isRemoteObject === undefined || isRemoteObject === null) {
-            return;
+    static isRemoteObjectSetToTrue(enableIsRemoteObjectFeature: any, isRemoteObject: any): boolean  {
+        if (enableIsRemoteObjectFeature && (enableIsRemoteObjectFeature === true || enableIsRemoteObjectFeature === 'true')) {
+            return isRemoteObject && isRemoteObject === true;
         }
-        const shouldOverrideByConfig = overrideConfig && isRemoteObject === false 
-                && (overrideConfig === true || overrideConfig === 'true');
-        return shouldOverrideByConfig || (isRemoteObject && isRemoteObject === true);
+        return false;
     }
 }

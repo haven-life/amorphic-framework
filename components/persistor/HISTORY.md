@@ -1,9 +1,7 @@
-## 9.4.0
-* Adding a config `globallyOverrideIsRemoteObjectProperties` as a feature, to override any or all `isRemoteObject` property on individual records, if they are set to false.
-* This feature is useful if you are using modules that have records that may be set as `isRemoteObject: false`. By setting this flag to true you may override the behavior and allow for docs to be saved in a remote s3 bucket. 
-**CAUTION:** Setting this flag to `true`, on client side config, can cause all `isRemoteObject: false` properties set across the app (include properties set on modules if any) to be `true`. 
-So due diligence must be done before enabling this flag on client side. You should also be mindful of any future cases when `isRemoteObject: false` could be is set on other future module releases.
-For more information and details of the behavior, refer to the README.
+## 10.0.0
+* Adding a config `enableIsRemoteObjectFeature` as a required config, to allow `isRemoteObject` property to take effect. This is to allow modules to set their `isRemoteObject` flag to true and client apps can safely upgrade to these modules without the requirement to also start using remoteStorage. When clients are ready to take advantage of `isRemoteObject` property, they can simply set the `enableIsRemoteObjectFeature` config to true in their respective config file(s). <br>
+**CAUTION:** This is an all or nothing flag. Once set to true the `isRemoteObject` behavior defined on individual properties will be enabled in all places. 
+For more information and details of the behavior, please refer to the README.
 
 ## 9.3.0
 * defining schema type in persistor
