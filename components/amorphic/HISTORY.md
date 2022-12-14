@@ -1,3 +1,6 @@
+## 11.3.0
+* Config `enableIsRemoteObjectFeature` is now a required config and must be set to `true`, if you are using remote storage(`isRemoteObject=true`) in your app (including packages and modules). Without this flag being set to `true`, the `isRemoteObject` property is suppressed and cannot be used to send data to remote storage. You can still continue to send data to db however. 
+For more information and details of the behavior, please refer to the `Persistor's` `README` and `HISTORY` files.
 ## 11.2.1
 * setting formidable to a lower version for bug resolution. Will be setting it back to the latest at a later release.
 ## 11.2.0
