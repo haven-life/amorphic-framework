@@ -1,5 +1,6 @@
 import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
+import { PersistorUtils } from '../utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/update`;
@@ -159,7 +160,7 @@ module.exports = function (PersistObjectTemplate) {
 
                 dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
-            } else if (defineProperty.isRemoteObject && defineProperty.isRemoteObject === true) {
+            } else if (PersistorUtils.isRemoteObjectSetToTrue(this.config && this.config.enableIsRemoteObjectFeature, defineProperty.isRemoteObject)) {
                 const uniqueIdentifier = obj._id;
 
                 // contents of the object itself
