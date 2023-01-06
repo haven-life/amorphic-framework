@@ -5,6 +5,7 @@ download
 coverage
 .DS_Store
 .sonarlint
+.vscode
 
 ./test/**/*.js
 ./test/**/*.js.map
