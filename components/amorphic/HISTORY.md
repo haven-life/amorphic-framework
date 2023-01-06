@@ -1,5 +1,5 @@
 ## 11.4.0
-* This change is reverting back the requirement to include `enableIsRemoteObjectFeature` flag for using `isRemoteObject`. This requirement was introduced by persistor in version `10.0.0`, and amorphic previously incorporated `10.0.0` persistor version in a minor version bump of amorphic (11.3.0). Since this could be a potential breaking change for some, best would be to revert this change in this minor version bump and instead re-introduce the change in the next major version. 
+* This change is reverting back the requirement to include `enableIsRemoteObjectFeature` flag to enable `isRemoteObject` feature. This requirement was introduced by persistor in version `10.0.0`, and amorphic previously incorporated `10.0.0` persistor version in a minor version bump of amorphic (11.3.0). Since this could be a potential breaking change for some, best would be to revert this change in this minor version bump and instead re-introduce the change in the next major version. 
 ## 11.3.1
 * Adding back package bump for 11.3.0
 ## 11.3.0
