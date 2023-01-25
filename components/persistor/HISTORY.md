@@ -1,3 +1,22 @@
+## 10.0.0
+* Adding a config `enableIsRemoteObjectFeature` as a required config, to allow `isRemoteObject` property to take effect. This is to allow modules to set their `isRemoteObject` flag to `true` and client apps can safely upgrade to these modules without the requirement to also start using remote storage. When clients are ready to take advantage of `isRemoteObject` property, they can simply set the `enableIsRemoteObjectFeature` config to `true` in their respective config file(s). <br>
+**CAUTION:** This is an all or nothing flag. Once `enableIsRemoteObjectFeature` is set to `true` the `isRemoteObject` behavior defined on individual properties will be enabled in all places. 
+For more information and details of the behavior, please refer to the README.
+
+## 9.3.0
+* defining schema type in persistor
+## 9.2.0
+* package-lock bump to pick up latest supertype version.
+## 9.1.0
+* cloning knex object when capturing the sqls to avoid "Update called multiple times with objects." warning.
+## 9.0.2
+* package-lock bump to pick up latest supertype version.
+* added test case for testing _ids during object cloning.
+## 9.0.1
+* Added executionPromise to knex commit and rollback
+* Explicitly return promise from knex transaction
+## 9.0.0
+* update persistor to use client passed logger.
 ## 8.0.2
 * bump nconf version due to security vulnerability.
 ## 8.0.1

@@ -1,5 +1,39 @@
-## 11.0.0
+## 13.0.0
 * target es2020
+## 12.0.0
+* Config `enableIsRemoteObjectFeature` is now a required config and must be set to `true`, if you are using remote storage(`isRemoteObject=true`) in your app (including packages and modules). Without this flag being set to `true`, the `isRemoteObject` property is suppressed and cannot be used to send data to remote storage. You can still continue to send data to db however. 
+For more information and details of the behavior, please refer to the `Persistor's` `README` and `HISTORY` files.
+NOTE: This change was previously introduced in version `11.3.0` only to be reverted in version `11.4.0`. It is being reintroduced as a major version bump in this version.
+## 11.4.0
+* This change is reverting back the requirement to include the `enableIsRemoteObjectFeature` flag, to enable the `isRemoteObject` feature. This requirement was introduced by the persistor in version `10.0.0`, and amorphic previously incorporated the `10.0.0` persistor version in a minor version bump of amorphic (`11.3.0`). Since this could be a potential breaking change for some, best would be to revert this change in this minor version bump and instead re-introduce the change in the next major version. 
+## 11.3.1
+* Adding back package bump for 11.3.0
+## 11.3.0
+* Config `enableIsRemoteObjectFeature` is now a required config and must be set to `true`, if you are using remote storage(`isRemoteObject=true`) in your app (including packages and modules). Without this flag being set to `true`, the `isRemoteObject` property is suppressed and cannot be used to send data to remote storage. You can still continue to send data to db however. 
+For more information and details of the behavior, please refer to the `Persistor's` `README` and `HISTORY` files.
+## 11.2.1
+* setting formidable to a lower version for bug resolution. Will be setting it back to the latest at a later release.
+## 11.2.0
+* Move logger middleware on server up the order to capture maximum logs.
+* Add uiLogger end points that can now be automatically attached to amorphic server along with relevant middlewares by passing in a client logger and setting the `enableUILoggerEndpointsWithMiddleware` to true.
+* add back previously deleted override sendToLog function on `client.js` to send `amorphicStatic` `error` and `fatal` log to back end.
+## 11.1.1
+* update package-lock to pull in latest versions.
+## 11.1.0
+* Schemas can be injected in the app initialization process. Get more details from README.md.
+## 11.0.1
+* Restrict loggingLevel passing to backend to log functions.
+## 11.0.0
+* BREAKING CHANGES: 
+    With this upgrade we have changed the way logger is used by amorphic. In the past, clients passed
+    a `sendToLog` function, at the time of initialization, to `listen` and `startPersistorMode` functions.
+    The signature on `listen` and `startPersistorMode` has changed and now expect a `logger` object instead. We require that 
+    this passed logger object must at least have basic bunyan functions like 'info', 'warn', 'error', 'debug' and 'child' implemented. 
+    Clients may also choose to pass an `undefined` instead of a logger to `listen` and `startPersistorMode` functions, 
+    and amorphic would then use a built-in SuperType Logger.
+* Reformatted all logs for improved readability.
+* A new `setApiContextMiddleware` middleware is also introduced to allow client passed loggers run some middleware code
+on server calls. This middleware may also have different functionalities that can be controlled using a new boolean `generateAmorphicServerLogContextIfMissing` config.
 ## 10.3.0
 * Add validator middleware to express server, config settings for whitelist, blacklist, escape
 ## 10.2.1

@@ -1,8 +1,9 @@
 import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
+import { PersistorUtils } from '../utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate) {
-
+    const moduleName = `persistor/lib/knex/update`;
     var Promise = require('bluebird');
     var _ = require('underscore');
 
@@ -21,8 +22,17 @@ module.exports = function (PersistObjectTemplate) {
      * @returns {*}
      */
     PersistObjectTemplate.persistSaveKnex = async function(obj, txn: PersistorTransaction, logger): Promise<any> {
-
-        (logger || this.logger).debug({component: 'persistor', module: 'db.persistSaveKnex', activity: 'pre', data:{template: obj.__template__.__name__, id: obj.__id__, _id: obj._id}});
+        const functionName = 'persistSaveKnex';
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            data: {
+                template: obj.__template__.__name__, 
+                id: obj.__id__, 
+                _id: obj._id
+            }
+        });
         this.checkObject(obj);
 
         let remoteDocService = null;
@@ -86,7 +96,12 @@ module.exports = function (PersistObjectTemplate) {
                     value.forEach(function (referencedObj, ix) {
 
                         if (!referencedObj) {
-                            (logger || this.logger).debug({component: 'persistor', module: 'db.persistSaveKnex'}, obj.__id__ + '.' + prop + '[' + ix + '] is null');
+                            (logger || this.logger).debug({
+                                module: moduleName,
+                                function: functionName,
+                                category: 'milestone',
+                                message: obj.__id__ + '.' + prop + '[' + ix + '] is null'
+                            });
                             return;
                         }
 
@@ -145,7 +160,7 @@ module.exports = function (PersistObjectTemplate) {
 
                 dataSaved[foreignKey] = pojo[foreignKey] || 'null';
 
-            } else if (defineProperty.isRemoteObject && defineProperty.isRemoteObject === true) {
+            } else if (PersistorUtils.isRemoteObjectSetToTrue(this.config && this.config.enableIsRemoteObjectFeature, defineProperty.isRemoteObject)) {
                 const uniqueIdentifier = obj._id;
 
                 // contents of the object itself
@@ -167,12 +182,12 @@ module.exports = function (PersistObjectTemplate) {
 
                     try {
                         (logger || this.logger).debug({
-                            component: 'persistor',
-                            module: 'update',
-                            activity: 'persistSaveKnex',
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'we are uploading the document with params',
                             data: {
                                 template: obj.__template__.__name__,
-                                message: 'we are uploading the document with params',
                                 documentBody: documentBody,
                                 objectKey: objectKey,
                                 bucket: bucket,
@@ -191,13 +206,13 @@ module.exports = function (PersistObjectTemplate) {
                         log(defineProperty, pojo, prop);
                     } catch (e) {
                         (logger || this.logger).error({
-                            component: 'persistor',
-                            module: 'update',
-                            activity: 'persistSaveKnex',
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'there was a problem uploading the document',
+                            error: e,
                             data: {
                                 template: obj.__template__.__name__,
-                                errorMessage: e,
-                                message: 'there was a problem uploading the document'
                             }
                         });
 
@@ -220,7 +235,17 @@ module.exports = function (PersistObjectTemplate) {
                 log(defineProperty, pojo, prop);
             }
         }
-        (logger || this.logger).debug({component: 'persistor', module: 'db', activity: 'dataLogging', data: {template: obj.__template__.__name__, _id: pojo._id, values: dataSaved}});
+        (logger || this.logger).debug({
+            module: moduleName,
+            function: functionName,
+            category: 'milestone',
+            data: {
+                activity: 'dataLogging',
+                template: obj.__template__.__name__, 
+                _id: pojo._id, 
+                values: dataSaved
+            }
+        });
 
         promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
 

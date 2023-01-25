@@ -1,7 +1,5 @@
 // Internal modules
 let AmorphicContext = require('./AmorphicContext');
-let Logger = require('./utils/logger');
-let logMessage = Logger.logMessage;
 let uploadRouter = require('./routers/uploadRouter').uploadRouter;
 let initializePerformance = require('./utils/initializePerformance').initializePerformance;
 let amorphicEntry = require('./amorphicEntry').amorphicEntry;
@@ -23,6 +21,9 @@ import * as fs from 'fs';
 import * as compression from 'compression';
 import * as http from 'http';
 import * as https from 'https';
+import { SupertypeSession } from '@haventech/supertype';
+import { LoggerApiContextProcessor } from './utils/LoggerApiContextProcessor';
+import { AmorphicUtils } from './utils/AmorphicUtils';
 
 type Options = {
     amorphicOptions: any;
@@ -48,6 +49,7 @@ export class AmorphicServer {
     app: express.Express;
     private serverMode: string;
     routers: { path: string; router: express.Router }[] = [];
+    private moduleName = AmorphicServer.name;
 
     /**
     *
@@ -181,6 +183,7 @@ export class AmorphicServer {
     }
 
     setupAmorphicRouter(options: Options) {
+        const functionName = this.setupAmorphicRouter.name;
         let { amorphicOptions,
             preSessionInject,
             postSessionInject,
@@ -191,9 +194,13 @@ export class AmorphicServer {
         const mainApp = amorphicOptions.mainApp;
         let appConfig = AmorphicContext.applicationConfig[mainApp];
         let reqBodySizeLimit = appConfig.reqBodySizeLimit || '50mb';
+        const enableUILoggerEndpointsWithMiddleware = AmorphicUtils.toBool(appConfig.appConfig.enableUILoggerEndpointsWithMiddleware);;
+
         let controllers = {};
         let sessions = {};
-
+        
+        //By default we dont generate the context.
+        const generateContextIfMissing = AmorphicUtils.toBool(appConfig.appConfig.generateAmorphicServerLogContextIfMissing);
         const downloads = generateDownloadsDir();
 
         /*
@@ -229,7 +236,12 @@ export class AmorphicServer {
                     this.app.use('/', express.static(appPath, { index: 'index.html' }));
                 }
 
-                logMessage(`${appName} connected to ${appPath}`);
+                SupertypeSession.logger.info({
+                    module: this.moduleName,
+                    function: functionName,
+                    category: 'milestone',
+                    message: `${appName} connected to ${appPath}`
+                });
             }
         }
 
@@ -253,22 +265,48 @@ export class AmorphicServer {
 
         const amorphicRouter: express.Router = express.Router();
 
-        amorphicRouter.use(validatorMiddleware.validateUrlParams);
-        amorphicRouter.use(initializePerformance);
-        amorphicRouter.use(cookieMiddleware)
+        if (this.hasClientLogger()) {
+            const clientLogger = SupertypeSession.logger.clientLogger;
+            this.app.use(clientLogger.setApiContextMiddleware({generateContextIfMissing}));
+        }
+        amorphicRouter.use(LoggerApiContextProcessor.clearCurrentSavedContext)
+            .use(validatorMiddleware.validateUrlParams)
+            .use(initializePerformance)
+            .use(cookieMiddleware)
+            .use(LoggerApiContextProcessor.saveCurrentLoggerContext)
             .use(expressSesh)
+            .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null, false))
             .use(uploadRouter.bind(null, downloads))
             .use(downloadRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(bodyLimitMiddleWare)
             .use(urlEncodedMiddleWare)
+            .use(LoggerApiContextProcessor.saveCurrentRequestContext)
             .use(validatorMiddleware.validateBodyParams)
             .use(postRouter.bind(null, sessions, controllers, nonObjTemplatelogLevel))
             .use(amorphicEntry.bind(null, sessions, controllers, nonObjTemplatelogLevel));
 
+        if (enableUILoggerEndpointsWithMiddleware && this.hasClientLogger()) {
+            const uiLoggerPathsRouter: express.Router = express.Router();
+            const clientLogger = SupertypeSession.logger.clientLogger;
+
+            uiLoggerPathsRouter.use(LoggerApiContextProcessor.saveCurrentLoggerContext)
+                .use(bodyLimitMiddleWare)
+                .use(urlEncodedMiddleWare)
+                .use(LoggerApiContextProcessor.applyloggerApiContextMiddleware.bind(null,false))
+                .use(validatorMiddleware.validateUrlParams)
+                .use(validatorMiddleware.validateBodyParams)
+                .use(AmorphicUtils.setLogMetadataAttributes)
+            const uiLogConfig = '/uiLogConfig';
+            const uiLog = '/uiLog';
+            this.app.use(`${uiLogConfig}`, uiLoggerPathsRouter);
+            this.app.use(`${uiLog}`, uiLoggerPathsRouter);
+            clientLogger.addUIConfigHandler('express', this.app);
+            clientLogger.addUILogHandler('express', this.app, clientLogger);
+        }
+
         if (postSessionInject) {
             postSessionInject.call(null, this.app);
         }
-
 
         amorphicRouter.use(router.bind(null, sessions, nonObjTemplatelogLevel, controllers));
         const amorphicPath = '/amorphic';
@@ -306,5 +344,10 @@ export class AmorphicServer {
             codeLocation = 'public/js'
         }
         return `${appDirectory}/${mainAppPath}/${codeLocation}/`;
+    }
+
+    private hasClientLogger() {
+        return SupertypeSession.logger.clientLogger && 
+        typeof SupertypeSession.logger.clientLogger.setApiContextMiddleware === 'function';
     }
 }

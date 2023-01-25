@@ -1,29 +1,13 @@
 const levelToStr = { 60: 'fatal', 50: 'error', 40: 'warn', 30: 'info', 20: 'debug', 10: 'trace' };
 const strToLevel = { 'fatal': 60, 'error': 50, 'warn': 40, 'info': 30, 'debug': 20, 'trace': 10 };
 
-function isObject(obj) {
-    return obj != null
-        && typeof (obj) === 'object'
-        && !(obj instanceof Array)
-        && !(obj instanceof Date)
-        && !(obj instanceof Error);
-}
-
-type LoggerFunction = (logLevel: string, logObject: any, ...rawLogData) => void;
-
-type LogObject = {
-    level: string | number;
-    time: string;
-    msg: string;
-    module?: any;
-    activity?: any;
-    __amorphicContext: any;
-};
-
 export class SupertypeLogger {
+    static moduleName: string = SupertypeLogger.name;
+    private _amorphicContext = '__amorphicContext';
     context: any;
     granularLevels: any;
     level: any;
+    private _clientLogger: any;
 
     // for overriding
     // sendToLog: Function;
@@ -51,70 +35,106 @@ export class SupertypeLogger {
     info(...data: any[]): void {
         this.log(30, ...data);
     }
+
     debug(...data: any[]): void {
         this.log(20, ...data);
     }
+
     trace(...data: any[]): void {
         this.log(10, ...data);
     }
 
+    get clientLogger() {
+        return this._clientLogger;
+    }
+
     /**
      * assign a custom send to log functionality.
-     * @param {(level: string, data: any) => void} loggerFunction
+     * @param logger - logger must fit the format of info/error/debug/warn
      */
-    setLogger(loggerFunction: LoggerFunction) {
-        this.sendToLog = loggerFunction;
+    setLogger(logger) {
+        if (typeof logger.info !== 'function' ||
+            typeof logger.error !== 'function' ||
+            typeof logger.debug !== 'function' ||
+            typeof logger.warn !== 'function') {
+            throw new Error('Please specify a logger with the info, error, debug, and warn functions');
+        }
+        if (typeof logger.childLogger === 'function') {
+            this._clientLogger = logger.childLogger({error: {isHumanRelated: false}});
+            return;
+        }
+        if (typeof logger.child === 'function') {
+            this._clientLogger = logger.child();
+            return;
+        }
+        this._clientLogger = logger;
     }
 
     // Log all arguments assuming the first one is level and the second one might be an object (similar to banyan)
-    private log(level: number, ...data: any[]): void {
-        let msg = '';
-        const obj: LogObject = {
-            time: (new Date()).toISOString(),
-            msg: '',
-            level: 'info', //default info
-            __amorphicContext: {}
-        };
+    private log(level: number, ...args: any[]): void {
+        const properties: any[] = args && Array.isArray(args) ? args.slice() : args;
 
-        const amorphicContext = {};
-        // Copy amorphic context into the data
-        for (const prop in this.context) {
-            obj[prop] = this.context[prop];
-            amorphicContext[prop] = this.context[prop];
+        if (typeof properties[0] === 'object')  {
+            let logObj = properties[0];
+            if (!logObj.data) {
+                logObj.data = {};
+            }
+            if (!logObj.context) {
+                logObj.context = {};
+            }
+
+            if (!logObj.request) {
+                logObj.request = {};
+            }
+
+            this.setLogsAmorphicContext(logObj.context, logObj.request);
+
+            logObj['level'] = level;
+            if (this.isEnabled(levelToStr[logObj['level']], logObj)) {
+                this.sendToLog(levelToStr[logObj['level']], logObj, ...properties.slice(1));
+            }
+            return;
         }
 
-        obj.level = level;
-        obj.__amorphicContext = amorphicContext;
+        properties['level'] = level;
+        if (this.isEnabled(levelToStr[properties['level']], properties)) {
+            this.sendToLog(levelToStr[properties['level']], properties);
+        }
+        return;
+    }
 
-        data.forEach((arg, index) => {
-            if (index === 0 && isObject(arg)) {
-                for (const proper in arg) {
-                    obj[proper] = arg[proper];
+    //This method extracts sessionId from the each request's context 
+    // and places it in the context.sessionId. All other context properties are 
+    // placed in context.data object.
+    private setLogsAmorphicContext(context: any, request: any) {
+        if (this.context && Object.keys(this.context).length > 0) {
+            if (!context.data) {
+                context.data = {};
+            }
+            if (typeof context.data === 'object') {
+                const sessionId = this.context.session;
+                if (!context.sessionId && sessionId) {
+                    context.sessionId = sessionId;
+                }
+
+                context.data[this._amorphicContext] = { ...this.context };
+                const amorphicContextObjectExists = context.data[this._amorphicContext] &&
+                    Object.keys(context.data[this._amorphicContext]) &&
+                    Object.keys(context.data[this._amorphicContext]).length > 0;
+
+                if (amorphicContextObjectExists && context.data[this._amorphicContext].session) {
+                    delete context.data[this._amorphicContext].session;
+                }
+                if (amorphicContextObjectExists && context.data[this._amorphicContext].ipaddress) {
+                    request.clientIpAddress = context.data[this._amorphicContext].ipaddress;
+                    delete context.data[this._amorphicContext].ipaddress;
                 }
             }
-            else {
-                msg += `${arg} `;
-            }
-        });
-
-        if (obj.msg.length) {
-            obj.msg += ' ';
         }
+    }
 
-        if (msg.length) {
-            if (obj.module && obj.activity) {
-                obj.msg += `${obj.module}[${obj.activity}] - `;
-            }
-
-            obj.msg += msg;
-        }
-        else if (obj.module && obj.activity) {
-            obj.msg += `${obj.module}[${obj.activity}]`;
-        }
-
-        if (this.isEnabled(levelToStr[obj.level], obj)) {
-            this.sendToLog(levelToStr[obj.level], obj, ...data);
-        }
+    getAmorphicContext(): any {
+        return { __amorphicContext: { ...this.context } };
     }
 
     startContext(context) {
@@ -162,7 +182,7 @@ export class SupertypeLogger {
     }
 
     // Create a new logger and copy over it's context
-    createChildLogger(context): SupertypeLogger {
+    createChildLogger(context, rootValues?, dataValues?): SupertypeLogger {
         let child: { [key: string]: any } = {};
 
         for (let prop in this) {
@@ -173,6 +193,17 @@ export class SupertypeLogger {
 
         for (let proper in this.context) {
             child.context[proper] = this.context[proper];
+        }
+        if (this._clientLogger) {
+            let childLogger;
+            if (this._clientLogger.childLogger === 'function') {
+                childLogger = this._clientLogger.childLogger(rootValues, dataValues);
+                child = childLogger;
+            }
+            else if (this._clientLogger.child === 'function') {
+                childLogger = this._clientLogger.child({...rootValues, data: {dataValues}});
+                child = childLogger;
+            }
         }
 
         return child as SupertypeLogger; // bad practice but should fix
@@ -192,6 +223,15 @@ export class SupertypeLogger {
         }
     }
 
+    private deleteEmptyLogProperties(logObject: any) {
+        const keys = ['context', 'data'];
+        keys.forEach((key) => {
+            if (logObject[key] && Object.keys(logObject[key]).length < 1) {
+                delete logObject[key];
+            }
+        })
+    }
+
     /**
      * this function is designed to be replaced by the consumer of this class.
      *
@@ -200,13 +240,46 @@ export class SupertypeLogger {
      * @param rawLogData - unformatted and unprocessed version of "logObject" param
      */
     protected sendToLog(logLevel, logObject, ...rawLogData) {
+        const functionName = this.sendToLog.name;
+        this.deleteEmptyLogProperties(logObject);
+        if (this._clientLogger) {
+            let levelForLog = typeof logLevel === 'string' ? strToLevel[logLevel] : logLevel;
+            switch (levelForLog) {
+                case 10:
+                case 20:
+                    this._clientLogger.debug(logObject, ...rawLogData);
+                    return;
+                case 30:
+                    this._clientLogger.info(logObject, ...rawLogData);
+                    return;
+                case 40:
+                    this._clientLogger.warn(logObject, ...rawLogData);
+                    return;
+                case 60:
+                case 50:
+                    this._clientLogger.error(logObject, ...rawLogData);
+                    return;
+                default: 
+                    this._clientLogger.error({
+                        module: SupertypeLogger.moduleName,
+                        function: functionName,
+                        category: 'milestone',
+                        message: 'invalid level used',
+                        data: {
+                            logLevel: logLevel,
+                            logObject: logObject
+                        }
+                    });
+                    return;
+            }
+        }
         console.log(this.prettyPrint(logLevel, logObject));     // eslint-disable-line no-console
     }
 
     prettyPrint(level, json) {
         let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
 
-        return this.formatDateTime(new Date(json.time)) + ': ' +
+        return this.formatDateTime(json.time ? new Date(json.time) : new Date()) + ': ' +
             level.toUpperCase() + ': ' +
             addColonIfToken(split[1].name, ': ') +
             addColonIfToken(split[1].msg, ': ') +

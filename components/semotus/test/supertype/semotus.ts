@@ -121,7 +121,7 @@ describe('Typescript Banking Example', function () {
 
 		console.log(output);
 		var result =
-			'(__amorphicContext={"name":"supertype"}foo="bar1")(__amorphicContext={"name":"supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"supertype"}foo="bar3")(__amorphicContext={"name":"supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"})';
+			'(foo="bar1"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar2"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}}request={})(foo="bar3"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar4"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}}request={})(foo="bar5"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T05:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})';
 
 		expect(output).to.equal(result);
 		sam.amorphic.logger = oldSendToLog;

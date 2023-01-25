@@ -13,6 +13,7 @@ const logLevel = process.env.logLevel || 'debug';
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
 PersistObjectTemplate.logger.setLevel(logLevel);
+PersistObjectTemplate.config = { enableIsRemoteObjectFeature: true };
 
 const sandbox = sinon.createSandbox();
 

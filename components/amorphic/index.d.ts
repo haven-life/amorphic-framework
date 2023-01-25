@@ -8,7 +8,7 @@ export { IAmorphicAppController } from './lib/types/IAmorphicAppController';
 // This class is for Amorphic unit tests
 export class Amorphic extends Persistor {
     static create(): Amorphic;
-    connect(configDirectory, schemaDirectory?)
+    connect(configDirectory, schemaDirectory?, configStore?, externalSchemas?)
     incomingIp: string;
 }
 

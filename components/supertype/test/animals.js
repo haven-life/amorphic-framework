@@ -1,5 +1,6 @@
 var expect = require('chai').expect;
 var ObjectTemplate = require('../dist/index.js').default;
+var sinon = require('sinon');
 
 
 /* Teacher Student Example */
@@ -106,11 +107,12 @@ describe('Freeze Dried Arks', function () {
         var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
 
-        ObjectTemplate.logger.sendToLog = function sendToLog(level, obj) {
-            var str = ObjectTemplate.logger.prettyPrint(level, obj).replace(/.*: /, '');
+        let sendToLogStub = sinon.stub(ObjectTemplate.logger, 'sendToLog');
+        sendToLogStub.callsFake((level, obj) => {
+            var str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
             console.log(str);
             output += str.replace(/[\r\n ]/g, '');
-        };
+        });
 
         ObjectTemplate.logger.startContext({name: 'supertype'});
         ObjectTemplate.logger.warn({foo: 'bar1'}, 'Yippie');
@@ -133,7 +135,111 @@ describe('Freeze Dried Arks', function () {
         ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
-        var result = '(__amorphicContext={"name":"supertype"}foo="bar1")(__amorphicContext={"name":"supertype","permFoo":"permBar1"}permFoo="permBar1"foo="bar2")(__amorphicContext={"name":"supertype"}foo="bar3")(__amorphicContext={"name":"supertype","permFoo":"childFoo"}permFoo="childFoo"foo="bar4")(__amorphicContext={"name":"supertype"}foo="bar5")(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})(__amorphicContext={"name":"supertype2"}foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"})';
+        var result = '(foo="bar1"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar2"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}}request={})(foo="bar3"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar4"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}}request={})(foo="bar5"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})';
+
+        sinon.restore();
+        expect(output).to.equal(result);
+    });
+
+    it ('can log with custom logger', function () {
+        var date = new Date('2010-11-11T00:00:00.000Z');
+        var output = '';
+
+        class CustomLogger {
+            info(obj) {
+                this.log(30, obj);
+            }
+            error(obj) {
+                this.log(50, obj);
+            }
+            warn(obj) {
+                this.log(40, obj);
+            }
+            debug(obj) {
+                this.log(20, obj);
+            }
+
+            childLogger() {
+                return new CustomLogger();
+            }
+
+            log(level, obj) {
+                var str = this.prettyPrint(level, obj);//.replace(/.*: /, '');
+                console.log(str);
+                output += str.replace(/[\r\n ]/g, '');
+            }
+
+            split(json, props) {
+                const a = {};
+                const b = {};
+
+                for (const prop in json) {
+                    (props[prop] ? b : a)[prop] = json[prop];
+                }
+
+                return [a, b];
+            }
+
+            prettyPrint(level, json) {
+                let split = this.split(json, {time: 1, msg: 1, level: 1, name: 1});
+        
+                return level + ': ' +
+                    addColonIfToken(split[1].name, ': ') +
+                    addColonIfToken(split[1].msg, ': ') +
+                    xy(split[0]);
+        
+                function addColonIfToken (token, colonAndSpace) {
+                    if (token) {
+                        return token + colonAndSpace;
+                    }
+        
+                    return '';
+                }
+        
+                function xy(j) {
+                    var str = '';
+                    var sep = '';
+        
+                    for (var prop in j) {
+                        str += sep + prop + '=' + JSON.stringify(j[prop]);
+                        sep = ' ';
+                    }
+        
+                    if (str.length > 0) {
+                        return '(' + str + ')';
+                    }
+        
+                    return '';
+                }
+            }
+        };
+
+        ObjectTemplate.logger.setLogger(new CustomLogger());
+
+        ObjectTemplate.logger.startContext({name: 'supertype'});
+        ObjectTemplate.logger.setLevel('info');
+        ObjectTemplate.logger.info({foo: 'bar1'}, 'Yippie');
+        var context = ObjectTemplate.logger.setContextProps({permFoo: 'permBar1'});
+        ObjectTemplate.logger.warn({foo: 'bar2'});
+        ObjectTemplate.logger.clearContextProps(context);
+        ObjectTemplate.logger.error({foo: 'bar3'});
+        var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
+        child.setContextProps({permFoo: 'childFoo'});
+        child.warn({'foo': 'bar4'});
+        ObjectTemplate.logger.debug({foo: 'bar5'});
+        ObjectTemplate.logger.startContext({name: 'supertype2'});
+        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ObjectTemplate.logger.setLevel('debug');
+        console.log('setting level to debug');
+        ObjectTemplate.logger.debug({foo: 'bar5'});
+        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ObjectTemplate.logger.setLevel('error;foo:bar6');
+        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ObjectTemplate.logger.setLevel('error;foo:bar7');
+        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+
+        console.log(output);
+        var result = '30:(foo="bar1"context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})40:(foo="bar2"context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}}request={})50:(foo="bar3"context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})40:(foo="bar4"context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}}request={})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})20:(foo="bar5"context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})';
 
         expect(output).to.equal(result);
     });

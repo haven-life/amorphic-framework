@@ -1,6 +1,6 @@
 {
 	"name": "@haventech/semotus",
-	"version": "7.0.0-beta.n2",
+	"version": "7.1.0",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",
 	"bugs": {
@@ -37,17 +37,17 @@
 		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
-		"@haventech/supertype": "6.0.0-beta.n2",
+		"@haventech/supertype": "6.x",
 		"@types/chai": "4.3.0",
 		"@types/express": "4.17.13",
-		"@types/mocha": "9.1.0",
-		"@types/node": "14.18.33",
+		"@types/mocha": "10.0.0",
+		"@types/node": "16.11.22",
 		"@types/express-serve-static-core": "4.17.21",
 		"express": "4.17.2",
 		"mock-req-res": "1.2.0",
 		"chai": "4.3.6",
 		"eslint": "8.8.0",
-		"mocha": "9.2.0",
+		"mocha": "10.1.0",
 		"nyc": "15.1.0",
 		"sinon": "13.0.1",
 		"ts-node": "10.9.1",
@@ -55,7 +55,7 @@
 		"underscore": "1.13.2"
 	},
 	"peerDependencies": {
-		"@haventech/supertype": "6.0.0-beta.n2"
+		"@haventech/supertype": "6.x"
 	},
 	"dependencies": {
 		"q": "1.x"

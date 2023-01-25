@@ -163,6 +163,25 @@ The account object connected to the fetched role is also automatically when a ro
                     "internalConsoleOptions": "openOnSessionStart"
                 }
         
+## Important features:
+### Version 10.0.0
+With this version we are introducing a config `enableIsRemoteObjectFeature` as a required flag, to enable `isRemoteObject` property to take effect. This is to allow modules to set their `isRemoteObject` flag to `true` and client apps can safely upgrade to these modules without the requirement to also start using remote storage. When clients are ready to take advantage of `isRemoteObject` property, they can simply set the `enableIsRemoteObjectFeature` config to `true` in their respective config file(s). <br>
+**CAUTION:** This is an all or nothing flag. Once `enableIsRemoteObjectFeature` is set to `true`: 
+1. The `isRemoteObject` behavior defined on individual record properties will be enabled across your app (including the ones on your modules). 
+2. All properties where `isRemoteObject` is set to `true`, would need to be migrated to a remote storage, as going forward their retreival and storage would happen from remote storage. 
+3. If a client is already using `isRemoteObject` to send docs to remote storage, they must set `enableIsRemoteObjectFeature` this flag to `true` in their config. <br><br>
+
+**Behavior:**
+<br> Only the first scenario will result in storage to s3.
+1. if `isRemoteObject` is `true` and `enableIsRemoteObjectFeature` is `true` -> persistor will store in remote s3 bucket.
+2. if `isRemoteObject` is `false` and `enableIsRemoteObjectFeature` is `false` -> persistor will store in db.
+3. if `isRemoteObject` is `false` and `enableIsRemoteObjectFeature` is `true` -> persistor will store in db.
+4. if `isRemoteObject` is `true` and `enableIsRemoteObjectFeature` is `false` -> persistor will store in db.
+5. if `isRemoteObject` is `undefined` or not set on record property and `enableIsRemoteObjectFeature` is `true` -> persistor will store in db.
+6. if `isRemoteObject` is `undefined` or not set on record property and `enableIsRemoteObjectFeature` is `false` -> persistor will store in db.
+7. if `isRemoteObject` is `false` and `enableIsRemoteObjectFeature` is `undefined` or not set on client -> persistor will store in db.
+8. if `isRemoteObject` is `true` and `enableIsRemoteObjectFeature` is `undefined` or not set on client -> persistor will store in db.
+9. if `isRemoteObject` is `undefined` or not set on record property and `enableIsRemoteObjectFeature` is `undefined` or not set on client -> persistor will store in db.
 
 ## License
 
