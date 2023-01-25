@@ -1,5 +1,3 @@
-## 13.0.0
-* target es2020
 ## 12.0.0
 * Config `enableIsRemoteObjectFeature` is now a required config and must be set to `true`, if you are using remote storage(`isRemoteObject=true`) in your app (including packages and modules). Without this flag being set to `true`, the `isRemoteObject` property is suppressed and cannot be used to send data to remote storage. You can still continue to send data to db however. 
 For more information and details of the behavior, please refer to the `Persistor's` `README` and `HISTORY` files.
