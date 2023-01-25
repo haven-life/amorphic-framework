@@ -106,6 +106,7 @@ describe('Freeze Dried Arks', function () {
     it ('can log', function () {
         var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
+        var childLogOutput = '';
 
         let sendToLogStub = sinon.stub(ObjectTemplate.logger, 'sendToLog');
         sendToLogStub.callsFake((level, obj) => {
@@ -121,6 +122,12 @@ describe('Freeze Dried Arks', function () {
         ObjectTemplate.logger.clearContextProps(context);
         ObjectTemplate.logger.warn({foo: 'bar3'});
         var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
+        const sendToLogStubChild = sinon.stub(child, 'sendToLog');
+        sendToLogStubChild.callsFake((level, obj) => {
+            var str = sendToLogStubChild.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
+            console.log(str);
+            output += str.replace(/[\r\n ]/g, '');
+        });
         child.setContextProps({permFoo: 'childFoo'});
         child.warn({'foo': 'bar4'});
         ObjectTemplate.logger.warn({foo: 'bar5'});
