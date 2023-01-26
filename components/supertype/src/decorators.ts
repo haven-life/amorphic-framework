@@ -122,7 +122,8 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
             return target.prototype.__amorphicprops__;
         }
         function getName() {
-            return target.toString().match(/function ([^(]*)/)[1];
+            //return target.toString().match(/function ([^(]*)/)[1];
+             return target.toString().match(/class ([^]\w+)/)[1];
         }
         function getDictionary() {
             objectTemplate.getClasses();

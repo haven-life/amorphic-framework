@@ -453,6 +453,7 @@ export class ObjectTemplate {
     }
 
     static getClasses() {
+        console.log('comping here', this.__templates__);
         if (this.__templates__) {
             for (let ix = 0; ix < this.__templates__.length; ++ix) {
                 var template = this.__templates__[ix];
@@ -461,6 +462,7 @@ export class ObjectTemplate {
                 processDeferredTypes(template);
             }
             this.__templates__ = undefined;
+            console.log('i am dictionary', this.__dictionary__);
             for (const templateName1 in this.__dictionary__) {
                 var template = this.__dictionary__[templateName1];
                 const parentTemplateName = constructorName(Object.getPrototypeOf(template.prototype).constructor);
@@ -503,7 +505,8 @@ export class ObjectTemplate {
         return this.__dictionary__;
 
         function constructorName(constructor) {
-            const namedFunction = constructor.toString().match(/function ([^(]*)/);
+            const namedFunction = constructor.toString().match(/class ([^]\w+)/);
+            //const namedFunction = constructor.toString().match(/function ([^(]*)/);
             return namedFunction ? namedFunction[1] : null;
         }
 

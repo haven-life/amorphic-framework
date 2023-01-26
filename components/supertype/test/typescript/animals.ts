@@ -125,6 +125,12 @@ describe('Freeze Dried Arks', function () {
         ark.amorphic.logger.clearContextProps(context);
         ark.amorphic.logger.warn({foo: 'bar3'});
         var child = ark.amorphic.logger.createChildLogger({name: 'supertype_child'});
+        const sendToLogStubChild = sinon.stub(child, 'sendToLog');
+        sendToLogStubChild.callsFake((level, obj) => {
+            var str = sendToLogStubChild.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
+            console.log(str);
+            output += str.replace(/[\r\n ]/g, '');
+        });
         child.setContextProps({permFoo: 'childFoo'});
         child.warn({'foo': 'bar4'});
         ark.amorphic.logger.warn({foo: 'bar5'});

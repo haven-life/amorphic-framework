@@ -14,7 +14,8 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "inlineSources": true,
-    "inlineSourceMap": true
+    "inlineSourceMap": true,
+    "useDefineForClassFields": false
   },
   "declaration": true,
   "exclude": [
