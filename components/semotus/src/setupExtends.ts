@@ -1,9 +1,10 @@
 // These two mixins and extender functions are needed because in the browser we only include supertype and semotus
 // and since classes use these in their extends hierarchy they must be defined.
 
-const __extends =
-    (this && (this as any).__extends) ||
+const __extends1 =
+    (this && (this as any).__extends1) ||
     (function () {
+        console.log('boooo', this)
         const extendStatics =
             Object.setPrototypeOf ||
             ({__proto__: []} instanceof Array &&
@@ -30,7 +31,7 @@ const __extends =
 
 export function Persistable(Base) {
     return (function (_super) {
-        __extends(class_1, _super);
+        __extends1(class_1, _super);
 
         function class_1() {
             return (_super !== null && _super.apply(this, arguments)) || this;
@@ -42,7 +43,7 @@ export function Persistable(Base) {
 
 export function Remoteable(Base) {
     return (function (_super) {
-        __extends(class_1, _super);
+        __extends1(class_1, _super);
 
         function class_1() {
             return (_super !== null && _super.apply(this, arguments)) || this;
@@ -54,7 +55,7 @@ export function Remoteable(Base) {
 
 export function Bindable(Base) {
     return (function (_super) {
-        __extends(class_1, _super);
+        __extends1(class_1, _super);
 
         function class_1() {
             return (_super !== null && _super.apply(this, arguments)) || this;

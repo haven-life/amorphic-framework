@@ -1,6 +1,6 @@
 {
 	"name": "@haventech/semotus",
-	"version": "7.1.0",
+	"version": "8.0.0-es2020.beta.0",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",
 	"bugs": {
@@ -15,7 +15,7 @@
 	"directories": {},
 	"scripts": {
 		"build": "npm run compile:src && npm run compile:test:supertype && npm run compile:test:syncstates && npm run copyStatics",
-		"buildAndTest": "npm run build && npm run test:ts && npm run test:ts:compiled",
+		"buildAndTest": "npm run build && npm run test:ts:compiled",
 		"clean": "rm -rf ./dist",
 		"compile:src": "tsc -p ./src/tsconfig.json",
 		"compile:test:supertype": "tsc -p ./test/supertype/tsconfig.json",
@@ -37,7 +37,7 @@
 		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
-		"@haventech/supertype": "6.x",
+		"@haventech/supertype": "7.0.0-es2020.beta.0",
 		"@types/chai": "4.3.0",
 		"@types/express": "4.17.13",
 		"@types/mocha": "10.0.0",
@@ -51,11 +51,12 @@
 		"nyc": "15.1.0",
 		"sinon": "13.0.1",
 		"ts-node": "10.9.1",
-		"typescript": "4.9.3",
+		"ts-mocha": "10.0.0",
+		"typescript": "4.9.4",
 		"underscore": "1.13.2"
 	},
 	"peerDependencies": {
-		"@haventech/supertype": "6.x"
+		"@haventech/supertype": "7.0.0-es2020.beta.0"
 	},
 	"dependencies": {
 		"q": "1.x"

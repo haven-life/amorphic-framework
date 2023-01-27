@@ -2,10 +2,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es5",
+    "target": "es2020",
     "lib": [
       "es2015",
-      "es2017"
+      "ES2015",
+      "es2017",
+      "es2020"
     ],
     "noImplicitAny": false,
     "typeRoots": [
@@ -14,6 +16,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "inlineSources": true,
-    "inlineSourceMap": true
+    "inlineSourceMap": true,
+    "useDefineForClassFields": false
   }
 }

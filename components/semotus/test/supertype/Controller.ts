@@ -4,6 +4,7 @@ import {Account} from './Account';
 import {Address} from './Address';
 import {expect} from 'chai';
 import {CallContext, ChangeString} from '../../src/helpers/Types';
+import { CustomerTest } from './CustomerTest';
 
 var ObjectTemplate = require('../../dist/index.js');
 var delay = require('../../dist/helpers/Utilities.js').delay;
@@ -111,7 +112,10 @@ export class Controller extends Supertype {
 		super();
 
 		// Setup customers and addresses
-		var sam = new Customer('Sam', 'M', 'Elsamman');
+		const sam = new Customer('Sam', 'M', 'Elsamman');
+		const samTest = new CustomerTest('Sam', 'M', 'Elsamman');
+		console.log('I am sam Test', samTest, 'sam addressTest', samTest.addAddress, samTest.someMethod)
+		console.log('I am sam', sam, 'sam address', sam.addAddress, sam.someMethod)
 		var karen = new Customer('Karen', 'M', 'Burke');
 		var ashling = new Customer('Ashling', '', 'Burke');
 

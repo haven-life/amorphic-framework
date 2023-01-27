@@ -2412,13 +2412,13 @@ declare var define;
 	};
 
 	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
+		console.log('objecttemplate default in decorator', objectTemplate)
 		objectTemplate = objectTemplate || this;
 
 		this.supertypeClass = supertypeClass.bind(RemoteObjectTemplate, objectTemplate, SupertypeModule);
 		this.Supertype = () => {
 			return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
 		}
-
 		this.Supertype.prototype = SupertypeModule.Supertype.prototype;
 		this.property = (props) => {
 			return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);

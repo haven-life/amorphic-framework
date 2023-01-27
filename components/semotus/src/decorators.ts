@@ -23,7 +23,7 @@ export function supertypeClass(objectTemplate, SupertypeModule, target): any {
     let syncStates: String[] = [];  // Default syncStates to empty array
 
     // Decorator workerbee
-    const decorator = function decorator(target) {
+    const decorator =  (target) => {
         // second time we must call the function returned the first time because it has the
         // properties as a closure
         if (ret) {
@@ -87,7 +87,9 @@ export function supertypeClass(objectTemplate, SupertypeModule, target): any {
 }
 
 export function Supertype(template, objectTemplate, Supertype) {
-    return Supertype.call(template, objectTemplate);
+    //return Reflect.construct(Supertype, [template, objectTemplate], template.constructor);
+    const supertype = new Supertype(objectTemplate, template)
+    return supertype;
 }
 
 export function property(objectTemplate, SupertypeModule, props, toClientRuleSet, toServerRuleSet) {

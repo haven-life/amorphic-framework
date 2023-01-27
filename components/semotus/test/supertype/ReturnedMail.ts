@@ -1,5 +1,6 @@
-import {Supertype, supertypeClass, property} from '../../dist/index';
+import {supertypeClass, Supertype, property} from '../../dist/index';
 import {Address} from './Address';
+//import { Supertype } from '@haventech/supertype';
 
 @supertypeClass
 export class ReturnedMail extends Supertype {

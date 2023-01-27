@@ -3,7 +3,6 @@
  * many-to-many relationships
  *
  */
-
 declare function require(name: string);
 
 // RemoteObjectTemplate will be used for server template creation
@@ -65,6 +64,7 @@ ClientController.debug = 'client';
 ServerController.debug = 'server';
 
 function createController(objectTemplate, toClear) {
+	console.log('creating ClientController', objectTemplate, 'toclear', toClear);
 	RemoteObjectTemplate.bindDecorators(objectTemplate);
 
 	for (var obj in toClear) {
@@ -74,6 +74,7 @@ function createController(objectTemplate, toClear) {
 }
 
 var clientController = new ClientController();
+console.log('called new on ClientController');
 ClientObjectTemplate.controller = clientController;
 
 // Create the server controller with the same Id so they can sync up

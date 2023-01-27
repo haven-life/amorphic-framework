@@ -1,5 +1,6 @@
 import {Supertype, supertypeClass, property} from '../../dist/index';
 import {Account} from './Account';
+//import { Supertype } from '@haventech/supertype';
 
 @supertypeClass
 export class Transaction  extends Supertype {
