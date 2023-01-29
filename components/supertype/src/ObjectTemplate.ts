@@ -453,7 +453,6 @@ export class ObjectTemplate {
     }
 
     static getClasses() {
-        console.log('comping here', this.__templates__);
         if (this.__templates__) {
             for (let ix = 0; ix < this.__templates__.length; ++ix) {
                 var template = this.__templates__[ix];
@@ -462,7 +461,6 @@ export class ObjectTemplate {
                 processDeferredTypes(template);
             }
             this.__templates__ = undefined;
-            console.log('i am dictionary', this.__dictionary__);
             for (const templateName1 in this.__dictionary__) {
                 var template = this.__dictionary__[templateName1];
                 const parentTemplateName = constructorName(Object.getPrototypeOf(template.prototype).constructor);

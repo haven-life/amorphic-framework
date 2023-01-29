@@ -15,10 +15,6 @@ export class Customer extends Supertype {
         this.addresses.push(address);
     }
 
-    public someMethod() {
-        console.log('came here')
-    }
-
     constructor (first, middle, last) {
         super();
         this.firstName = first;

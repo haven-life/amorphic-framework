@@ -15,7 +15,7 @@
 	"directories": {},
 	"scripts": {
 		"build": "npm run compile:src && npm run compile:test:supertype && npm run compile:test:syncstates && npm run copyStatics",
-		"buildAndTest": "npm run build && npm run test:ts:compiled",
+		"buildAndTest": "npm run build && npm run test:ts && npm run test:ts:compiled",
 		"clean": "rm -rf ./dist",
 		"compile:src": "tsc -p ./src/tsconfig.json",
 		"compile:test:supertype": "tsc -p ./test/supertype/tsconfig.json",
@@ -30,28 +30,27 @@
 		"test": "mocha -- test/types.js test/javascript/semotus.js",
 		"test:ts": "npm run test:ts:supertype && npm run test:ts:syncstates",
 		"test:ts:compiled": "mocha test/supertype/semotus.js",
-		"test:ts:supertype": "mocha -p ./test/supertype/tsconfig.json test/supertype/semotus.ts --require ts-node/register",
+		"test:ts:supertype": "mocha test/supertype/semotus.ts --require ts-node/register",
 		"test:ts:syncstates": "npm run test:ts:syncstates:a && npm run test:ts:syncstates:b && npm run test:ts:syncstates:both",
-		"test:ts:syncstates:a": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_AppA.js -t 100000",
-		"test:ts:syncstates:b": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_AppB.js -t 100000",
-		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
+		"test:ts:syncstates:a": "mocha test/syncStates/BaseCases_AppA.js -t 100000",
+		"test:ts:syncstates:b": "mocha test/syncStates/BaseCases_AppB.js -t 100000",
+		"test:ts:syncstates:both": "mocha test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
 		"@haventech/supertype": "7.0.0-es2020.beta.0",
 		"@types/chai": "4.3.0",
 		"@types/express": "4.17.13",
-		"@types/mocha": "10.0.0",
-		"@types/node": "18.11.18",
 		"@types/express-serve-static-core": "4.17.21",
-		"express": "4.17.3",
-		"mock-req-res": "1.2.0",
+		"@types/mocha": "10.0.1",
+		"@types/node": "18.11.18",
 		"chai": "4.3.6",
 		"eslint": "8.8.0",
-		"mocha": "10.1.0",
+		"express": "4.17.3",
+		"mocha": "10.2.0",
+		"mock-req-res": "1.2.1",
 		"nyc": "15.1.0",
 		"sinon": "13.0.1",
-		"ts-node": "10.9.1",
-		"ts-mocha": "10.0.0",
+		"ts-node": "^10.9.1",
 		"typescript": "4.9.4",
 		"underscore": "1.13.2"
 	},
@@ -61,7 +60,6 @@
 	"dependencies": {
 		"q": "1.x"
 	},
-	"optionalDependencies": {},
 	"engines": {
 		"node": ">=14.0.0"
 	}

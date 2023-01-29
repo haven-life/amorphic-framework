@@ -86,12 +86,6 @@ export function supertypeClass(objectTemplate, SupertypeModule, target): any {
     return decorator; // decorator will be called 2nd time with ret as a closure
 }
 
-export function Supertype(template, objectTemplate, Supertype) {
-    //return Reflect.construct(Supertype, [template, objectTemplate], template.constructor);
-    const supertype = new Supertype(objectTemplate, template)
-    return supertype;
-}
-
 export function property(objectTemplate, SupertypeModule, props, toClientRuleSet, toServerRuleSet) {
     props = props || {};
     props.toClient = applyRuleSet(props.toClient, toClientRuleSet);
