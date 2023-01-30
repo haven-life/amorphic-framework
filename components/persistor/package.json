@@ -9,18 +9,21 @@
         "aws-sdk": "2.x",
         "bluebird": "x",
         "mongodb": "^3.5.5",
+        "npm": "^9.4.0",
         "q": "1.x",
+        "run": "^1.4.0",
+        "test": "^3.2.1",
         "tv4": "^1.3.0",
         "underscore": "^1.13.1",
         "uuid": "8.3.2"
     },
     "peerDependencies": {
-        "@haventech/supertype": "7.0.0-es2020.beta.0",
+        "@haventech/supertype": "7.0.0-es2020.beta.1",
         "knex": "^2.4.2",
         "pg": "^8.7.1"
     },
     "devDependencies": {
-        "@haventech/supertype": "7.0.0-es2020.beta.0",
+        "@haventech/supertype": "7.0.0-es2020.beta.1",
         "@types/bluebird": "*",
         "@types/chai": "4.3.4",
         "@types/mocha": "10.0.1",
@@ -69,6 +72,5 @@
     },
     "bugs": {
         "url": "http://github.com/haven-life/persistor/issues"
-    },
-    "optionalDependencies": {}
+    }
 }
