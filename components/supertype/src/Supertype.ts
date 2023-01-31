@@ -2,8 +2,7 @@ import {ObjectTemplate} from './ObjectTemplate';
 import * as serializer from './serializer';
 
 function constructorName(constructor) {
-    var namedFunction = constructor.toString().match(/class ([^]\w+)/);
-    //var namedFunction = constructor.toString().match(/function ([^(]*)/);
+    var namedFunction = constructor.toString().match(/class ([^]\w+)/) || constructor.toString().match(/function ([^(]*)/);
     return namedFunction ? namedFunction[1] : null;
 }
 
