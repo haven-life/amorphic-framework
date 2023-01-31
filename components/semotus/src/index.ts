@@ -2410,7 +2410,7 @@ declare var define;
 
 		return logValue;
 	};
-
+	
 	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
         objectTemplate = objectTemplate || this;
 
