@@ -35,10 +35,10 @@ function bindDecorators (objectTemplate) {
      */
     this.Supertype = function Supertype() {
         if (objectTemplate.Supertype) {
-            return Reflect.construct( objectTemplate.Supertype, [objectTemplate], this.constructor );
+            return objectTemplate.Supertype.call(this, objectTemplate);
         }
         else {
-            return Reflect.construct( SupertypeDefinition.Supertype, [objectTemplate], this.constructor );
+            return SupertypeDefinition.Supertype.call(this, objectTemplate);
         }
     };
     this.Supertype.prototype = SupertypeDefinition.Supertype.prototype;
