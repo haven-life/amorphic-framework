@@ -4,11 +4,11 @@
 	"homepage": "https://github.com/haven-life/amorphic",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"version": "13.0.0",
+	"version": "13.0.0-es2020-beta.0",
 	"dependencies": {
-		"@haventech/persistor": "11.0.0-es2020.beta.0",
-		"@haventech/semotus": "8.0.0-es2020.beta.0",
-		"@haventech/supertype": "7.0.0-es2020.beta.1",
+		"@haventech/persistor": "11.0.0-es2020.beta.1",
+		"@haventech/semotus": "8.0.0-es2020.beta.1",
+		"@haventech/supertype": "7.0.0-es2020.beta.2",
 		"amorphic-bindster": "2.0.*",
 		"compression": "1.7.4",
 		"cookie-parser": "1.4.6",
@@ -77,7 +77,7 @@
 	},
 	"directories": {},
 	"engines": {
-		"node": ">=14.x"
+		"node": ">=16.x"
 	},
 	"repository": {
 		"type": "git",

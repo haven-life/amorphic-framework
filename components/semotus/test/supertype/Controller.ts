@@ -110,7 +110,7 @@ export class Controller extends Supertype {
 		super();
 
 		// Setup customers and addresses
-		const sam = new Customer('Sam', 'M', 'Elsamman');
+		var sam = new Customer('Sam', 'M', 'Elsamman');
 		var karen = new Customer('Karen', 'M', 'Burke');
 		var ashling = new Customer('Ashling', '', 'Burke');
 
