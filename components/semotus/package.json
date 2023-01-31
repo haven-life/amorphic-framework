@@ -1,6 +1,6 @@
 {
 	"name": "@haventech/semotus",
-	"version": "8.0.0-es2020.beta.0",
+	"version": "8.0.0-es2020.beta.1",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",
 	"bugs": {
