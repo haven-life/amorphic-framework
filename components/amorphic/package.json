@@ -49,6 +49,7 @@
 		"pg": "^8.9.0"
 	},
 	"scripts": {
+		"clean": "rm -rf dist",
 		"setup": "npm install",
 		"build": "npm run recreateDist && npm run copy && npm run compile",
 		"compile": "tsc -p ./tsconfig.json",
