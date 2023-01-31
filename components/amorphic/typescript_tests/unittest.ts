@@ -17,7 +17,9 @@ describe('Banking from pgsql Example', () => {
     });
 
     it ('sets it all up', async () => {
+        console.log('tryying to connect...',__dirname, __dirname)
         await amorphic.connect(__dirname, __dirname);
+        console.log('connected...')
         await amorphic.dropAllTables();
         await amorphic.syncAllTables();
     });
