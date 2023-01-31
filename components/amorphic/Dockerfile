@@ -6,6 +6,6 @@ RUN apk update && apk add --no-cache bash
 WORKDIR /app
 
 COPY ./wait-for-it.sh .
-#COPY ./ ./
+COPY ./ ./
 RUN npm install
 RUN npm run build
