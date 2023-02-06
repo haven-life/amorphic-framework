@@ -24,8 +24,7 @@
  */
 
 import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
-import {property, remote, supertypeClass} from './decorators';
-import { Supertype } from '@haventech/supertype';
+import {property, remote, Supertype, supertypeClass} from './decorators';
 import {Bindable, Persistable, Remoteable} from './setupExtends';
 import * as Sessions from './helpers/Sessions';
 import * as Subscriptions from './helpers/Subscriptions';
@@ -2416,14 +2415,15 @@ declare var define;
 		objectTemplate = objectTemplate || this;
 
         this.supertypeClass = supertypeClass.bind(this, objectTemplate, SupertypeModule);
-		this.Supertype = Supertype.bind(this, objectTemplate);
+		this.Supertype = function () {
+            return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
+        };
         this.Supertype.prototype = SupertypeModule.Supertype.prototype;
         this.property =  (props) => {
             return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
         };
         this.remote = remote.bind(null, objectTemplate);
 	};
-
 
     RemoteObjectTemplate.Persistable = Persistable;
 	RemoteObjectTemplate.Remoteable = Remoteable;
