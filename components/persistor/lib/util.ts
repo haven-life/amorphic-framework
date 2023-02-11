@@ -1,8 +1,13 @@
+import {SupertypeSession, SupertypeLogger} from '@haventech/supertype';
+
 module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
     var _ = require('underscore');
     var schemaValidator = require('tv4');
+    schemaValidator.addFormat('date-time', function (data) {
+        return data instanceof Date && !isNaN(data.valueOf())
+    });
 
     PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
 
@@ -220,7 +225,11 @@ module.exports = function (PersistObjectTemplate) {
                     },
                     'enableChangeTracking' : {
                         type: ['boolean', 'null', 'undefined']
-                    }
+                    },
+                    'asOfDate' : {
+                        type: ['object', 'null', 'undefined'],
+                        format: 'date-time'
+                    },
                 }
             },
             'commitSchema': {
@@ -307,3 +316,22 @@ module.exports = function (PersistObjectTemplate) {
         return remaining ? processRecursiveFetch(fetchSpec, remaining) : fetchSpec;
     }
 };
+
+export class amorphicStatic {
+    static logger : SupertypeLogger;
+    static config : any;
+    static beginDefaultTransaction() : any {}
+    static beginTransaction(nodefault? : boolean) : any {}
+    static endTransaction(persistorTransaction?, logger?) : any {}
+    static begin (isdefault?) : any {}
+    static end (persistorTransaction?, logger?) : any {};
+    static commit (options?) : any {};
+    static createTransientObject(callback : any) : any {};
+    static __transient__ : any;
+    static __dictionary__: any;
+    static debugInfo: any;
+    static reqSession: any;
+    static getClasses(): any {};
+    static syncAllTables(): any {};
+    static getInstance(): any {};
+}

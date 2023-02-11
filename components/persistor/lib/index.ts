@@ -74,6 +74,7 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     require('./knex/db.js')(PersistObjectTemplate);
 
     objectTemplate = PersistObjectTemplate;
+    PersistObjectTemplate.prototype.amorphicStatic = PersistObjectTemplate;
 
     return  PersistObjectTemplate;
 }

@@ -6,4 +6,8 @@ export class PersistorUtils {
         }
         return false;
     }
+
+    static checkAndExecuteWithContext(asOfDate: Date, callBack: () => any ): boolean  {
+        return callBack();
+    }
 }
