@@ -11,15 +11,16 @@
  */
 
 import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import { PersistorCtx } from './knex/PersistorCtx';
+import { PersistorUtils } from './utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     const moduleName = `persistor/lib/api`;
     let supertypeRequire = require('@haventech/supertype');
     let statsDHelper = supertypeRequire.StatsdHelper;
 
-    var Promise = require('bluebird');
     var _ = require('underscore');
-
+    
     function getTime() {
         return process.hrtime();
     }
@@ -300,7 +301,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
             let fetchQuery = (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
-                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking, options.projection));
+                PersistorCtx.checkAndExecuteWithContext(options.asOfDate, persistObjectTemplate.getFromPersistWithKnexId.bind(persistObjectTemplate, template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking, options.projection)));
 
             const name = 'persistorFetchById';
             return fetchQuery
@@ -1396,7 +1397,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 templates.push(template);
             }
         }
-        return Promise.map(templates, action, { concurrency: concurrency || 1 });
+        return PersistorUtils.asyncMap(templates, concurrency || 1, action);
     }
 
 };

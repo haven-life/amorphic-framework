@@ -3,7 +3,6 @@ import { PersistorUtils } from '../utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
-    var Promise = require('bluebird');
     var _ = require('underscore');
 
     PersistObjectTemplate.concurrency = 10;
@@ -83,7 +82,6 @@ module.exports = function (PersistObjectTemplate) {
             options.offset = skip;
         if (limit)
             options.limit = limit;
-
         // Request to do entire processing to be executed right now or as part of a request queue
         var request = function () {
             return Promise.resolve(true)
@@ -127,19 +125,17 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.resolveRecursiveRequests = function (requests, results) {
         return processRequests();
-        function processRequests() {
+        async function processRequests() {
             var segLength = requests.length;
-            //console.log("Processing " + segLength + " promises " + PersistObjectTemplate.concurrency);
-            return Promise.map(requests, function (request, _ix) {
+            
+            await PersistorUtils.asyncMap(requests, PersistObjectTemplate.concurrency || 1, function (request, _ix) {
                 return request();
-            }, {concurrency: PersistObjectTemplate.concurrency})
-                .then(function () {
-                    requests.splice(0, segLength);
-                    if (requests.length > 0)
-                        return processRequests();
-                    else
-                        return results;
-                })
+            }.bind(this))
+            requests.splice(0, segLength);
+            if (requests.length > 0)
+                return processRequests();
+            else
+                return results;
         }
     }
 

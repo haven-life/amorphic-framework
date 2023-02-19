@@ -16,7 +16,6 @@ PersistObjectTemplate.debug = function(m, t) {
     }
 }
 */
-var Promise = require('bluebird');
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {

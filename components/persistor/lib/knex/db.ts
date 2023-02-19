@@ -1,8 +1,9 @@
 import {RemoteDocService} from "../remote-doc/RemoteDocService";
+import { PersistorCtx } from './PersistorCtx';
+import { PersistorUtils } from '../utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/db`;
-    var Promise = require('bluebird');
     var _ = require('underscore');
 
     var processedList = [];
@@ -21,16 +22,29 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map, logger, projection) {
 
         var tableName = this.dealias(template.__table__);
+        var historyTableName, historyTableAlias
+        if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
+            historyTableName = tableName + '_history';
+            queryOrChains["createdTime"] = {$lte: PersistorCtx.ExecutionCtx?.AsOfDate};
+        }
+        
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         const functionName = 'getPOJOsFromKnexQuery';
 
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
-        var select = knex.select(getColumnNames.bind(this, template)()).from(tableName);
+        var select = knex.select(getColumnNames.bind(this, template)()).from((historyTableName || tableName) + ' as ' + tableName);
         joins.forEach(function (join) {
-            select = select.leftOuterJoin(this.dealias(join.template.__table__) + ' as ' + join.alias,
+            let joinTable = this.dealias(join.template.__table__);
+            let historyJoinTable, additionalCondition;
+            if (PersistorCtx.ExecutionCtx?.AsOfDate && join.template.__schema__.audit === 'v2') {
+                historyTableName = joinTable + '_history';
+                additionalCondition = ' and ' + join.alias + '.' + '"createdTime" <= ' + PersistorCtx.ExecutionCtx?.AsOfDate;
+            }
+            select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias,
                 join.alias + '.' + join.parentKey,
-                this.dealias(template.__table__) + '.' + join.childKey);
+                this.dealias(template.__table__) + '.' + join.childKey + (additionalCondition ? additionalCondition : ''));
+
         }.bind(this));
 
         // execute callback to chain on filter functions or convert mongo style filters
@@ -69,7 +83,7 @@ module.exports = function (PersistObjectTemplate) {
             category: 'milestone',
             data: {
                 activity: 'pre',
-                template: template.__name__, 
+                template: template.__name__,
                 query: queryOrChains
             }
         });
@@ -90,8 +104,8 @@ module.exports = function (PersistObjectTemplate) {
                 category: 'milestone',
                 data: {
                     activity: 'post',
-                    count: res.length, 
-                    template: template.__name__, 
+                    count: res.length,
+                    template: template.__name__,
                     query: queryOrChains
                 }
             });
@@ -316,8 +330,8 @@ module.exports = function (PersistObjectTemplate) {
                     category: 'milestone',
                     data: {
                         activity: 'post',
-                        count: res, 
-                        table: tableName, 
+                        count: res,
+                        table: tableName,
                         id: obj._id
                     }
                 });
@@ -344,7 +358,7 @@ module.exports = function (PersistObjectTemplate) {
             if (txn.queriesToNotify) {
                 generateNotifyQueries(template, txn.queriesToNotify, knex.where({_id: id}).delete().toString());
             }
-            
+
         }
         return knex.where({_id: id}).delete();
     };
@@ -373,11 +387,11 @@ module.exports = function (PersistObjectTemplate) {
             category: 'milestone',
             data: {
                 activity: 'pre',
-                txn: (txn ? txn.id + ' ' : '-#- '), 
+                txn: (txn ? txn.id + ' ' : '-#- '),
                 type: (updateID ? 'updating ' : 'insert '),
-                template: obj.__template__.__name__, 
-                id: obj.__id__, 
-                _id: obj._id, 
+                template: obj.__template__.__name__,
+                id: obj.__id__,
+                _id: obj._id,
                 __version__: pojo.__version__
             }
         });
@@ -432,7 +446,7 @@ module.exports = function (PersistObjectTemplate) {
                     category: 'milestone',
                     data: {
                         activity: 'updateConflict',
-                        txn: (txn ? txn.id : '-#-'), 
+                        txn: (txn ? txn.id : '-#-'),
                         id: obj.__id__, __version__: origVer
                     }
                 });
@@ -466,8 +480,8 @@ module.exports = function (PersistObjectTemplate) {
                 category: 'milestone',
                 data: {
                     activity: 'post',
-                    template: obj.__template__.__name__, 
-                    table: obj.__template__.__table__, 
+                    template: obj.__template__.__name__,
+                    table: obj.__template__.__table__,
                     __version__: obj.__version__
                 }
             });
@@ -514,29 +528,41 @@ module.exports = function (PersistObjectTemplate) {
         var _newFields = {};
 
         return Promise.resolve()
-            .then(buildTable.bind(this))
+            .then(buildTable.bind(this, aliasedTableName))
             .then(addComments.bind(this, tableName))
-            .then(synchronizeIndexes.bind(this, tableName, template));
-
-        function buildTable() {
-            return knex.schema.hasTable(tableName).then(function (exists) {
-                if (!exists) {
-                    if (!!changeNotificationCallback) {
-                        if (typeof changeNotificationCallback !== 'function')
-                            throw new Error('persistor can only notify the table changes through a callback');
-                        changeNotificationCallback('A new table, ' + tableName + ', has been added\n');
-                    }
-                    return PersistObjectTemplate._createKnexTable(template, aliasedTableName);
+            .then(synchronizeIndexes.bind(this, tableName, template))
+            .then(function (response) {
+                if (template.__schema__.audit === 'v2') {
+                    return Promise.resolve()
+                        .then(buildTable.bind(this, aliasedTableName + '_history'))
+                        .then(synchronizeIndexes.bind(this, aliasedTableName + '_history', template));;
                 }
                 else {
-                    return discoverColumns(tableName).then(function () {
-                        fieldChangeNotify(changeNotificationCallback, tableName);
-                        return knex.schema.table(tableName, columnMapper.bind(this))
-                    }.bind(this));
+                    return response;
                 }
             }.bind(this))
-        }
+            
 
+            function buildTable(aliasedTableName) {
+                var tableName = this.dealias(aliasedTableName);
+                return knex.schema.hasTable(tableName).then(function (exists) {
+                    if (!exists) {
+                        if (!!changeNotificationCallback) {
+                            if (typeof changeNotificationCallback !== 'function')
+                                throw new Error('persistor can only notify the table changes through a callback');
+                            changeNotificationCallback('A new table, ' + tableName + ', has been added\n');
+                        }
+                        return PersistObjectTemplate._createKnexTable(template, aliasedTableName);
+                    }
+                    else {
+                        return discoverColumns(tableName).then(function () {
+                            fieldChangeNotify(changeNotificationCallback, tableName);
+                            return knex.schema.table(tableName, columnMapper.bind(this, tableName));
+                        }.bind(this));
+                    }
+                }.bind(this));
+            }
+       
         function fieldChangeNotify(callBack, table) {
             if (!callBack) return;
             if (typeof callBack !== 'function')
@@ -795,13 +821,13 @@ module.exports = function (PersistObjectTemplate) {
             })
         };
 
-        var loadTableDef = function(dbschema, tableName) {
+        var loadTableDef = function([dbschema, tableName]) {
             if (!dbschema[tableName])
                 dbschema[tableName] = {};
             return [dbschema, schema, tableName];
         };
 
-        var diffTable = function(dbschema, schema, tableName) {
+        var diffTable = function([dbschema, schema, tableName]) {
             var dbTableDef = dbschema[tableName];
             var memTableDef = schema[tableName];
             var track = {add: [], change: [], delete: []};
@@ -841,8 +867,8 @@ module.exports = function (PersistObjectTemplate) {
         var generateChanges = function (localtemplate, _value) {
             return _.reduce(localtemplate.__children__, function (_curr, o) {
                 return Promise.resolve()
-                    .then(loadTableDef.bind(this, _dbschema, o.__name__))
-                    .spread(diffTable)
+                    .then(loadTableDef.bind(this, [_dbschema, o.__name__]))
+                    .then(diffTable.bind(this))
                     .then(generateChanges.bind(this, o));
             }, {});
         };
@@ -897,14 +923,14 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
             /**
-             * This function loops through index changes (add/change/delete) and 
-             * executes them one by one. In case of errors, while executing indexes, 
-             * we will log a warning message. This approach handles each index at 
-             * its own merit without impacting the behavior or another index. 
-             * This is a change from previous code where were trying to run index 
-             * changes together in a transaction. 
-             * @param operation 
-             * @param diffs 
+             * This function loops through index changes (add/change/delete) and
+             * executes them one by one. In case of errors, while executing indexes,
+             * we will log a warning message. This approach handles each index at
+             * its own merit without impacting the behavior or another index.
+             * This is a change from previous code where were trying to run index
+             * changes together in a transaction.
+             * @param operation
+             * @param diffs
              */
             async function syncIndexesForHierarchy (operation, diffs) {
                 for (const _key in diffs[operation]) {
@@ -924,7 +950,7 @@ module.exports = function (PersistObjectTemplate) {
                         if (operation === 'add') {
                             try {
                                 await knex.schema.table(tableName, async function (table) {
-                                    // This table function callback does not necessarily need to be 
+                                    // This table function callback does not necessarily need to be
                                     // an async callback, but making the callback async/await as a guard.
                                     await table[type](columns, name);
                                 });
@@ -938,7 +964,7 @@ module.exports = function (PersistObjectTemplate) {
                             type = type.replace(/unique/, 'Unique');
                             try {
                                 await knex.schema.table(tableName, async function (table) {
-                                    // This table function callback does not necessarily need to be 
+                                    // This table function callback does not necessarily need to be
                                     // an async callback, but making the callback async/await as a guard.
                                     await table['drop' + type]([], name);
                                 });
@@ -950,7 +976,7 @@ module.exports = function (PersistObjectTemplate) {
                         else {
                             try {
                                 await knex.schema.table(tableName, async function (table) {
-                                    // This table function callback does not necessarily need to be 
+                                    // This table function callback does not necessarily need to be
                                     // an async callback, but making the callback async/await as a guard.
                                     await table[type](columns, name);
                                 });
@@ -959,7 +985,7 @@ module.exports = function (PersistObjectTemplate) {
                             };
                         }
                     }
-                    catch(error) {    
+                    catch(error) {
                         const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                         if (logger) {
                             logger.warn({
@@ -975,8 +1001,8 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             return Promise.all([
-                syncIndexesForHierarchy('delete', dbChanges), 
-                syncIndexesForHierarchy('add', dbChanges), 
+                syncIndexesForHierarchy('delete', dbChanges),
+                syncIndexesForHierarchy('add', dbChanges),
                 syncIndexesForHierarchy('change', dbChanges)
             ]);
         };
@@ -1016,8 +1042,8 @@ module.exports = function (PersistObjectTemplate) {
 
         return Promise.resolve()
             .then(loadSchema.bind(this, tableName))
-            .spread(loadTableDef)
-            .spread(diffTable)
+            .then(loadTableDef.bind(this))
+            .then(diffTable.bind(this))
             .then(generateChanges.bind(this, template))
             .then(mergeChanges)
             .then(applyTableChanges)
@@ -1074,7 +1100,7 @@ module.exports = function (PersistObjectTemplate) {
             category: 'milestone',
             data: {
                 activity: 'pre',
-                template: obj.__template__.__name__, 
+                template: obj.__template__.__name__,
                 table: obj.__template__.__table__
             }
         });
@@ -1094,7 +1120,7 @@ module.exports = function (PersistObjectTemplate) {
                     category: 'milestone',
                     data: {
                         activity: 'post',
-                        template: obj.__template__.__name__, 
+                        template: obj.__template__.__name__,
                         table: obj.__template__.__table__
                     }
                 });
@@ -1127,9 +1153,16 @@ module.exports = function (PersistObjectTemplate) {
         return knex.schema.createTable(tableName, createColumns.bind(this));
 
         function createColumns(table) {
-            table.string('_id').primary();
+
             table.string('_template');
             table.biginteger('__version__');
+            if (collection.match(/_history/)) {
+                table.string('_id_history').primary();
+                table.string('_id');
+            }
+            else {
+                 table.string('_id').primary();
+            }
             var columnMap = {};
 
             recursiveColumnMap.call(this, template);
@@ -1428,16 +1461,14 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             // Walk through the dirty objects
-            function processSaves() {
-                return Promise.map(_.toArray(dirtyObjects), function (obj) {
+            async function processSaves() {
+                await PersistorUtils.asyncMap(_.toArray(dirtyObjects), PersistObjectTemplate.concurrency, function (obj) {
                     delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
                     return callSave(obj).then(generateChanges.bind(this, obj, obj.__version__ === 1 ? 'insert' : 'update'));
-                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
-                    if (_.toArray(dirtyObjects). length > 0) {
-                        return processSaves.call(this);
-                    }
-                });
-
+                }.bind(this));
+                if (_.toArray(dirtyObjects).length > 0) {
+                    return processSaves.call(this);
+                }
                 function callSave(obj) {
                     return (obj.__template__ && obj.__template__.__schema__
                         ?  obj.persistSave(persistorTransaction, logger)
@@ -1446,15 +1477,15 @@ module.exports = function (PersistObjectTemplate) {
             }
 
 
-            function processDeletes() {
-                return Promise.map(_.toArray(deletedObjects), function (obj) {
+            async function processDeletes() {
+                await PersistorUtils.asyncMap(_.toArray(deletedObjects), PersistObjectTemplate.concurrency, function (obj) {
                     delete deletedObjects[obj.__id__];  // Once scheduled for update remove it.
                     return callDelete(obj).then(generateChanges.bind(this, obj, 'delete'));
-                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
-                    if (_.toArray(deletedObjects). length > 0) {
-                        return processDeletes.call(this);
-                    }
-                });
+                }.bind(this));
+
+                if (_.toArray(deletedObjects). length > 0) {
+                    return processDeletes.call(this);
+                }
 
                 function callDelete(obj) {
                     return (obj.__template__ && obj.__template__.__schema__
@@ -1463,17 +1494,16 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
 
-            function processDeleteQueries() {
-                return Promise.map(_.toArray(deleteQueries), function (obj) {
+            async function processDeleteQueries() {
+                await PersistorUtils.asyncMap(_.toArray(deleteQueries), PersistObjectTemplate.concurrency, function (obj) {
                     delete deleteQueries[obj.name];  // Once scheduled for update remove it.
                     return (obj.template && obj.template.__schema__
                         ?  PersistObjectTemplate.deleteFromKnexQuery(obj.template, obj.queryOrChains, persistorTransaction, logger)
                         : true)
-                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
-                    if (_.toArray(deleteQueries). length > 0) {
-                        return processDeleteQueries.call(this);
-                    }
-                });
+                }.bind(this))
+                if (_.toArray(deleteQueries). length > 0) {
+                    return processDeleteQueries.call(this);
+                }
             }
 
 
@@ -1496,7 +1526,7 @@ module.exports = function (PersistObjectTemplate) {
 
             // Walk through the touched objects
             function processTouches() {
-                return Promise.map(_.toArray(touchObjects), function (obj) {
+                return PersistorUtils.asyncMap(_.toArray(touchObjects), PersistObjectTemplate.concurrency,  function (obj) {
                     return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
                         ?  obj.persistTouch(persistorTransaction, logger)
                         : true)

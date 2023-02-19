@@ -6,7 +6,7 @@ var chaiAsPromised = require('chai-as-promised');
 chai.should();
 chai.use(chaiAsPromised);
 
-var Promise = require('bluebird');
+// 
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 
@@ -279,7 +279,7 @@ describe('index synchronization checks', function () {
         })
     });
 
-    it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
+    it('synchronize the index definition and check if the index exists on the table by dropping the index in indexdefchnages', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).should.eventually.have.property('command').that.match(/INSERT/);
     });
 

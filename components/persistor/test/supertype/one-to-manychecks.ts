@@ -13,7 +13,6 @@ import { expect } from 'chai';
 import * as mocha from 'mocha';
 import * as _ from 'underscore';
 import {Employee} from "./Employee";
-import Promise = require('bluebird');
 import {Responsibility} from "./Responsibility";
 
 

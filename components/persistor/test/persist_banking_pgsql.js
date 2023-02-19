@@ -8,7 +8,7 @@ var sinon = require('sinon');
 var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
 var expect = require('chai').expect;
 var util = require('util');
-var Promise = require('bluebird');
+
 var _ = require('underscore');
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
@@ -1170,7 +1170,11 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             txn2Sam.firstName = 'txn2SamDead';
             txn2Sam.setDirty(txn2);
             txn1.postSave = function () {
-                Promise.delay(100)
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+                
+                sleep(100)
                 .then(function () {
                     // Update will not return because it is requesting a lock on Karen
                     txn1Karen.persistTouch(txn1) // 3 update karen
@@ -1187,6 +1191,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
                     txn2Error = true;
                 });
             };
+            
             return PersistObjectTemplate.end(txn1); // 1 - update sam (exc lock)
         }).catch(function (e) {
             if (e.message != 'Update Conflict')

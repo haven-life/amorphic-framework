@@ -15,7 +15,7 @@ import { expect } from 'chai';
 import * as _ from 'underscore';
 import {Customer} from "./Customer";
 import {ExtendedCustomer} from "./ExtendedCustomer";
-import Promise = require('bluebird');
+
 import {Role} from "./Role";
 import {Account} from "./Account";
 import {Transaction, Xfer} from './Transaction';
@@ -876,7 +876,11 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             txn2Sam.firstName = 'txn2SamDead';
             txn2Sam.setDirty(txn2);
             txn1.postSave = function () {
-                Promise.delay(100)
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+                
+                sleep(100)
                 .then(function () {
                     // Update will not return because it is requesting a lock on Karen
                     txn1Karen.persistTouch(txn1) // 3 update karen

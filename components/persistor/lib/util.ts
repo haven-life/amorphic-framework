@@ -1,8 +1,10 @@
 module.exports = function (PersistObjectTemplate) {
 
-    var Promise = require('bluebird');
     var _ = require('underscore');
     var schemaValidator = require('tv4');
+    schemaValidator.addFormat('date-time', function (data) {
+        return data instanceof Date && !isNaN(data.valueOf())
+    });
 
     PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
 
@@ -220,7 +222,11 @@ module.exports = function (PersistObjectTemplate) {
                     },
                     'enableChangeTracking' : {
                         type: ['boolean', 'null', 'undefined']
-                    }
+                    },
+                    'asOfDate' : {
+                        type: ['object', 'null', 'undefined'],
+                        format: 'date-time'
+                    },
                 }
             },
             'commitSchema': {
