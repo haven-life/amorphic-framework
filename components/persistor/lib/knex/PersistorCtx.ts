@@ -19,12 +19,7 @@ export class PersistorCtx {
     private static _asyncLocalStorage: AsyncLocalStorage<CtxProps>;
 
     private static get asyncLocalStorage() {
-        if (this._asyncLocalStorage) {
-            return this._asyncLocalStorage
-        }
-        else {
-            return (this._asyncLocalStorage = new AsyncLocalStorage<CtxProps>());
-        }
+        return this._asyncLocalStorage || (this._asyncLocalStorage = new AsyncLocalStorage<CtxProps>());
     }
 
     static checkAndExecuteWithContext(asOfDate: Date, callback: () => any )  {
@@ -34,7 +29,6 @@ export class PersistorCtx {
                 properties: { [this.persistorExnCtxKey]: new ExecutionCtx(asOfDate) },
             };
             return this.asyncLocalStorage.run(ctxProps, async () => {
-                let store = this.asyncLocalStorage.getStore() as CtxProps;
                 return await callback();
             });
         }
@@ -44,13 +38,14 @@ export class PersistorCtx {
     }
 
     static get ExecutionCtx() {
-        if (this._asyncLocalStorage) {
-            const store = this.asyncLocalStorage.getStore() as CtxProps;
-            if (!store) {
-                return null;
-            }
-            const exnCtx: ExecutionCtx = store.properties[this.persistorExnCtxKey];
-            return exnCtx;
+        if (!this._asyncLocalStorage) {
+            return;
         }
+        const store = this.asyncLocalStorage.getStore() as CtxProps;
+        if (!store) {
+            return;
+        }
+        const exnCtx: ExecutionCtx = store.properties[this.persistorExnCtxKey];
+        return exnCtx;
     }
 }
