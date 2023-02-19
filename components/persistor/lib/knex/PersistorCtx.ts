@@ -23,18 +23,17 @@ export class PersistorCtx {
     }
 
     static checkAndExecuteWithContext(asOfDate: Date, callback: () => any )  {
-        if (asOfDate) {
-            const ctxProps = {
-                name: `${new Date().getTime()}`,
-                properties: { [this.persistorExnCtxKey]: new ExecutionCtx(asOfDate) },
-            };
-            return this.asyncLocalStorage.run(ctxProps, async () => {
-                return await callback();
-            });
-        }
-        else {
+        if (!asOfDate) {
             return callback();
         }
+        
+        const ctxProps = {
+            name: `${new Date().getTime()}`,
+            properties: { [this.persistorExnCtxKey]: new ExecutionCtx(asOfDate) },
+        };
+        return this.asyncLocalStorage.run(ctxProps, async () => {
+            return await callback();
+        });
     }
 
     static get ExecutionCtx() {
