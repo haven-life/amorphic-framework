@@ -27,4 +27,8 @@ export class PersistorUtils {
 
         return p;
     }
+
+    static sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 }

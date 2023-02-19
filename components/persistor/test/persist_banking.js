@@ -353,7 +353,7 @@ describe('Banking Example JS', function () {
         }).catch(function(e) {done(e)});
     });
 
-    it('Accounts have addresses', function (done) {
+    it('Accounts have addresses 1', function (done) {
         Account.getFromPersistWithQuery(null, {address: true}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');

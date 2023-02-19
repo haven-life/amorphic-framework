@@ -22,28 +22,34 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map, logger, projection) {
 
         var tableName = this.dealias(template.__table__);
-        var historyTableName, historyTableAlias
+        var historyTableName, historyTableAlias;
+        var historySeqKeys = [];
         if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
             historyTableName = tableName + '_history';
-            queryOrChains["createdTime"] = {$lte: PersistorCtx.ExecutionCtx?.AsOfDate};
+            queryOrChains["lastUpdatedTime"] = {$lte: PersistorCtx.ExecutionCtx?.AsOfDate};
         }
-        
+
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         const functionName = 'getPOJOsFromKnexQuery';
 
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
-        var select = knex.select(getColumnNames.bind(this, template)()).from((historyTableName || tableName) + ' as ' + tableName);
+        var select = knex.select(getColumnNames.bind(this, template, historySeqKeys)()).from((historyTableName || tableName) + ' as ' + tableName);
         joins.forEach(function (join) {
             let joinTable = this.dealias(join.template.__table__);
             let historyJoinTable, additionalCondition;
             if (PersistorCtx.ExecutionCtx?.AsOfDate && join.template.__schema__.audit === 'v2') {
-                historyTableName = joinTable + '_history';
-                additionalCondition = ' and ' + join.alias + '.' + '"createdTime" <= ' + PersistorCtx.ExecutionCtx?.AsOfDate;
+                historyJoinTable = joinTable + '_history';
             }
-            select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias,
-                join.alias + '.' + join.parentKey,
-                this.dealias(template.__table__) + '.' + join.childKey + (additionalCondition ? additionalCondition : ''));
+            const parentKey = this.dealias(template.__table__) + '.' + join.childKey
+            select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
+                const cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
+                if (PersistorCtx.ExecutionCtx?.AsOfDate && join.template.__schema__.audit === 'v2') {
+                    const dt = PersistorCtx.ExecutionCtx?.AsOfDate
+                    cond.andOn(knex.client.raw(join.alias + '.' + '"lastUpdatedTime"' + ` <= '${dt.toISOString()}'`))
+                }
+            })
+
 
         }.bind(this));
 
@@ -68,7 +74,14 @@ module.exports = function (PersistObjectTemplate) {
                 select = ascending.reduce((result, column) => select.orderBy(column), select);
             if (descending.length)
                 select = descending.reduce((result, column) => select.orderBy(column, 'desc'), select);
-            }
+        }
+        if (historySeqKeys.length) {
+            const predicate = historySeqKeys.reduce((predicate,curr)=> (predicate[curr]=1,predicate),{});
+            select = this.getDB(this.getDBAlias(template.__table__)).connection.from({ "___historyAlias": select})
+            .where(predicate)
+        }
+
+
         if (options && options.limit) {
             select = select.limit(options.limit);
             select = select.offset(0)
@@ -131,7 +144,7 @@ module.exports = function (PersistObjectTemplate) {
             throw err;
         }
 
-        function getColumnNames(template) {
+        function getColumnNames(template, historySeqKeys) {
             var cols = [];
             var self = this;
 
@@ -153,9 +166,11 @@ module.exports = function (PersistObjectTemplate) {
                 as(template, prefix, '__version__', {type: {}, persist: true, enumerable: true});
                 as(template, prefix, '_template', {type: {}, persist: true, enumerable: true});
                 as(template, prefix, '_id', {type: {}, persist: true, enumerable: true});
+                if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
+                    lastUpdatedSeq(template, prefix, '_id', {type: {}, persist: true, enumerable: true});
+                }
             }
-
-            function as(template, prefix, prop, defineProperty) {
+            function asChecks(template, prefix, prop, defineProperty) {
                 var schema = template.__schema__;
                 var type = defineProperty.type;
                 var of = defineProperty.of;
@@ -172,7 +187,25 @@ module.exports = function (PersistObjectTemplate) {
                         throw  new Error(type.__name__ + '.' + prop + ' is missing a parents schema entry');
                     prop = schema.parents[prop].id;
                 }
-                cols.push(prefix + '.' + prop + ' as ' + (prefix ? prefix + '___' : '') + prop);
+                return prop;
+            }
+            function as(template, prefix, prop, defineProperty) {
+                const propDecorated = asChecks(template, prefix, prop, defineProperty)
+                if (!propDecorated) {
+                    return;
+                }
+                cols.push(prefix + '.' + propDecorated + ' as ' + (prefix ? prefix + '___' : '') + propDecorated);
+            }
+            function lastUpdatedSeq(template, prefix, prop, defineProperty) {
+                const propDecorated = asChecks(template, prefix, prop, defineProperty)
+                if (!propDecorated) {
+                    return;
+                }
+                const lastUpdatedSeq =`rank() over(partition by ${prefix}.${propDecorated} order by ${prefix}."lastUpdatedTime" desc)  "${prefix}___lastUpdatedSeq"`;
+                var knex = self.getDB(self.getDBAlias(template.__table__)).connection(tableName);
+                // historySeqKeys.push(`${prefix}.${propDecorated}`);
+                 historySeqKeys.push(`${prefix}___lastUpdatedSeq`);
+                cols.push(knex.client.raw(lastUpdatedSeq));
             }
 
             function getPropsRecursive(template, map?) {
@@ -541,7 +574,7 @@ module.exports = function (PersistObjectTemplate) {
                     return response;
                 }
             }.bind(this))
-            
+
 
             function buildTable(aliasedTableName) {
                 var tableName = this.dealias(aliasedTableName);
@@ -562,7 +595,7 @@ module.exports = function (PersistObjectTemplate) {
                     }
                 }.bind(this));
             }
-       
+
         function fieldChangeNotify(callBack, table) {
             if (!callBack) return;
             if (typeof callBack !== 'function')
@@ -768,7 +801,7 @@ module.exports = function (PersistObjectTemplate) {
 
     function synchronizeIndexes(tableName, template) {
 
-        var aliasedTableName = template.__table__;
+        var aliasedTableName = tableName || template.__table__;
         tableName = this.dealias(aliasedTableName);
         const functionName = synchronizeIndexes.name;
 
@@ -1157,8 +1190,9 @@ module.exports = function (PersistObjectTemplate) {
             table.string('_template');
             table.biginteger('__version__');
             if (collection.match(/_history/)) {
-                table.string('_id_history').primary();
+                table.string('_id_history');
                 table.string('_id');
+                table.primary(['_id', '_id_history'])
             }
             else {
                  table.string('_id').primary();

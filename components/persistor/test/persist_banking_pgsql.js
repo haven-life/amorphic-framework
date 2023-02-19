@@ -10,6 +10,7 @@ var expect = require('chai').expect;
 var util = require('util');
 
 var _ = require('underscore');
+const { PersistorUtils } = require('../lib/utils/PersistorUtils');
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
@@ -1170,11 +1171,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             txn2Sam.firstName = 'txn2SamDead';
             txn2Sam.setDirty(txn2);
             txn1.postSave = function () {
-                function sleep(ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }
-                
-                sleep(100)
+                PersistorUtils.sleep(100)
                 .then(function () {
                     // Update will not return because it is requesting a lock on Karen
                     txn1Karen.persistTouch(txn1) // 3 update karen
