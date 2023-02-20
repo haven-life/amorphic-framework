@@ -13,7 +13,7 @@ var knex;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
-var Phone, Address, Employee, empId, addressId, phoneId, Role;
+var Phone, Address, Employee, empId, addressId, phoneId, Role, dob;
 var PersistObjectTemplate, ObjectTemplate;
 
 describe('persist newapi tests', function () {
@@ -124,6 +124,8 @@ describe('persist newapi tests', function () {
         add.state = 'New York';
         add.phone = phone;
         emp.name = 'InitialName';
+        dob = new Date();
+        emp.dob = dob;
         emp.homeAddress = add;
         emp.roles.push(role1);
         emp.roles.push(role2);
@@ -324,7 +326,7 @@ describe('persist newapi tests', function () {
         `);
     });
 
-    it('Adding data and capturing', async function () {
+    it('Adding data and capturing for persistorFetchById', async function () {
         var orgRecordedTime = new Date();
         await PersistorUtils.sleep(100);
         var employee = await Employee.persistorFetchById(empId,
@@ -358,6 +360,104 @@ describe('persist newapi tests', function () {
                 asOfDate: updatedTime,
                 fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
             });
+        expect(employee.name).is.equal('First Update');
+        expect(employee.homeAddress.city).is.equal('First city update');
+        expect(employee.roles[0].name).is.equal('First role update');
+    });
+    it('Adding data and capturing for persistorFetchByQuery', async function () {
+        var orgRecordedTime = new Date();
+        await PersistorUtils.sleep(100);
+        var employee = (await Employee.persistorFetchByQuery({dob: dob},
+            {
+                fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
+            }))[0];
+
+        employee.name = 'First Update';
+        employee.homeAddress.city = 'First city update';
+        employee.roles[0].name = 'First role update';
+        
+        var tx = PersistObjectTemplate.beginDefaultTransaction();
+        employee.setDirty(tx);
+        employee.homeAddress.setDirty(tx);
+        employee.roles[0].setDirty(tx);
+        // await employee.persistSave();
+        await PersistObjectTemplate.commit({transaction: tx});
+        await PersistorUtils.sleep(100);
+        var updatedTime = new Date();
+        employee = (await Employee.persistorFetchByQuery({dob: dob},
+            {
+                asOfDate: orgRecordedTime,
+                fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
+            }))[0];
+
+        expect(employee.name).is.equal('InitialName');
+        expect(employee.homeAddress.city).is.equal('New York');
+        expect(employee.roles[0].name).is.equal('firstRole2');
+        employee = (await Employee.persistorFetchByQuery({dob: dob},
+            {
+                asOfDate: updatedTime,
+                fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
+            }))[0];
+        expect(employee.name).is.equal('First Update');
+        expect(employee.homeAddress.city).is.equal('First city update');
+        expect(employee.roles[0].name).is.equal('First role update');
+    });
+    it('Adding data and capturing for getFromPersistWithId', async function () {
+        var orgRecordedTime = new Date();
+        await PersistorUtils.sleep(100);
+        var employee = await Employee.getFromPersistWithId(empId,
+            { homeAddress: { fetch: { phone: true } }, roles: true });
+
+        employee.name = 'First Update';
+        employee.homeAddress.city = 'First city update';
+        employee.roles[0].name = 'First role update';
+        
+        var tx = PersistObjectTemplate.beginDefaultTransaction();
+        employee.setDirty(tx);
+        employee.homeAddress.setDirty(tx);
+        employee.roles[0].setDirty(tx);
+        // await employee.persistSave();
+        await PersistObjectTemplate.commit({transaction: tx});
+        await PersistorUtils.sleep(100);
+        var updatedTime = new Date();
+        employee = await Employee.getFromPersistWithId(empId,
+            { homeAddress: { fetch: { phone: true } }, roles: true }, false, undefined, false, undefined, orgRecordedTime);
+
+        expect(employee.name).is.equal('InitialName');
+        expect(employee.homeAddress.city).is.equal('New York');
+        expect(employee.roles[0].name).is.equal('firstRole2');
+        employee = await Employee.getFromPersistWithId(empId,
+            { homeAddress: { fetch: { phone: true } }, roles: true }, false, undefined, false, undefined, updatedTime);
+        expect(employee.name).is.equal('First Update');
+        expect(employee.homeAddress.city).is.equal('First city update');
+        expect(employee.roles[0].name).is.equal('First role update');
+    });
+    it('Adding data and capturing for getFromPersistWithQuery', async function () {
+        var orgRecordedTime = new Date();
+        await PersistorUtils.sleep(100);
+        var employee = (await Employee.getFromPersistWithQuery({dob: dob},
+            { homeAddress: { fetch: { phone: true } }, roles: true }))[0];
+
+        employee.name = 'First Update';
+        employee.homeAddress.city = 'First city update';
+        employee.roles[0].name = 'First role update';
+        
+        var tx = PersistObjectTemplate.beginDefaultTransaction();
+        employee.setDirty(tx);
+        employee.homeAddress.setDirty(tx);
+        employee.roles[0].setDirty(tx);
+        // await employee.persistSave();
+        await PersistObjectTemplate.commit({transaction: tx});
+        await PersistorUtils.sleep(100);
+        var updatedTime = new Date();
+        employee = (await Employee.getFromPersistWithQuery({dob: dob},
+            { homeAddress: { fetch: { phone: true } }, roles: true }, false, undefined, false, undefined, undefined, undefined, orgRecordedTime))[0];
+
+        expect(employee.name).is.equal('InitialName');
+        expect(employee.homeAddress.city).is.equal('New York');
+        expect(employee.roles[0].name).is.equal('firstRole2');
+        employee = (await Employee.getFromPersistWithQuery({dob: dob},
+            { homeAddress: { fetch: { phone: true } }, roles: true }, false, undefined, false, undefined, undefined, undefined, updatedTime))[0];
         expect(employee.name).is.equal('First Update');
         expect(employee.homeAddress.city).is.equal('First city update');
         expect(employee.roles[0].name).is.equal('First role update');

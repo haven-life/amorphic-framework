@@ -850,7 +850,8 @@ module.exports = function (PersistObjectTemplate) {
                     response = JSON.parse(record[0][schemaField]);
                 }
                 _dbschema = response;
-                return [response, template.__name__];
+                const historyPostfix = tableName.match(/_history$/) ? '___History' : '';
+                return [response, template.__name__ + historyPostfix];
             })
         };
 
@@ -862,7 +863,7 @@ module.exports = function (PersistObjectTemplate) {
 
         var diffTable = function([dbschema, schema, tableName]) {
             var dbTableDef = dbschema[tableName];
-            var memTableDef = schema[tableName];
+            var memTableDef = schema[tableName.replace( '___History', '')];
             var track = {add: [], change: [], delete: []};
             _diff(dbTableDef, memTableDef, 'delete', false, function (_dbIdx, memIdx) {
                 return !memIdx;
@@ -1063,7 +1064,7 @@ module.exports = function (PersistObjectTemplate) {
                         sequence_id = ++record[0].sequence_id;
                     }
                     _.each(_changes, function (_o, chgKey) {
-                        response[chgKey] = schema[chgKey];
+                        response[chgKey] = schema[chgKey.replace( '___History', '')];
                     });
 
                     return knex(schemaTable).insert({
