@@ -1187,9 +1187,6 @@ module.exports = function (PersistObjectTemplate) {
         return knex.schema.createTable(tableName, createColumns.bind(this));
 
         function createColumns(table) {
-
-            table.string('_template');
-            table.biginteger('__version__');
             if (collection.match(/_history/)) {
                 table.string('_id_history');
                 table.string('_id');
@@ -1198,6 +1195,9 @@ module.exports = function (PersistObjectTemplate) {
             else {
                  table.string('_id').primary();
             }
+            table.string('_template');
+            table.biginteger('__version__');
+            
             var columnMap = {};
 
             recursiveColumnMap.call(this, template);
