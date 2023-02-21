@@ -32,9 +32,9 @@
 		"test:ts:compiled": "mocha test/supertype/semotus.js",
 		"test:ts:supertype": "mocha test/supertype/semotus.ts --require ts-node/register",
 		"test:ts:syncstates": "npm run test:ts:syncstates:a && npm run test:ts:syncstates:b && npm run test:ts:syncstates:both",
-		"test:ts:syncstates:a": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_AppA.js -t 100000",
-		"test:ts:syncstates:b": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_AppB.js -t 100000",
-		"test:ts:syncstates:both": "mocha ./test/syncStates/tsconfig.json test/syncStates/BaseCases_BothApps.js -t 100000"
+		"test:ts:syncstates:a": "mocha test/syncStates/BaseCases_AppA.js -t 100000",
+		"test:ts:syncstates:b": "mocha test/syncStates/BaseCases_AppB.js -t 100000",
+		"test:ts:syncstates:both": "mocha test/syncStates/BaseCases_BothApps.js -t 100000"
 	},
 	"devDependencies": {
 		"@haventech/supertype": "6.x",
