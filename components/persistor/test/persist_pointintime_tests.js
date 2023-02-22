@@ -200,13 +200,14 @@ describe('persist newapi tests', function () {
             EXECUTE format('SELECT  string_agg(''"'' || c1.attname || ''"'', '','')
                 FROM    pg_attribute c1
                 where      c1.attrelid = ''%s''::regclass
+                AND     c1.attname <> ''_id''
                 AND     c1.attnum > 0;', TG_TABLE_NAME) INTO columns;
             
             
                 execute  format(
-                    '   INSERT INTO %1$s_history ( _id_history, %2$s )
-                        values (regexp_replace(extract(epoch from  clock_timestamp())::text, '',|\\.'', '''', ''g''), $1.*)
-                    ', TG_TABLE_NAME, columns) using new;
+                    '   INSERT INTO %1$s_history ( _id, _snapshot_id, %2$s )
+                        values (md5(random()::text || ''%3$s'' || clock_timestamp()::text)::uuid, $1.*)
+                    ', TG_TABLE_NAME, columns, new._id) using new;
                     
             end if;
             RETURN NEW;
@@ -243,13 +244,14 @@ describe('persist newapi tests', function () {
                     EXECUTE format('SELECT  string_agg(''"'' || c1.attname || ''"'', '','')
                         FROM    pg_attribute c1
                         where      c1.attrelid = ''%s''::regclass
+                        AND     c1.attname <> ''_id''
                         AND     c1.attnum > 0;', TG_TABLE_NAME) INTO columns;
                     
                     
                         execute  format(
-                            '   INSERT INTO %1$s_history ( _id_history, %2$s )
-                                values (regexp_replace(extract(epoch from  clock_timestamp())::text, '',|\\.'', '''', ''g''), $1.*)
-                            ', TG_TABLE_NAME, columns) using new;
+                            '   INSERT INTO %1$s_history ( _id, _snapshot_id, %2$s )
+                                values (md5(random()::text || ''%3$s'' || clock_timestamp()::text)::uuid, $1.*)
+                            ', TG_TABLE_NAME, columns, new._id) using new;
                             
                     end if;
                     RETURN NEW;
@@ -351,7 +353,6 @@ describe('persist newapi tests', function () {
                 asOfDate: orgRecordedTime,
                 fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
             });
-
         expect(employee.name).is.equal('InitialName');
         expect(employee.homeAddress.city).is.equal('New York');
         expect(employee.roles[0].name).is.equal('firstRole2');

@@ -26,6 +26,11 @@ module.exports = function (PersistObjectTemplate) {
         var historySeqKeys = [];
         if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
             historyTableName = tableName + '_history';
+            if ('_id' in queryOrChains) {
+                queryOrChains["_snapshot_id"] = queryOrChains["_id"]
+                delete queryOrChains["_id"];
+            }
+            
             queryOrChains["lastUpdatedTime"] = {$lte: PersistorCtx.ExecutionCtx?.AsOfDate};
         }
 
@@ -43,10 +48,15 @@ module.exports = function (PersistObjectTemplate) {
             }
             const parentKey = this.dealias(template.__table__) + '.' + join.childKey
             select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
-                const cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
                 if (PersistorCtx.ExecutionCtx?.AsOfDate && join.template.__schema__.audit === 'v2') {
+                    const cond = this.on(join.alias + '._snapshot_id', '=', parentKey)
+                
                     const dt = PersistorCtx.ExecutionCtx?.AsOfDate
                     cond.andOn(knex.client.raw(join.alias + '.' + '"lastUpdatedTime"' + ` <= '${dt.toISOString()}'`))
+                }
+                else 
+                {
+                    const cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
                 }
             })
 
@@ -165,9 +175,12 @@ module.exports = function (PersistObjectTemplate) {
             function asStandard(template, prefix) {
                 as(template, prefix, '__version__', {type: {}, persist: true, enumerable: true});
                 as(template, prefix, '_template', {type: {}, persist: true, enumerable: true});
-                as(template, prefix, '_id', {type: {}, persist: true, enumerable: true});
+                
                 if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
-                    lastUpdatedSeq(template, prefix, '_id', {type: {}, persist: true, enumerable: true});
+                    lastUpdatedSeq(template, prefix, '_snapshot_id', {type: {}, persist: true, enumerable: true});
+                }
+                else {
+                    as(template, prefix, '_id', {type: {}, persist: true, enumerable: true});
                 }
             }
             function asChecks(template, prefix, prop, defineProperty) {
@@ -201,7 +214,8 @@ module.exports = function (PersistObjectTemplate) {
                 if (!propDecorated) {
                     return;
                 }
-                const lastUpdatedSeq =`rank() over(partition by ${prefix}.${propDecorated} order by ${prefix}."lastUpdatedTime" desc)  "${prefix}___lastUpdatedSeq"`;
+                cols.push(prefix + '.' + propDecorated + ' as ' + (prefix ? prefix + '___' : '') + propDecorated.replace('_snapshot',''));
+                const lastUpdatedSeq =`rank() over(partition by "${prefix}"."${propDecorated}" order by "${prefix}"."lastUpdatedTime" desc)  "${prefix}___lastUpdatedSeq"`;
                 var knex = self.getDB(self.getDBAlias(template.__table__)).connection(tableName);
                 // historySeqKeys.push(`${prefix}.${propDecorated}`);
                  historySeqKeys.push(`${prefix}___lastUpdatedSeq`);
@@ -1188,9 +1202,9 @@ module.exports = function (PersistObjectTemplate) {
 
         function createColumns(table) {
             if (collection.match(/_history/)) {
-                table.string('_id_history');
                 table.string('_id');
-                table.primary(['_id', '_id_history'])
+                table.string('_snapshot_id');
+                table.primary(['_id'])
             }
             else {
                  table.string('_id').primary();

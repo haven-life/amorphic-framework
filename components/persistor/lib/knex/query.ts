@@ -1,5 +1,6 @@
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
 import { PersistorUtils } from '../utils/PersistorUtils';
+import { PersistorCtx } from './PersistorCtx';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
@@ -493,7 +494,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                 // Construct foreign key query
                 var query = {};
-                var options = defineProperty.queryOptions || {sort: {_id: 1}};
+                var options = defineProperty.queryOptions || {sort: PersistorCtx.ExecutionCtx?.AsOfDate ? {_snapshot_id:1} : {_id: 1}};
                 var limit = options.limit || null;
                 query[schema.children[prop].id] = obj._id;
                 if (foreignFilterKey) {
