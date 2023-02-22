@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:16.13.1
+      - image: cimg/node:18.13.0
         environment:
           port: 3001
           dbUser: postgres
