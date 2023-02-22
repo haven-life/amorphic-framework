@@ -67,7 +67,7 @@ module.exports = function (PersistObjectTemplate) {
         var collection = db.collection(this.dealias(template.__collection__));
         options = options || {};
         if (!options.sort)
-            options.sort = PersistorCtx.ExecutionCtx?.AsOfDate ? {_snapshot_id:1} : {_id:1};
+            options.sort = PersistorCtx.executionCtx?.asOfDate ? {_snapshot_id:1} : {_id:1};
 
         if (typeof(options) === "function") {
             return collection.find(query, undefined, options).toArray();

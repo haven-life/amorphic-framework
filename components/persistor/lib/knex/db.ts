@@ -24,14 +24,14 @@ module.exports = function (PersistObjectTemplate) {
         var tableName = this.dealias(template.__table__);
         var historyTableName, historyTableAlias;
         var historySeqKeys = [];
-        if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
+        if (PersistorCtx.executionCtx?.asOfDate && template.__schema__.audit === 'v2') {
             historyTableName = tableName + '_history';
             if ('_id' in queryOrChains) {
                 queryOrChains["_snapshot_id"] = queryOrChains["_id"]
                 delete queryOrChains["_id"];
             }
             
-            queryOrChains["lastUpdatedTime"] = {$lte: PersistorCtx.ExecutionCtx?.AsOfDate};
+            queryOrChains["lastUpdatedTime"] = {$lte: PersistorCtx.executionCtx?.asOfDate};
         }
 
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
@@ -43,15 +43,15 @@ module.exports = function (PersistObjectTemplate) {
         joins.forEach(function (join) {
             let joinTable = this.dealias(join.template.__table__);
             let historyJoinTable, additionalCondition;
-            if (PersistorCtx.ExecutionCtx?.AsOfDate && join.template.__schema__.audit === 'v2') {
+            if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
                 historyJoinTable = joinTable + '_history';
             }
             const parentKey = this.dealias(template.__table__) + '.' + join.childKey
             select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
-                if (PersistorCtx.ExecutionCtx?.AsOfDate && join.template.__schema__.audit === 'v2') {
+                if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
                     const cond = this.on(join.alias + '._snapshot_id', '=', parentKey)
                 
-                    const dt = PersistorCtx.ExecutionCtx?.AsOfDate
+                    const dt = PersistorCtx.executionCtx?.asOfDate
                     cond.andOn(knex.client.raw(join.alias + '.' + '"lastUpdatedTime"' + ` <= '${dt.toISOString()}'`))
                 }
                 else 
@@ -176,7 +176,7 @@ module.exports = function (PersistObjectTemplate) {
                 as(template, prefix, '__version__', {type: {}, persist: true, enumerable: true});
                 as(template, prefix, '_template', {type: {}, persist: true, enumerable: true});
                 
-                if (PersistorCtx.ExecutionCtx?.AsOfDate && template.__schema__.audit === 'v2') {
+                if (PersistorCtx.executionCtx?.asOfDate && template.__schema__.audit === 'v2') {
                     lastUpdatedSeq(template, prefix, '_snapshot_id', {type: {}, persist: true, enumerable: true});
                 }
                 else {

@@ -9,13 +9,14 @@ class ExecutionCtx {
         this._asOfDate = asOfDate
     }
 
-    get AsOfDate() {
+    get asOfDate() {
         return this._asOfDate;
     }
 }
 
 export class PersistorCtx { 
     static persistorExnCtxKey = '#persistor-exn-ctx';
+    static persistorCacheCtxKey = '#persistor-cache-ctx';
     private static _asyncLocalStorage: AsyncLocalStorage<CtxProps>;
 
     private static get asyncLocalStorage() {
@@ -36,7 +37,7 @@ export class PersistorCtx {
         });
     }
 
-    static get ExecutionCtx() {
+    static get executionCtx() {
         if (!this._asyncLocalStorage) {
             return;
         }
@@ -46,5 +47,19 @@ export class PersistorCtx {
         }
         const exnCtx: ExecutionCtx = store.properties[this.persistorExnCtxKey];
         return exnCtx;
+    }
+
+    static set setExecutionContext(asyncLocalStorage: AsyncLocalStorage<CtxProps>) {
+        const store = asyncLocalStorage.getStore() as CtxProps;
+        if (!store) {
+            return;
+        }
+
+        const exnCtx: ExecutionCtx = store.properties[this.persistorCacheCtxKey];
+        if (!exnCtx) {
+            throw Error(`ExecutionCtx can only be set from outside with #persistor-cache-ctx property in the store.`)
+        }
+        
+        this._asyncLocalStorage = asyncLocalStorage;
     }
 }
