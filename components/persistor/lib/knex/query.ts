@@ -54,6 +54,33 @@ module.exports = function (PersistObjectTemplate) {
 
         enableChangeTracking = enableChangeTracking || schema.enableChangeTracking;
 
+        idMap['queryMapper'] = idMap['queryMapper'] || {};
+        const keyId = idMap['queryMapper'] && idMap['queryMapper'][`${template.__name__}___${JSON.stringify(queryOrChains)}`];
+        if (idMap[keyId] && PersistorCtx.persistorCacheCtx) {
+            const obj = idMap[keyId];
+            return checkAllChildrenLoaded.call(this, obj, obj, cascade)
+                        .then((result) => [result] );
+        }
+    
+        
+        async function checkAllChildrenLoaded(orgObj, obj, fetchSpec, promiseHandlers) {
+            if (!obj) {
+                return Promise.resolve(orgObj);
+            }
+            promiseHandlers = promiseHandlers || [];
+            for (const key of Object.keys(fetchSpec)) {
+                if (obj[key + 'Persistor'].isFetched && fetchSpec[key].fetch) {
+                    checkAllChildrenLoaded(orgObj, obj[key], fetchSpec[key].fetch, promiseHandlers);
+                }
+
+                if (!obj[key + 'Persistor'].isFetched) {
+                    promiseHandlers.push(obj.fetchProperty.bind(obj, key, fetchSpec[key].fetch, {_id: obj[key + 'Persistor'].id}, isTransient, idMap, logger));
+                }
+            }
+
+            return this.resolveRecursiveRequests(promiseHandlers, obj);
+        }
+
         // Determine one-to-one relationships and add function chains for where
         var props = template.getProperties();
         var join = 1;
@@ -118,6 +145,10 @@ module.exports = function (PersistObjectTemplate) {
                 const obj = await PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
                     null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade);
                 results[sortMap[obj._id]] = obj;
+
+                idMap['queryMapper'] = idMap['queryMapper'] || {};
+                const keyId = `${template.__name__}___${JSON.stringify(queryOrChains)}`;
+                idMap['queryMapper'][keyId] = pojo[this.dealias(template.__table__) + '____id'];
             }
 
             return results;

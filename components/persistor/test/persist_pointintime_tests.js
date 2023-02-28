@@ -330,7 +330,6 @@ describe('persist newapi tests', function () {
 
     it('Adding data and capturing for persistorFetchById', async function () {
         var orgRecordedTime = new Date();
-        await PersistorUtils.sleep(100);
         var employee = await Employee.persistorFetchById(empId,
             {
                 fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
@@ -346,7 +345,6 @@ describe('persist newapi tests', function () {
         employee.roles[0].setDirty(tx);
         // await employee.persistSave();
         await PersistObjectTemplate.commit({transaction: tx});
-        await PersistorUtils.sleep(100);
         var updatedTime = new Date();
         employee = await Employee.persistorFetchById(empId,
             {
@@ -367,7 +365,6 @@ describe('persist newapi tests', function () {
     });
     it('Adding data and capturing for persistorFetchByQuery', async function () {
         var orgRecordedTime = new Date();
-        await PersistorUtils.sleep(100);
         var employee = (await Employee.persistorFetchByQuery({dob: dob},
             {
                 fetch: { homeAddress: { fetch: { phone: true } }, roles: true }, projection: { Address: ['city'], Role: ['name'], Phone: [''] }
@@ -383,7 +380,6 @@ describe('persist newapi tests', function () {
         employee.roles[0].setDirty(tx);
         // await employee.persistSave();
         await PersistObjectTemplate.commit({transaction: tx});
-        await PersistorUtils.sleep(100);
         var updatedTime = new Date();
         employee = (await Employee.persistorFetchByQuery({dob: dob},
             {
@@ -405,7 +401,6 @@ describe('persist newapi tests', function () {
     });
     it('Adding data and capturing for getFromPersistWithId', async function () {
         var orgRecordedTime = new Date();
-        await PersistorUtils.sleep(100);
         var employee = await Employee.getFromPersistWithId(empId,
             { homeAddress: { fetch: { phone: true } }, roles: true });
 
@@ -419,7 +414,6 @@ describe('persist newapi tests', function () {
         employee.roles[0].setDirty(tx);
         // await employee.persistSave();
         await PersistObjectTemplate.commit({transaction: tx});
-        await PersistorUtils.sleep(100);
         var updatedTime = new Date();
         employee = await Employee.getFromPersistWithId(empId,
             { homeAddress: { fetch: { phone: true } }, roles: true }, false, undefined, false, undefined, orgRecordedTime);
@@ -435,7 +429,6 @@ describe('persist newapi tests', function () {
     });
     it('Adding data and capturing for getFromPersistWithQuery', async function () {
         var orgRecordedTime = new Date();
-        await PersistorUtils.sleep(100);
         var employee = (await Employee.getFromPersistWithQuery({dob: dob},
             { homeAddress: { fetch: { phone: true } }, roles: true }))[0];
 
@@ -449,7 +442,6 @@ describe('persist newapi tests', function () {
         employee.roles[0].setDirty(tx);
         // await employee.persistSave();
         await PersistObjectTemplate.commit({transaction: tx});
-        await PersistorUtils.sleep(100);
         var updatedTime = new Date();
         employee = (await Employee.getFromPersistWithQuery({dob: dob},
             { homeAddress: { fetch: { phone: true } }, roles: true }, false, undefined, false, undefined, undefined, undefined, orgRecordedTime))[0];

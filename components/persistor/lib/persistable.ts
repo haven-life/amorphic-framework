@@ -7,8 +7,13 @@ export class Persistor extends SupertypeSession {
      * @TODO: was typed `Persistor` but that's weird? doesn't work need to figure out what's going on.
      */
     static create(): any | undefined {return undefined};
+
+    setPersistorCacheContext(cacheContext: any) : any {};
+
+    persistorCacheCtxKey: string;
     beginDefaultTransaction() : any {}
 
+    
     /**
      * Creates A persistor transaction, and returns it
      */

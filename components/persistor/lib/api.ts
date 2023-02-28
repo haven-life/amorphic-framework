@@ -289,6 +289,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate._validateParams(options, 'fetchSchema', template);
 
             options = options || {};
+            const idMap = PersistorCtx.persistorCacheCtx || null;
 
             var persistObjectTemplate = options.session || PersistObjectTemplate;
             (options.logger || persistObjectTemplate.logger).debug({
@@ -303,7 +304,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
             let fetchQuery = (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
-                PersistorCtx.checkAndExecuteWithContext(options.asOfDate, persistObjectTemplate.getFromPersistWithKnexId.bind(persistObjectTemplate, template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking, options.projection)));
+                PersistorCtx.checkAndExecuteWithContext(options.asOfDate, persistObjectTemplate.getFromPersistWithKnexId.bind(persistObjectTemplate, template, id, options.fetch, options.transient, idMap, null, options.logger, options.enableChangeTracking, options.projection)));
 
             const name = 'persistorFetchById';
             return fetchQuery
@@ -1322,6 +1323,18 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this.__defaultTransaction__ = defaultTransaction;
         return this.__defaultTransaction__;
     };
+
+    PersistObjectTemplate.setPersistorCacheContext = function (cacheContext) {
+        return PersistorCtx.setExecutionContext(cacheContext);
+    };
+
+    Object.defineProperty(PersistObjectTemplate, 'persistorCacheCtxKey', {
+        get: function () {
+            return PersistorCtx.persistorCacheCtxKey;
+        },
+        enumerable: false,
+        configurable: false
+    })
 
     PersistObjectTemplate.commit = async function commit(options) {
         var time = getTime();
