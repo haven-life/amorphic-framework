@@ -25,6 +25,7 @@ packageVersions['amorphic'] = require('../../package.json').version;
  * @param {unknown} logger unknown
  * @param {unknown} statsdClient unknown
  * @param {unknown} configStore unknown
+ * @param {unknown} externalSchemas can inject schemas directly by the apps
  */
 function startPersistorMode(appDirectory, logger, statsdClient, configStore = null, externalSchemas) {
 	const functionName = startPersistorMode.name;
