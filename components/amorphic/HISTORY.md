@@ -1,3 +1,5 @@
+## 12.1.1
+* add `externalSchemas` support to `startPersistorMode`.
 ## 12.1.0
 * tested amorphic components against 18.x node base image.
 ## 12.0.0
