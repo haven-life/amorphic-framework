@@ -25,7 +25,7 @@ module.exports = function (PersistObjectTemplate) {
         var historyTableName, historyTableAlias;
         var historySeqKeys = [];
         if (PersistorCtx.executionCtx?.asOfDate && template.__schema__.audit === 'v2') {
-            historyTableName = tableName + '_history';
+            historyTableName = tableName + '___history';
             if ('_id' in queryOrChains) {
                 queryOrChains["_snapshot_id"] = queryOrChains["_id"]
                 delete queryOrChains["_id"];
@@ -44,7 +44,7 @@ module.exports = function (PersistObjectTemplate) {
             let joinTable = this.dealias(join.template.__table__);
             let historyJoinTable, additionalCondition;
             if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
-                historyJoinTable = joinTable + '_history';
+                historyJoinTable = joinTable + '___history';
             }
             const parentKey = this.dealias(template.__table__) + '.' + join.childKey
             select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
@@ -581,13 +581,13 @@ module.exports = function (PersistObjectTemplate) {
             .then(function (response) {
                 if (template.__schema__.audit === 'v2') {
                     return Promise.resolve()
-                        .then(buildTable.bind(this, aliasedTableName + '_history'))
-                        .then(synchronizeIndexes.bind(this, aliasedTableName + '_history', template));;
+                        .then(buildTable.bind(this, aliasedTableName + '___history'))
+                        .then(synchronizeIndexes.bind(this, aliasedTableName + '___history', template));;
                 }
                 else {
                     return response;
                 }
-            }.bind(this))
+            }.bind(this));
 
 
             function buildTable(aliasedTableName) {
@@ -602,9 +602,11 @@ module.exports = function (PersistObjectTemplate) {
                         return PersistObjectTemplate._createKnexTable(template, aliasedTableName);
                     }
                     else {
-                        return discoverColumns(tableName).then(function () {
+                        return discoverColumns(tableName).then(async function () {
                             fieldChangeNotify(changeNotificationCallback, tableName);
-                            return knex.schema.table(tableName, columnMapper.bind(this, tableName));
+                            const [c, l] = await Promise.all([knex.schema.hasColumn(tableName, 'createdTime'),
+                                    knex.schema.hasColumn(tableName, 'lastUpdatedTime')])
+                            return knex.schema.table(tableName, columnMapper.bind(this, tableName, [c,l]))
                         }.bind(this));
                     }
                 }.bind(this));
@@ -622,7 +624,7 @@ module.exports = function (PersistObjectTemplate) {
                 callBack('Following fields are being added to ' + table + ' table: \n ' + fieldsChanged.slice(1, fieldsChanged.length));
             }
         }
-        function columnMapper(table) {
+        function columnMapper(table, createdTime, lastUpdatedTime) {
 
             for (var prop in _newFields) {
                 var defineProperty = props[prop];
@@ -645,6 +647,13 @@ module.exports = function (PersistObjectTemplate) {
                     table.boolean(prop);
                 } else
                     table.text(prop);
+            }
+
+            if (!createdTime) {
+                table.timestamp('createdTime');
+            }
+            if (!lastUpdatedTime) {
+                table.timestamp('lastUpdatedTime');
             }
         }
         function addComments(table) {
@@ -864,7 +873,7 @@ module.exports = function (PersistObjectTemplate) {
                     response = JSON.parse(record[0][schemaField]);
                 }
                 _dbschema = response;
-                const historyPostfix = tableName.match(/_history$/) ? '___History' : '';
+                const historyPostfix = tableName.match(/___history$/) ? '___History' : '';
                 return [response, template.__name__ + historyPostfix];
             })
         };
@@ -879,6 +888,25 @@ module.exports = function (PersistObjectTemplate) {
             var dbTableDef = dbschema[tableName];
             var memTableDef = schema[tableName.replace( '___History', '')];
             var track = {add: [], change: [], delete: []};
+            if (tableName.match(/___History/)) {
+                var keyName = 'idx_' + tableName + '_fk_snapshot_id';
+                memTableDef.indexes = memTableDef.indexes || [];
+                memTableDef.indexes.push({
+                    name: keyName,
+                    def: {
+                        columns: ['_snapshot_id'],
+                        type: 'index'
+                    }
+                }) ;
+                keyName = 'idx_' + tableName + '_lastupdatedtime';
+                memTableDef.indexes.push({
+                    name: keyName,
+                    def: {
+                        columns: ['lastUpdatedTime'],
+                        type: 'index'
+                    }
+                }) ;
+            }
             _diff(dbTableDef, memTableDef, 'delete', false, function (_dbIdx, memIdx) {
                 return !memIdx;
             }, _diff(memTableDef, dbTableDef, 'change', false, function (memIdx, dbIdx) {
@@ -1011,6 +1039,7 @@ module.exports = function (PersistObjectTemplate) {
                             type = type.replace(/index/, 'Index');
                             type = type.replace(/unique/, 'Unique');
                             try {
+                            
                                 await knex.schema.table(tableName, async function (table) {
                                     // This table function callback does not necessarily need to be
                                     // an async callback, but making the callback async/await as a guard.
@@ -1140,6 +1169,13 @@ module.exports = function (PersistObjectTemplate) {
         queriesToNotify[template.__name__].queries.push(query);
     }
 
+    function addAuditColumns(knex, table, tableName, column) {
+        return knex.schema.hasColumn(tableName, column)
+        .then(exists => { 
+            return !exists && table.timestamp(column)
+        });
+    }
+
     PersistObjectTemplate.persistTouchKnex = function(obj, txn, logger) {
         const functionName = 'persistTouchKnex';
         (logger || this.logger).debug({
@@ -1198,10 +1234,10 @@ module.exports = function (PersistObjectTemplate) {
 
         var knex = this.getDB(this.getDBAlias(collection)).connection;
         var tableName = this.dealias(collection);
-        return knex.schema.createTable(tableName, createColumns.bind(this));
-
-        function createColumns(table) {
-            if (collection.match(/_history/)) {
+        return knex.schema.createTable(tableName, createColumns.bind(this))
+             
+        async function createColumns(table) {
+            if (collection.match(/___history/)) {
                 table.string('_id');
                 table.string('_snapshot_id');
                 table.primary(['_id'])
@@ -1215,6 +1251,8 @@ module.exports = function (PersistObjectTemplate) {
             var columnMap = {};
 
             recursiveColumnMap.call(this, template);
+            table.timestamp('createdTime');
+            table.timestamp('lastUpdatedTime');
 
             function mapTableAndIndexes(table, props, schema) {
                 for (var prop in props) {
@@ -1241,6 +1279,7 @@ module.exports = function (PersistObjectTemplate) {
                         columnMap[prop] = true;
                     }
                 }
+                
             }
 
             function recursiveColumnMap(childTemplate) {
