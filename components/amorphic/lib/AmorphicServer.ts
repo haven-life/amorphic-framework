@@ -60,7 +60,7 @@ export class AmorphicServer {
     * @param appDirectory - Location of the apps folder
     * @param sessionConfig - Object containing the session config
     */
-    static createServer(preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionConfig) {
+    static async createServer(preSessionInject, postSessionInject, appList, appStartList, appDirectory, sessionConfig) {
         const amorphicOptions = AmorphicContext.amorphicOptions;
         const mainApp = amorphicOptions.mainApp;
         const appConfig = AmorphicContext.applicationConfig[mainApp];
@@ -84,7 +84,7 @@ export class AmorphicServer {
 
         const apiPath = serverOptions && serverOptions.apiPath;
 
-        server.setupUserEndpoints(appDirectory, appList[mainApp], apiPath);
+        await server.setupUserEndpoints(appDirectory, appList[mainApp], apiPath);
 
         // for anything other than user only routes, set up our default amorphic router.
         if (server.serverMode !== 'api') {
@@ -324,10 +324,10 @@ export class AmorphicServer {
      * for amorphic is for the '/amorphic' routes to run
      * @memberof AmorphicServer
      */
-    setupUserEndpoints(appDirectory: string, mainAppPath: string, apiPath = '/api') {
+    async setupUserEndpoints(appDirectory: string, mainAppPath: string, apiPath = '/api') {
         let filePath = this.getBaseControllerFilePath(appDirectory, mainAppPath);
-        let router = setupCustomMiddlewares(filePath, express.Router());
-        router = setupCustomRoutes(filePath, router);
+        let router = await setupCustomMiddlewares(filePath, express.Router());
+        router = await setupCustomRoutes(filePath, router);
 
         if (router) {
             this.app.use(apiPath, router);

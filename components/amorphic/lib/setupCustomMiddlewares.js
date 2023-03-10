@@ -6,14 +6,14 @@ const fs = require('fs');
 
 const moduleName = `amorphic/lib/setupCustomMiddlewares`;
 
-function setupCustomMiddlewares(filePath, router) {
+async function setupCustomMiddlewares(filePath, router) {
     const functionName = setupCustomMiddlewares.name;
     const middlewareFilePath = `${filePath}/middlewares/index.js`;
 
     let middlewares;
 
     if(fs.existsSync(middlewareFilePath)) {
-        middlewares = require(middlewareFilePath);
+        middlewares = await import(middlewareFilePath);
 
         const exportedMiddlewareFunctions = Object.keys(middlewares);
 
