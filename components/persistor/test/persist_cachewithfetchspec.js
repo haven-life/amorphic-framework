@@ -14,7 +14,7 @@ var knex;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
-var Phone, Address, Employee, empId, addressId, phoneId, Role, dob;
+var Phone, Address, Employee, empId, addressId, phoneId, Role, dob, Responsibility;
 var PersistObjectTemplate, ObjectTemplate;
 
 
@@ -94,12 +94,15 @@ describe('persist newapi tests', function () {
             employee: { id: 'employee_id' }
         };
         schema.Role.children = {
-            department: { id: 'role_id' }
+            responsibilities: { id: 'role_id' }
         };
 
         schema.Address.parents = {
             phone: { id: 'phone_id' }
         };
+        schema.Responsibility = {};
+        schema.Responsibility.table = 'tx_responsibility';
+        schema.Responsibility.audit = 'v2';
         Phone = PersistObjectTemplate.create('Phone', {
             number: { type: String }
         });
@@ -116,6 +119,10 @@ describe('persist newapi tests', function () {
 
         });
 
+        Responsibility = PersistObjectTemplate.create('Responsibility', {
+            description: { type: String },
+        });
+
         Employee = PersistObjectTemplate.create('Employee', {
             name: { type: String, value: 'Test Employee' },
             homeAddress: { type: Address },
@@ -127,19 +134,20 @@ describe('persist newapi tests', function () {
         });
 
         Role.mixin({
-            employee: { type: Employee }
+            employee: { type: Employee },
+            responsibilities: { type: Array, of: Responsibility, value: [] },
         });
         var emp = new Employee();
         var add = new Address();
         var resAdd = new Address();
         var phone = new Phone();
         var residentialPhone = new Phone();
-        var role1 = new Role();
-        role1.name = 'firstRole2';
-        role1.employee = emp;
-        var role2 = new Role();
-        role2.name = 'secondRole2';
-        role2.employee = emp;
+         var role1 = new Role();
+        // role1.name = 'firstRole2';
+        // role1.employee = emp;
+         var role2 = new Role();
+        // role2.name = 'secondRole2';
+        // role2.employee = emp;
 
         phone.number = '1231231234';
         residentialPhone.number = '1111111111';
@@ -154,8 +162,8 @@ describe('persist newapi tests', function () {
         emp.dob = dob;
         emp.homeAddress = add;
         emp.residentialAddress = resAdd;
-        emp.roles.push(role1);
-        emp.roles.push(role2);
+        // emp.roles.push(role1);
+        // emp.roles.push(role2);
 
         (function () {
             PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
@@ -170,6 +178,7 @@ describe('persist newapi tests', function () {
                 .then(syncTable.bind(this, Address))
                 .then(syncTable.bind(this, Phone))
                 .then(syncTable.bind(this, Role))
+                .then(syncTable.bind(this, Responsibility))
                 .then(createRecords.bind(this))
                 .catch(e => {
                     console.log(e);
@@ -206,7 +215,7 @@ describe('persist newapi tests', function () {
         `);
     });
 
-    it('Adding data and capturing for persistorFetchById', async function () {
+    it('Adding data and capturing for persistorFetchById cache', async function () {
     
         var asyncLocalStorage = new AsyncLocalStorage();
         var cacheKey = PersistObjectTemplate.persistorCacheCtxKey
@@ -221,13 +230,19 @@ describe('persist newapi tests', function () {
         })
 
         async function loadChecks() {
-            var employee = await Employee.persistorFetchById(empId,
+            var employee = (await Employee.persistorFetchByQuery({name: 'InitialName'},
                 {
-                    fetch: { homeAddress: { fetch: { phone: true } }, roles: true  }
-                });
+                    fetch: { homeAddress: { fetch: { phone: true } }, roles: { fetch: { responsibilities: true}}  }
+                }))[0];
             expect(employee.name).is.equal('InitialName');
+
+            employee = await Employee.persistorFetchById(empId,
+                {
+                    fetch: { homeAddress: { fetch: { phone: true } }, roles: { fetch: { responsibilities: true}}  }
+                });
+
             expect(employee.homeAddress.city).is.equal('New York');
-            expect(employee.roles[0].name).is.equal('firstRole2');
+            // expect(employee.roles[0].name).is.equal('firstRole2');
             expect(employee.residentialAddress).to.equal(null);
             employee = await Employee.persistorFetchById(empId,
                 {

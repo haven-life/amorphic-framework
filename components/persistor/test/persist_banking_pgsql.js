@@ -1374,7 +1374,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
                     customer.roles.forEach(function (role) {
                         var account = role.account;
                         account.roles.forEach(function(role) {
-                            console.log('testing..', role._id);
                             promises.push(role.persistDelete(txn));
                             promises.push(role.account.persistDelete(txn));
                         })

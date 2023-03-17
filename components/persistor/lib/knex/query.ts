@@ -59,22 +59,33 @@ module.exports = function (PersistObjectTemplate) {
         if (idMap[keyId] && PersistorCtx.persistorCacheCtx) {
             const obj = idMap[keyId];
             return checkAllChildrenLoaded.call(this, obj, obj, cascade)
-                        .then((result) => [result] );
+                        .then((result) => [obj] );
         }
     
         
-        async function checkAllChildrenLoaded(orgObj, obj, fetchSpec, promiseHandlers) {
+        async function checkAllChildrenLoaded(parentObject, obj, fetchSpec, promiseHandlers) {
             if (!obj) {
-                return Promise.resolve(orgObj);
+                return Promise.resolve(parentObject);
             }
             promiseHandlers = promiseHandlers || [];
             for (const key of Object.keys(fetchSpec)) {
-                if (obj[key + 'Persistor'].isFetched && fetchSpec[key].fetch) {
-                    checkAllChildrenLoaded(orgObj, obj[key], fetchSpec[key].fetch, promiseHandlers);
+                const typeDef = obj.__template__.getProperties()[key]
+                if (!typeDef.type.isObjectTemplate) {
+                    continue;
                 }
-
-                if (!obj[key + 'Persistor'].isFetched) {
-                    promiseHandlers.push(obj.fetchProperty.bind(obj, key, fetchSpec[key].fetch, {_id: obj[key + 'Persistor'].id}, isTransient, idMap, logger));
+                if (typeDef.type === Array) {
+                    for(obj of parentObject[key]){
+                        await checkAllChildrenLoaded(obj, obj, fetchSpec[key].fetch, promiseHandlers)
+                    }
+                }
+                else {
+                    if (obj[key + 'Persistor'].isFetched && fetchSpec[key].fetch) {
+                        await checkAllChildrenLoaded.call(this, obj, obj[key], fetchSpec[key].fetch, promiseHandlers);
+                    }
+        
+                    if (!obj[key + 'Persistor'].isFetched) {
+                        promiseHandlers.push(obj.fetchProperty.bind(obj, key, fetchSpec[key].fetch, {_id: obj[key + 'Persistor'].id}, isTransient, idMap, logger));
+                    }
                 }
             }
 
@@ -149,6 +160,9 @@ module.exports = function (PersistObjectTemplate) {
                 idMap['queryMapper'] = idMap['queryMapper'] || {};
                 const keyId = `${template.__name__}___${JSON.stringify(queryOrChains)}`;
                 idMap['queryMapper'][keyId] = pojo[this.dealias(template.__table__) + '____id'];
+                if (!queryOrChains || !Object.keys(queryOrChains).includes('_id')) {
+                    idMap['queryMapper'][`${template.__name__}___${JSON.stringify({_id: this.dealias(template.__table__) + '____id'})}`] = pojo[this.dealias(template.__table__) + '____id']
+                }
             }
 
             return results;

@@ -26,7 +26,6 @@ export class PersistorCtx {
     }
 
     static async checkAndExecuteWithContext(asOfDate: Date, callback: () => any )  {
-        console.log('testing...');
         if (!asOfDate) {
             const response = await callback();
             return Promise.resolve(response);

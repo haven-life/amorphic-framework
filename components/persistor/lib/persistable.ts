@@ -8,9 +8,9 @@ export class Persistor extends SupertypeSession {
      */
     static create(): any | undefined {return undefined};
 
-    setPersistorCacheContext(cacheContext: any) : any {};
+    static setPersistorCacheContext(cacheContext: any) : any {};
 
-    persistorCacheCtxKey: string;
+    static persistorCacheCtxKey: string;
     beginDefaultTransaction() : any {}
 
     

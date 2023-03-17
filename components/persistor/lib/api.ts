@@ -330,6 +330,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate._validateParams(options, 'persistSchema', template);
 
             options = options || {};
+            const idMap = PersistorCtx.persistorCacheCtx || null;
+
             var dbType = PersistObjectTemplate.getDB(PersistObjectTemplate.getDBAlias(template.__collection__)).type;
             let deleteQuery = dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.deleteFromPersistWithMongoQuery(template, query, options.logger) :
@@ -362,6 +364,8 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             options = options || {};
             var persistObjectTemplate = options.session || PersistObjectTemplate;
+            const idMap = PersistorCtx.persistorCacheCtx || null;
+
             var logger = options.logger || persistObjectTemplate.logger;
             logger.debug({
                 module: moduleName,
@@ -379,7 +383,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 persistObjectTemplate.getFromPersistWithMongoQuery(template, query, options.fetch, options.start,
                     options.limit, options.transient, options.order, options.order, logger) :
                     PersistorCtx.checkAndExecuteWithContext(options.asOfDate, persistObjectTemplate.getFromPersistWithKnexQuery.bind(persistObjectTemplate, null, template, query, options.fetch, options.start,
-                    options.limit, options.transient, null, options.order,
+                    options.limit, options.transient, idMap, options.order,
                     undefined, undefined, logger, options.enableChangeTracking, options.projection)));
 
             const name = 'persistorFetchByQuery';
