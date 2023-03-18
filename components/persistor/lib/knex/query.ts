@@ -55,14 +55,18 @@ module.exports = function (PersistObjectTemplate) {
         enableChangeTracking = enableChangeTracking || schema.enableChangeTracking;
 
         idMap['queryMapper'] = idMap['queryMapper'] || {};
-        const keyId = idMap['queryMapper'] && idMap['queryMapper'][`${template.__name__}___${JSON.stringify(queryOrChains)}`];
-        if (idMap[keyId] && PersistorCtx.persistorCacheCtx) {
-            const obj = idMap[keyId];
-            return checkAllChildrenLoaded.call(this, obj, obj, cascade)
-                        .then((result) => [obj] );
-        }
-    
         
+        const keyIds = idMap['queryMapper'] && idMap['queryMapper'][`${template.__name__}___${JSON.stringify(queryOrChains)}`];
+        var resultsPromise = [];
+        if (keyIds && PersistorCtx.persistorCacheCtx) {
+            keyIds.split(',').forEach(keyId => {
+                if (idMap[keyId]) {
+                    const obj = idMap[keyId];
+                    resultsPromise.push(checkAllChildrenLoaded.call(this, obj, obj, cascade));
+                }
+            });
+            return Promise.all(resultsPromise);
+        }
         async function checkAllChildrenLoaded(parentObject, obj, fetchSpec, promiseHandlers) {
             if (!obj) {
                 return Promise.resolve(parentObject);
@@ -159,9 +163,15 @@ module.exports = function (PersistObjectTemplate) {
 
                 idMap['queryMapper'] = idMap['queryMapper'] || {};
                 const keyId = `${template.__name__}___${JSON.stringify(queryOrChains)}`;
-                idMap['queryMapper'][keyId] = pojo[this.dealias(template.__table__) + '____id'];
+                if (!idMap['queryMapper'][keyId]) {
+                    idMap['queryMapper'][keyId] = pojo[this.dealias(template.__table__) + '____id'];
+                }
+                else {
+                    idMap['queryMapper'][keyId] += ',' + pojo[this.dealias(template.__table__) + '____id'];
+                }
+                
                 if (!queryOrChains || !Object.keys(queryOrChains).includes('_id')) {
-                    idMap['queryMapper'][`${template.__name__}___${JSON.stringify({_id: this.dealias(template.__table__) + '____id'})}`] = pojo[this.dealias(template.__table__) + '____id']
+                    idMap['queryMapper'][`${template.__name__}___${JSON.stringify({_id: pojo[this.dealias(template.__table__) + '____id']})}`] = pojo[this.dealias(template.__table__) + '____id']
                 }
             }
 
