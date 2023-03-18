@@ -139,6 +139,7 @@ describe('persist newapi tests', function () {
             responsibilities: { type: Array, of: Responsibility, value: [] },
         });
         var emp = new Employee();
+        var emp1 = new Employee();
         var add = new Address();
         var resAdd = new Address();
         var phone = new Phone();
@@ -158,11 +159,19 @@ describe('persist newapi tests', function () {
         resAdd.state = 'New Jersey';
         resAdd.phone = residentialPhone;
         add.phone = phone;
-        emp.name = 'InitialName';
         dob = new Date();
+        emp.name = 'InitialName';
         emp.dob = dob;
         emp.homeAddress = add;
         emp.residentialAddress = resAdd;
+
+        emp1.name = 'InitialName';
+        emp1.dob = dob;
+        emp1.homeAddress = add;
+        emp1.residentialAddress = resAdd;
+
+        
+
         // emp.roles.push(role1);
         // emp.roles.push(role2);
 
@@ -192,7 +201,7 @@ describe('persist newapi tests', function () {
         
             function createRecords() {
                 var tx = PersistObjectTemplate.beginDefaultTransaction();
-
+                emp1.setDirty(tx);
                 return emp.persist({ transaction: tx, cascade: false }).then(function () {
                     return PersistObjectTemplate.commit({ transaction: tx, notifyChanges: true }).then(function () {
                         empId = emp._id;
@@ -231,11 +240,18 @@ describe('persist newapi tests', function () {
         })
 
         async function loadChecks() {
-            var employee = (await Employee.persistorFetchByQuery({name: 'InitialName'},
+            var employees = await Employee.persistorFetchByQuery({name: 'InitialName'},
                 {
                     fetch: { homeAddress: { fetch: { phone: true } }, roles: { fetch: { responsibilities: true}}  }
-                }))[0];
+                });
+            var employee = employees[0];
             expect(employee.name).is.equal('InitialName');
+            employees = await Employee.persistorFetchByQuery({name: 'InitialName'},
+                {
+                    fetch: { homeAddress: { fetch: { phone: true } }, roles: { fetch: { responsibilities: true}}  }
+                });
+            var employee1 = employees[0];
+            expect(employee1.name).is.equal('InitialName');
 
             employee = await Employee.persistorFetchById(empId,
                 {
