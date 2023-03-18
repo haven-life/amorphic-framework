@@ -115,6 +115,24 @@ module.exports = function (PersistObjectTemplate) {
                         alias: this.dealias(props[prop].type.__table__) + join++
                     });
             }
+
+            if (this._persistProperty(props[prop]) && (props[prop].type === Array && props[prop].of.__objectTemplate__) && props[prop].of.__table__) {
+                if (!schema || !schema.children || !schema.children[prop] || !schema.children[prop].id)
+                    throw  new Error(props[prop].of.__name__ + '.' + prop + ' is missing a parents schema entry');
+                var foreignKey = schema.children[prop].id;
+                var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
+                orgCascade = orgCascade || cascade;
+                if (((defineProperty['fetch'] && !defineProperty['nojoin']) || cascadeFetch ||
+                    (schema.children[prop].fetch == true  && !schema.children[prop].nojoin)) &&
+                    cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin))
+                    joins.push({
+                        prop: prop,
+                        template: props[prop].of,
+                        parentKey: foreignKey,
+                        childKey: '_id',
+                        alias: this.dealias(props[prop].of.__table__) + join++
+                    });
+            }
         }
         options = options || {};
         if (skip)
@@ -151,7 +169,9 @@ module.exports = function (PersistObjectTemplate) {
             const sortMap = {};
             let ix = 0;
             for(const pojo of pojos) {
-
+                if (sortMap[pojo[this.dealias(template.__table__) + '____id']]) {
+                    continue;
+                }
                 sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix++;
                 const obj = await PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
                     null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade);
@@ -174,7 +194,7 @@ module.exports = function (PersistObjectTemplate) {
         async function processRequests() {
             var segLength = requests.length;
             
-            await PersistorUtils.asyncMap(requests, PersistObjectTemplate.concurrency || 1, function (request, _ix) {
+            await PersistorUtils.asyncMap(requests, 1, function (request, _ix) {
                 return request();
             }.bind(this))
             requests.splice(0, segLength);
@@ -268,7 +288,7 @@ module.exports = function (PersistObjectTemplate) {
                 obj._id = pojo[prefix + '_id'];
                 obj._template = pojo[prefix + '_template'];
             }.bind(this));
-            if (!establishedObj && idMap[obj._id] && allRequiredChildrenAvailableInCache(idMap[obj._id], cascade))
+            if (!establishedObj && idMap[obj._id] && (!cascade || allRequiredChildrenAvailableInCache(idMap[obj._id], cascade)))
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;

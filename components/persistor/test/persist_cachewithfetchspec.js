@@ -121,6 +121,7 @@ describe('persist newapi tests', function () {
 
         Responsibility = PersistObjectTemplate.create('Responsibility', {
             description: { type: String },
+            role: { type: Role}
         });
 
         Employee = PersistObjectTemplate.create('Employee', {

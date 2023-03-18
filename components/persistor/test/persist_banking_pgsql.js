@@ -528,6 +528,18 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             done();
         }).catch(function(e) {done(e)});
     });
+
+    it('Customers have addresses', function (done) {
+        Customer.getFromPersistWithQuery(null, {primaryAddresses: true, secondaryAddresses: true}).then (function (customers) {
+            expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
+            customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
+            customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
+            done();
+        }).catch(function(e) {
+            done(e)
+        })
+    });
+    
     it('Accounts have addresses', function (done) {
         Account.getFromPersistWithQuery(null, {address: true, transactions: false, fromAccountTransactions: false}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
@@ -554,16 +566,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             throw e;
         })
     });
-    it('Customers have addresses', function (done) {
-        Customer.getFromPersistWithQuery(null, {primaryAddresses: true, secondaryAddresses: true}).then (function (customers) {
-            expect(customers[0].primaryAddresses.length + customers[0].secondaryAddresses.length +
-            customers[1].primaryAddresses.length + customers[1].secondaryAddresses.length +
-            customers[2].primaryAddresses.length + customers[2].secondaryAddresses.length).to.equal(5);
-            done();
-        }).catch(function(e) {
-            done(e)
-        })
-    });
+    
     it('Accounts sloppily replace addresses', function (done) {
         sam.primaryAddresses.splice(0, 1);
         sam.addAddress('primary', ['500 East 83d', 'Apt 1E'], 'New York', 'NY', '10028');

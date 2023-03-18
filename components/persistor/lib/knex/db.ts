@@ -112,6 +112,7 @@ module.exports = function (PersistObjectTemplate) {
         });
 
         var selectString = select.toString();
+        console.log(`select query...`, selectString);
         if (map && map[selectString])
             return new Promise(function (resolve) {
                 map[selectString].push(resolve);
