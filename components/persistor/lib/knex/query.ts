@@ -282,7 +282,9 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
-            //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
+            idMap['queryMapper'] = idMap['queryMapper'] || {};
+            idMap['queryMapper'][`${obj.__template__.__name__}___${JSON.stringify({_id: obj._id})}`] = obj._id;
+            
             if (pojo[prefix + '__version__'])
                 this.withoutChangeTracking(function () {
                     obj.__version__ = pojo[prefix + '__version__'];
