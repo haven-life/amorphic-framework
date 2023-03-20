@@ -2,7 +2,7 @@ module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
     var _ = require('underscore');
-    var schemaValidator = require('tv4');
+    var Ajv = require('ajv');
 
     PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
 
@@ -243,11 +243,13 @@ module.exports = function (PersistObjectTemplate) {
             },
             'fetchSpec': {}
         };
-        var valid = schemaValidator.validate(options, schemas[schema]);
+        const ajv = new Ajv();
+        var validate = ajv.compile(schemas[schema]);
+        var valid = validate(options);
         if (!valid) {
-            throw new Error('Parameter validation failed, ' + (schemaValidator.error.dataPath !== '' ? 'Field: '
-                    + schemaValidator.error.dataPath + ', ' : '')
-                + 'Validation error: ' + schemaValidator.error.message);
+            throw new Error('Parameter validation failed, ' + (validate.error.schemaPath !== '' ? 'Field: '
+                    + validate.error.schemaPath + ', ' : '')
+                + 'Validation error: ' + validate.error.message);
         }
 
         if (schema === 'fetchSchema' && !!options.fetch) {
