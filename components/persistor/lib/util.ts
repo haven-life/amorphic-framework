@@ -243,13 +243,15 @@ module.exports = function (PersistObjectTemplate) {
             },
             'fetchSpec': {}
         };
-        const ajv = new Ajv({ allErrors: true });
-        var validate = ajv.compile(schemas[schema]);
-        var valid = validate(options);
+        const ajv = new Ajv({ allErrors: true});
+        const validate = ajv.compile(schemas[schema]);
+        const valid = validate(options);
+
         if (!valid) {
-            throw new Error('Parameter validation failed, ' + (schemaValidator.error.dataPath !== '' ? 'Field: '
-                    + schemaValidator.error.dataPath + ', ' : '')
-                + 'Validation error: ' + schemaValidator.error.message);
+            const validationError = validate.errors[0];
+            throw new Error('Parameter validation failed, ' + (validationError.schemaPath !== '' ? 'Field: '
+                    + validationError.schemaPath + ', ' : '')
+                + 'Validation error: ' + validationError.message);
         }
 
         if (schema === 'fetchSchema' && !!options.fetch) {

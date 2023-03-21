@@ -17,7 +17,6 @@ var Phone, Address, Employee, empId, addressId, phoneId, Role;
 var PersistObjectTemplate, ObjectTemplate;
 
 describe('persist newapi tests', function () {
-    // this.timeout(5000);
     before('drop schema table once per test suit', function() {
         knex = knexInit({
             client: 'pg',
@@ -366,7 +365,7 @@ describe('persist newapi tests', function () {
         return Promise.resolve()
             .then(actualTest)
             .catch(function(error) {
-                expect(error.message).to.contain('Additional properties not allowed');
+                expect(error.message).to.contain('Parameter validation failed, Field: #/additionalProperties, Validation error: must NOT have additional properties');
             });
 
         function actualTest() {
