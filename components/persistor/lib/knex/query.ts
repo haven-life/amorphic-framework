@@ -1,9 +1,9 @@
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
 import { PersistorUtils } from '../utils/PersistorUtils';
+import { PersistorCtx } from './PersistorCtx';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
-    var Promise = require('bluebird');
     var _ = require('underscore');
 
     PersistObjectTemplate.concurrency = 10;
@@ -54,6 +54,48 @@ module.exports = function (PersistObjectTemplate) {
 
         enableChangeTracking = enableChangeTracking || schema.enableChangeTracking;
 
+        idMap['queryMapper'] = idMap['queryMapper'] || {};
+        
+        const keyIds = idMap['queryMapper'] && idMap['queryMapper'][`${template.__name__}___${JSON.stringify(queryOrChains)}`];
+        var resultsPromise = [];
+        if (keyIds && PersistorCtx.persistorCacheCtx) {
+            keyIds.split(',').forEach(keyId => {
+                if (idMap[keyId]) {
+                    const obj = idMap[keyId];
+                    resultsPromise.push(checkAllChildrenLoaded.call(this, obj, obj, cascade));
+                }
+            });
+            return Promise.all(resultsPromise);
+        }
+        async function checkAllChildrenLoaded(parentObject, obj, fetchSpec, promiseHandlers) {
+            if (!obj) {
+                return Promise.resolve(parentObject);
+            }
+            promiseHandlers = promiseHandlers || [];
+            for (const key of Object.keys(fetchSpec)) {
+                const typeDef = obj.__template__.getProperties()[key]
+                if (!typeDef.type.isObjectTemplate) {
+                    continue;
+                }
+                if (typeDef.type === Array) {
+                    for(obj of parentObject[key]){
+                        await checkAllChildrenLoaded(obj, obj, fetchSpec[key].fetch, promiseHandlers)
+                    }
+                }
+                else {
+                    if (obj[key + 'Persistor'].isFetched && fetchSpec[key].fetch) {
+                        await checkAllChildrenLoaded.call(this, obj, obj[key], fetchSpec[key].fetch, promiseHandlers);
+                    }
+        
+                    if (!obj[key + 'Persistor'].isFetched) {
+                        promiseHandlers.push(obj.fetchProperty.bind(obj, key, fetchSpec[key].fetch, {_id: obj[key + 'Persistor'].id}, isTransient, idMap, logger));
+                    }
+                }
+            }
+
+            return this.resolveRecursiveRequests(promiseHandlers, obj);
+        }
+
         // Determine one-to-one relationships and add function chains for where
         var props = template.getProperties();
         var join = 1;
@@ -83,7 +125,6 @@ module.exports = function (PersistObjectTemplate) {
             options.offset = skip;
         if (limit)
             options.limit = limit;
-
         // Request to do entire processing to be executed right now or as part of a request queue
         var request = function () {
             return Promise.resolve(true)
@@ -119,6 +160,19 @@ module.exports = function (PersistObjectTemplate) {
                 const obj = await PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
                     null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade);
                 results[sortMap[obj._id]] = obj;
+
+                idMap['queryMapper'] = idMap['queryMapper'] || {};
+                const keyId = `${template.__name__}___${JSON.stringify(queryOrChains)}`;
+                if (!idMap['queryMapper'][keyId]) {
+                    idMap['queryMapper'][keyId] = pojo[this.dealias(template.__table__) + '____id'];
+                }
+                else {
+                    idMap['queryMapper'][keyId] += ',' + pojo[this.dealias(template.__table__) + '____id'];
+                }
+                
+                if (!queryOrChains || !Object.keys(queryOrChains).includes('_id')) {
+                    idMap['queryMapper'][`${template.__name__}___${JSON.stringify({_id: pojo[this.dealias(template.__table__) + '____id']})}`] = pojo[this.dealias(template.__table__) + '____id']
+                }
             }
 
             return results;
@@ -127,19 +181,17 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.resolveRecursiveRequests = function (requests, results) {
         return processRequests();
-        function processRequests() {
+        async function processRequests() {
             var segLength = requests.length;
-            //console.log("Processing " + segLength + " promises " + PersistObjectTemplate.concurrency);
-            return Promise.map(requests, function (request, _ix) {
+            
+            await PersistorUtils.asyncMap(requests, PersistObjectTemplate.concurrency || 1, function (request, _ix) {
                 return request();
-            }, {concurrency: PersistObjectTemplate.concurrency})
-                .then(function () {
-                    requests.splice(0, segLength);
-                    if (requests.length > 0)
-                        return processRequests();
-                    else
-                        return results;
-                })
+            }.bind(this))
+            requests.splice(0, segLength);
+            if (requests.length > 0)
+                return processRequests();
+            else
+                return results;
         }
     }
 
@@ -230,7 +282,9 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
-            //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
+            idMap['queryMapper'] = idMap['queryMapper'] || {};
+            idMap['queryMapper'][`${obj.__template__.__name__}___${JSON.stringify({_id: obj._id})}`] = obj._id;
+            
             if (pojo[prefix + '__version__'])
                 this.withoutChangeTracking(function () {
                     obj.__version__ = pojo[prefix + '__version__'];
@@ -497,7 +551,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                 // Construct foreign key query
                 var query = {};
-                var options = defineProperty.queryOptions || {sort: {_id: 1}};
+                var options = defineProperty.queryOptions || {sort: PersistorCtx.executionCtx?.asOfDate ? {_snapshot_id:1} : {_id: 1}};
                 var limit = options.limit || null;
                 query[schema.children[prop].id] = obj._id;
                 if (foreignFilterKey) {

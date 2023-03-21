@@ -7,8 +7,13 @@ export class Persistor extends SupertypeSession {
      * @TODO: was typed `Persistor` but that's weird? doesn't work need to figure out what's going on.
      */
     static create(): any | undefined {return undefined};
+
+    static setPersistorCacheContext(cacheContext: any) : any {};
+
+    static persistorCacheCtxKey: string;
     beginDefaultTransaction() : any {}
 
+    
     /**
      * Creates A persistor transaction, and returns it
      */
@@ -216,11 +221,12 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
          * @param {object} idMap id mapper for cached objects
          * @param {bool} isRefresh force load
          * @param {object} logger objecttemplate logger
+         * @param {date} asOfDate load objects based on the date provided
          * @returns {object}
          * @legacy Use persistorFetchById instead
          * @async
          */
-        static getFromPersistWithId(id?, cascade?, isTransient?, idMap?, isRefresh?, logger?) : any{}
+        static getFromPersistWithId(id?, cascade?, isTransient?, idMap?, isRefresh?, logger?, asOfDate?) : any{}
 
         /**
          * Return an array of objects of this class given a json query
@@ -233,11 +239,12 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
          * @param {object} idMap id mapper for cached objects
          * @param {bool} options {@TODO}
          * @param {object} logger objecttemplate logger
+         * @param {date} asOfDate load objects based on the date provided
          * @returns {object}
          * @legacy in favor of persistorFetchByQuery
          * @async
          */
-        static getFromPersistWithQuery(query, cascade?, start?, limit?, isTransient?, idMap?, options?, logger?) : any {}
+        static getFromPersistWithQuery(query, cascade?, start?, limit?, isTransient?, idMap?, options?, logger?, asOfDate?) : any {}
 
         /**
          * Delete objects given a json query

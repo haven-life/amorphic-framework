@@ -1,7 +1,6 @@
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/mongo/update`;
-    var Promise = require('bluebird');
-
+    
     /**
      * Save the object to persistent storage
      *

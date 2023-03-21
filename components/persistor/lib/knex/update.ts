@@ -4,7 +4,6 @@ import { PersistorUtils } from '../utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/update`;
-    var Promise = require('bluebird');
     var _ = require('underscore');
 
     /**

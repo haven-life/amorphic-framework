@@ -7,4 +7,5 @@ coverage
 dist
 .nyc_output
 test/supertype/*.js
+lib/utils/*.js
 lib/persistable.js
