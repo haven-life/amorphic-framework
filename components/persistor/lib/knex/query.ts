@@ -134,7 +134,8 @@ module.exports = function (PersistObjectTemplate) {
                         template: props[prop].of,
                         parentKey: foreignKey,
                         childKey: '_id',
-                        alias: this.dealias(props[prop].of.__table__) + join++
+                        alias: this.dealias(props[prop].of.__table__) + join++,
+                        schemaFilter: schema.children[prop].filter
                     });
             }
         }
@@ -168,18 +169,20 @@ module.exports = function (PersistObjectTemplate) {
                 pojos.forEach(function (pojo) {
                     pojo.__alias__ = pojo.__alias__ || [];
                     pojo.__alias__.push(join.template);
+                    pojo.__allpojos__ = pojos;
                 });
             });
             const sortMap = {};
-            let ix = 0;
             for(const pojo of pojos) {
+                
                 if (sortMap[pojo[this.dealias(template.__table__) + '____id']]) {
                     continue;
                 }
-                sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix++;
+
                 const obj = await PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
                     null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade);
-                results[sortMap[obj._id]] = obj;
+                sortMap[pojo[this.dealias(template.__table__) + '____id']] = pojo[this.dealias(template.__table__) + '____id'];
+                results.push(obj);
 
                 idMap['queryMapper'] = idMap['queryMapper'] || {};
                 const keyId = `${template.__name__}___${JSON.stringify(queryOrChains)}`;
@@ -204,7 +207,7 @@ module.exports = function (PersistObjectTemplate) {
         async function processRequests() {
             var segLength = requests.length;
             
-            await PersistorUtils.asyncMap(requests, 1, function (request, _ix) {
+            await PersistorUtils.asyncMap(requests, PersistObjectTemplate.concurrency || 1, function (request, _ix) {
                 return request();
             }.bind(this))
             requests.splice(0, segLength);
@@ -302,6 +305,8 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.resolve(idMap[obj._id]);
 
             idMap[obj._id] = obj;
+            idMap['queryMapper'] = idMap['queryMapper'] || {};
+            idMap['queryMapper'][`${obj.__template__.__name__}___${JSON.stringify({_id: obj._id})}`] = obj._id;
             //console.log("Adding " + template.__name__ + "-" + obj._id + " to idMap");
             if (pojo[prefix + '__version__'])
                 this.withoutChangeTracking(function () {
@@ -351,10 +356,10 @@ module.exports = function (PersistObjectTemplate) {
                         throw  new Error(obj.__template__.__name__ + '.' + prop + ' is missing a children schema entry');
                     if (schema.children[prop].filter && (!schema.children[prop].filter.value || !schema.children[prop].filter.property))
                         throw new Error('Incorrect filter properties on ' + prop + ' in ' + obj.__template__.__name__);
-
                     if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
                         cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
+                        updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
                         queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty, projection, cascade);
                     } else
                         updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
@@ -567,6 +572,8 @@ module.exports = function (PersistObjectTemplate) {
 
                 var foreignFilterKey = schema.children[prop].filter ? schema.children[prop].filter.property : null;
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
+                
+
                 // Construct foreign key query
                 var query = {};
                 var options = defineProperty.queryOptions || {sort: PersistorCtx.executionCtx?.asOfDate ? {_snapshot_id:1} : {_id: 1}};
@@ -587,6 +594,38 @@ module.exports = function (PersistObjectTemplate) {
                 var closurePersistorProp = persistorPropertyName
                 var closureCascade = this.processCascade(query, options, cascadeFetch,
                     (schema && schema.children) ? schema.children[prop].fetch : null, defineProperty.fetch);
+
+                var join = _.find(joins, function (j) {return j.prop == prop});
+                if (join) {
+                    var visited = [];
+                    var allReferences = pojo.__allpojos__.reduce((result, value) => {
+                            if (value[join.alias + '____id'] && 
+                            pojo[join.alias + '___' + schema.children[prop].id] ===value[join.alias + '___' + schema.children[prop].id] &&
+                            !visited.includes(value[join.alias + '____id'])) {
+                                result.push(value);
+                                visited.push(value[join.alias + '____id' ])
+                            }
+                            return result;
+                        }, [])
+                        updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: 0, next: allReferences.length});
+                        return Promise.all(allReferences.map(async element=> {
+                                var generatedObj = await this.getTemplateFromKnexPOJO(element, closureOf, requests, idMap,
+                                closureCascade, isTransient, closureProp,
+                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking, projection, orgCascade)
+                                obj[closureProp].push(generatedObj);
+                        }))
+                        
+                }
+                    // for(let element of allReferences) {
+                    //     var foreignId = pojo[prefix + foreignKey] || (obj[persistorPropertyName] ? obj[persistorPropertyName].id : '') || '';
+                    //     var generatedObj = await this.getTemplateFromKnexPOJO(element, closureOf, requests, idMap,
+                    //         closureCascade, isTransient, closureProp,
+                    //         obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking, projection, orgCascade)
+                    //         obj[closureProp].push(generatedObj);
+                    // };
+                    // updatePersistorProp(obj, closurePersistorProp, {isFetched: true, start: 0, next: 1})
+                    // return;
+                
 
                 // Fetch sub-ordinate entities and convert to objects
                 this.withoutChangeTracking(function () {

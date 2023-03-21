@@ -40,6 +40,7 @@ module.exports = function (PersistObjectTemplate) {
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
         var select = knex.select(getColumnNames.bind(this, template, historySeqKeys)()).from((historyTableName || tableName) + ' as ' + tableName);
+       
         joins.forEach(function (join) {
             let joinTable = this.dealias(join.template.__table__);
             let historyJoinTable, additionalCondition;
@@ -48,15 +49,19 @@ module.exports = function (PersistObjectTemplate) {
             }
             const parentKey = this.dealias(template.__table__) + '.' + join.childKey
             select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
+                let cond;
                 if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
-                    const cond = this.on(join.alias + '._snapshot_id', '=', parentKey)
+                    cond = this.on(join.alias + '._snapshot_id', '=', parentKey)
                 
                     const dt = PersistorCtx.executionCtx?.asOfDate
                     cond.andOn(knex.client.raw(join.alias + '.' + '"lastUpdatedTime"' + ` <= '${dt.toISOString()}'`))
                 }
                 else 
                 {
-                    const cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
+                    cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
+                }
+                if (join.schemaFilter) {
+                    cond.andOn(knex.client.raw(`"${join.alias}"."${join.schemaFilter.property}" = '${join.schemaFilter.value}'`));
                 }
             })
 
@@ -84,6 +89,14 @@ module.exports = function (PersistObjectTemplate) {
                 select = ascending.reduce((result, column) => select.orderBy(column), select);
             if (descending.length)
                 select = descending.reduce((result, column) => select.orderBy(column, 'desc'), select);
+        }
+        else {
+            options = options || {};
+            options.sort = options.sort || {};
+            select.orderBy(`${this.dealias(template.__table__) }._id`, 'asc')
+            joins.forEach(function (join) {
+                select.orderBy(join.alias + '._id', 'asc')
+            });
         }
         if (historySeqKeys.length) {
             const predicate = historySeqKeys.reduce((predicate,curr)=> (predicate[curr]=1,predicate),{});

@@ -103,6 +103,9 @@ describe('persist newapi tests', function () {
         schema.Responsibility = {};
         schema.Responsibility.table = 'tx_responsibility';
         schema.Responsibility.audit = 'v2';
+        schema.Responsibility.parents = {
+            role: { id: 'role_id' }
+        };
         Phone = PersistObjectTemplate.create('Phone', {
             number: { type: String }
         });
@@ -145,11 +148,13 @@ describe('persist newapi tests', function () {
         var phone = new Phone();
         var residentialPhone = new Phone();
          var role1 = new Role();
-        // role1.name = 'firstRole2';
-        // role1.employee = emp;
+        role1.name = 'firstRole2';
+        role1.employee = emp;
          var role2 = new Role();
-        // role2.name = 'secondRole2';
-        // role2.employee = emp;
+        role2.name = 'secondRole2';
+        role2.employee = emp;
+        emp.roles.push(role1);
+        emp.roles.push(role2);
 
         phone.number = '1231231234';
         residentialPhone.number = '1111111111';
