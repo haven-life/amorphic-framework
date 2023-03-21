@@ -219,7 +219,7 @@ module.exports = function (PersistObjectTemplate) {
                         type: ['null', 'object']
                     },
                     'enableChangeTracking' : {
-                        type: ['boolean', 'null', 'undefined']
+                        type: ['boolean', 'null']
                     }
                 }
             },
@@ -234,16 +234,18 @@ module.exports = function (PersistObjectTemplate) {
                         type: ['null', 'object']
                     },
                     'notifyChanges': {
-                        type: ['boolean', 'null', 'undefined']
+                        type: ['boolean', 'null']
                     },
                     'notifyQueries': {
-                        type: ['boolean', 'null', 'undefined']
+                        type: ['boolean', 'null']
                     }
                 }
             },
             'fetchSpec': {}
         };
-        var valid = schemaValidator.validate(options, schemas[schema]);
+        const ajv = new Ajv({ allErrors: true });
+        var validate = ajv.compile(schemas[schema]);
+        var valid = validate(options);
         if (!valid) {
             throw new Error('Parameter validation failed, ' + (schemaValidator.error.dataPath !== '' ? 'Field: '
                     + schemaValidator.error.dataPath + ', ' : '')
