@@ -21,7 +21,6 @@
     },
     "devDependencies": {
         "@haventech/supertype": "7.0.0-es2020.beta.2",
-        "q": "1.x",
         "@types/bluebird": "*",
         "@types/chai": "4.3.4",
         "@types/mocha": "10.0.1",
@@ -35,6 +34,7 @@
         "mocha": "10.2.0",
         "mock-fs": "5.2.0",
         "nyc": "15.1.0",
+        "q": "1.x",
         "reflect-metadata": "0.1.13",
         "sinon": "15.0.1",
         "sinon-chai": "3.7.0",
