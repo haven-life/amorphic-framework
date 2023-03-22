@@ -11,8 +11,7 @@
         "mongodb": "^3.5.5",
         "run": "^1.4.0",
         "test": "^3.2.1",
-        "underscore": "^1.13.1",
-        "uuid": "8.3.2"
+        "underscore": "^1.13.1"
     },
     "peerDependencies": {
         "@haventech/supertype": "7.0.0-es2020.beta.2",
