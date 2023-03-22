@@ -58,7 +58,7 @@
         "compile:all": "npm run compile && npm run compile:tests",
         "build": "npm run compile:all",
         "prepublishOnly": "npm run compile",
-        "test": "mocha --timeout 30000 --exit -- test/*.js",
+        "test": "mocha --timeout 15000 --exit -- test/*.js",
         "test:coverage": "nyc npm test",
         "test:debug": "mocha test/*.js --inspect-brk=0.0.0.0:5858",
         "test:docker": "docker-compose up --build",
