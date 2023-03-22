@@ -1,9 +1,8 @@
+import ajv from "./validation"
 module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
     var _ = require('underscore');
-    var schemaValidator = require('tv4');
-
     PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
 
     PersistObjectTemplate.createTransientObject = function (cb) {
@@ -174,83 +173,13 @@ module.exports = function (PersistObjectTemplate) {
         if (!options) {
             return;
         }
-        var schemas = {
-            'persistSchema': {
-                'type': 'object',
-                'additionalProperties': false,
-                'properties': {
-                    'transaction': {
-                        type: ['null', 'object']
-                    },
-                    'cascade': {
-                        type: 'boolean'
-                    },
-                    'logger': {
-                        type: ['null', 'object']
-                    }
-                }
-            },
-            'fetchSchema': {
-                'type': 'object',
-                'additionalProperties': false,
-                'properties': {
-                    'fetch': {
-                        type: ['null', 'object']
-                    },
-                    'projection': {
-                        type: ['null', 'object']
-                    },
-                    'start': {
-                        type: 'number'
-                    },
-                    'limit': {
-                        type: 'number'
-                    },
-                    'order': {
-                        type: ['null', 'object']
-                    },
-                    'transient': {
-                        type: 'boolean'
-                    },
-                    'session': {
-                        type: ['null', 'object']
-                    },
-                    'logger': {
-                        type: ['null', 'object']
-                    },
-                    'enableChangeTracking' : {
-                        type: ['boolean', 'null']
-                    }
-                }
-            },
-            'commitSchema': {
-                'type': 'object',
-                'additionalProperties': false,
-                'properties': {
-                    'transaction': {
-                        type: ['null', 'object']
-                    },
-                    'logger': {
-                        type: ['null', 'object']
-                    },
-                    'notifyChanges': {
-                        type: ['boolean', 'null']
-                    },
-                    'notifyQueries': {
-                        type: ['boolean', 'null']
-                    }
-                }
-            },
-            'fetchSpec': {}
-        };
-        const ajv = new Ajv({ allErrors: true});
-        const validate = ajv.compile(schemas[schema]);
+        const validate = ajv.getSchema(schema);
         const valid = validate(options);
 
         if (!valid) {
             const validationError = validate.errors[0];
             throw new Error('Parameter validation failed, ' + (validationError.schemaPath !== '' ? 'Field: '
-                    + validationError.schemaPath + ', ' : '')
+                + validationError.schemaPath + ', ' : '')
                 + 'Validation error: ' + validationError.message);
         }
 
