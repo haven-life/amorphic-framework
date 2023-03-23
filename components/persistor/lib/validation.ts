@@ -69,7 +69,7 @@ const schemas = {
     'fetchSpec': {}
 };
 const ajv = new Ajv({ allErrors: true });
-// cacheing schema compilation so we don't need to compile on very call to validateparams.
+// cacheing schema compilation so we don't need to compile on every call.
 ajv.addSchema(schemas['persistSchema'], "persistSchema"); 
 ajv.addSchema(schemas['fetchSchema'], "fetchSchema");
 ajv.addSchema(schemas['commitSchema'], "commitSchema");

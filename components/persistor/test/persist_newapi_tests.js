@@ -365,7 +365,7 @@ describe('persist newapi tests', function () {
         return Promise.resolve()
             .then(actualTest)
             .catch(function(error) {
-                expect(error.message).to.contain('Parameter validation failed, Field: #/additionalProperties, Validation error: must NOT have additional properties');
+                expect(error.message).to.contain('Parameter validation failed, Field: #/additionalProperties, Validation error: should NOT have additional properties');
             });
 
         function actualTest() {
