@@ -142,7 +142,7 @@ describe('persist newapi extend', function () {
             .then(checkSubTypes);
 
         function loadPersons() {
-            return Person.persistorFetchByQuery({}, {fetch: {manager: true, address: true}})
+            return Person.persistorFetchByQuery({}, {fetch: {manager: {fetch: {address: true}}, address: true}})
         }
 
         function checkSubTypes(persons) {

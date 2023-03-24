@@ -46,7 +46,7 @@ module.exports = function (PersistObjectTemplate) {
             if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
                 historyJoinTable = joinTable + '_history';
             }
-            const parentKey = this.dealias(template.__table__) + '.' + join.childKey
+            const parentKey = join.childAlias + '.' + join.childKey
             select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
                 if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
                     const cond = this.on(join.alias + '._snapshot_id', '=', parentKey)
@@ -118,7 +118,7 @@ module.exports = function (PersistObjectTemplate) {
             });
         if (map)
             map[selectString] = [];
-
+        console.log('hitting sql execution');
         return select.then(processResults.bind(this), processError.bind(this));
         function processResults(res) {
             (logger || this.logger).debug({
@@ -221,20 +221,20 @@ module.exports = function (PersistObjectTemplate) {
                  historySeqKeys.push(`${prefix}___lastUpdatedSeq`);
                 cols.push(knex.client.raw(lastUpdatedSeq));
             }
-
-            function getPropsRecursive(template, map?) {
-                map = map || {};
-                _.map(template.getProperties(), function (val, prop) {
-                    map[prop] = val
-                });
-                template = template.__children__;
-                template.forEach(function (template) {
-                    getPropsRecursive(template, map);
-                });
-                return map;
-            }
         }
     };
+
+    PersistObjectTemplate.getPropsRecursive = function (template, map?) {
+        map = map || {};
+        _.map(template.getProperties(), function (val, prop) {
+            map[prop] = val
+        });
+        template = template.__children__;
+        template.forEach(function (template) {
+            getPropsRecursive(template, map);
+        });
+        return map;
+    }
     /**
      * Get the count of rows
      *
@@ -1125,8 +1125,8 @@ module.exports = function (PersistObjectTemplate) {
         _.map(template.getProperties(), function (val, prop) {
             map[prop] = val
         });
-        template = template.__children__;
-        template.forEach(function (template) {
+        const templateChildren = template.__children__;
+        templateChildren.forEach(function (template) {
             getPropsRecursive(template, map);
         });
         return map;

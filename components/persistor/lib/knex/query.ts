@@ -62,7 +62,7 @@ module.exports = function (PersistObjectTemplate) {
             keyIds.split(',').forEach(keyId => {
                 if (idMap[keyId]) {
                     const obj = idMap[keyId];
-                    resultsPromise.push(checkAllChildrenLoaded.call(this, obj, obj, cascade));
+                    cascade  && resultsPromise.push(checkAllChildrenLoaded.call(this, obj, obj, cascade));
                 }
             });
             return Promise.all(resultsPromise);
@@ -97,27 +97,12 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         // Determine one-to-one relationships and add function chains for where
-        var props = template.getProperties();
+        var props = this.getPropsRecursive(template);
         var join = 1;
         for (var prop in props) {
             var defineProperty = props[prop];
             if (this._persistProperty(props[prop]) && props[prop].type && props[prop].type.__objectTemplate__ && props[prop].type.__table__) {
-                // Create the join spec with two keys
-                if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                    throw  new Error(props[prop].type.__name__ + '.' + prop + ' is missing a parents schema entry');
-                var foreignKey = schema.parents[prop].id;
-                var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
-                orgCascade = orgCascade || cascade;
-                if (((defineProperty['fetch'] && !defineProperty['nojoin']) || cascadeFetch ||
-                    (schema.parents[prop].fetch == true  && !schema.parents[prop].nojoin)) &&
-                    cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin))
-                    joins.push({
-                        prop: prop,
-                        template: props[prop].type,
-                        parentKey: '_id',
-                        childKey: foreignKey,
-                        alias: this.dealias(props[prop].type.__table__) + join++
-                    });
+                join = this.generateJoins(prop, props[prop], schema, cascade, orgCascade, joins, join, this.dealias(template.__table__));
             }
         }
         options = options || {};
@@ -177,6 +162,49 @@ module.exports = function (PersistObjectTemplate) {
 
             return results;
         }
+    }
+
+    PersistObjectTemplate.generateJoins = function(prop, propDef, schema, cascade, orgCascade, joins, joinSeq, childAlias) {
+        try {
+            if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
+            throw  new Error(propDef.type.__name__ + '.' + prop + ' is missing a parents schema entry');
+        var foreignKey = schema.parents[prop].id;
+        var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
+        orgCascade = orgCascade || cascade;
+        
+        if (((propDef['fetch'] && !propDef['nojoin']) || cascadeFetch ||
+            (schema.parents[prop].fetch == true  && !schema.parents[prop].nojoin)) &&
+            cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin)) {
+            const alias = this.dealias(propDef.type.__table__) + joinSeq++
+            const childTemplate = joins.find(j => j.alias === childAlias);
+
+            joins.push({
+                prop: prop,
+                template: propDef.type,
+                parentKey: '_id',
+                childKey: foreignKey,
+                alias: alias,
+                childAlias: childAlias,
+                childTemplateName:  childTemplate?.template?.__name__
+            });
+            var fields = this.getPropsRecursive(propDef.type);
+            for (var field in fields) {
+                if (this._persistProperty(fields[field]) && fields[field].type && fields[field].type.__objectTemplate__ && fields[field].type.__table__) {
+                    var cascadeFetch = (cascade && cascade[prop].fetch && (typeof (cascade[prop].fetch[field]) != 'undefined')) ?  cascade[prop].fetch[field]: null;
+                    if (cascadeFetch && field !== prop) {
+                        console.log('generateJoins');
+                         joinSeq = this.generateJoins(field, fields[field], propDef.type.__schema__,  { [field]: cascadeFetch }, orgCascade, joins, joinSeq, alias);
+                    }
+                }
+            }
+        }
+            
+        return joinSeq;
+        }
+        catch(e) {
+            console.log(e);
+        }
+        
     }
 
     PersistObjectTemplate.resolveRecursiveRequests = function (requests, results) {
@@ -306,6 +334,7 @@ module.exports = function (PersistObjectTemplate) {
                 var of = defineProperty.of;
                 const isRemoteDoc = PersistorUtils.isRemoteObjectSetToTrue(this.config && this.config.enableIsRemoteObjectFeature, defineProperty.isRemoteObject);
                 var cascadeFetch = (cascade && typeof(cascade[prop] != 'undefined')) ? cascade[prop] : null;
+                orgCascade = orgCascade || cascade;
                 if (cascadeFetch && cascadeFetch.fetch) {
                     Object.keys(cascadeFetch.fetch).map(key => {
                         if (typeof cascadeFetch.fetch[key] === 'string') {
@@ -371,7 +400,8 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                queueLoadRequest.call(this, obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade);
+                                updatePersistorProp(obj, persistorPropertyName, {isFetched: false, id: foreignId})
+                                queueLoadRequest.call(this, obj, prop, type, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade);
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
                             }
@@ -505,7 +535,7 @@ module.exports = function (PersistObjectTemplate) {
                 });
             }
 
-            function queueLoadRequest(obj, prop, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade) {
+            function queueLoadRequest(obj, prop, type, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade) {
                 var query = {_id: foreignId};
                 var options = {};
                 var closureProp = prop;
@@ -526,7 +556,7 @@ module.exports = function (PersistObjectTemplate) {
                         (pojo[join.alias + '____id'] ?
                             this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
                                 closureCascade, isTransient, closureDefineProperty,
-                                obj[closureProp], null, join.alias + '___', null, isRefresh, logger, enableChangeTracking, projection, orgCascade)
+                                obj[closureProp], null, join.alias + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
                             : Promise.resolve(true)) :
                         this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
                             null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking, projection, orgCascade);
@@ -600,6 +630,9 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             function allRequiredChildrenAvailableInCache(cachedObject, fetchSpec) {
+                if (!fetchSpec) {
+                    return true;
+                }
                 return Object.keys(fetchSpec).reduce(function(loaded, currentObj) {
                     return loaded && (!fetchSpec[currentObj] ||
                         (cachedObject[currentObj + 'Persistor'] && cachedObject[currentObj + 'Persistor'].isFetched))

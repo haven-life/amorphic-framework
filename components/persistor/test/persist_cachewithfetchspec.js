@@ -14,7 +14,7 @@ var knex;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
-var Phone, Address, Employee, empId, addressId, phoneId, Role, dob, Responsibility;
+var Phone, Address, Employee, empId, addressId, phoneId, Role, dob, Responsibility, SpecificEmployee;
 var PersistObjectTemplate, ObjectTemplate;
 
 
@@ -79,7 +79,10 @@ describe('persist newapi tests', function () {
             },
             residentialAddress: {
                 id: 'residentialaddress_id'
-            }
+            },
+            specificAddress: {
+                id: 'specificaddress_id'
+            },
         };
         schema.Employee.children = {
             roles: { id: 'employee_id', fetch: true }
@@ -137,15 +140,23 @@ describe('persist newapi tests', function () {
             isMarried: { type: Boolean }
         });
 
+        SpecificEmployee = Employee.extend('SpecificEmployee', {
+            specificAddress: { type: Address },
+        });
+
         Role.mixin({
             employee: { type: Employee },
             responsibilities: { type: Array, of: Responsibility, value: [] },
         });
         var emp = new Employee();
         var emp1 = new Employee();
+        var emp2 = new SpecificEmployee();
         var add = new Address();
         var resAdd = new Address();
         var phone = new Phone();
+        var specificAdd = new Address();
+        emp2.specificAddress = specificAdd;
+        emp2.name = 'InitialName';
         var residentialPhone = new Phone();
          var role1 = new Role();
         role1.name = 'firstRole2';
@@ -171,9 +182,6 @@ describe('persist newapi tests', function () {
 
         emp1.name = 'InitialName';
         emp1.dob = dob;
-        emp1.homeAddress = add;
-        emp1.residentialAddress = resAdd;
-
         
 
         // emp.roles.push(role1);
@@ -206,6 +214,7 @@ describe('persist newapi tests', function () {
             function createRecords() {
                 var tx = PersistObjectTemplate.beginDefaultTransaction();
                 emp1.setDirty(tx);
+                emp2.setDirty(tx);
                 return emp.persist({ transaction: tx, cascade: false }).then(function () {
                     return PersistObjectTemplate.commit({ transaction: tx, notifyChanges: true }).then(function () {
                         empId = emp._id;
@@ -246,7 +255,7 @@ describe('persist newapi tests', function () {
         async function loadChecks() {
             var employees = await Employee.persistorFetchByQuery({name: 'InitialName'},
                 {
-                    fetch: { homeAddress: { fetch: { phone: true } }, roles: { fetch: { responsibilities: true}}  }
+                    fetch: { homeAddress: { fetch: { phone: true } }, specificAddress: true,roles: { fetch: { responsibilities: true}}  }
                 });
             var employee = employees[0];
             expect(employee.name).is.equal('InitialName');
