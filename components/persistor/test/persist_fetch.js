@@ -6,7 +6,7 @@ var chaiAsPromised = require('chai-as-promised');
 chai.should();
 chai.use(chaiAsPromised);
 
-var Promise = require('bluebird');
+
 var knexInit = require('knex');
 var knex;
 

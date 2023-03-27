@@ -6,7 +6,7 @@ var chai = require('chai');
 var expect = require('chai').expect;
 
 var chaiAsPromised = require('chai-as-promised');
-var Promise = require('bluebird');
+
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -244,7 +244,7 @@ describe('schema update checks', function () {
         })
     });
 
-    it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
+    it('synchronize the index definition and check if the index exists on the table by dropping the index in persist_schema_updates', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
             return knex.schema.table('IndexSyncTable', function (table) {
                 table.dropIndex([], 'idx_indexsynctable_name');

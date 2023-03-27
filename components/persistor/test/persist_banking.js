@@ -16,7 +16,6 @@ PersistObjectTemplate.debug = function(m, t) {
     }
 }
 */
-var Promise = require('bluebird');
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {
@@ -354,7 +353,7 @@ describe('Banking Example JS', function () {
         }).catch(function(e) {done(e)});
     });
 
-    it('Accounts have addresses', function (done) {
+    it('Accounts have addresses 1', function (done) {
         Account.getFromPersistWithQuery(null, {address: true}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');

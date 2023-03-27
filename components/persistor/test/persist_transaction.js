@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-var Promise = require('bluebird');
+
 var knexInit = require('knex');
 var knex;
 var schema = {};

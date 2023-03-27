@@ -1,9 +1,9 @@
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
 import { PersistorUtils } from '../utils/PersistorUtils';
+import { PersistorCtx } from './PersistorCtx';
 
 module.exports = function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
-    var Promise = require('bluebird');
     var _ = require('underscore');
 
     PersistObjectTemplate.concurrency = 10;
@@ -83,7 +83,6 @@ module.exports = function (PersistObjectTemplate) {
             options.offset = skip;
         if (limit)
             options.limit = limit;
-
         // Request to do entire processing to be executed right now or as part of a request queue
         var request = function () {
             return Promise.resolve(true)
@@ -127,19 +126,17 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.resolveRecursiveRequests = function (requests, results) {
         return processRequests();
-        function processRequests() {
+        async function processRequests() {
             var segLength = requests.length;
-            //console.log("Processing " + segLength + " promises " + PersistObjectTemplate.concurrency);
-            return Promise.map(requests, function (request, _ix) {
+            
+            await PersistorUtils.asyncMap(requests, PersistObjectTemplate.concurrency || 1, function (request, _ix) {
                 return request();
-            }, {concurrency: PersistObjectTemplate.concurrency})
-                .then(function () {
-                    requests.splice(0, segLength);
-                    if (requests.length > 0)
-                        return processRequests();
-                    else
-                        return results;
-                })
+            }.bind(this))
+            requests.splice(0, segLength);
+            if (requests.length > 0)
+                return processRequests();
+            else
+                return results;
         }
     }
 
@@ -497,7 +494,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                 // Construct foreign key query
                 var query = {};
-                var options = defineProperty.queryOptions || {sort: {_id: 1}};
+                var options = defineProperty.queryOptions || {sort: PersistorCtx.executionCtx?.asOfDate ? {_snapshot_id:1} : {_id: 1}};
                 var limit = options.limit || null;
                 query[schema.children[prop].id] = obj._id;
                 if (foreignFilterKey) {

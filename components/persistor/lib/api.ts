@@ -11,15 +11,16 @@
  */
 
 import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import { PersistorCtx } from './knex/PersistorCtx';
+import { PersistorUtils } from './utils/PersistorUtils';
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     const moduleName = `persistor/lib/api`;
     let supertypeRequire = require('@haventech/supertype');
     let statsDHelper = supertypeRequire.StatsdHelper;
 
-    var Promise = require('bluebird');
     var _ = require('underscore');
-
+    
     function getTime() {
         return process.hrtime();
     }
@@ -165,10 +166,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {object} idMap id mapper for cached objects
          * @param {bool} isRefresh force load
          * @param {object} logger objecttemplate logger
+         * @param {date} asOfDate load objects based on the date provided
          * @returns {object}
          * @legacy Use persistorFetchById instead
          */
-        template.getFromPersistWithId = async function (id, cascade, isTransient, idMap, isRefresh, logger) {
+        template.getFromPersistWithId = async function (id, cascade, isTransient, idMap, isRefresh, logger, asOfDate) {
             const functionName = 'getFromPersistWithId';
             (logger || PersistObjectTemplate.logger).debug({
                 module: moduleName,
@@ -184,7 +186,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             let getQuery = (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoId(template, id, cascade, isTransient, idMap, logger) :
-                PersistObjectTemplate.getFromPersistWithKnexId(template, id, cascade, isTransient, idMap, isRefresh, logger));
+                PersistorCtx.checkAndExecuteWithContext(asOfDate, PersistObjectTemplate.getFromPersistWithKnexId.bind(PersistObjectTemplate, template, id, cascade, isTransient, idMap, isRefresh, logger)));
 
             const name = 'getFromPersistWithId';
             return getQuery
@@ -210,10 +212,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
          * @param {object} idMap id mapper for cached objects
          * @param {bool} options {@TODO}
          * @param {object} logger objecttemplate logger
+         * @param {date} asOfDate load objects based on the date provided
          * @returns {object}
          * @legacy in favor of persistorFetchByQuery
          */
-        template.getFromPersistWithQuery = async function (query, cascade, start, limit, isTransient, idMap, options, logger) {
+        template.getFromPersistWithQuery = async function (query, cascade, start, limit, isTransient, idMap, options, logger, asOfDate) {
             const functionName = 'getFromPersistWithQuery';
             (logger || PersistObjectTemplate.logger).debug({
                 module: moduleName,
@@ -228,7 +231,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
 
             let getQuery = (dbType == PersistObjectTemplate.DB_Mongo ?
                 PersistObjectTemplate.getFromPersistWithMongoQuery(template, query, cascade, start, limit, isTransient, idMap, options, logger) :
-                PersistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, cascade, start, limit, isTransient, idMap, options, undefined, undefined, logger));
+                PersistorCtx.checkAndExecuteWithContext(asOfDate, PersistObjectTemplate.getFromPersistWithKnexQuery.bind(PersistObjectTemplate, null, template, query, cascade, start, limit, isTransient, idMap, options, undefined, undefined, logger)));
 
 
             const name = 'getFromPersistWithQuery';
@@ -300,7 +303,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             var dbType = persistObjectTemplate.getDB(persistObjectTemplate.getDBAlias(template.__collection__)).type;
             let fetchQuery = (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoId(template, id, options.fetch, options.transient, null, options.logger) :
-                persistObjectTemplate.getFromPersistWithKnexId(template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking, options.projection));
+                PersistorCtx.checkAndExecuteWithContext(options.asOfDate, persistObjectTemplate.getFromPersistWithKnexId.bind(persistObjectTemplate, template, id, options.fetch, options.transient, null, null, options.logger, options.enableChangeTracking, options.projection)));
 
             const name = 'persistorFetchById';
             return fetchQuery
@@ -374,9 +377,9 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             let fetchQuery = (dbType == persistObjectTemplate.DB_Mongo ?
                 persistObjectTemplate.getFromPersistWithMongoQuery(template, query, options.fetch, options.start,
                     options.limit, options.transient, options.order, options.order, logger) :
-                persistObjectTemplate.getFromPersistWithKnexQuery(null, template, query, options.fetch, options.start,
+                    PersistorCtx.checkAndExecuteWithContext(options.asOfDate, persistObjectTemplate.getFromPersistWithKnexQuery.bind(persistObjectTemplate, null, template, query, options.fetch, options.start,
                     options.limit, options.transient, null, options.order,
-                    undefined, undefined, logger, options.enableChangeTracking, options.projection));
+                    undefined, undefined, logger, options.enableChangeTracking, options.projection)));
 
             const name = 'persistorFetchByQuery';
             return fetchQuery
@@ -1396,7 +1399,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
                 templates.push(template);
             }
         }
-        return Promise.map(templates, action, { concurrency: concurrency || 1 });
+        return PersistorUtils.asyncMap(templates, concurrency || 1, action);
     }
 
 };
