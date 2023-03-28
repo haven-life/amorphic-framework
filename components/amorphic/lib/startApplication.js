@@ -303,10 +303,10 @@ async function loadTSTemplates(appName) {
         appConfig.initObjectTemplate(baseTemplate);
     }
 
-    await import('../index.js').bindDecorators(baseTemplate);
+    (await import('../index.js')).default.bindDecorators(baseTemplate);
 
     // TODO: Typescript - this assumes that .js is in same directory as .ts but probably should be looking at tsconfig
-    AmorphicContext.applicationTSController[appName] = await import(appConfig.appPath + '/' + controllerPath).then(m => m.Controller);;
+    AmorphicContext.applicationTSController[appName] = (await import(appConfig.appPath + '/' + controllerPath)).Controller;
 
     checkTypes(baseTemplate.getClasses());
     baseTemplate.performInjections();
