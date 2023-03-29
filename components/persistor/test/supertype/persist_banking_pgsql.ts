@@ -13,12 +13,13 @@ persistor.logger.setLevel('debug');
 
 import { expect } from 'chai';
 import * as _ from 'underscore';
-import {Customer} from "./Customer";
-import {ExtendedCustomer} from "./ExtendedCustomer";
-import Promise = require('bluebird');
-import {Role} from "./Role";
-import {Account} from "./Account";
-import {Transaction, Xfer} from './Transaction';
+import {Customer} from "./Customer.js";
+import {ExtendedCustomer} from "./ExtendedCustomer.js";
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import {Role} from "./Role.js";
+import {Account} from "./Account.js";
+import {Transaction, Xfer} from './Transaction.js';
 
 var schema = {
     Customer: {

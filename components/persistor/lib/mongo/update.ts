@@ -1,6 +1,7 @@
-module.exports = function (PersistObjectTemplate) {
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+export default function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/mongo/update`;
-    var Promise = require('bluebird');
 
     /**
      * Save the object to persistent storage

@@ -4,9 +4,13 @@
  *
  */
 
-var expect = require('chai').expect;
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+import {expect} from 'chai';
+import SupertypeModule from '@haventech/supertype';
+const ObjectTemplate = SupertypeModule.default;
+import * as index from "../dist/index.js";
+const PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+import MongoModule from 'mongodb';
+const {MongoClient} = MongoModule;
 var writing = true;
 /*
 PersistObjectTemplate.debug = function(m, t) {
@@ -16,7 +20,8 @@ PersistObjectTemplate.debug = function(m, t) {
     }
 }
 */
-var Promise = require('bluebird');
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {
@@ -231,7 +236,6 @@ var schema = {
     }
 }
 
-var MongoClient = require('mongodb');
 let db, client;
 
 function clearCollection(collectionName) {
@@ -245,14 +249,17 @@ describe('Banking Example JS', function () {
     after('close db connection', function() {
         return client.close();
     });
-    it ('opens the database', function () {
-        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (clientParam){
+    it ('opens the database', async function () {
+        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`,{ useNewUrlParser: true }, function (error, clientParam){
+            if(error) {
+                throw error;
+            }
             client = clientParam;
-            db = client.db();
+            db = client.db('testpersist');
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-        }).catch(function(e) {throw e;});
+        })
     });
 
     it ('clears the bank', function () {

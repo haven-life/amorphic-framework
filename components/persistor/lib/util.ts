@@ -1,9 +1,11 @@
-import ajv from "./validation"
-module.exports = function (PersistObjectTemplate) {
-
-    var Promise = require('bluebird');
-    var _ = require('underscore');
-    PersistObjectTemplate.ObjectID = require('mongodb').ObjectID;
+import ajv from "./validation.js"
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import * as _ from 'underscore';
+import mongodbModule from 'mongodb';
+const { ObjectId } = mongodbModule;
+export default function (PersistObjectTemplate) {
+    PersistObjectTemplate.ObjectID = ObjectId;
 
     PersistObjectTemplate.createTransientObject = function (cb) {
         var currentState = this.__transient__;
@@ -66,7 +68,7 @@ module.exports = function (PersistObjectTemplate) {
                 return;
             callback.call(null, obj);
             var props = obj.__template__.getProperties();
-            _.map(props, function (defineProperty, prop) {
+            _.map(props, function (defineProperty: any, prop) {
                 if (defineProperty.type == Array && defineProperty.of && defineProperty.of.isObjectTemplate)
                     if (!idMap[obj.__id__ + '-' + prop]) {
                         idMap[obj.__id__ + '-' + prop] = true;

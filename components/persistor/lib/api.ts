@@ -10,15 +10,19 @@
  *
  */
 
-import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import { PersistorTransaction, RemoteDocConnectionOptions } from './types/index.js';
+import * as supertypeRequire from '@haventech/supertype';
+import Promise from 'bluebird';
+// const {Promise} = bluebirdModule;
+import * as _ from 'underscore';
+import * as knexModule from 'knex';
+const {knex }= knexModule;
 
-module.exports = function (PersistObjectTemplate, baseClassForPersist) {
+
+
+export default function (PersistObjectTemplate, baseClassForPersist) {
     const moduleName = `persistor/lib/api`;
-    let supertypeRequire = require('@haventech/supertype');
     let statsDHelper = supertypeRequire.StatsdHelper;
-
-    var Promise = require('bluebird');
-    var _ = require('underscore');
 
     function getTime() {
         return process.hrtime();
@@ -1280,7 +1284,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate.getPOJOFromMongoQuery(template, query, options, logger) :
             PersistObjectTemplate.getPOJOsFromKnexQuery(template, [], query, options, undefined, logger).then(function (pojos) {
                 pojos.forEach(function (pojo) {
-                    _.map(pojo, function (_val, prop) {
+                    _.map(pojo, function (_val, prop: any) { 
                         if (prop.match(RegExp('^' + prefix + '___'))) {
                             pojo[prop.replace(RegExp('^' + prefix + '___'), '')] = pojo[prop];
                             delete pojo[prop];
@@ -1354,7 +1358,6 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {*}
      */
     PersistObjectTemplate.connect = function (config, schema) {
-        var knex = require('knex');
         var connection = knex(config);
         this.setDB(connection, this.DB_Knex, config.client);
         this.setRemoteDocConnection(config);

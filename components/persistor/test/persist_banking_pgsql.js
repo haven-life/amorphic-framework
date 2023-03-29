@@ -4,14 +4,18 @@
  *
  */
 
-var sinon = require('sinon');
-var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
-var expect = require('chai').expect;
-var util = require('util');
-var Promise = require('bluebird');
-var _ = require('underscore');
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+import sinon from 'sinon';
+import {LocalStorageDocClient } from '../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient.js';
+import {expect} from 'chai';
+import util from 'util'
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import * as _ from 'underscore';
+import SupertypeModule from '@haventech/supertype';
+var ObjectTemplate = SupertypeModule.default;
+import * as index from "../dist/index.js";
+var PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+import knex from 'knex';
 var writing = true;
 var logLevel = process.env.logLevel || 'debug';
 const sandbox = sinon.createSandbox();
@@ -367,7 +371,7 @@ function clearCollection(template) {
 }
 
 describe('Banking from pgsql Example persist_banking_pgsql', function () {
-    var knex;
+    var knexObj;
     var overrideProperyStub;
     beforeEach(function() {
         sandbox.spy(LocalStorageDocClient.prototype, 'uploadDocument');
@@ -383,7 +387,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     it ('opens the database Postgres', function () {
         return Promise.resolve()
             .then(function () {
-                knex = require('knex')({
+                knexObj = knex({
                     client: 'pg',
                     connection: {
                         host: process.env.dbPath,
@@ -397,15 +401,15 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
                     persistorBucketName: 'test-bucket-persistor',
                     persistorRemoteDocEnvironment: 'local'
                 });
-                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
+                PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex,  'pg');
                 PersistObjectTemplate.setSchema(schema);
                 PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             }).catch(function(e) {throw e;});
     });
     var schemaTable = 'index_schema_history';
-    it ('clears the bank', function () {
+    it  ('clears the bank', function () {
         this.timeout(4000);
-        return knex.schema.dropTableIfExists(schemaTable)
+        return knexObj.schema.dropTableIfExists(schemaTable)
             .then(function () {
                 return clearCollection(Role);
             }).then(function (count) {
@@ -465,7 +469,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     //     });
     // });
 
-    it ('can create the data', function () {
+    it  ('can create the data', function () {
         // Setup customers and addresses
         sam = new Customer('Sam', 'M', 'Elsamman');
         karen = new Customer('Karen', 'M', 'Burke');
@@ -507,17 +511,17 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         jointAccount.debit(25);                         // Joint has 125
     });
 
-    it('both accounts have the right balance', function () {
+    it ('both accounts have the right balance', function () {
         expect(samsAccount.getBalance()).to.equal(100);
         expect(jointAccount.getBalance()).to.equal(125);
     });
 
-    it('check server side fetch property..', function () {
+    it ('check server side fetch property..', function () {
         return samsAccount.addressFetch(0, 1).then(function(address) {
             expect(util.inspect(address)).to.not.equal('');
         })
     });
-    it('can insert', function (done) {
+    it ('can insert', function (done) {
         PersistObjectTemplate.begin();
         sam.setDirty();
         ashling.setDirty();
@@ -525,9 +529,10 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         PersistObjectTemplate.end().then(function(result) {
             expect(result).to.equal(true);
             done();
-        }).catch(function(e) {done(e)});
+        }).catch(function(e) {
+            done(e)});
     });
-    it('Accounts have addresses', function (done) {
+    it ('Accounts have addresses', function (done) {
         Account.getFromPersistWithQuery(null, {address: true, transactions: false, fromAccountTransactions: false}).then (function (accounts) {
             expect(accounts.length).to.equal(2);
             expect(accounts[0].address.__template__.__name__).to.equal('Address');
@@ -1008,7 +1013,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         return Customer.getFromPersistWithId(sam._id).then (function (sam) {
             customer = sam;
             expect(customer.secondaryAddresses[0].city).to.equal('Red Hook');
-            return knex('address').where({'_id': customer.secondaryAddresses[0]._id}).update({'__version__': 999});
+            return knexObj('address').where({'_id': customer.secondaryAddresses[0]._id}).update({'__version__': 999});
         }).then(function () {
             return customer.secondaryAddresses[0].isStale()
         }).then(function(stale) {
@@ -1024,7 +1029,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     it('Can transact', function () {
         var customer;
         var preSave = false;
-        this.dirtyCount = 0;
+        var dirtyCount = 0;
         return Customer.getFromPersistWithId(sam._id).then (function (c) {
             customer = c;
             expect(customer.secondaryAddresses[0].city).to.equal('Red Hook');
@@ -1038,7 +1043,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
 
             txn.preSave = function () {preSave = true};
             txn.postSave = function (txn) {
-                this.dirtyCount = _.toArray(txn.savedObjects).length
+                dirtyCount = _.toArray(txn.savedObjects).length
             }.bind(this);
             return PersistObjectTemplate.end(txn);
         }).then(function () {
@@ -1047,7 +1052,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             expect(customer.secondaryAddresses[0].city).to.equal('Rhinebeck');
             expect(customer.primaryAddresses[0].city).to.equal('The Big Apple');
             expect(preSave).to.equal(true);
-            expect(this.dirtyCount).to.equal(2);
+            expect(dirtyCount).to.equal(2);
         }).catch(function(e) {
             throw e;
         });
@@ -1069,7 +1074,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             txn = PersistObjectTemplate.begin();
             customer.secondaryAddresses[0].setDirty(txn);
             customer.primaryAddresses[0].setDirty(txn);
-            return knex('address').where({'_id': customer.primaryAddresses[0]._id}).update({'__version__': 999});
+            return knexObj('address').where({'_id': customer.primaryAddresses[0]._id}).update({'__version__': 999});
         }).then(function () {
             return PersistObjectTemplate.end(txn);
         }).catch(function (e) {
@@ -1398,7 +1403,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     });
 
     after('closes the database', function () {
-        return knex.destroy();
+        return knexObj.destroy();
     });
 
 });

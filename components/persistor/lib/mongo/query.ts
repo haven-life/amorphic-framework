@@ -1,6 +1,7 @@
-module.exports = function (PersistObjectTemplate) {
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+export default function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/mongo/query`;
-    var Promise = require('bluebird');
 
     PersistObjectTemplate.getFromPersistWithMongoId = function (template, id, cascade, isTransient, idMap, _logger) {
         return this.getFromPersistWithMongoQuery(template, {_id: PersistObjectTemplate.ObjectID(id.toString())}, cascade, null, null, isTransient, idMap)

@@ -1,20 +1,29 @@
 
-declare function require(name:string);
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+// declare function require(name:string);
+import SupertypeModule from '@haventech/supertype';
+var ObjectTemplate = SupertypeModule.default;
+import * as index  from '../../dist/index.js';
+var PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+// var PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
+// var ObjectTemplate = require('@haventech/supertype').default;
+// var PersistObjectTemplate = require('../../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
 var logLevel = process.env.logLevel || 'debug';
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
 PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
 PersistObjectTemplate.logger.setLevel(logLevel);
+// import knex from 'knex';
+import * as knexModule from 'knex';
+const {knex }= knexModule;
 
 
 import { expect } from 'chai';
 import * as mocha from 'mocha';
 import * as _ from 'underscore';
-import {Employee} from "./Employee";
-import Promise = require('bluebird');
-import {Responsibility} from "./Responsibility";
+import {Employee} from "./Employee.js";
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import {Responsibility} from "./Responsibility.js";
 
 
 var schema = {
@@ -35,11 +44,11 @@ var schema = {
 
 
 describe('Banking from pgsql Example one-to-manychecks typescript', function () {
-    var knex;
+    var knexObj;
 
         before('arrange', function () {
             (function () {
-                knex = require('knex')({
+                knexObj = knex({
                     client: 'pg',
                     debug: true,
                     connection: {
@@ -50,7 +59,7 @@ describe('Banking from pgsql Example one-to-manychecks typescript', function () 
                     }
                 });
 
-                PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
+                PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex,  'pg');
                 PersistObjectTemplate.setSchema(schema);
                 PersistObjectTemplate.performInjections();
 
@@ -62,9 +71,9 @@ describe('Banking from pgsql Example one-to-manychecks typescript', function () 
 
             function cleanDB() {
                 return Promise.all([
-                    knex.schema.dropTableIfExists('index_schema_history'),
-                    knex.schema.dropTableIfExists('employee'),
-                    knex.schema.dropTableIfExists('responsibility')]);
+                    knexObj.schema.dropTableIfExists('index_schema_history'),
+                    knexObj.schema.dropTableIfExists('employee'),
+                    knexObj.schema.dropTableIfExists('responsibility')]);
             }
 
             function createTables() {

@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
-import {Address} from './Address';
+import {Supertype, supertypeClass, property, Persistable} from '../../dist/index.js';
+import {Address} from './Address.js';
 
 @supertypeClass
 export class ReturnedMail extends Persistable(Supertype) {

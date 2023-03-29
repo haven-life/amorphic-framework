@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
-import {Customer} from './Customer';
+import {Supertype, supertypeClass, property, Persistable} from '../../dist/index.js';
+import {Customer} from './Customer.js';
 
 @supertypeClass
 export class ExtendedCustomer extends Customer {

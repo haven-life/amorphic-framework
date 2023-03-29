@@ -2,12 +2,16 @@
  * Banking example shows PersistObjectTemplate
  * with remote object storage using S3RemoteDocClient
  */
-const sinon = require('sinon');
-const S3RemoteDocClient = require('../dist/lib/remote-doc/remote-doc-clients/S3RemoteDocClient').S3RemoteDocClient;
-const expect = require('chai').expect;
-const AssertionError = require('chai').AssertionError;
-const ObjectTemplate = require('@haventech/supertype').default;
-const PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+import sinon from 'sinon';
+import { S3RemoteDocClient } from '../dist/lib/remote-doc/remote-doc-clients/S3RemoteDocClient.js';
+
+import {expect, AssertionError} from 'chai';
+import SupertypeModule from '@haventech/supertype';
+const ObjectTemplate = SupertypeModule.default;
+import * as index from "../dist/index.js";
+const PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+
+import knex from 'knex';
 const logLevel = process.env.logLevel || 'debug';
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
@@ -52,7 +56,7 @@ function clearCollection(template) {
 }
 
 describe('Banking from pgsql Example persist_banking_s3', function () {
-    let knex;
+    let knexObj;
 
     afterEach(function() {
         sinon.restore();
@@ -61,7 +65,7 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
     let noBankingDocumentCustomer;
 
     before(async () => {
-        knex = require('knex')({
+        knexObj = knex({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -76,14 +80,14 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
             persistorRemoteDocEnvironment: 'S3',
             persistorRemoteDocHostURL: 'https://localstack.com'
         });
-        PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex,  'pg');
+        PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex,  'pg');
         PersistObjectTemplate.setSchema(schema);
         PersistObjectTemplate.performInjections(); // Normally done by getTemplates
 
         this.timeout(4000);
 
         const schemaTable = 'index_schema_history';
-        await knex.schema.dropTableIfExists(schemaTable)
+        await knexObj.schema.dropTableIfExists(schemaTable)
         const count = await clearCollection(Customer);
         expect(count).to.equal(0);
 
@@ -239,6 +243,6 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
     });
 
     after('closes the database', function () {
-        return knex.destroy();
+        return knexObj.destroy();
     });
 });

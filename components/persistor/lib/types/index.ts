@@ -1,3 +1,3 @@
-export { PersistorTransaction } from './PersistorTransaction';
-export { RemoteDocConnectionOptions } from './RemoteDocConnectionOptions';
-export { Schema } from './Schema';
+export { PersistorTransaction } from './PersistorTransaction.js';
+export { RemoteDocConnectionOptions } from './RemoteDocConnectionOptions.js';
+export { Schema } from './Schema.js';

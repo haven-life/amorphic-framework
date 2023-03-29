@@ -1,4 +1,4 @@
-const Ajv = require("ajv");
+import Ajv from "ajv";
 const schemas = {
     'persistSchema': {
         'type': 'object',
@@ -70,7 +70,7 @@ const schemas = {
 };
 const ajv = new Ajv({ allErrors: true });
 // cacheing schema compilation so we don't need to compile on every call.
-ajv.addSchema(schemas['persistSchema'], "persistSchema"); 
+ajv.addSchema(schemas['persistSchema'], "persistSchema");
 ajv.addSchema(schemas['fetchSchema'], "fetchSchema");
 ajv.addSchema(schemas['commitSchema'], "commitSchema");
 ajv.addSchema(schemas['fetchSpec'], "fetchSpec");

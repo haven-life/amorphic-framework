@@ -51,9 +51,19 @@
  */
 var nextId = 1;
 var objectTemplate;
-var supertype = require('@haventech/supertype');
+import * as supertype from '@haventech/supertype';
+import api from './api.js';
+import schema from './schema.js';
+import util from './util.js';
+import mongoQuery from './mongo/query.js';
+import mongoUpdate from './mongo/update.js';
+import mongoDB from './mongo/db.js';
+import knexQuery from './knex/query.js';
+import knexUpdate from './knex/update.js';
+import knexDB from './knex/db.js';
+export { Schema } from './types/Schema.js';
 
-module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
+export function persObj(_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();
 
     PersistObjectTemplate.__id__ = nextId++;
@@ -63,42 +73,44 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     PersistObjectTemplate.dirtyObjects = {};
     PersistObjectTemplate.savedObjects = {};
 
-    require('./api.js')(PersistObjectTemplate, baseClassForPersist);
-    require('./schema.js')(PersistObjectTemplate);
-    require('./util.js')(PersistObjectTemplate);
-    require('./mongo/query.js')(PersistObjectTemplate);
-    require('./mongo/update.js')(PersistObjectTemplate);
-    require('./mongo/db.js')(PersistObjectTemplate);
-    require('./knex/query.js')(PersistObjectTemplate);
-    require('./knex/update.js')(PersistObjectTemplate);
-    require('./knex/db.js')(PersistObjectTemplate);
+    api(PersistObjectTemplate, baseClassForPersist);
+    schema(PersistObjectTemplate);
+    util(PersistObjectTemplate);
+    mongoQuery(PersistObjectTemplate);
+    mongoUpdate(PersistObjectTemplate);
+    mongoDB(PersistObjectTemplate);
+    knexQuery(PersistObjectTemplate);
+    knexUpdate(PersistObjectTemplate);
+    knexDB(PersistObjectTemplate);
 
     objectTemplate = PersistObjectTemplate;
 
     return  PersistObjectTemplate;
 }
 
-module.exports.supertypeClass = function (target) {
+export const supertypeClass = function (target) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
     return supertype.supertypeClass(target, objectTemplate)
 };
-module.exports.Supertype = function () {
+export const Supertype = function () {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
     return Reflect.construct( supertype.Supertype, [objectTemplate], this.constructor );
 };
-module.exports.Supertype.prototype = supertype.Supertype.prototype;
-module.exports.property = function (props) {
+Supertype.prototype = supertype.Supertype.prototype;
+
+export const property = function (props) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.property(props, objectTemplate);
+    return supertype.property(props);
 }
 
-var __extends = (this && this.__extends) || (function () {
+// will need to come back here unblocked for now by removing this.
+var __extends = (function () {
     var extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
             function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
@@ -110,7 +122,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 
 
-module.exports.Persistable = function (Base) {
+export const Persistable = function (Base) {
     return (function (_super) {
         __extends(class_1, _super);
         function class_1() {
@@ -121,12 +133,13 @@ module.exports.Persistable = function (Base) {
 }
 
 let ObjectTemplate = supertype.default;
-module.exports.Persistor = {
-    create: function () {return  module.exports(ObjectTemplate, null, ObjectTemplate)}
+export const Persistor = {
+    create: function () {return persObj(ObjectTemplate, null, ObjectTemplate)}
 }
 
-Object.defineProperty(module.exports.Persistable.prototype, 'persistor', {get: function () {
+Object.defineProperty(Persistable.prototype, 'persistor', {get: function () {
     return this.__objectTemplate__
 }});
 
-module.exports.Schema = require('./types/Schema')
+// export Schema
+// export default indexTemplate;

@@ -1,18 +1,20 @@
 /*Need to skip unused variables as object hierarchies are synchronized based on these definitions*/
 /*eslint no-unused-vars: 0*/
 
-var chai = require('chai');
-var expect = require('chai').expect;
+import chai from 'chai';
+import {expect} from 'chai';
 
-var chaiAsPromised = require('chai-as-promised');
+import chaiAsPromised from 'chai-as-promised';
 
 chai.should();
 chai.use(chaiAsPromised);
 
-
-var Promise = require('bluebird');
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import SupertypeModule from '@haventech/supertype';
+import * as index  from '../dist/index.js';
+var ObjectTemplate = SupertypeModule.default;
+var PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
 
 
 var Parent = PersistObjectTemplate.create('Parent', {
@@ -483,12 +485,12 @@ var schema = {
     }
 }
 
-var knexInit = require('knex');
-var knex;
+import knex from 'knex';
+var knexObj;
 var schemaTable = 'index_schema_history';
 describe('type mapping tests for parent/child relations', function () {
     before('arrange', function (done) {
-        knex = knexInit({
+        knexObj = knex({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -498,7 +500,7 @@ describe('type mapping tests for parent/child relations', function () {
             }
         });
 
-        PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
+        PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex, 'pg');
         PersistObjectTemplate.setSchema(schema);
         PersistObjectTemplate.performInjections(); // Normally done by getTemplates
 
@@ -512,15 +514,15 @@ describe('type mapping tests for parent/child relations', function () {
             PersistObjectTemplate.dropKnexTable(Scenario_2_ParentWithMultiChildAttheSameLevel),
             PersistObjectTemplate.dropKnexTable(ParentWithMultiChildAttheSameLevelWithIndexes),
             PersistObjectTemplate.dropKnexTable(parentSynchronize),
-            knex.schema.dropTableIfExists('NewTableWithComments'),
-            knex.schema.dropTableIfExists('NewTableWithComments1'),
-            knex.schema.dropTableIfExists('ExistingTableWithComments'),
-            knex.schema.dropTableIfExists('ExistingTableWithAField'),
-            knex.schema.dropTableIfExists(schemaTable)
+            knexObj.schema.dropTableIfExists('NewTableWithComments'),
+            knexObj.schema.dropTableIfExists('NewTableWithComments1'),
+            knexObj.schema.dropTableIfExists('ExistingTableWithComments'),
+            knexObj.schema.dropTableIfExists('ExistingTableWithAField'),
+            knexObj.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     })
     after('closes the database', function () {
-        return knex.destroy();
+        return knexObj.destroy();
     });
 
     it('Parent type with an associated child will add add the fields from the child tables to the parent table', function (done) {
@@ -531,7 +533,7 @@ describe('type mapping tests for parent/child relations', function () {
 
     it('Both parent and child index definitions are added to the parent table', function () {
         return PersistObjectTemplate.createKnexTable(Parent_Idx).then(function () {
-            return knex.schema.table('Parent_Idx', function (table) {
+            return knexObj.schema.table('Parent_Idx', function (table) {
                 table.dropIndex([], 'idx_parent_idx_id_name');
             }).should.eventually.have.property('command')
         });
@@ -547,7 +549,7 @@ describe('type mapping tests for parent/child relations', function () {
 
     // it('When trying to create child table, system should create the parent table and the corresonding indexes in the object graph must be added to the table', function () {
     //     return PersistObjectTemplate.createKnexTable(ChildToCreate1).then(function () {
-    //         return knex.schema.table('ChildCreatesThisParent1', function (table) {
+    //         return knexObj.schema.table('ChildCreatesThisParent1', function (table) {
     //             table.dropIndex([], 'idx_childcreatesthisparent1_dob');
     //         }).should.eventually.have.property('command')
     //     })
@@ -561,7 +563,7 @@ describe('type mapping tests for parent/child relations', function () {
 
     // it('Multilevel inheritance with indexes defined at different levels', function () {
     //     return PersistObjectTemplate.createKnexTable(ParentMulteLevelIndx1).then(function () {
-    //         return knex.schema.table('ParentMulteLevelIndx1', function (table) {
+    //         return knexObj.schema.table('ParentMulteLevelIndx1', function (table) {
     //             table.dropIndex([], 'idx_parentmultelevelindx1_dob');
     //         }).should.eventually.have.property('command')
     //     })
@@ -625,7 +627,7 @@ describe('type mapping tests for parent/child relations', function () {
         schema.NewTableWithComments = {documentOf: 'pg/NewTableWithComments'};
         PersistObjectTemplate._verifySchema();
         await PersistObjectTemplate.synchronizeKnexTableFromTemplate(NewTableWithComments);
-        const results = await knex('pg_catalog.pg_description')
+        const results = await knexObj('pg_catalog.pg_description')
             .count()
             .where('description', 'like', '%comment on a new table...%')
         expect(results).to.deep.include({ count: '1' });
@@ -694,7 +696,7 @@ describe('type mapping tests for parent/child relations', function () {
         });
         PersistObjectTemplate._verifySchema();
         await PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithComments, null, true);
-        const results = await knex('pg_catalog.pg_description')
+        const results = await knexObj('pg_catalog.pg_description')
             .count()
             .where('description', 'like', '%comment on an existing table%');
 
@@ -721,7 +723,7 @@ describe('type mapping tests for parent/child relations', function () {
         PersistObjectTemplate._verifySchema();
     
         await PersistObjectTemplate.synchronizeKnexTableFromTemplate(ExistingTableWithAField, null, true);
-        const results = await knex('pg_catalog.pg_description')
+        const results = await knexObj('pg_catalog.pg_description')
             .count()
             .where('description', 'like', '%Adding a new field comment%');
         expect(results).to.deep.include({ count: '1' });
@@ -729,8 +731,8 @@ describe('type mapping tests for parent/child relations', function () {
     });
 
     it('Adding a foreign key refrence in children', function () {
-        var ObjectTemplate1 = require('@haventech/supertype').default;
-        var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
+        var ObjectTemplate1 = SupertypeModule.default;
+        var PersistObjectTemplate1 = index.persObj(ObjectTemplate1, null, ObjectTemplate1);
         var BaseTemplate_FK_on_Child = PersistObjectTemplate1.create('BaseTemplate_FK_on_Child', {
             name: {type: String, value: 'Test Parent'}
         });
@@ -760,22 +762,22 @@ describe('type mapping tests for parent/child relations', function () {
         schema.Address_FK_on_Child = {};
         schema.Address_FK_on_Child = {documentOf: 'address_ref_tbl'};
 
-        PersistObjectTemplate1.setDB(knex, PersistObjectTemplate1.DB_Knex);
+        PersistObjectTemplate1.setDB(knexObj, PersistObjectTemplate1.DB_Knex);
         PersistObjectTemplate1.setSchema(schema);
         PersistObjectTemplate1.performInjections();
         PersistObjectTemplate1._verifySchema();
     });
 
     it('getDB without setting database', function () {
-        var ObjectTemplate1 = require('@haventech/supertype').default;
-        var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
+        var ObjectTemplate1 = SupertypeModule.default;
+        var PersistObjectTemplate1 = index.persObj(ObjectTemplate1, null, ObjectTemplate1);
         expect(PersistObjectTemplate1.getDB.bind(this, 'pg')).to.throw('You must do PersistObjectTempate.setDB');
 
     });
 
     it('without schema..', function () {
-        var ObjectTemplate1 = require('@haventech/supertype').default;
-        var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
+        var ObjectTemplate1 =  SupertypeModule.default;
+        var PersistObjectTemplate1 = index.persObj(ObjectTemplate1, null, ObjectTemplate1);
         var emptySchema = PersistObjectTemplate1._verifySchema();
         expect(emptySchema).to.be.an('undefined');
     });

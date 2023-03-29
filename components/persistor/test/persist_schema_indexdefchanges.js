@@ -1,15 +1,15 @@
-var chai = require('chai');
-var expect = require('chai').expect;
+import chai, {expect} from 'chai';
 
-var chaiAsPromised = require('chai-as-promised');
-
+import chaiAsPromised from 'chai-as-promised';
 chai.should();
 chai.use(chaiAsPromised);
 
-var Promise = require('bluebird');
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import SupertypeModule from '@haventech/supertype';
+var ObjectTemplate = SupertypeModule.default;
+import * as index  from '../dist/index.js';
+var PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
 
 var Address = PersistObjectTemplate.create('Address', {
     id: { type: Number },
@@ -205,15 +205,15 @@ var schema = {
         ]
     }
 }
-var knexInit = require('knex');
-var knex;
+import knex from 'knex';
+var knexObj;
 var schemaTable = 'index_schema_history';
 describe('index synchronization checks', function () {
     var checkKeyExistsInSchema;
     var getIndexes;
 
     before('arrange', function (done) {
-        knex = knexInit({
+        knexObj = knex({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -224,7 +224,7 @@ describe('index synchronization checks', function () {
         });
 
         checkKeyExistsInSchema = function(key) {
-            return knex(schemaTable)
+            return knexObj(schemaTable)
                 .select('schema')
                 .orderBy('sequence_id', 'desc')
                 .limit(1)
@@ -236,7 +236,7 @@ describe('index synchronization checks', function () {
         };
 
         getIndexes = function(key) {
-            return knex(schemaTable)
+            return knexObj(schemaTable)
                 .select('schema')
                 .orderBy('sequence_id', 'desc')
                 .limit(1)
@@ -247,14 +247,14 @@ describe('index synchronization checks', function () {
         };
 
         (function () {
-            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
+            PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex, 'pg');
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
         })();
 
         return Promise.all([
-            knex.schema.dropTableIfExists('notificationCheck'),
-            knex.schema.dropTableIfExists('caseChangeCheck'),
+            knexObj.schema.dropTableIfExists('notificationCheck'),
+            knexObj.schema.dropTableIfExists('caseChangeCheck'),
             PersistObjectTemplate.dropKnexTable(Employee),
             //PersistObjectTemplate.dropKnexTable(Manager),
             PersistObjectTemplate.dropKnexTable(BoolTable),
@@ -263,12 +263,12 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.dropKnexTable(IndexSyncTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
-            knex(schemaTable).del(),
-            knex.schema.dropTableIfExists('IndexSyncTable')
+            knexObj(schemaTable).del(),
+            knexObj.schema.dropTableIfExists('IndexSyncTable')
         ]).should.notify(done);
     });
     after('closes the database', function () {
-        return knex.destroy();
+        return knexObj.destroy();
     });
 
 

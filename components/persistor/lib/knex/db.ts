@@ -1,9 +1,11 @@
-import {RemoteDocService} from "../remote-doc/RemoteDocService";
+import {RemoteDocService} from "../remote-doc/RemoteDocService.js";
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import * as _ from 'underscore';
 
-module.exports = function (PersistObjectTemplate) {
+export default function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/db`;
-    var Promise = require('bluebird');
-    var _ = require('underscore');
+    
 
     var processedList = [];
     /**
@@ -297,7 +299,7 @@ module.exports = function (PersistObjectTemplate) {
         }
         var foreignKey = template.__schema__.children[property].id;
         var goodList = [];
-        _.each(obj[property], function(o) {
+        _.each(obj[property], function(o: any) {
             if (o._id)
                 goodList.push(o._id);
         });
@@ -541,7 +543,7 @@ module.exports = function (PersistObjectTemplate) {
             if (!callBack) return;
             if (typeof callBack !== 'function')
                 throw new Error('persistor can only notify the field changes through a callback');
-            var fieldsChanged = _.reduce(_newFields, function(current, field, key) {
+            var fieldsChanged = _.reduce(_newFields, function(current, field: any, key) {
                 return field.type !== Array ? current + ',' + key : current;
             }, '');
 
@@ -673,7 +675,7 @@ module.exports = function (PersistObjectTemplate) {
                 function processValues(template) {
                     var defineProperty = template.defineProperties ? template.defineProperties[prop] : null;
                     if (defineProperty && defineProperty.values)
-                        _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)] = true;});
+                        _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)as any] = true;});
                     if (template.__children__)
                         _.each(template.__children__, processValues);
                 }
@@ -839,7 +841,7 @@ module.exports = function (PersistObjectTemplate) {
         };
 
         var generateChanges = function (localtemplate, _value) {
-            return _.reduce(localtemplate.__children__, function (_curr, o) {
+            return _.reduce(localtemplate.__children__, function (_curr, o: any) {
                 return Promise.resolve()
                     .then(loadTableDef.bind(this, _dbschema, o.__name__))
                     .spread(diffTable)
@@ -848,11 +850,11 @@ module.exports = function (PersistObjectTemplate) {
         };
 
         var getFilteredTarget = function(src, target) {
-            return _.filter(target, function(o, _filterkey) {
+            return _.filter(target, function(o: any, _filterkey) {
                 var currName = _.reduce(o.def.columns, function (name, col) {
                     return name + '_' + col;
                 }, 'idx_' + tableName);
-                return !_.find(src, function(cached) {
+                return !_.find(src, function(cached: any) {
                     var cachedName = _.reduce(cached.def.columns, function (name, col) {
                         return name + '_' + col;
                     }, 'idx_' + tableName);
@@ -865,7 +867,7 @@ module.exports = function (PersistObjectTemplate) {
             var dbChanges =   {add: [], change: [], delete: []};
             _.map(dbChanges, function(_object, key) {
                 _.each(_changes, function(change) {
-                    var uniqChanges = _.uniq(change[key], function(o) {
+                    var uniqChanges = _.uniq(change[key], function(o: any) {
                         return o.name;
                     });
                     var filtered = getFilteredTarget(dbChanges[key], uniqChanges);
@@ -1393,7 +1395,7 @@ module.exports = function (PersistObjectTemplate) {
                 activity: 'commit'
             }
         });
-        var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
+        var knex = (_.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex})as any).connection;
         var dirtyObjects = persistorTransaction.dirtyObjects;
         var touchObjects = persistorTransaction.touchObjects;
         var savedObjects = persistorTransaction.savedObjects;

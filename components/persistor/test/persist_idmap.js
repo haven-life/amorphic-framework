@@ -1,7 +1,8 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
+import {expect} from 'chai';
+import SupertypeModule from '@haventech/supertype';
+const ObjectTemplate = SupertypeModule.default;
+import * as index from "../dist/index.js";
+var PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
 
 var Address = PersistObjectTemplate.create('Address', {});
 var Customer = PersistObjectTemplate.create('Customer', {
@@ -21,7 +22,7 @@ var schema = {
     }
 }
 
-var MongoClient = require('mongodb');
+import MongoClient from 'mongodb';
 var db, client;
 
 function clearCollection(collectionName) {

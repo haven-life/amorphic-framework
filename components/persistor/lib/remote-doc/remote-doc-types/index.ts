@@ -1,1 +1,1 @@
-export { RemoteDocClient } from './RemoteDocClient';
+export { RemoteDocClient } from './RemoteDocClient.js';

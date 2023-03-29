@@ -1,18 +1,20 @@
 /*eslint-disable no-unused-vars*/
 //need to disable this rule as the template definitions for testing are not being used
-var chai = require('chai'),
-    expect = require('chai').expect;
+import chai, {expect} from 'chai';
 
-var chaiAsPromised = require('chai-as-promised');
+import chaiAsPromised from 'chai-as-promised';
 
 chai.should();
 chai.use(chaiAsPromised);
+import bluebirdModule from 'bluebird';
+const {Promise} = bluebirdModule;
+import knex from 'knex';
+import SupertypeModule from '@haventech/supertype';
+const ObjectTemplate = SupertypeModule.default;
+import * as index  from '../dist/index.js';
+var PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
 
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-var Promise = require('bluebird');
-var knexInit = require('knex');
-var knex;
+var knexObj;
 
 var schema = {};
 var schemaTable = 'index_schema_history';
@@ -20,7 +22,7 @@ var schemaTable = 'index_schema_history';
 
 describe('persist parent subset', function () {
     before('arrange', function (done) {
-        knex = knexInit({
+        knexObj = knex({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -30,26 +32,26 @@ describe('persist parent subset', function () {
             }
         });
         (function () {
-            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
+            PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections();
 
         })();
         return Promise.all([
-            knex.schema.dropTableIfExists('employee_parent').then(function () {
-                return knex.schema.dropTableIfExists('employee_parent');
+            knexObj.schema.dropTableIfExists('employee_parent').then(function () {
+                return knexObj.schema.dropTableIfExists('employee_parent');
             }),
-            knex.schema.dropTableIfExists('employee_subset').then(function () {
-                return knex.schema.dropTableIfExists('employee_subset');
+            knexObj.schema.dropTableIfExists('employee_subset').then(function () {
+                return knexObj.schema.dropTableIfExists('employee_subset');
             }),
-            knex.schema.dropTableIfExists('tx_employee_parentchild_subset').then(function () {
-                return knex.schema.dropTableIfExists('tx_employee_parentchild_subset');
+            knexObj.schema.dropTableIfExists('tx_employee_parentchild_subset').then(function () {
+                return knexObj.schema.dropTableIfExists('tx_employee_parentchild_subset');
             }),
-            knex.schema.dropTableIfExists(schemaTable)
+            knexObj.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     });
     after('closes the database', function () {
-        return knex.destroy();
+        return knexObj.destroy();
     });
 
     it('Creating multiple levels objects, only parent object can have the schema entry', function () {
