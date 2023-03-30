@@ -1,8 +1,8 @@
-import { expect} from "chai";
-import SupertypeModule from '@haventech/supertype';
-const ObjectTemplate = SupertypeModule.default;
-import * as index from "../dist/index.js";
-const PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+var expect = require('chai').expect;
+var ObjectTemplate = require('@haventech/supertype').default;
+var PersistObjectTemplate = require('../dist/index').default(ObjectTemplate, null, ObjectTemplate);
+//var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
+
 /* Teacher Student Example */
 
 var Animal = ObjectTemplate.create('Animal', {

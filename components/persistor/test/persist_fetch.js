@@ -1,24 +1,25 @@
-import chai, {expect} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+var chai = require('chai'),
+    expect = require('chai').expect;
+
+var chaiAsPromised = require('chai-as-promised');
 
 chai.should();
 chai.use(chaiAsPromised);
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
-import knex from 'knex';
-var knexObj;
-import SupertypeModule from '@haventech/supertype';
-const ObjectTemplate = SupertypeModule.default;
-import * as index from "../dist/index.js";
+
+var Promise = require('bluebird');
+var knexInit = require('knex');
+var knex;
+
+
 
 var schema = {};
 var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role, AddressType;
-var PersistObjectTemplate;
+var PersistObjectTemplate, ObjectTemplate;
 describe('persist fetch', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
-        knexObj = knex({
+        knex = knexInit({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -29,25 +30,27 @@ describe('persist fetch', function () {
         });
         return Promise.all([
 
-            knexObj.schema.dropTableIfExists('tx_employee')
+            knex.schema.dropTableIfExists('tx_employee')
                 .then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_address')
+                    return knex.schema.dropTableIfExists('tx_address')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_phone')
+                    return knex.schema.dropTableIfExists('tx_phone')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_department')
+                    return knex.schema.dropTableIfExists('tx_department')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_role')
+                    return knex.schema.dropTableIfExists('tx_role')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_address_type')
+                    return knex.schema.dropTableIfExists('tx_address_type')
                 }),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists(schemaTable)]);
     })
     after('closes the database', function () {
-        return knexObj.destroy();
+        return knex.destroy();
     });
     beforeEach('arrange', function () {
-        PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+        ObjectTemplate = require('@haventech/supertype').default;
+        var PersistObjectTemplateModule = require('../dist/index');
+        PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};
         schema.Address = {};
@@ -148,7 +151,7 @@ describe('persist fetch', function () {
         emp.roles.push(role2);
 
         (function () {
-            PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex);
+            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections();
 
@@ -183,19 +186,19 @@ describe('persist fetch', function () {
 
     afterEach('remove tables and after each test', function() {
         return Promise.all([
-            knexObj.schema.dropTableIfExists('tx_employee')
+            knex.schema.dropTableIfExists('tx_employee')
                 .then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_address')
+                    return knex.schema.dropTableIfExists('tx_address')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_phone')
+                    return knex.schema.dropTableIfExists('tx_phone')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_department')
+                    return knex.schema.dropTableIfExists('tx_department')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_role')
+                    return knex.schema.dropTableIfExists('tx_role')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_address_type')
+                    return knex.schema.dropTableIfExists('tx_address_type')
                 }),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('check basic fetch without fetch spec should not return the records', function () {

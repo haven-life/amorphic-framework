@@ -4,13 +4,10 @@
  *
  */
 
-import {expect} from 'chai';
-import SupertypeModule from '@haventech/supertype';
-const ObjectTemplate = SupertypeModule.default;
-import * as index from "../dist/index.js";
-const PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
-import MongoModule from 'mongodb';
-const {MongoClient} = MongoModule;
+var expect = require('chai').expect;
+var ObjectTemplate = require('@haventech/supertype').default;
+var PersistObjectTemplateModule = require('../dist/index');
+var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
 /*
 PersistObjectTemplate.debug = function(m, t) {
@@ -20,8 +17,7 @@ PersistObjectTemplate.debug = function(m, t) {
     }
 }
 */
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
+var Promise = require('bluebird');
 
 var Customer = PersistObjectTemplate.create('Customer', {
     init: function (first, middle, last) {
@@ -236,6 +232,7 @@ var schema = {
     }
 }
 
+var MongoClient = require('mongodb');
 let db, client;
 
 function clearCollection(collectionName) {
@@ -249,17 +246,14 @@ describe('Banking Example JS', function () {
     after('close db connection', function() {
         return client.close();
     });
-    it ('opens the database', async function () {
-        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`,{ useNewUrlParser: true }, function (error, clientParam){
-            if(error) {
-                throw error;
-            }
+    it ('opens the database', function () {
+        return MongoClient.connect(`mongodb://${process.env.mongoHost}:27017/testpersist`).then(function (clientParam){
             client = clientParam;
-            db = client.db('testpersist');
+            db = client.db();
             PersistObjectTemplate.setDB(db);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
-        })
+        }).catch(function(e) {throw e;});
     });
 
     it ('clears the bank', function () {

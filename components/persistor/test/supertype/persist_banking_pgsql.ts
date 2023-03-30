@@ -5,7 +5,7 @@
  */
 
 import {Persistor} from '../../dist/index.js';
-
+console.log('kami is persistoe defined', Persistor)
 var persistor = Persistor.create();
 persistor.debugInfo = 'api;conflict;write;read;data';//'api;io';
 persistor.debugInfo = 'conflict;data';//'api;io';
@@ -13,13 +13,12 @@ persistor.logger.setLevel('debug');
 
 import { expect } from 'chai';
 import * as _ from 'underscore';
-import {Customer} from "./Customer.js";
-import {ExtendedCustomer} from "./ExtendedCustomer.js";
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
-import {Role} from "./Role.js";
-import {Account} from "./Account.js";
-import {Transaction, Xfer} from './Transaction.js';
+import {Customer} from "./Customer";
+import {ExtendedCustomer} from "./ExtendedCustomer";
+import Promise = require('bluebird');
+import {Role} from "./Role";
+import {Account} from "./Account";
+import {Transaction, Xfer} from './Transaction';
 
 var schema = {
     Customer: {

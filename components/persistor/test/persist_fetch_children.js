@@ -1,26 +1,24 @@
-import chai, {expect} from 'chai';
+var chai = require('chai'),
+    expect = require('chai').expect;
 
-import chaiAsPromised from 'chai-as-promised';
+var chaiAsPromised = require('chai-as-promised');
 
 chai.should();
 chai.use(chaiAsPromised);
 
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
-import knex from 'knex';
-var knexObj;
-import SupertypeModule from '@haventech/supertype';
-const ObjectTemplate = SupertypeModule.default;
-import * as index from "../dist/index.js";
-var PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+var Promise = require('bluebird');
+
+var knexInit = require('knex');
+var knex;
+
 var schema = {};
 var schemaTable = 'index_schema_history';
 var Employee, Department, Role, roleId, EmployeeRef;
-// var PersistObjectTemplate, ObjectTemplate;
+var PersistObjectTemplate, ObjectTemplate;
 describe('persistor fetch children', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
-        knexObj = knex({
+        knex = knexInit({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -31,21 +29,23 @@ describe('persistor fetch children', function () {
         });
         return Promise.all([
 
-            knexObj.schema.dropTableIfExists('tx_employee')
+            knex.schema.dropTableIfExists('tx_employee')
             .then(function () {
-                return knexObj.schema.dropTableIfExists('tx_role')
+                return knex.schema.dropTableIfExists('tx_role')
             }).then(function () {
-                return knexObj.schema.dropTableIfExists('tx_department')
+                return knex.schema.dropTableIfExists('tx_department')
             }).then(function () {
-                return knexObj.schema.dropTableIfExists('tx_employee_ref')
+                return knex.schema.dropTableIfExists('tx_employee_ref')
             }),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists(schemaTable)]);
     })
     after('closes the database', function () {
-        return knexObj.destroy();
+        return knex.destroy();
     });
     beforeEach('arrange', function () {
-        PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
+        ObjectTemplate = require('@haventech/supertype').default;
+        var PersistObjectTemplateModule = require('../dist/index');
+        PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};
         schema.EmployeeRef = {};
@@ -127,7 +127,7 @@ describe('persistor fetch children', function () {
         emp.referral = referral;
 
         (function () {
-            PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex);
+            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections();
 
@@ -159,15 +159,15 @@ describe('persistor fetch children', function () {
 
     afterEach('remove tables and after each test', function() {
         return Promise.all([
-            knexObj.schema.dropTableIfExists('tx_employee')
+            knex.schema.dropTableIfExists('tx_employee')
             .then(function () {
-                return knexObj.schema.dropTableIfExists('tx_department')
+                return knex.schema.dropTableIfExists('tx_department')
             }).then(function () {
-                return knexObj.schema.dropTableIfExists('tx_role')
+                return knex.schema.dropTableIfExists('tx_role')
             }).then(function () {
-                return knexObj.schema.dropTableIfExists('tx_employee_ref')
+                return knex.schema.dropTableIfExists('tx_employee_ref')
             }),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('load intermediate objects first and then try to load the parents ', function () {

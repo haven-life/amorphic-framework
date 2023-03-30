@@ -1,8 +1,3 @@
-// export { default } from "./lib/index.js";
-// import indexTemplate from './lib/index.js';
-// export {indexTemplate};
-
+import * as index from './lib/index.js';
+export default index.default;
 export * from './lib/index.js';
-// export default indexTemplate;
-
-// module.exports = require('./lib/index.js')

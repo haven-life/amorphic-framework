@@ -1,7 +1,7 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index.js';
-import {Customer} from './Customer.js';
-import {Account} from './Account.js';
-import {ReturnedMail} from './ReturnedMail.js';
+import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
+import {Customer} from './Customer';
+import {Account} from './Account';
+import {ReturnedMail} from './ReturnedMail';
 import "reflect-metadata";
 
 @supertypeClass

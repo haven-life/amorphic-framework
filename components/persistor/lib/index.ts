@@ -63,7 +63,7 @@ import knexUpdate from './knex/update.js';
 import knexDB from './knex/db.js';
 export { Schema } from './types/Schema.js';
 
-export function persObj(_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
+export default function persist(_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();
 
     PersistObjectTemplate.__id__ = nextId++;
@@ -88,13 +88,13 @@ export function persObj(_ObjectTemplate, _RemoteObjectTemplate, baseClassForPers
     return  PersistObjectTemplate;
 }
 
-export const supertypeClass = function (target) {
+export function supertypeClass(target) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
     return supertype.supertypeClass(target, objectTemplate)
 };
-export const Supertype = function () {
+export function Supertype() {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
@@ -102,7 +102,7 @@ export const Supertype = function () {
 };
 Supertype.prototype = supertype.Supertype.prototype;
 
-export const property = function (props) {
+export function property(props) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
@@ -110,7 +110,7 @@ export const property = function (props) {
 }
 
 // will need to come back here unblocked for now by removing this.
-var __extends = (function () {
+var __extends = (__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
             function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
@@ -122,7 +122,7 @@ var __extends = (function () {
 })();
 
 
-export const Persistable = function (Base) {
+export function Persistable(Base) {
     return (function (_super) {
         __extends(class_1, _super);
         function class_1() {
@@ -134,7 +134,7 @@ export const Persistable = function (Base) {
 
 let ObjectTemplate = supertype.default;
 export const Persistor = {
-    create: function () {return persObj(ObjectTemplate, null, ObjectTemplate)}
+    create: function () {return persist(ObjectTemplate, null, ObjectTemplate)}
 }
 
 Object.defineProperty(Persistable.prototype, 'persistor', {get: function () {

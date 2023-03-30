@@ -1,16 +1,16 @@
-import chai, {expect} from 'chai';
+var chai = require('chai'),
+    expect = require('chai').expect;
 
-import chaiAsPromised from 'chai-as-promised';
+var chaiAsPromised = require('chai-as-promised');
 
 chai.should();
 chai.use(chaiAsPromised);
 
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
-import knex from 'knex';
-var knexObj;
-import SupertypeModule from '@haventech/supertype';
-import * as index  from '../dist/index.js';
+var Promise = require('bluebird');
+
+var knexInit = require('knex');
+var knex;
+
 var schema = {};
 var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role;
@@ -18,7 +18,7 @@ var PersistObjectTemplate, ObjectTemplate;
 
 describe('persist newapi tests', function () {
     before('drop schema table once per test suit', function() {
-        knexObj = knex({
+        knex = knexInit({
             client: 'pg',
             debug: true,
             connection: {
@@ -30,24 +30,25 @@ describe('persist newapi tests', function () {
         });
         return Promise.all([
 
-            knexObj.schema.dropTableIfExists('tx_employee')
+            knex.schema.dropTableIfExists('tx_employee')
                 .then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_address')
+                    return knex.schema.dropTableIfExists('tx_address')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_phone')
+                    return knex.schema.dropTableIfExists('tx_phone')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_department')
+                    return knex.schema.dropTableIfExists('tx_department')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_role')
+                    return knex.schema.dropTableIfExists('tx_role')
                 }),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists(schemaTable)]);
     })
     after('closes the database', function () {
-        return knexObj.destroy();
+        return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = SupertypeModule.default;
-        PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
+        ObjectTemplate = require('@haventech/supertype').default;
+        var PersistObjectTemplateModule = require('../dist/index');
+        PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};
         schema.Address = {};
@@ -128,7 +129,7 @@ describe('persist newapi tests', function () {
         emp.roles.push(role2);
 
         (function () {
-            PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex);
+            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections();
 
@@ -150,7 +151,7 @@ describe('persist newapi tests', function () {
             }
 
             function addConstraint() {
-                return knexObj.raw('ALTER TABLE tx_role ADD CONSTRAINT namechk CHECK (char_length(name) <= 50);')
+                return knex.raw('ALTER TABLE tx_role ADD CONSTRAINT namechk CHECK (char_length(name) <= 50);')
             }
 
             function createRecords() {
@@ -169,17 +170,17 @@ describe('persist newapi tests', function () {
 
     afterEach('remove tables and after each test', function() {
         return Promise.all([
-            knexObj.schema.dropTableIfExists('tx_employee')
+            knex.schema.dropTableIfExists('tx_employee')
                 .then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_address')
+                    return knex.schema.dropTableIfExists('tx_address')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_phone')
+                    return knex.schema.dropTableIfExists('tx_phone')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_department')
+                    return knex.schema.dropTableIfExists('tx_department')
                 }).then(function () {
-                    return knexObj.schema.dropTableIfExists('tx_role')
+                    return knex.schema.dropTableIfExists('tx_role')
                 }),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {
@@ -507,7 +508,7 @@ describe('persist newapi tests', function () {
         }
 
         function createFKs() {
-            return knexObj.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
+            return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
         }
     });
 
@@ -532,7 +533,7 @@ describe('persist newapi tests', function () {
         }
 
         function createFKs() {
-            return knexObj.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
+            return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
         }
     });
 
@@ -553,7 +554,7 @@ describe('persist newapi tests', function () {
         }
 
         function createFKs() {
-            return knexObj.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
+            return knex.raw('ALTER TABLE public.tx_employee ADD CONSTRAINT fk_tx_employee_address FOREIGN KEY (address_id) references public.tx_address("_id") deferrable initially deferred');
         }
     });
 

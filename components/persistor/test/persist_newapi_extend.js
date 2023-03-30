@@ -1,16 +1,16 @@
-import chai, {expect} from 'chai';
+var chai = require('chai'),
+    expect = require('chai').expect;
 
-import chaiAsPromised from 'chai-as-promised';
+var chaiAsPromised = require('chai-as-promised');
 
 chai.should();
 chai.use(chaiAsPromised);
 
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
-import knex from 'knex';
-var knexObj;
-import SupertypeModule from '@haventech/supertype';
-import * as index from "../dist/index.js";
+var Promise = require('bluebird');
+
+var knexInit = require('knex');
+var knex;
+
 var schema = {};
 var schemaTable = 'index_schema_history';
 var Employee, Person, Manager, empId, Address;
@@ -19,7 +19,7 @@ var PersistObjectTemplate, ObjectTemplate;
 describe('persist newapi extend', function () {
     // this.timeout(5000);
     before('drop schema table once per test suit', function() {
-        knexObj = knex({
+        knex = knexInit({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -28,15 +28,17 @@ describe('persist newapi extend', function () {
                 password: process.env.dbPassword,
             }
         });
-        return Promise.all([knexObj.schema.dropTableIfExists('tx_person'),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+        return Promise.all([knex.schema.dropTableIfExists('tx_person'),
+            knex.schema.dropTableIfExists(schemaTable)]);
     })
     after('closes the database', function () {
-        return knexObj.destroy();
+        return knex.destroy();
     });
     beforeEach('arrange', function () {
-        ObjectTemplate = SupertypeModule.default;
-        PersistObjectTemplate = index.persObj(ObjectTemplate, null, ObjectTemplate);
+        ObjectTemplate = require('@haventech/supertype').default;
+        var PersistObjectTemplateModule = require('../dist/index');
+        PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
+
         schema.Person = {};
         schema.Person.table =  'tx_person';
         schema.Person.documentOf =  'tx_person';
@@ -88,7 +90,7 @@ describe('persist newapi extend', function () {
         emp.manager = manager;
 
         (function () {
-            PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex);
+            PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex);
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections();
 
@@ -119,8 +121,8 @@ describe('persist newapi extend', function () {
 
     afterEach('remove tables and after each test', function() {
         return Promise.all([
-            knexObj.schema.dropTableIfExists('tx_person'),
-            knexObj.schema.dropTableIfExists(schemaTable)]);
+            knex.schema.dropTableIfExists('tx_person'),
+            knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {

@@ -1,6 +1,6 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index.js';
-import {Role} from './Role.js';
-import {Address} from './Address.js';
+import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
+import {Role} from './Role';
+import {Address} from './Address';
 
 @supertypeClass
 export class Customer extends Persistable(Supertype) {

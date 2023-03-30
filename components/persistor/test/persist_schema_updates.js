@@ -2,20 +2,18 @@
  * Created by RSagiraji on 10/29/15.
  */
 
-import chai from 'chai';
-import {expect} from 'chai';
+var chai = require('chai');
+var expect = require('chai').expect;
 
-import chaiAsPromised from 'chai-as-promised';
+var chaiAsPromised = require('chai-as-promised');
+var Promise = require('bluebird');
 
 chai.should();
 chai.use(chaiAsPromised);
 
-import bluebirdModule from 'bluebird';
-const {Promise} = bluebirdModule;
-import SupertypeModule from '@haventech/supertype';
-var ObjectTemplate = SupertypeModule.default;
-import * as index  from '../dist/index.js';
-var PersistObjectTemplate  = index.persObj(ObjectTemplate, null, ObjectTemplate);
+var ObjectTemplate = require('@haventech/supertype').default;
+var PersistObjectTemplateModule = require('../dist/index');
+var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
 var Employee = PersistObjectTemplate.create('Employee', {
     id: {type: Number},
@@ -155,13 +153,13 @@ var schema = {
     }
 }
 
-import knex from 'knex';
-var knexObj;
+var knexInit = require('knex');
+var knex;
 var schemaTable = 'index_schema_history';
 
 describe('schema update checks', function () {
     before('arrange', function (done) {
-        knexObj = knex({
+        knex = knexInit({
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
@@ -171,13 +169,13 @@ describe('schema update checks', function () {
             }
         });
 
-        PersistObjectTemplate.setDB(knexObj, PersistObjectTemplate.DB_Knex, 'pg');
+        PersistObjectTemplate.setDB(knex, PersistObjectTemplate.DB_Knex, 'pg');
         PersistObjectTemplate.setSchema(schema);
         PersistObjectTemplate.performInjections(); // Normally done by getTemplates
 
         return Promise.all([
-            knexObj.schema.dropTableIfExists('NewTable'),
-            knexObj.schema.dropTableIfExists('employee'),
+            knex.schema.dropTableIfExists('NewTable'),
+            knex.schema.dropTableIfExists('employee'),
             PersistObjectTemplate.dropKnexTable(Employee),
             PersistObjectTemplate.dropKnexTable(Manager),
             PersistObjectTemplate.dropKnexTable(BoolTable),
@@ -185,24 +183,24 @@ describe('schema update checks', function () {
             PersistObjectTemplate.dropKnexTable(SingleIndexTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
-            knexObj.schema.dropTableIfExists('employee'),
-            knexObj.schema.dropTableIfExists('ChangeFieldTypeTable'),
-            knexObj.schema.dropTableIfExists('DateTable'),
-            knexObj.schema.dropTableIfExists('CreatingTable'),
-            knexObj.schema.dropTableIfExists('CreateNewType'),
-            knexObj.schema.dropTableIfExists('newTableWithoutTableDef'),
-            knexObj.schema.dropTableIfExists('IndexSyncTable').then(function() {
-                knexObj.schema.createTableIfNotExists('IndexSyncTable', function (table) {
+            knex.schema.dropTableIfExists('employee'),
+            knex.schema.dropTableIfExists('ChangeFieldTypeTable'),
+            knex.schema.dropTableIfExists('DateTable'),
+            knex.schema.dropTableIfExists('CreatingTable'),
+            knex.schema.dropTableIfExists('CreateNewType'),
+            knex.schema.dropTableIfExists('newTableWithoutTableDef'),
+            knex.schema.dropTableIfExists('IndexSyncTable').then(function() {
+                knex.schema.createTableIfNotExists('IndexSyncTable', function (table) {
                     table.double('id');
                     table.text('name')
                 })
             }),
-            knexObj.schema.dropTableIfExists(schemaTable)
+            knex.schema.dropTableIfExists(schemaTable)
 
         ]).should.notify(done);
     });
     after('closes the database', function () {
-        return knexObj.destroy();
+        return knex.destroy();
     });
 
 
@@ -214,7 +212,7 @@ describe('schema update checks', function () {
     });
 
     it('change to incompatible type and check for exception', function () {
-        return knexObj.schema.createTableIfNotExists('ChangeFieldTypeTable', function (table) {
+        return knex.schema.createTableIfNotExists('ChangeFieldTypeTable', function (table) {
             table.integer('id');
             table.text('name')
         }).then(function () {
@@ -248,7 +246,7 @@ describe('schema update checks', function () {
 
     it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
         return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
-            return knexObj.schema.table('IndexSyncTable', function (table) {
+            return knex.schema.table('IndexSyncTable', function (table) {
                 table.dropIndex([], 'idx_indexsynctable_name');
             }).should.eventually.have.property('command')
         });
@@ -302,7 +300,7 @@ describe('schema update checks', function () {
 
         PersistObjectTemplate._verifySchema();
         await PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTablePrimIndex);
-        const records = await knexObj(schemaTable).select('schema').orderBy('sequence_id', 'desc').limit(1);
+        const records = await knex(schemaTable).select('schema').orderBy('sequence_id', 'desc').limit(1);
         const result = records[0].schema;
 
         expect(result).contains('NewTablePrimIndex');
@@ -322,7 +320,7 @@ describe('schema update checks', function () {
         schema.newTable.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["id", "name"],"type": "unique"}}]');
         PersistObjectTemplate._verifySchema();
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable, null, true).then(function () {
-            return knexObj(schemaTable)
+            return knex(schemaTable)
                 .select('schema')
                 .orderBy('sequence_id', 'desc')
                 .limit(1)
@@ -343,8 +341,8 @@ describe('schema update checks', function () {
     });
 
     it('create a table with multiple indexes', function () {
-        //don't like to check the result this way.. but I felt that using knexObj in the test cases is equally bad
-        //and the knexObj responses are not clean, will check with Sam and make necessary changes..
+        //don't like to check the result this way.. but I felt that using knex in the test cases is equally bad
+        //and the knex responses are not clean, will check with Sam and make necessary changes..
         return PersistObjectTemplate.createKnexTable(MultipleIndexTable).then(function () {
             return PersistObjectTemplate.checkForKnexTable(MultipleIndexTable).should.eventually.equal(true);
         })

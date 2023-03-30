@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index.js';
-import {Account} from './Account.js';
+import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
+import {Account} from './Account';
 
 @supertypeClass
 export class Transaction  extends Persistable(Supertype) {

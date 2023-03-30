@@ -1,7 +1,7 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index.js';
-import {Role} from './Role.js';
-import {Address} from './Address.js';
-import {Transaction, Debit, Credit, Xfer} from './Transaction.js';
+import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
+import {Role} from './Role';
+import {Address} from './Address';
+import {Transaction, Debit, Credit, Xfer} from './Transaction';
 
 @supertypeClass({toServer: true, toClient: false})
 export class Account extends Persistable(Supertype) {
