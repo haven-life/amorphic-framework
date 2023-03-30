@@ -27,8 +27,7 @@ export class PersistorCtx {
 
     static async checkAndExecuteWithContext(asOfDate: Date, callback: () => any )  {
         if (!asOfDate) {
-            const response = await callback();
-            return Promise.resolve(response);
+            return callback();
         }
         
         const ctxProps = {
@@ -36,8 +35,7 @@ export class PersistorCtx {
             properties: { [this.persistorExnCtxKey]: new ExecutionCtx(asOfDate) },
         };
         return this.asyncLocalStorage.run(ctxProps, async () => {
-            const response = await callback();
-            return Promise.resolve(response);
+            return await callback();
         });
     }
 

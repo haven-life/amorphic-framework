@@ -501,7 +501,6 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             .then(processResults);
 
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -517,7 +516,6 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             .then(processResults);
 
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -531,7 +529,6 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             .then(processResults);
 
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -551,7 +548,6 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             .rightOuterJoin.apply(Account.getKnex(), Transaction.knexChildJoin(Account, 'transaction', 'account', 'fromAccountTransactions'))
             .then(processResults)
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -1030,14 +1026,12 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         sam.amorphic.logger.startContext({name: 'supertype2'});
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
         sam.amorphic.logger.setLevel('error');
-        console.log('setting level to error');
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
         sam.amorphic.logger.setLevel('error;foo:bar6');
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
         sam.amorphic.logger.setLevel('error;foo:bar7');
         sam.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
-        console.log(output);
         var result = '(foo="bar1"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype"}}}request={})(foo="bar2"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype","permFoo":"permBar1"}}}request={})(foo="bar3"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype"}}}request={})(foo="bar4"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype","permFoo":"childFoo"}}}request={})(foo="bar5"data={}context={"data":{"__amorphicContext":{"name":"@haventech/supertype"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})';
 
         expect(output).to.equal(result);

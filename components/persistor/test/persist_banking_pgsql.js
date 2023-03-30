@@ -790,7 +790,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             .then(processResults);
 
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -806,7 +805,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             .then(processResults);
 
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -820,7 +818,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             .then(processResults);
 
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -840,7 +837,6 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             .rightOuterJoin.apply(Account.getKnex(), Transaction.knexChildJoin(Account, 'transaction', 'account', 'fromAccountTransactions'))
             .then(processResults)
         function processResults(res) {
-            //console.log(JSON.stringify(res))
             expect(res[0].amount + res[1].amount).to.equal(150);
             done();
         }
@@ -1380,9 +1376,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
                     });
                     promises.push(customer.persistDelete());
                 });
-                return Promise.all(promises).catch((e) => {
-                    console.log(e);
-                });
+                return Promise.all(promises);
             }
             var txn = PersistObjectTemplate.begin();
             txn.preSave = deleteStuff;

@@ -10,7 +10,7 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.getFromPersistWithKnexId = function (template, id, cascade, isTransient, idMap, isRefresh, logger, enableChangeTracking, projection) {
         return this.getFromPersistWithKnexQuery(null, template, {_id: id}, cascade, null, null, isTransient, idMap, null, null, isRefresh, logger, enableChangeTracking, projection)
-            .then(function(pojos) { return pojos[0] });
+            .then(pojos => pojos[0]);
     }
 
     /**
@@ -51,7 +51,9 @@ module.exports = function (PersistObjectTemplate) {
         var results = [];
 
         var joins = [];
-
+        options = options || {};
+        var key = PersistorCtx.executionCtx?.asOfDate ? '_snapshot_id' : '_id';
+        options.sort = options.sort || { [key]: 1};
         enableChangeTracking = enableChangeTracking || schema.enableChangeTracking;
 
         idMap['queryMapper'] = idMap['queryMapper'] || {};
@@ -62,7 +64,7 @@ module.exports = function (PersistObjectTemplate) {
             keyIds.split(',').forEach(keyId => {
                 if (idMap[keyId]) {
                     const obj = idMap[keyId];
-                    cascade  && resultsPromise.push(checkAllChildrenLoaded.call(this, obj, obj, cascade));
+                    cascade && resultsPromise.push(checkAllChildrenLoaded.call(this, obj, obj, cascade));
                 }
             });
             return Promise.all(resultsPromise);
@@ -94,17 +96,22 @@ module.exports = function (PersistObjectTemplate) {
             }
 
             return this.resolveRecursiveRequests(promiseHandlers, obj);
-        }
-
+        }       
         // Determine one-to-one relationships and add function chains for where
         var props = this.getPropsRecursive(template);
-        var join = 1;
         for (var prop in props) {
             var defineProperty = props[prop];
+            if (cascade && !cascade[prop] && props[prop] && props[prop]['fetch'] && !props[prop]['nojoin']) {
+                cascade[prop] = true; 
+            }
             if (this._persistProperty(props[prop]) && props[prop].type && props[prop].type.__objectTemplate__ && props[prop].type.__table__) {
-                join = this.generateJoins(prop, props[prop], schema, cascade, orgCascade, joins, join, this.dealias(template.__table__));
+                this.generateJoins(prop, props[prop].type, 'parents', schema, cascade, orgCascade, joins, this.dealias(template.__table__));
+            }
+            else if (this._persistProperty(props[prop]) && props[prop].of && props[prop].of.__objectTemplate__ && props[prop].of.__table__) {
+                this.generateJoins(prop, props[prop].of, 'children', schema, cascade, orgCascade, joins, this.dealias(template.__table__));
             }
         }
+
         options = options || {};
         if (skip)
             options.offset = skip;
@@ -113,8 +120,8 @@ module.exports = function (PersistObjectTemplate) {
         // Request to do entire processing to be executed right now or as part of a request queue
         var request = function () {
             return Promise.resolve(true)
-              .then(getPOJOsFromQuery)
-              .then(getTemplatesFromPOJOS.bind(this))
+                .then(getPOJOsFromQuery)
+                .then(getTemplatesFromPOJOS.bind(this))
         }
 
         // If at the top level we want to execute this requests and any that are appended during processing
@@ -126,21 +133,24 @@ module.exports = function (PersistObjectTemplate) {
         } else
             return request.call(this);
 
-        function getPOJOsFromQuery () {
+        function getPOJOsFromQuery() {
             return PersistObjectTemplate.getPOJOsFromKnexQuery(template, joins, queryOrChains, options, idMap['resolver'], logger, projection);
         }
 
         async function getTemplatesFromPOJOS(pojos) {
-            joins.forEach(function(join) {
+            joins.forEach(function (join) {
                 pojos.forEach(function (pojo) {
                     pojo.__alias__ = pojo.__alias__ || [];
                     pojo.__alias__.push(join.template);
+                    pojo.__allpojos__ = pojos;;
                 });
             });
             const sortMap = {};
             let ix = 0;
-            for(const pojo of pojos) {
-
+            for (const pojo of pojos) {
+                if (Object.keys(sortMap).includes(pojo[this.dealias(template.__table__) + '____id'])) {
+                    continue; 
+                }
                 sortMap[pojo[this.dealias(template.__table__) + '____id']] = ix++;
                 const obj = await PersistObjectTemplate.getTemplateFromKnexPOJO(pojo, template, requests, idMap, cascade, isTransient,
                     null, establishedObject, null, this.dealias(template.__table__) + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade);
@@ -164,47 +174,56 @@ module.exports = function (PersistObjectTemplate) {
         }
     }
 
-    PersistObjectTemplate.generateJoins = function(prop, propDef, schema, cascade, orgCascade, joins, joinSeq, childAlias) {
-        try {
-            if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-            throw  new Error(propDef.type.__name__ + '.' + prop + ' is missing a parents schema entry');
-        var foreignKey = schema.parents[prop].id;
-        var cascadeFetch = (cascade && (typeof(cascade[prop]) != 'undefined')) ? cascade[prop] : null;
-        orgCascade = orgCascade || cascade;
+    PersistObjectTemplate.generateJoins = function (prop, propDef, schemaKey, schema, cascade, orgCascade, joins, childAlias, parentProp, visitedTypes) {
+        visitedTypes = visitedTypes || [];
         
-        if (((propDef['fetch'] && !propDef['nojoin']) || cascadeFetch ||
-            (schema.parents[prop].fetch == true  && !schema.parents[prop].nojoin)) &&
-            cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin)) {
-            const alias = this.dealias(propDef.type.__table__) + joinSeq++
-            const childTemplate = joins.find(j => j.alias === childAlias);
+        if (!schema || !schema[schemaKey] || !schema[schemaKey][prop] || !schema[schemaKey][prop].id)
+            throw new Error(propDef.type.__name__ + '.' + prop + ' is missing a parents schema entry');
+        var foreignKey = schema[schemaKey][prop].id;
+        var cascadeFetch = (cascade && (typeof (cascade[prop]) != 'undefined')) ? cascade[prop] : null;
+        orgCascade = orgCascade || cascade;
 
+        if (((propDef.props[prop] &&propDef.props[prop]['fetch'] && !propDef.props[prop]['nojoin']) || cascadeFetch ||
+            (schema[schemaKey][prop].fetch == true && !schema[schemaKey][prop].nojoin)) &&
+            cascadeFetch != false && (!cascadeFetch || !cascadeFetch.nojoin)) {
+            const alias = this.dealias(propDef.__table__) + (joins.length + 1)
+            const id = PersistorCtx.executionCtx?.asOfDate ? '_snapshot_id' : '_id';
             joins.push({
                 prop: prop,
-                template: propDef.type,
-                parentKey: '_id',
-                childKey: foreignKey,
+                template: propDef,
+                parentKey: schemaKey === 'children' ? foreignKey : id,
+                childKey: schemaKey === 'children' ? id : foreignKey,
                 alias: alias,
                 childAlias: childAlias,
-                childTemplateName:  childTemplate?.template?.__name__
+                parentProp: parentProp,
+                schemaFilter: schema[schemaKey][prop] && schema[schemaKey][prop].filter
             });
-            var fields = this.getPropsRecursive(propDef.type);
-            for (var field in fields) {
-                if (this._persistProperty(fields[field]) && fields[field].type && fields[field].type.__objectTemplate__ && fields[field].type.__table__) {
-                    var cascadeFetch = (cascade && cascade[prop].fetch && (typeof (cascade[prop].fetch[field]) != 'undefined')) ?  cascade[prop].fetch[field]: null;
-                    if (cascadeFetch && field !== prop) {
-                        console.log('generateJoins');
-                         joinSeq = this.generateJoins(field, fields[field], propDef.type.__schema__,  { [field]: cascadeFetch }, orgCascade, joins, joinSeq, alias);
-                    }
-                }
+        }
+    }
+
+    PersistObjectTemplate.generateNextLevelJoins = function (prop, propDef, schemaKey, schema, cascade, orgCascade, joins, childAlias, parentProp, visitedTypes) {
+        var fields = this.getPropsRecursive(propDef);
+        const alias = this.dealias(propDef.__table__) + (joins.length + 1)
+        for (var field in fields) {
+            var cascadeFetch = (cascade && cascade[prop] && cascade[prop].fetch && (typeof (cascade[prop].fetch[field]) != 'undefined')) ? cascade[prop].fetch[field] : null;
+            const typeFetch = fields[field] && fields[field].fetch && !fields[field]['nojoin'];
+            if (!cascadeFetch && typeFetch) {
+                cascadeFetch = true; 
+            }
+            var schemaFetch =(propDef.__schema__.children && propDef.__schema__.children[field] && propDef.__schema__.children[field].fetch)|| 
+            (propDef.__schema__.parents && propDef.__schema__.parents[field] && propDef.__schema__.parents[field].fetch)
+            var childType = fields[field].of || fields[field].type;
+            if ((!cascadeFetch && !schemaFetch) || field === prop || visitedTypes.includes(parentProp  + prop + '_' + childType.__name__)) {
+                continue;
+            }
+            visitedTypes.push((parentProp || '') + prop + '_' + childType.__name__);
+            cascadeFetch = cascadeFetch || true;
+            if (this._persistProperty(fields[field]) && fields[field].type && fields[field].type.__objectTemplate__ && fields[field].type.__table__) {
+                this.generateJoins(field, fields[field].type , 'parents', propDef.__schema__, { [field]: {fetch: cascadeFetch} }, orgCascade, joins, alias, prop, visitedTypes);
+            } else if (this._persistProperty(fields[field]) && fields[field].of && fields[field].of.__objectTemplate__ && fields[field].of.__table__) {
+                this.generateJoins(field, fields[field].of, 'children', propDef.__schema__, { [field]: {fetch: cascadeFetch} }, orgCascade, joins, alias, prop, visitedTypes);
             }
         }
-            
-        return joinSeq;
-        }
-        catch(e) {
-            console.log(e);
-        }
-        
     }
 
     PersistObjectTemplate.resolveRecursiveRequests = function (requests, results) {
@@ -258,11 +277,11 @@ module.exports = function (PersistObjectTemplate) {
                 function: functionName,
                 category: 'milestone',
                 data: {
-                    template: template.__name__, id: pojo[prefix + '_id'], 
+                    template: template.__name__, id: pojo[prefix + '_id'],
                     persistedTemplate: pojo[prefix + '_template']
                 }
             });
-
+            
             // For recording back refs
             if (!idMap)
                 throw 'missing idMap on fromDBPOJO';
@@ -311,8 +330,8 @@ module.exports = function (PersistObjectTemplate) {
 
             idMap[obj._id] = obj;
             idMap['queryMapper'] = idMap['queryMapper'] || {};
-            idMap['queryMapper'][`${obj.__template__.__name__}___${JSON.stringify({_id: obj._id})}`] = obj._id;
-            
+            idMap['queryMapper'][`${obj.__template__.__name__}___${JSON.stringify({ _id: obj._id })}`] = obj._id;
+
             if (pojo[prefix + '__version__'])
                 this.withoutChangeTracking(function () {
                     obj.__version__ = pojo[prefix + '__version__'];
@@ -366,6 +385,7 @@ module.exports = function (PersistObjectTemplate) {
                     if ((defineProperty['fetch'] || cascadeFetch || schema.children[prop].fetch) &&
                         cascadeFetch != false && !obj[persistorPropertyName].isFetching)
                     {
+                        updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
                         queueChildrenLoadRequest.call(this, obj, prop, schema, defineProperty, projection, cascade);
                     } else
                         updatePersistorProp(obj, persistorPropertyName, {isFetched: false});
@@ -400,7 +420,7 @@ module.exports = function (PersistObjectTemplate) {
                         if ((defineProperty['fetch'] || cascadeFetch || schema.parents[prop].fetch) &&
                             cascadeFetch != false && !obj[persistorPropertyName].isFetching) {
                             if (foreignId) {
-                                updatePersistorProp(obj, persistorPropertyName, {isFetched: false, id: foreignId})
+                                updatePersistorProp(obj, persistorPropertyName, { isFetched: false, id: foreignId })
                                 queueLoadRequest.call(this, obj, prop, type, schema, defineProperty, cascadeFetch, persistorPropertyName, foreignId, enableChangeTracking, projection, orgCascade);
                             } else {
                                 updatePersistorProp(obj, persistorPropertyName, {isFetched: true, id: foreignId})
@@ -545,34 +565,37 @@ module.exports = function (PersistObjectTemplate) {
                 var closureForeignId = foreignId;
                 var closureType = defineProperty.type;
                 var closureDefineProperty = defineProperty;
-
-                var join = _.find(joins, function (j) {return j.prop == prop});
-
+                 
+                var join = _.filter(joins, function (j) { return j.prop == prop });
+                var currentJoin = null;
+                let allpojos = pojo.__allpojos__ && pojo.__allpojos__.find(currPojo =>  
+                    join.find(j =>  {
+                        currentJoin = j;
+                        return currPojo[j.childAlias + '___' + j.parentKey.replace('_snapshot', '')] && 
+                        currPojo[j.childAlias + '___' + j.parentKey.replace('_snapshot', '')] === obj._id
+                    }));
+            
                 requests.push(generateQueryRequest.bind(this, join, query, closureProp,
                     closurePersistorProp, closureCascade, closureForeignId, closureType, closureDefineProperty));
 
                 function generateQueryRequest() {
-                    var fetcher = join ?
-                        (pojo[join.alias + '____id'] ?
+                        var fetcher =  allpojos && currentJoin &&
+                        allpojos[currentJoin.alias + '____id'] ?
                             this.getTemplateFromKnexPOJO(pojo, closureType, requests, idMap,
                                 closureCascade, isTransient, closureDefineProperty,
-                                obj[closureProp], null, join.alias + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
-                            : Promise.resolve(true)) :
-                        this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
+                                obj[closureProp], null, currentJoin.alias + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade)
+                              : this.getFromPersistWithKnexQuery(requests, closureType, query, closureCascade,
                             null, null, isTransient, idMap, {}, obj[closureProp], isRefresh, logger, enableChangeTracking, projection, orgCascade);
-                    this.withoutChangeTracking(function () {
-                        obj[closurePersistorProp].isFetching = true;
-                    }.bind(this));
-                    return fetcher.then(function() {
+                    
+                        return fetcher.then(function () {
                         this.withoutChangeTracking(function () {
                             obj[closureProp] = idMap[closureForeignId];
                         }.bind(this));
                         if (obj[closurePersistorProp]) {
-                            updatePersistorProp(obj, closurePersistorProp, {isFetched: true, id: closureForeignId});
+                            updatePersistorProp(obj, closurePersistorProp, { isFetched: true, id: closureForeignId });
                         }
                     }.bind(this))
                 }
-
             }
 
             function queueChildrenLoadRequest(obj, prop, schema, defineProperty, projection, fetchSpec) {
@@ -581,7 +604,7 @@ module.exports = function (PersistObjectTemplate) {
                 var foreignFilterValue = schema.children[prop].filter ? schema.children[prop].filter.value : null;
                 // Construct foreign key query
                 var query = {};
-                var options = defineProperty.queryOptions || {sort: PersistorCtx.executionCtx?.asOfDate ? {_snapshot_id:1} : {_id: 1}};
+                var options = defineProperty.queryOptions || {_id: 1};
                 var limit = options.limit || null;
                 query[schema.children[prop].id] = obj._id;
                 if (foreignFilterKey) {
@@ -604,10 +627,46 @@ module.exports = function (PersistObjectTemplate) {
                 this.withoutChangeTracking(function () {
                     obj[persistorPropertyName].isFetching = true;
                 }.bind(this));
+
+                async function generateAllObjects(propJoins) {
+                        if (!propJoins || propJoins.length === 0) {
+                            return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
+                                limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger, null, projection, orgCascade);
+                        }
+                        const aliasIdKey = propJoins[0].alias + '____id';
+                        const visited = [];
+                        const aliasId = propJoins && pojo[aliasIdKey];
+                        let allpojos = pojo.__allpojos__.reduce((final, currPojo) => { 
+                            const result = propJoins.reduce((result, join ) => {
+                                if (join  && !visited.includes(currPojo[join.alias + '___' + join.childKey.replace('_snapshot', '')])  && currPojo[join.alias + '___' + join.parentKey.replace('_snapshot', '')] === obj._id) {
+                                    currPojo.__currentJoin__ = join;
+                                    result.push(currPojo);
+                                    visited.push(currPojo[join.alias + '___' + join.childKey.replace('_snapshot', '')]);
+                                }
+                                return result;
+                            }, [])
+                            final.push(...result);
+                            return final;
+                        }, []);
+                        allpojos.sort((a, b) => a[a.__currentJoin__.alias + '____id'].localeCompare(b[b.__currentJoin__.alias + '____id']));
+                        // allpojos = allpojos.filter((e, i) => allpojos.findIndex(a => a[aliasIdKey] === e[joaliasIdKey]) === i);
+                        const allObjectsPromise = allpojos.map(p => this.getTemplateFromKnexPOJO(p, closureOf, requests, idMap,
+                            closureCascade, isTransient, defineProperty,
+                            obj[closureProp], null, p.__currentJoin__.alias + '___', joins, isRefresh, logger, enableChangeTracking, projection, orgCascade))
+                       
+                        return Promise.all(allObjectsPromise);
+                }
+                
+
                 requests.push(function () {
-                    return this.getFromPersistWithKnexQuery(requests, closureOf, query, closureCascade, null,
-                        limit, isTransient, idMap, options, obj[closureProp], isRefresh, logger, null, projection, orgCascade)
-                        .then(function(objs) {
+                    var propJoins = _.filter(joins, function (j) { 
+                        return !!j && j.prop == prop 
+                    });
+
+                    var fetch = generateAllObjects.call(this, propJoins);
+                            
+                    return fetch
+                        .then(function (objs) {
                             this.withoutChangeTracking(function () {
                                 if (foreignFilterKey) {
                                     obj[closureProp] =  _.filter(objs, function (obj) {

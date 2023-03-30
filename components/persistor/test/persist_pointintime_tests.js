@@ -16,7 +16,7 @@ var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role, dob;
 var PersistObjectTemplate, ObjectTemplate;
 
-describe('persist newapi tests', function () {
+describe('persist pointintime tests', function () {
     before('drop schema table once per test suit', function () {
         knex = knexInit({
             client: 'pg',
@@ -55,6 +55,7 @@ describe('persist newapi tests', function () {
         schema.Address.audit = 'v2';
         schema.Address.tableType = 'reference_data';
         schema.Phone.table = 'tx_phone';
+        schema.Phone.audit = 'v2';
 
         schema.Employee.parents = {
             homeAddress: {
@@ -146,10 +147,7 @@ describe('persist newapi tests', function () {
                 .then(addConstraint.bind(this))
                 .then(addDateFields.bind(this))
                 .then(addTriggers.bind(this))
-                .then(createRecords.bind(this))
-                .catch(e => {
-                    console.log(e);
-                });
+                .then(createRecords.bind(this));
 
 
             function syncTable(template) {
@@ -190,13 +188,13 @@ describe('persist newapi tests', function () {
                     information_schema.tables 
                 WHERE 
                     table_type LIKE ''BASE TABLE'' AND
-                    table_name = ''%1$s_history''
+                    table_name = ''%1$s___history''
                 );
                 ', TG_TABLE_NAME ) into table_exists;
                 
                 
             
-            if POSITION('_history' in TG_TABLE_NAME) = 0  and table_exists then
+            if POSITION('___history' in TG_TABLE_NAME) = 0  and table_exists then
             EXECUTE format('SELECT  string_agg(''"'' || c1.attname || ''"'', '','')
                 FROM    pg_attribute c1
                 where      c1.attrelid = ''%s''::regclass
@@ -205,7 +203,7 @@ describe('persist newapi tests', function () {
             
             
                 execute  format(
-                    '   INSERT INTO %1$s_history ( _id, _snapshot_id, %2$s )
+                    '   INSERT INTO %1$s___history ( _id, _snapshot_id, %2$s )
                         values (md5(random()::text || ''%3$s'' || clock_timestamp()::text)::uuid, $1.*)
                     ', TG_TABLE_NAME, columns, new._id) using new;
                     
@@ -235,12 +233,12 @@ describe('persist newapi tests', function () {
                             information_schema.tables 
                         WHERE 
                             table_type LIKE ''BASE TABLE'' AND
-                            table_name = ''%1$s_history''
+                            table_name = ''%1$s___history''
                         );
                         ', TG_TABLE_NAME ) into table_exists;
                     
 
-                    if POSITION('_history' in TG_TABLE_NAME) = 0 AND table_exists then
+                    if POSITION('___history' in TG_TABLE_NAME) = 0 AND table_exists then
                     EXECUTE format('SELECT  string_agg(''"'' || c1.attname || ''"'', '','')
                         FROM    pg_attribute c1
                         where      c1.attrelid = ''%s''::regclass
@@ -249,7 +247,7 @@ describe('persist newapi tests', function () {
                     
                     
                         execute  format(
-                            '   INSERT INTO %1$s_history ( _id, _snapshot_id, %2$s )
+                            '   INSERT INTO %1$s___history ( _id, _snapshot_id, %2$s )
                                 values (md5(random()::text || ''%3$s'' || clock_timestamp()::text)::uuid, $1.*)
                             ', TG_TABLE_NAME, columns, new._id) using new;
                             
@@ -277,7 +275,7 @@ describe('persist newapi tests', function () {
                                         );
                                         ', r.tablename ) into table_exists;
 
-                                    if POSITION('_history' in r.tablename) = 0 AND table_exists then
+                                    if POSITION('___history' in r.tablename) = 0 AND table_exists then
                                         EXECUTE 'create trigger createddate_inserttrigger before
                                         insert
                                             on
@@ -291,7 +289,7 @@ describe('persist newapi tests', function () {
                                     r RECORD;
                                 BEGIN
                                     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP
-                                    if POSITION('_history' in r.tablename) = 0 then
+                                    if POSITION('___history' in r.tablename) = 0 then
                                         EXECUTE 'create trigger modifieddate_updatetrigger before
                                         update
                                             on

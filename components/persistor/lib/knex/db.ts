@@ -22,16 +22,16 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getPOJOsFromKnexQuery = function (template, joins, queryOrChains, options, map, logger, projection) {
 
         var tableName = this.dealias(template.__table__);
-        var historyTableName, historyTableAlias;
         var historySeqKeys = [];
+        var sortSeqKeys = []
         if (PersistorCtx.executionCtx?.asOfDate && template.__schema__.audit === 'v2') {
-            historyTableName = tableName + '_history';
+            tableName = tableName + '___history';
             if ('_id' in queryOrChains) {
                 queryOrChains["_snapshot_id"] = queryOrChains["_id"]
                 delete queryOrChains["_id"];
             }
-            
             queryOrChains["lastUpdatedTime"] = {$lte: PersistorCtx.executionCtx?.asOfDate};
+            options.sort = {};
         }
 
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
@@ -39,66 +39,75 @@ module.exports = function (PersistObjectTemplate) {
 
         // tack on outer joins.  All our joins are outerjoins and to the right.  There could in theory be
         // foreign keys pointing to rows that no longer exists
-        var select = knex.select(getColumnNames.bind(this, template, historySeqKeys)()).from((historyTableName || tableName) + ' as ' + tableName);
+        var select = knex.select(getColumnNames.bind(this, template, historySeqKeys, options ? options.sort: {})()).from((tableName) + ' as ' + tableName.replace('___history', ''));
+
         joins.forEach(function (join) {
             let joinTable = this.dealias(join.template.__table__);
             let historyJoinTable, additionalCondition;
             if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
-                historyJoinTable = joinTable + '_history';
+                historyJoinTable = joinTable + '___history';
             }
-            const parentKey = join.childAlias + '.' + join.childKey
-            select = select.leftOuterJoin( (historyJoinTable || joinTable) + ' as ' + join.alias, function() {
+            const parentKey = join.childAlias + '.' + join.childKey;
+            let cond;
+            select = select.leftOuterJoin((historyJoinTable || joinTable) + ' as ' + join.alias, function () {
+                cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
                 if (PersistorCtx.executionCtx?.asOfDate && join.template.__schema__.audit === 'v2') {
-                    const cond = this.on(join.alias + '._snapshot_id', '=', parentKey)
-                
                     const dt = PersistorCtx.executionCtx?.asOfDate
                     cond.andOn(knex.client.raw(join.alias + '.' + '"lastUpdatedTime"' + ` <= '${dt.toISOString()}'`))
-                }
-                else 
-                {
-                    const cond = this.on(join.alias + '.' + join.parentKey, '=', parentKey)
+
+                    if (join.schemaFilter) {
+                        cond.andOn(knex.client.raw(`"${join.alias}"."${join.schemaFilter.property}" = '${join.schemaFilter.value}'`));
+                    }
                 }
             })
-
-
         }.bind(this));
-
         // execute callback to chain on filter functions or convert mongo style filters
         if (queryOrChains)
             if (typeof(queryOrChains) == 'function')
                 queryOrChains(select);
             else if (queryOrChains)
-                select = this.convertMongoQueryToChains(tableName, select, queryOrChains);
+                select = this.convertMongoQueryToChains(tableName.replace('___history', '___history'), select, queryOrChains);
 
-        // Convert mongo style sort
-        if (options && options.sort) {
-            var ascending = [];
-            var descending = [];
-            _.each(options.sort, function (value, key) {
-                if (value > 0)
-                    ascending.push(tableName + '.' + key);
-                else
-                    descending.push(tableName + '.' + key);
-            });
-            if (ascending.length)
-                select = ascending.reduce((result, column) => select.orderBy(column), select);
-            if (descending.length)
-                select = descending.reduce((result, column) => select.orderBy(column, 'desc'), select);
-        }
+
         if (historySeqKeys.length) {
             const predicate = historySeqKeys.reduce((predicate,curr)=> (predicate[curr]=1,predicate),{});
             select = this.getDB(this.getDBAlias(template.__table__)).connection.from({ "___historyAlias": select})
             .where(predicate)
         }
 
+        if (sortSeqKeys.length && (options.offset || options.limit)) {
+            select = this.getDB(this.getDBAlias(template.__table__)).connection.from({ "___sortAlias": select})
+            .where((builder) => {
+                sortSeqKeys.forEach((curr)=> {
+                if (options.offset) {
+                    builder
+                  .where(curr, '>', options.offset)
+                }
+                if (options.limit) {
+                    builder
+                  .where(curr, '<=', (options.offset || 0) + options.limit)
+                }
+            })}, );
+          }
+          else {
+            // Convert mongo style sort
+            if (options && options.sort) {
+                var ascending = [];
+                var descending = [];
+                _.each(options.sort, function (value, key) {
+                    if (value > 0)
+                        ascending.push(tableName + '.' + key);
+                    else
+                        descending.push(tableName + '.' + key);
+                });
+                if (ascending.length)
+                    select = ascending.reduce((result, column) => select.orderBy(column), select);
+                if (descending.length)
+                    select = descending.reduce((result, column) => select.orderBy(column, 'desc'), select);
+            }
+          }
 
-        if (options && options.limit) {
-            select = select.limit(options.limit);
-            select = select.offset(0)
-        }
-        if (options && options.offset) {
-            select = select.offset(options.offset);
-        }
+
 
         (logger || this.logger).debug({
             module: moduleName,
@@ -118,7 +127,7 @@ module.exports = function (PersistObjectTemplate) {
             });
         if (map)
             map[selectString] = [];
-        console.log('hitting sql execution');
+        
         return select.then(processResults.bind(this), processError.bind(this));
         function processResults(res) {
             (logger || this.logger).debug({
@@ -154,7 +163,7 @@ module.exports = function (PersistObjectTemplate) {
             throw err;
         }
 
-        function getColumnNames(template, historySeqKeys) {
+        function getColumnNames(template, historySeqKeys, sort) {
             var cols = [];
             var self = this;
 
@@ -164,6 +173,9 @@ module.exports = function (PersistObjectTemplate) {
             asStandard(template, this.dealias(template.__table__));
             _.each(getPropsRecursive(template), function (defineProperties, prop) {
                 as(template, this.dealias(template.__table__), prop, defineProperties)
+            }.bind(this));
+            _.each(sort, function (value, key) {
+                sortSeq(template, this.dealias(template.__table__), key, value, {type: {}, persist: true, enumerable: true})
             }.bind(this));
             _.each(joins, function (join) {
                 asStandard(join.template, join.alias);
@@ -175,7 +187,7 @@ module.exports = function (PersistObjectTemplate) {
             function asStandard(template, prefix) {
                 as(template, prefix, '__version__', {type: {}, persist: true, enumerable: true});
                 as(template, prefix, '_template', {type: {}, persist: true, enumerable: true});
-                
+
                 if (PersistorCtx.executionCtx?.asOfDate && template.__schema__.audit === 'v2') {
                     lastUpdatedSeq(template, prefix, '_snapshot_id', {type: {}, persist: true, enumerable: true});
                 }
@@ -220,6 +232,18 @@ module.exports = function (PersistObjectTemplate) {
                 // historySeqKeys.push(`${prefix}.${propDecorated}`);
                  historySeqKeys.push(`${prefix}___lastUpdatedSeq`);
                 cols.push(knex.client.raw(lastUpdatedSeq));
+            }
+
+            function sortSeq(template, prefix, key, value, defineProperty) {
+                const propDecorated = asChecks(template, prefix, key, defineProperty)
+                if (!propDecorated) {
+                    return;
+                }
+                const idSeq =`dense_rank() over( order by "${prefix}"."${propDecorated}" ${value < 1 ? 'desc' : ''})  "${prefix}____${propDecorated}____seq"`;
+                var knex = self.getDB(self.getDBAlias(template.__table__)).connection(tableName);
+                sortSeqKeys.push( `${prefix}____${propDecorated}____seq`);
+                //  historySeqKeys.push(`"${prefix}"."${propDecorated}"__seq`);
+                cols.push(knex.client.raw(idSeq));
             }
         }
     };
@@ -581,8 +605,8 @@ module.exports = function (PersistObjectTemplate) {
             .then(function (response) {
                 if (template.__schema__.audit === 'v2') {
                     return Promise.resolve()
-                        .then(buildTable.bind(this, aliasedTableName + '_history'))
-                        .then(synchronizeIndexes.bind(this, aliasedTableName + '_history', template));;
+                        .then(buildTable.bind(this, aliasedTableName + '___history'))
+                        .then(synchronizeIndexes.bind(this, aliasedTableName + '___history', template));;
                 }
                 else {
                     return response;
@@ -864,7 +888,7 @@ module.exports = function (PersistObjectTemplate) {
                     response = JSON.parse(record[0][schemaField]);
                 }
                 _dbschema = response;
-                const historyPostfix = tableName.match(/_history$/) ? '___History' : '';
+                const historyPostfix = tableName.match(/___history$/) ? '___History' : '';
                 return [response, template.__name__ + historyPostfix];
             })
         };
@@ -1201,7 +1225,7 @@ module.exports = function (PersistObjectTemplate) {
         return knex.schema.createTable(tableName, createColumns.bind(this));
 
         function createColumns(table) {
-            if (collection.match(/_history/)) {
+            if (collection.match(/___history/)) {
                 table.string('_id');
                 table.string('_snapshot_id');
                 table.primary(['_id'])
@@ -1211,7 +1235,7 @@ module.exports = function (PersistObjectTemplate) {
             }
             table.string('_template');
             table.biginteger('__version__');
-            
+
             var columnMap = {};
 
             recursiveColumnMap.call(this, template);
@@ -1413,12 +1437,12 @@ module.exports = function (PersistObjectTemplate) {
         function processNonArrayProp(prop, value) {
             var params = [];
             if (value instanceof Date || typeof(value) == 'string' || typeof(value) == 'number') {
-                params[0] = alias + '.' + prop;
+                params[0] = alias.replace('___history', '') + '.' + prop;
                 params[1] = '=';
                 params[2] = value;
             } else
                 for (var subProp in value) {
-                    params[0] = alias + '.' + prop;
+                    params[0] = alias.replace('___history', '') + '.' + prop;
                     params[2] = value[subProp];
                     if (subProp.toLowerCase() == '$eq')
                         params[1] = '=';
