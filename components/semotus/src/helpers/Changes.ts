@@ -1,5 +1,5 @@
-import {RemoteableClass, Semotus} from './Types';
-import * as Sessions from './Sessions';
+import {RemoteableClass, Semotus} from './Types.js';
+import * as Sessions from './Sessions.js';
 
 /**
  * @TODO: Fill out with array change functions, etc.
