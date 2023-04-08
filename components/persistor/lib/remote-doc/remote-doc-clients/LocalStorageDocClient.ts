@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { RemoteDocClient } from '../remote-doc-types/index';
+import { RemoteDocClient } from '../remote-doc-types/index.js';
 
 /**
  * mock remote object service - where we're writing these objects to the filesystem.

@@ -7,7 +7,8 @@ const S3RemoteDocClient = require('../dist/lib/remote-doc/remote-doc-clients/S3R
 const expect = require('chai').expect;
 const AssertionError = require('chai').AssertionError;
 const ObjectTemplate = require('@haventech/supertype').default;
-const PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplateModule = require('../dist/index');
+var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 const logLevel = process.env.logLevel || 'debug';
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';

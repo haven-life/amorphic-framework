@@ -1,6 +1,7 @@
 var expect = require('chai').expect;
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/index').default(ObjectTemplate, null, ObjectTemplate);
+//var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
 /* Teacher Student Example */
 

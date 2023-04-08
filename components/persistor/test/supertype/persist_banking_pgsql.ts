@@ -5,7 +5,7 @@
  */
 
 import {Persistor} from '../../dist/index.js';
-
+console.log('kami is persistoe defined', Persistor)
 var persistor = Persistor.create();
 persistor.debugInfo = 'api;conflict;write;read;data';//'api;io';
 persistor.debugInfo = 'conflict;data';//'api;io';

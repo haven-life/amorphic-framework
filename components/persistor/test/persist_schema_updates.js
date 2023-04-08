@@ -12,8 +12,8 @@ chai.should();
 chai.use(chaiAsPromised);
 
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
+var PersistObjectTemplateModule = require('../dist/index');
+var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
 var Employee = PersistObjectTemplate.create('Employee', {
     id: {type: Number},

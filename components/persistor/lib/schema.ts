@@ -1,8 +1,5 @@
-module.exports = function (PersistObjectTemplate) {
-
-    var _ = require('underscore');
-
-
+import * as _ from 'underscore';
+export default function (PersistObjectTemplate) {
     PersistObjectTemplate.setSchema = function (schema) {
         this._schema = schema;
     }
@@ -137,7 +134,7 @@ module.exports = function (PersistObjectTemplate) {
 
                 var parentSchema = (parentTemplate && parentTemplate.type && this.__dictionary__[propType.__name__]) ? this.__dictionary__[propType.__name__].__schema__ : null;
                 var isOTM = (parentSchema && parentSchema.children) ?
-                    !!_.find(parentSchema.children, function(child) { return child.id == val.id}) : false;
+                    !!_.find(parentSchema.children, function(child: any) { return child.id == val.id}) : false;
 
                 // Add the entry mindful of avoiding duplicates
                 schema.indexes = schema.indexes || [];

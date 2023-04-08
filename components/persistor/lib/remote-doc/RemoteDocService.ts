@@ -1,6 +1,6 @@
-import { RemoteDocClient } from './remote-doc-types/index';
-import { LocalStorageDocClient } from './remote-doc-clients/LocalStorageDocClient';
-import { S3RemoteDocClient } from './remote-doc-clients/S3RemoteDocClient';
+import { RemoteDocClient } from './remote-doc-types/index.js';
+import { LocalStorageDocClient } from './remote-doc-clients/LocalStorageDocClient.js';
+import { S3RemoteDocClient } from './remote-doc-clients/S3RemoteDocClient.js';
 
 export type UploadDocumentResponse = {
     key: string,

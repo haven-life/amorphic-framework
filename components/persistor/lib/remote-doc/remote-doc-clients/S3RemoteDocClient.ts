@@ -1,9 +1,8 @@
-import { RemoteDocClient } from '../remote-doc-types/index';
-import { S3, AWSError } from 'aws-sdk';
-
+import { RemoteDocClient } from '../remote-doc-types/index.js';
+import AWS from 'aws-sdk';
 export class S3RemoteDocClient implements RemoteDocClient {
 
-    private S3Instance: S3;
+    private S3Instance: AWS.S3;
     private S3Host: string;
 
     constructor(remoteDocHost?: string) {
@@ -13,22 +12,22 @@ export class S3RemoteDocClient implements RemoteDocClient {
     /**
      * establish connection to s3
      *
-     * @returns {Promise<S3>}
+     * @returns {Promise<AWS.S3>}
      */
-    private async getConnection(bucket: string): Promise<S3> {
+    private async getConnection(bucket: string): Promise<AWS.S3> {
 
         if (!this.hasCredentials() || (this.hasCredentials() && !this.isCredentialsValid())) {
 
             const endPoint = `${this.S3Host}${bucket}`;
 
-            let S3Instance = new S3({
+            let S3Instance = new AWS.S3({
                 endpoint: endPoint,
                 region: 'us-east-1',
                 s3BucketEndpoint: true
             });
 
-            return new Promise<S3>((resolve, reject) => {
-                S3Instance.config.getCredentials((err: AWS.AWSError) => {
+            return new Promise<AWS.S3>((resolve, reject) => {
+                S3Instance.config.getCredentials((err: any) => {
                     if (err) {
                         return reject(err);
                     } else {
@@ -43,18 +42,18 @@ export class S3RemoteDocClient implements RemoteDocClient {
     };
 
     /**
-     * placing a document in S3 storage.
+     * placing a document in AWS.S3 storage.
      * handles both `create` and `update` scenarios.
      *
      * @param s3ObjectToBeUploaded - the specific item being uploaded to s3
      * @param {string} key - the unique identifier for this item within its s3 bucket
      * @param {string} bucket - the name of the s3 bucket
      * @param {string} contentType - the mime type of the content being uploaded
-     * @returns {Promise<S3.PutObjectOutput>} - standard aws result object following an s3 upload
+     * @returns {Promise<AWS.AWS.S3.PutObjectOutput>} - standard aws result object following an s3 upload
      */
-    public async uploadDocument(s3ObjectToBeUploaded: S3.Body, key: string, bucket: string, contentType?: string): Promise<S3.PutObjectOutput> {
+    public async uploadDocument(s3ObjectToBeUploaded: AWS.S3.Body, key: string, bucket: string, contentType?: string): Promise<AWS.S3.PutObjectOutput> {
 
-        const bucketParams: S3.PutObjectRequest = {
+        const bucketParams: AWS.S3.PutObjectRequest = {
             Bucket: bucket,
             Key: key,
             Body: s3ObjectToBeUploaded,
@@ -64,7 +63,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
         const s3Conn = await this.getConnection(bucket);
 
         return new Promise((resolve, reject) => {
-            (<AWS.S3>s3Conn).putObject(bucketParams, async (err: AWSError, data: S3.PutObjectOutput) => {
+            (<AWS.S3>s3Conn).putObject(bucketParams, async (err: any, data: AWS.S3.PutObjectOutput) => {
                 if (err) {
                     reject(err.message);
                 } else {
@@ -80,10 +79,10 @@ export class S3RemoteDocClient implements RemoteDocClient {
      *
      * @param {string} key - the unique identifier for this item within its s3 bucket
      * @param {string} bucket - the name of the s3 bucket
-     * @returns {Promise<S3.GetObjectOutput>} - standard aws result object following an s3 download
+     * @returns {Promise<AWS.S3.GetObjectOutput>} - standard aws result object following an s3 download
      */
     public async downloadDocument(key: string, bucket: string): Promise<any> {
-        const bucketParams: S3.GetObjectRequest = {
+        const bucketParams: AWS.S3.GetObjectRequest = {
             Bucket: bucket,
             Key: key
         };
@@ -91,7 +90,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
         const s3Conn = await this.getConnection(bucket);
 
         return new Promise((resolve, reject) => {
-            s3Conn.getObject(bucketParams, (err: Error, data: S3.GetObjectOutput) => {
+            s3Conn.getObject(bucketParams, (err: Error, data: AWS.S3.GetObjectOutput) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -102,9 +101,9 @@ export class S3RemoteDocClient implements RemoteDocClient {
     };
 
     /**
-     * assuming a versioned S3 bucket, deleting a document without supplying a version ID places a delete marker
+     * assuming a versioned AWS.S3 bucket, deleting a document without supplying a version ID places a delete marker
      * on the object at the top of the stack. on subsequent get, the most recently placed object in that key space
-     * will be returned. without permanent deletion (passing in version ID), all docs still exist in S3.
+     * will be returned. without permanent deletion (passing in version ID), all docs still exist in AWS.S3.
      *
      * @param {string} key - the unique identifier for this item within its s3 bucket
      * @param {string} bucket - the name of the s3 bucket
@@ -112,7 +111,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
      * @returns {Promise<any>}
      */
     public async deleteDocument(key: string, bucket: string, versionId?: string) {
-        const params: S3.DeleteObjectRequest = {
+        const params: AWS.S3.DeleteObjectRequest = {
             Bucket: bucket,
             Key: key
         };
@@ -124,7 +123,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
         const s3Conn = await this.getConnection(bucket);
 
         return new Promise<void>((resolve, reject) => {
-            s3Conn.deleteObject(params, (err: Error, data: S3.DeleteObjectOutput) => {
+            s3Conn.deleteObject(params, (err: Error, data: AWS.S3.DeleteObjectOutput) => {
                 if (err) {
                     reject(err.message);
                 } else {

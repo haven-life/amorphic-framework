@@ -12,7 +12,8 @@ chai.use(chaiAsPromised);
 
 var Promise = require('bluebird');
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplateModule = require('../dist/index');
+var PersistObjectTemplate = PersistObjectTemplateModule.default(ObjectTemplate, null, ObjectTemplate);
 
 
 var Parent = PersistObjectTemplate.create('Parent', {
@@ -730,7 +731,9 @@ describe('type mapping tests for parent/child relations', function () {
 
     it('Adding a foreign key refrence in children', function () {
         var ObjectTemplate1 = require('@haventech/supertype').default;
-        var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
+        var PersistObjectTemplateModule = require('../dist/index');
+        var PersistObjectTemplate1 = PersistObjectTemplateModule.default(ObjectTemplate1, null, ObjectTemplate1);
+
         var BaseTemplate_FK_on_Child = PersistObjectTemplate1.create('BaseTemplate_FK_on_Child', {
             name: {type: String, value: 'Test Parent'}
         });
@@ -768,14 +771,15 @@ describe('type mapping tests for parent/child relations', function () {
 
     it('getDB without setting database', function () {
         var ObjectTemplate1 = require('@haventech/supertype').default;
-        var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
+        var PersistObjectTemplate1 = require('../dist/index.js').default(ObjectTemplate1, null, ObjectTemplate1);
         expect(PersistObjectTemplate1.getDB.bind(this, 'pg')).to.throw('You must do PersistObjectTempate.setDB');
 
     });
 
     it('without schema..', function () {
         var ObjectTemplate1 = require('@haventech/supertype').default;
-        var PersistObjectTemplate1 = require('../dist/index.js')(ObjectTemplate1, null, ObjectTemplate1);
+        var PersistObjectTemplateModule = require('../dist/index');
+        var PersistObjectTemplate1 = PersistObjectTemplateModule.default(ObjectTemplate1, null, ObjectTemplate1);
         var emptySchema = PersistObjectTemplate1._verifySchema();
         expect(emptySchema).to.be.an('undefined');
     });

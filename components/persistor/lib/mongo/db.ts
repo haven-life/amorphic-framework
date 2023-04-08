@@ -1,4 +1,4 @@
-module.exports = function (PersistObjectTemplate) {
+export default function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/mongo/db`;
     /* Mongo implementation of save */
     PersistObjectTemplate.savePojoToMongo = function(obj, pojo, updateID, _txn, logger) {
