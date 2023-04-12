@@ -1,3 +1,5 @@
+## 11.0.0 
+* Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of persisot on amorphic so that thes versions are not automatically pulled in. 
 ## 10.0.0
 * Adding a config `enableIsRemoteObjectFeature` as a required config, to allow `isRemoteObject` property to take effect. This is to allow modules to set their `isRemoteObject` flag to `true` and client apps can safely upgrade to these modules without the requirement to also start using remote storage. When clients are ready to take advantage of `isRemoteObject` property, they can simply set the `enableIsRemoteObjectFeature` config to `true` in their respective config file(s). <br>
 **CAUTION:** This is an all or nothing flag. Once `enableIsRemoteObjectFeature` is set to `true` the `isRemoteObject` behavior defined on individual properties will be enabled in all places. 
