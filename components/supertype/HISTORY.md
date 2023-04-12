@@ -1,3 +1,5 @@
+## 7.1.0 
+* Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of supertype on persistor, semotus and amorphic so that thes versions are not automatically pulled in. 
 ## 6.1.0
 * Set session id, if missing on context.
 * Place clientIP in the request object.
