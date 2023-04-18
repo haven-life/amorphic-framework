@@ -1,5 +1,5 @@
-export { Supertype } from './Supertype.js';
-import { ObjectTemplate } from './ObjectTemplate.js';
+export { Supertype } from './Supertype';
+import { ObjectTemplate } from './ObjectTemplate';
 
 import 'reflect-metadata';
 
