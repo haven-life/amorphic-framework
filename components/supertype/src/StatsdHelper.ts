@@ -1,4 +1,4 @@
-import { SupertypeSession } from './index.js';
+import { SupertypeSession } from './index';
 
 // format for hrtime
 // https://nodejs.org/api/process.html#process_process_hrtime_time
