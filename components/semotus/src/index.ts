@@ -2403,7 +2403,7 @@ declare var define;
 	 *
 	 * @returns {unknown} unknown
 	 */
-	RemoteObjectTemplate.cleanPrivateValues = function cleanPrivateValues(prop, logValue, defineProperty) {
+	 RemoteObjectTemplate.cleanPrivateValues = function cleanPrivateValues(prop, logValue, defineProperty) {
 		if (prop.match(/password|ssn|socialsecurity|pin/i) && defineProperty.logChanges != 'false') {
 			return '***';
 		}

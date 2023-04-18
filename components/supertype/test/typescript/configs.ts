@@ -1,9 +1,6 @@
 import {expect} from 'chai';
-var mockfs = require('mock-fs');
-import {Provider} from 'nconf';
-let nconf = require('nconf');
+import * as mockfs from 'mock-fs'
 
-import {ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 import {BuildSupertypeConfig, SupertypeConfig} from "../../dist/index";
 
 describe('SupertypeConfig', function() {

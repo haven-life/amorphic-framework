@@ -3,10 +3,28 @@ import * as mocha from 'mocha';
 import {property, Supertype, supertypeClass} from "../../dist/index";
 
 @supertypeClass
+class SubOne extends Supertype {
+    @property()
+    name: String = '';
+    constructor (name) {
+        super();
+        this.name = name;
+    }
+};
+
+@supertypeClass
+class SubOneExtended extends SubOne {
+    constructor (name) {
+        super(name);
+    }
+};
+
+@supertypeClass
 class Main extends Supertype {
 
     @property()
     name: String = '';
+    
     constructor (name) {
         super();
         this.name = name;
@@ -28,21 +46,7 @@ class Main extends Supertype {
         this.subsB.push(subMany);
     }
 };
-@supertypeClass
-class SubOne extends Supertype {
-    @property()
-    name: String = '';
-    constructor (name) {
-        super();
-        this.name = name;
-    }
-};
-@supertypeClass
-class SubOneExtended extends SubOne {
-    constructor (name) {
-        super(name);
-    }
-};
+
 @supertypeClass
 class SubMany extends Supertype {
     @property()
@@ -54,6 +58,7 @@ class SubMany extends Supertype {
         this.name = name;
     }
 };
+
 @supertypeClass
 class SubManyExtended  extends SubMany {
     constructor (name) {

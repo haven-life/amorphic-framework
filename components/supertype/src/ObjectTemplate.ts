@@ -503,7 +503,7 @@ export class ObjectTemplate {
         return this.__dictionary__;
 
         function constructorName(constructor) {
-            const namedFunction = constructor.toString().match(/function ([^(]*)/);
+            const namedFunction = constructor.toString().match(/class ([^]\w+)/) || constructor.toString().match(/function ([^(]*)/);
             return namedFunction ? namedFunction[1] : null;
         }
 
