@@ -1,5 +1,6 @@
 ## 9.0.0
-* 
+* Changed tsconfig target to be es2020.
+* Using Reflect to handle original extends logic.
 ## 8.0.0 
 * Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of semotus on amorphic, so that semotus's minor or patched versions are not automatically pulled in when bumped.
 ## 7.1.0

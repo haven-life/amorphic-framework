@@ -1,5 +1,9 @@
 ## 12.0.0
-* 
+* Changed tsconfig target to be es2020.
+* Replaced internal schema validation from tv4 to ajv.
+* Updated internal dev libraries.
+* Moved knex to peer dependencies, to be a range from >=0.21.0 <3.0.0.
+
 ## 11.0.0 
 * Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of persistor on amorphic, so that persistor's minor or patched versions are not automatically pulled in when bumped.
 ## 10.0.0
