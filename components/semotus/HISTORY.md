@@ -1,3 +1,5 @@
+## 8.0.0 
+* Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of semotus on amorphic, so that semotus's minor or patched versions are not automatically pulled in when bumped.
 ## 7.1.0
 * package-lock bump to pick up latest supertype version.
 ## 7.0.1
