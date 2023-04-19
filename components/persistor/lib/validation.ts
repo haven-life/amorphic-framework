@@ -1,4 +1,4 @@
-const Ajv = require("ajv");
+import * as Ajv from 'ajv';
 const schemas = {
     'persistSchema': {
         'type': 'object',
