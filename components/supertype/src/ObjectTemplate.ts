@@ -1,6 +1,6 @@
-import * as serializer from './serializer.js';
-import { SupertypeLogger } from './SupertypeLogger.js';
-import { StatsdClientInterface } from './StatsdClientInterface.js';
+import * as serializer from './serializer';
+import { SupertypeLogger } from './SupertypeLogger';
+import { StatsdClientInterface } from './StatsdClientInterface';
 import {Config, ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 export type CreateTypeForName = {
     name?: string;

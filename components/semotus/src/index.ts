@@ -23,16 +23,16 @@
  objects created with it's templates.  The synchronization
  */
 
- import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
- import {property, remote, Supertype, supertypeClass} from './decorators';
- import {Bindable, Persistable, Remoteable} from './setupExtends';
- import * as Sessions from './helpers/Sessions';
- import * as Subscriptions from './helpers/Subscriptions';
- import {delay} from './helpers/Utilities';
- import * as Changes from './helpers/Changes';
- import * as ChangeGroups from './helpers/ChangeGroups';
- import {Request, Response} from 'express';
- import {processCall} from "./helpers/ProcessCall";
+import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
+import {property, remote, Supertype, supertypeClass} from './decorators';
+import {Bindable, Persistable, Remoteable} from './setupExtends';
+import * as Sessions from './helpers/Sessions';
+import * as Subscriptions from './helpers/Subscriptions';
+import {delay} from './helpers/Utilities';
+import * as Changes from './helpers/Changes';
+import * as ChangeGroups from './helpers/ChangeGroups';
+import {Request, Response} from 'express';
+import {processCall} from "./helpers/ProcessCall";
 
 const moduleName = `semotus/src/index`;
 

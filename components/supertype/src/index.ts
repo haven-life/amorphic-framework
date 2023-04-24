@@ -26,11 +26,11 @@ export default ObjectTemplate;
 
 let amorphicStatic = ObjectTemplate.amorphicStatic;
 let SupertypeSession = ObjectTemplate.amorphicStatic;
-export { StatsdClientInterface } from './StatsdClientInterface.js';
-export { StatsdHelper } from './StatsdHelper.js';
+export { StatsdClientInterface } from './StatsdClientInterface';
+export { StatsdHelper } from './StatsdHelper';
 
 export { amorphicStatic, SupertypeSession };
-export { SupertypeLogger } from './SupertypeLogger.js';
-export { SupertypeConfig, BuildSupertypeConfig } from './SupertypeConfig.js';
-export { Supertype } from './Supertype.js';
-export { supertypeClass, property, remote } from './decorators.js';
+export { SupertypeLogger } from './SupertypeLogger';
+export { SupertypeConfig, BuildSupertypeConfig } from './SupertypeConfig';
+export { Supertype } from './Supertype';
+export { supertypeClass, property, remote } from './decorators';
