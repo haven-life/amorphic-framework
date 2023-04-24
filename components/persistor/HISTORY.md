@@ -1,16 +1,16 @@
+## 12.0.1
+* Add back missing Relect entry.
 ## 12.0.0
 * Changed tsconfig target to be es2020.
 * Replaced internal schema validation from tv4 to ajv.
 * Updated internal dev libraries.
 * Moved knex to peer dependencies, to be a range from >=0.21.0 <3.0.0.
-
 ## 11.0.0 
 * Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of persistor on amorphic, so that persistor's minor or patched versions are not automatically pulled in when bumped.
 ## 10.0.0
 * Adding a config `enableIsRemoteObjectFeature` as a required config, to allow `isRemoteObject` property to take effect. This is to allow modules to set their `isRemoteObject` flag to `true` and client apps can safely upgrade to these modules without the requirement to also start using remote storage. When clients are ready to take advantage of `isRemoteObject` property, they can simply set the `enableIsRemoteObjectFeature` config to `true` in their respective config file(s). <br>
 **CAUTION:** This is an all or nothing flag. Once `enableIsRemoteObjectFeature` is set to `true` the `isRemoteObject` behavior defined on individual properties will be enabled in all places. 
 For more information and details of the behavior, please refer to the README.
-
 ## 9.3.0
 * defining schema type in persistor
 ## 9.2.0
