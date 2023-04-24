@@ -23,7 +23,6 @@
     ],
     "allowJs": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "useDefineForClassFields": false
+    "emitDecoratorMetadata": true
   }
 }

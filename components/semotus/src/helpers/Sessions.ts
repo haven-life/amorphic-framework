@@ -1,4 +1,4 @@
-import {SavedSession, Semotus, SendMessage, Session} from './Types.js';
+import {SavedSession, Semotus, SendMessage, Session} from './Types';
 
 const moduleName = `semotus/src/helpers/Sessions`;
 

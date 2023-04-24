@@ -14,8 +14,7 @@
             "../node_modules/@types"
         ],
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "useDefineForClassFields": false
+        "emitDecoratorMetadata": true
     },
     "include": [
         "./unittest.ts",
