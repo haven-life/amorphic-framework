@@ -1,7 +1,9 @@
 ## 13.0.0
-* es2020 upgrade
+* Setting target to be es2020. 
+* Moving knex and pg to be peer depdencies. Product teams should have more flexibility in updating those two libraries.
+* replacing _super.apply calls with Reflect implementations.
 ## 12.2.0
-Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of supertype, persistor, semotus on amorphic. This way minor or patched versions of these components are not automatically pulled in on amorphic.
+* Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of supertype, persistor, semotus on amorphic. This way minor or patched versions of these components are not automatically pulled in on amorphic.
 ## 12.1.1
 * add `externalSchemas` support to `startPersistorMode`.
 ## 12.1.0
