@@ -88,7 +88,7 @@ module.exports.Supertype = function () {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.Supertype.call(this, objectTemplate);
+    return Reflect.construct( supertype.Supertype, [objectTemplate], this.constructor );
 };
 module.exports.Supertype.prototype = supertype.Supertype.prototype;
 module.exports.property = function (props) {

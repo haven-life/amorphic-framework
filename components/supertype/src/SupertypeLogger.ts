@@ -183,12 +183,7 @@ export class SupertypeLogger {
 
     // Create a new logger and copy over it's context
     createChildLogger(context, rootValues?, dataValues?): SupertypeLogger {
-        let child: { [key: string]: any } = {};
-
-        for (let prop in this) {
-            child[prop] = this[prop];
-        }
-
+        let child = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
         child.context = context || {};
 
         for (let proper in this.context) {

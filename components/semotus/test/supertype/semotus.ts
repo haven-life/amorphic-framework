@@ -3,7 +3,6 @@
  * many-to-many relationships
  *
  */
-
 declare function require(name: string);
 
 // RemoteObjectTemplate will be used for server template creation

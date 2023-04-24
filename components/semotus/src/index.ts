@@ -39,7 +39,7 @@ const moduleName = `semotus/src/index`;
 declare var define;
 
 // @TODO: Check if we attach Promise as a keyword in the webpack build
-(function (root, factory) {
+(function (root: any, factory) {
 	'use strict';
 	if (typeof define === 'function' && define.amd) {
 		define(['q', 'underscore', '@haventech/supertype'], factory);
@@ -2403,7 +2403,7 @@ declare var define;
 	 *
 	 * @returns {unknown} unknown
 	 */
-	RemoteObjectTemplate.cleanPrivateValues = function cleanPrivateValues(prop, logValue, defineProperty) {
+	 RemoteObjectTemplate.cleanPrivateValues = function cleanPrivateValues(prop, logValue, defineProperty) {
 		if (prop.match(/password|ssn|socialsecurity|pin/i) && defineProperty.logChanges != 'false') {
 			return '***';
 		}
@@ -2411,20 +2411,19 @@ declare var define;
 		return logValue;
 	};
 
-    RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
-        objectTemplate = objectTemplate || this;
+	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
+		objectTemplate = objectTemplate || this;
 
         this.supertypeClass = supertypeClass.bind(this, objectTemplate, SupertypeModule);
-        this.Supertype = function () {
+		this.Supertype = function () {
             return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
         };
         this.Supertype.prototype = SupertypeModule.Supertype.prototype;
-        this.property = function (props) {
+        this.property =  (props) => {
             return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
         };
         this.remote = remote.bind(null, objectTemplate);
-    };
-
+	};
 
     RemoteObjectTemplate.Persistable = Persistable;
 	RemoteObjectTemplate.Remoteable = Remoteable;

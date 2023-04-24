@@ -5,6 +5,16 @@ import {Address} from './Address';
 @supertypeClass
 export class Customer extends Supertype {
 
+    public addAddress (lines, city, state, zip) {
+        var address = new Address(this);
+        address.lines = lines;
+        address.city = city;
+        address.state = state;
+        address.postalCode = zip;
+        address.customer = this;
+        this.addresses.push(address);
+    }
+
     constructor (first, middle, last) {
         super();
         this.firstName = first;
@@ -53,16 +63,6 @@ export class Customer extends Supertype {
 
     @property({fetch: true, type: Customer})
     secondaryReferrers:  Array<Customer> = [];
-
-    addAddress (lines, city, state, zip) {
-        var address = new Address(this);
-        address.lines = lines;
-        address.city = city;
-        address.state = state;
-        address.postalCode = zip;
-        address.customer = this;
-        this.addresses.push(address);
-    }
 
     @property({type: Address, fetch: true})
     addresses: Array<Address> = [];
