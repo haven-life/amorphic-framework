@@ -6,7 +6,7 @@
 	"types": "dist/index.d.ts",
 	"version": "13.0.0",
 	"dependencies": {
-		"@haventech/persistor": "^12.0.0",
+		"@haventech/persistor": "^12.0.1",
 		"@haventech/semotus": "^9.0.0",
 		"@haventech/supertype": "^8.0.0",
 		"amorphic-bindster": "2.0.*",
