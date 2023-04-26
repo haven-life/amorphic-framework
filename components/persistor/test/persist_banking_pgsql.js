@@ -380,7 +380,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         sandbox.restore();
     });
 
-    it ('opens the database Postgres', function () {
+    it('opens the database Postgres', function () {
         return Promise.resolve()
             .then(function () {
                 knex = require('knex')({
@@ -403,12 +403,20 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
             }).catch(function(e) {throw e;});
     });
     var schemaTable = 'index_schema_history';
-    it ('clears the bank', function () {
+    // public	idx_customer_referred_id	customer	drop index public.idx_customer_referred_id;
+// public	idx_firstlevel_firstlevel_id	FirstLevel	drop index public.idx_firstlevel_firstlevel_id;
+// public	idx_transaction_from_account_id	transaction	drop index public.idx_transaction_from_account_id;
+// public	idx_rm_address_id	rm	drop index public.idx_rm_address_id;
+// public	idx_address_customer_id	address	drop index public.idx_address_customer_id;
+// public	idx_address_account_id	address	drop index public.idx_address_account_id;
+    // var schemaTable = 'pg_indexes';
+    it('clears the bank', function () {
         this.timeout(4000);
-        return knex.schema.dropTableIfExists(schemaTable)
-            .then(function () {
-                return clearCollection(Role);
-            }).then(function (count) {
+        // here it should emptyout pg_indexes table.
+        // return knex.schema.dropViewIfExists('index')
+       
+                return clearCollection(Role)
+                .then(function (count) {
                 expect(count).to.equal(0);
                 return clearCollection(Account)
             }).then(function (count) {
@@ -465,7 +473,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     //     });
     // });
 
-    it ('can create the data', function () {
+    it('can create the data', function () {
         // Setup customers and addresses
         sam = new Customer('Sam', 'M', 'Elsamman');
         karen = new Customer('Karen', 'M', 'Burke');

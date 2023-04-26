@@ -12,7 +12,7 @@ var knexInit = require('knex');
 var knex;
 
 var schema = {};
-var schemaTable = 'index_schema_history';
+// var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role;
 var PersistObjectTemplate, ObjectTemplate;
 
@@ -39,8 +39,8 @@ describe('persist newapi tests', function () {
                     return knex.schema.dropTableIfExists('tx_department')
                 }).then(function () {
                     return knex.schema.dropTableIfExists('tx_role')
-                }),
-            knex.schema.dropTableIfExists(schemaTable)]);
+                })])
+            // knex.schema.dropTableIfExists(schemaTable)]);
     })
     after('closes the database', function () {
         return knex.destroy();
@@ -178,8 +178,8 @@ describe('persist newapi tests', function () {
                     return knex.schema.dropTableIfExists('tx_department')
                 }).then(function () {
                     return knex.schema.dropTableIfExists('tx_role')
-                }),
-            knex.schema.dropTableIfExists(schemaTable)]);
+                })])
+            // knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {

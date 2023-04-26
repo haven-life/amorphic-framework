@@ -485,7 +485,7 @@ var schema = {
 
 var knexInit = require('knex');
 var knex;
-var schemaTable = 'index_schema_history';
+// var schemaTable = 'index_schema_history';
 describe('type mapping tests for parent/child relations', function () {
     before('arrange', function (done) {
         knex = knexInit({
@@ -516,7 +516,7 @@ describe('type mapping tests for parent/child relations', function () {
             knex.schema.dropTableIfExists('NewTableWithComments1'),
             knex.schema.dropTableIfExists('ExistingTableWithComments'),
             knex.schema.dropTableIfExists('ExistingTableWithAField'),
-            knex.schema.dropTableIfExists(schemaTable)
+            // knex.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     })
     after('closes the database', function () {

@@ -12,13 +12,13 @@ var knexInit = require('knex');
 var knex;
 
 var schema = {};
-var schemaTable = 'index_schema_history';
+// var schemaTable = 'index_schema_history';
 var Employee, Person, Manager, empId, Address;
 var PersistObjectTemplate, ObjectTemplate;
 
 describe('persist newapi extend', function () {
     // this.timeout(5000);
-    before('drop schema table once per test suit', function() {
+    before('drop schema table once per test suit', async function() {
         knex = knexInit({
             client: 'pg',
             connection: {
@@ -28,8 +28,8 @@ describe('persist newapi extend', function () {
                 password: process.env.dbPassword,
             }
         });
-        return Promise.all([knex.schema.dropTableIfExists('tx_person'),
-            knex.schema.dropTableIfExists(schemaTable)]);
+        return await knex.schema.dropTableIfExists('tx_person')
+            // knex.schema.dropTableIfExists(schemaTable)]);
     })
     after('closes the database', function () {
         return knex.destroy();
@@ -117,10 +117,9 @@ describe('persist newapi extend', function () {
         }
     });
 
-    afterEach('remove tables and after each test', function() {
-        return Promise.all([
-            knex.schema.dropTableIfExists('tx_person'),
-            knex.schema.dropTableIfExists(schemaTable)]);
+    afterEach('remove tables and after each test',async  function() {
+        return await knex.schema.dropTableIfExists('tx_person')
+            // knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('persistorFetchById without fetch spec should not return the records', function () {

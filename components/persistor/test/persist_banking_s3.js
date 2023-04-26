@@ -82,8 +82,8 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
 
         this.timeout(4000);
 
-        const schemaTable = 'index_schema_history';
-        await knex.schema.dropTableIfExists(schemaTable)
+        // const schemaTable = 'index_schema_history';
+        // await knex.schema.dropTableIfExists(schemaTable)
         const count = await clearCollection(Customer);
         expect(count).to.equal(0);
 

@@ -62,7 +62,6 @@ describe('Banking from pgsql Example one-to-manychecks typescript', function () 
 
             function cleanDB() {
                 return Promise.all([
-                    knex.schema.dropTableIfExists('index_schema_history'),
                     knex.schema.dropTableIfExists('employee'),
                     knex.schema.dropTableIfExists('responsibility')]);
             }

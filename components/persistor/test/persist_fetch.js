@@ -13,7 +13,7 @@ var knex;
 
 
 var schema = {};
-var schemaTable = 'index_schema_history';
+// var schemaTable = 'index_schema_history';
 var Phone, Address, Employee, empId, addressId, phoneId, Role, AddressType;
 var PersistObjectTemplate, ObjectTemplate;
 describe('persist fetch', function () {
@@ -41,8 +41,8 @@ describe('persist fetch', function () {
                     return knex.schema.dropTableIfExists('tx_role')
                 }).then(function () {
                     return knex.schema.dropTableIfExists('tx_address_type')
-                }),
-            knex.schema.dropTableIfExists(schemaTable)]);
+                })]);
+            // knex.schema.dropTableIfExists(schemaTable)
     })
     after('closes the database', function () {
         return knex.destroy();
@@ -196,8 +196,8 @@ describe('persist fetch', function () {
                     return knex.schema.dropTableIfExists('tx_role')
                 }).then(function () {
                     return knex.schema.dropTableIfExists('tx_address_type')
-                }),
-            knex.schema.dropTableIfExists(schemaTable)]);
+                })])
+            // knex.schema.dropTableIfExists(schemaTable)]);
     });
 
     it('check basic fetch without fetch spec should not return the records', function () {

@@ -105,7 +105,7 @@ var ExtendParent = Parent.extend('ExtendParent', {
 
 var schema = {
     Employee: {
-        documentOf: 'pg/employee',
+        documentOf: 'pg/Employee',
         parents: {
             address: {
                 id: 'address_id',
@@ -207,7 +207,7 @@ var schema = {
 }
 var knexInit = require('knex');
 var knex;
-var schemaTable = 'index_schema_history';
+// var schemaTable = 'index_schema_history';
 describe('index synchronization checks', function () {
     var checkKeyExistsInSchema;
     var getIndexes;
@@ -223,27 +223,13 @@ describe('index synchronization checks', function () {
             }
         });
 
-        checkKeyExistsInSchema = function(key) {
-            return knex(schemaTable)
-                .select('schema')
-                .orderBy('sequence_id', 'desc')
-                .limit(1)
-                .then(function (records) {
-                    if (!records[0]) return false;
-                    var pattern = new RegExp(key);
-                    return !!records[0].schema.match(pattern);
-                })
+        checkKeyExistsInSchema = async function(key) {
+            const result = await knex('pg_indexes').select(['indexname as name']).where({ tablename: key });
+            return result.length > 0 ? true : false;
         };
 
         getIndexes = function(key) {
-            return knex(schemaTable)
-                .select('schema')
-                .orderBy('sequence_id', 'desc')
-                .limit(1)
-                .then(function (records) {
-                    if (!records[0]) return [];
-                    return JSON.parse(records[0].schema)[key].indexes;
-                });
+            return knex('pg_indexes').select(['indexname as name']).where({ tablename: key });
         };
 
         (function () {
@@ -263,7 +249,6 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.dropKnexTable(IndexSyncTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
-            knex(schemaTable).del(),
             knex.schema.dropTableIfExists('IndexSyncTable')
         ]).should.notify(done);
     });
@@ -280,7 +265,11 @@ describe('index synchronization checks', function () {
     });
 
     it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
-        return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).should.eventually.have.property('command').that.match(/INSERT/);
+        // we don't return anything now when we call synchronizeKnexTableFromTemplate so checking db if we have index present
+        return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
+           return getIndexes('IndexSyncTable').should.eventually.have.length(1);
+        })
+        
     });
 
     it('calling synchronizeKnexTableFromTemplate without any changes to the schema definitions..', function () {
