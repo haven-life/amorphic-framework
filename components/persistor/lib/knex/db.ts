@@ -35,7 +35,7 @@ module.exports = function (PersistObjectTemplate) {
 
         // execute callback to chain on filter functions or convert mongo style filters
         if (queryOrChains)
-            if (typeof (queryOrChains) == 'function')
+            if (typeof(queryOrChains) == 'function')
                 queryOrChains(select);
             else if (queryOrChains)
                 select = this.convertMongoQueryToChains(tableName, select, queryOrChains);
@@ -54,7 +54,7 @@ module.exports = function (PersistObjectTemplate) {
                 select = ascending.reduce((result, column) => select.orderBy(column), select);
             if (descending.length)
                 select = descending.reduce((result, column) => select.orderBy(column, 'desc'), select);
-        }
+            }
         if (options && options.limit) {
             select = select.limit(options.limit);
             select = select.offset(0)
@@ -69,7 +69,7 @@ module.exports = function (PersistObjectTemplate) {
             category: 'milestone',
             data: {
                 activity: 'pre',
-                template: template.__name__,
+                template: template.__name__, 
                 query: queryOrChains
             }
         });
@@ -90,13 +90,13 @@ module.exports = function (PersistObjectTemplate) {
                 category: 'milestone',
                 data: {
                     activity: 'post',
-                    count: res.length,
-                    template: template.__name__,
+                    count: res.length, 
+                    template: template.__name__, 
                     query: queryOrChains
                 }
             });
             if (map && map[selectString]) {
-                map[selectString].forEach(function (resolve) {
+                map[selectString].forEach(function(resolve) {
                     resolve(res)
                 });
                 delete map[selectString];
@@ -136,9 +136,9 @@ module.exports = function (PersistObjectTemplate) {
             }.bind(this));
             return cols;
             function asStandard(template, prefix) {
-                as(template, prefix, '__version__', { type: {}, persist: true, enumerable: true });
-                as(template, prefix, '_template', { type: {}, persist: true, enumerable: true });
-                as(template, prefix, '_id', { type: {}, persist: true, enumerable: true });
+                as(template, prefix, '__version__', {type: {}, persist: true, enumerable: true});
+                as(template, prefix, '_template', {type: {}, persist: true, enumerable: true});
+                as(template, prefix, '_id', {type: {}, persist: true, enumerable: true});
             }
 
             function as(template, prefix, prop, defineProperty) {
@@ -155,7 +155,7 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 else if (type.isObjectTemplate) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw new Error(type.__name__ + '.' + prop + ' is missing a parents schema entry');
+                        throw  new Error(type.__name__ + '.' + prop + ' is missing a parents schema entry');
                     prop = schema.parents[prop].id;
                 }
                 cols.push(prefix + '.' + prop + ' as ' + (prefix ? prefix + '___' : '') + prop);
@@ -187,7 +187,7 @@ module.exports = function (PersistObjectTemplate) {
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
         // execute callback to chain on filter functions or convert mongo style filters
-        if (typeof (queryOrChains) == 'function')
+        if (typeof(queryOrChains) == 'function')
             queryOrChains(knex);
         else if (queryOrChains)
             (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
@@ -217,10 +217,10 @@ module.exports = function (PersistObjectTemplate) {
      * @param {string} column column to search.
      * @returns {*}
      */
-    PersistObjectTemplate.checkForKnexColumnType = function (template, column) {
+    PersistObjectTemplate.checkForKnexColumnType = function(template, column) {
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection;
-        return knex(tableName).columnInfo(column).then(function (column) {
+        return knex(tableName).columnInfo(column).then(function(column) {
             return column.type;
         });
     };
@@ -265,7 +265,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         // execute callback to chain on filter functions or convert mongo style filters
-        if (typeof (queryOrChains) == 'function')
+        if (typeof(queryOrChains) == 'function')
             queryOrChains(knex);
         else if (queryOrChains)
             (this.convertMongoQueryToChains)(tableName, knex, queryOrChains);
@@ -281,7 +281,7 @@ module.exports = function (PersistObjectTemplate) {
             return PersistObjectTemplate.deleteFromKnexQuery(template, queryOrChains, txn, _logger);
         }
         var deleteQueries = txn ? txn.deleteQueries : this.deleteQueries;
-        var deleteQuery = { name: template.__name__, template: template, queryOrChains: queryOrChains };
+        var deleteQuery = {name: template.__name__, template: template, queryOrChains: queryOrChains};
         deleteQueries[template.__name__] = deleteQuery;
         txn.deleteQueries = deleteQueries;
     };
@@ -297,14 +297,14 @@ module.exports = function (PersistObjectTemplate) {
         }
         var foreignKey = template.__schema__.children[property].id;
         var goodList = [];
-        _.each(obj[property], function (o) {
+        _.each(obj[property], function(o) {
             if (o._id)
                 goodList.push(o._id);
         });
         knex = (goodList.length > 0 ? knex.whereNotIn('_id', goodList) : knex);
         knex = knex.andWhere(foreignKey, obj._id);
         knex = (filterKey ? knex.andWhere(filterKey, filterValue) : knex);
-        //// console.log(knex.toSQL().sql + ' ? = ' + (filterValue || '') + ' ? = ' + obj._id + ' ? = ' + goodList.join(','))
+        //console.log(knex.toSQL().sql + ' ? = ' + (filterValue || '') + ' ? = ' + obj._id + ' ? = ' + goodList.join(','))
         if (txn && txn.knex && txn.queriesToNotify) {
             generateNotifyQueries(template, txn.queriesToNotify, knex.delete().toString());
         }
@@ -316,8 +316,8 @@ module.exports = function (PersistObjectTemplate) {
                     category: 'milestone',
                     data: {
                         activity: 'post',
-                        count: res,
-                        table: tableName,
+                        count: res, 
+                        table: tableName, 
                         id: obj._id
                     }
                 });
@@ -342,11 +342,11 @@ module.exports = function (PersistObjectTemplate) {
         if (txn && txn.knex) {
             knex.transacting(txn.knex);
             if (txn.queriesToNotify) {
-                generateNotifyQueries(template, txn.queriesToNotify, knex.where({ _id: id }).delete().toString());
+                generateNotifyQueries(template, txn.queriesToNotify, knex.where({_id: id}).delete().toString());
             }
-
+            
         }
-        return knex.where({ _id: id }).delete();
+        return knex.where({_id: id}).delete();
     };
 
     /**
@@ -373,11 +373,11 @@ module.exports = function (PersistObjectTemplate) {
             category: 'milestone',
             data: {
                 activity: 'pre',
-                txn: (txn ? txn.id + ' ' : '-#- '),
+                txn: (txn ? txn.id + ' ' : '-#- '), 
                 type: (updateID ? 'updating ' : 'insert '),
-                template: obj.__template__.__name__,
-                id: obj.__id__,
-                _id: obj._id,
+                template: obj.__template__.__name__, 
+                id: obj.__id__, 
+                _id: obj._id, 
                 __version__: pojo.__version__
             }
         });
@@ -387,8 +387,8 @@ module.exports = function (PersistObjectTemplate) {
         var sqlToRun;
         if (updateID) {
             sqlToRun = knex.clone()
-                .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
-                .update(pojo).toString();
+            .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
+            .update(pojo).toString();
             return Promise.resolve(knex
                 .where('__version__', '=', origVer).andWhere('_id', '=', updateID)
                 .update(pojo)
@@ -397,7 +397,7 @@ module.exports = function (PersistObjectTemplate) {
                 .catch(revertVersion.bind(this)));
         } else {
             sqlToRun = knex
-                .insert(pojo).toString();
+            .insert(pojo).toString();
             return Promise.resolve(knex
                 .insert(pojo)
                 .then(logSuccessAndTrack.bind(this))
@@ -432,14 +432,14 @@ module.exports = function (PersistObjectTemplate) {
                     category: 'milestone',
                     data: {
                         activity: 'updateConflict',
-                        txn: (txn ? txn.id : '-#-'),
+                        txn: (txn ? txn.id : '-#-'), 
                         id: obj.__id__, __version__: origVer
                     }
                 });
                 obj.__version__ = origVer;
                 if (txn && txn.onUpdateConflict) {
                     txn.onUpdateConflict(obj);
-                    txn.updateConflict = true;
+                    txn.updateConflict =  true;
                     return;
                 } else {
                     throw new Error('Update Conflict');
@@ -466,8 +466,8 @@ module.exports = function (PersistObjectTemplate) {
                 category: 'milestone',
                 data: {
                     activity: 'post',
-                    template: obj.__template__.__name__,
-                    table: obj.__template__.__table__,
+                    template: obj.__template__.__name__, 
+                    table: obj.__template__.__table__, 
                     __version__: obj.__version__
                 }
             });
@@ -495,7 +495,7 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         while (template.__parent__) {
-            template = template.__parent__;
+            template =  template.__parent__;
         }
 
         //can skip the templates that were already processed.
@@ -541,7 +541,7 @@ module.exports = function (PersistObjectTemplate) {
             if (!callBack) return;
             if (typeof callBack !== 'function')
                 throw new Error('persistor can only notify the field changes through a callback');
-            var fieldsChanged = _.reduce(_newFields, function (current, field, key) {
+            var fieldsChanged = _.reduce(_newFields, function(current, field, key) {
                 return field.type !== Array ? current + ',' + key : current;
             }, '');
 
@@ -561,7 +561,7 @@ module.exports = function (PersistObjectTemplate) {
                         table.text(prop);
                 } else if (defineProperty.type.__objectTemplate__) {
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw new Error(defineProperty.type.__name__ + '.' + prop + ' is missing a parents schema entry');
+                        throw   new Error(defineProperty.type.__name__ + '.' + prop + ' is missing a parents schema entry');
                     var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                     table.text(foreignKey);
                 } else if (defineProperty.type === Number) {
@@ -606,7 +606,7 @@ module.exports = function (PersistObjectTemplate) {
                         prop = prop.substr(1);
                         var fkComment = getForeignKeyDescription(props[prop]);
                         var commentField = getDescription(prop, props[prop])
-                        var comment = (commentField === '') ? fkComment : fkComment + ', ' + commentField;
+                        var comment = (commentField === '') ?  fkComment : fkComment + ', ' + commentField;
                         return commentOn(table, columnName, comment);
                     } else if (prop == '_template')
                         return commentOn(table, columnName, getClassNames(prop));
@@ -615,7 +615,7 @@ module.exports = function (PersistObjectTemplate) {
                 }
             }
             function columnNameToProp(columnName) {
-                if (columnName == '_id' || columnName == '__version__' || columnName == '_template')
+                if (columnName  == '_id' || columnName == '__version__' || columnName == '_template')
                     return columnName;
                 if (props[columnName])
                     return columnName;
@@ -648,7 +648,7 @@ module.exports = function (PersistObjectTemplate) {
                     return '';
                 return 'foreign key for ' + template.__table__;
             }
-            function getClassNames(_prop) {
+            function getClassNames (_prop) {
                 var className = '';
                 getClassName(template);
                 return className;
@@ -658,7 +658,7 @@ module.exports = function (PersistObjectTemplate) {
                         _.each(template.__children__, getClassName);
                 }
             }
-            function getDescription(prop, defineProperty) {
+            function getDescription (prop, defineProperty) {
                 if (!defineProperty)
                     return '';
                 var values = {};
@@ -666,14 +666,14 @@ module.exports = function (PersistObjectTemplate) {
                 processValues(template);
                 var comment = defineProperty.comment ? defineProperty.comment + '; ' : '';
                 comment = defineProperty.sensitiveData ? comment + ';;sensitiveData;;' : comment;
-                _.each(values, function (_val, key) { valStr += (valStr.length == 0 ? '' : ', ') + key });
+                _.each(values, function (_val, key) {valStr += (valStr.length == 0 ? '' : ', ') + key});
                 comment = valStr.length > 0 ? comment + 'values: ' + valStr : comment;
                 return comment;
 
                 function processValues(template) {
                     var defineProperty = template.defineProperties ? template.defineProperties[prop] : null;
                     if (defineProperty && defineProperty.values)
-                        _.each(defineProperty.values, function (val, key) { values[(defineProperty.values instanceof Array ? val : key)] = true; });
+                        _.each(defineProperty.values, function (val, key) {values[(defineProperty.values instanceof Array ? val : key)] = true;});
                     if (template.__children__)
                         _.each(template.__children__, processValues);
                 }
@@ -681,7 +681,7 @@ module.exports = function (PersistObjectTemplate) {
             function commentOn(table, column, comment) {
                 if (knex.client.config.client === 'pg' && comment !== '') {
                     return knex.raw('COMMENT ON COLUMN "' + table + '"."' + column + '" IS \'' + comment.replace(/'/g, '\'\'') + '\';')
-                        .then(function () { }, function (e) {
+                        .then(function() {}, function (e) {
                             PersistObjectTemplate.logger.info({
                                 module: moduleName,
                                 function: functionName,
@@ -718,7 +718,7 @@ module.exports = function (PersistObjectTemplate) {
                 var defineProperty = props[prop];
                 if (defineProperty.type.__objectTemplate__)
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
+                        throw   new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
                     else
                         prop = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                 return prop;
@@ -730,7 +730,7 @@ module.exports = function (PersistObjectTemplate) {
             if (this._schema[name.replace('Query', '')]) {
                 return true;
             }
-            var schemEntry = Object.keys(this._schema).find(function (k) {
+            var schemEntry = Object.keys(this._schema).find(function(k) {
                 return this._schema[k].table === table && k != name;
             }.bind(this));
             if (!!schemEntry) {
@@ -761,68 +761,13 @@ module.exports = function (PersistObjectTemplate) {
 
         var _dbschema;
         var _changes = {};
-        // var schemaTable = 'pg_indexes';
-        var schemaTable = 'index_schema_history';
-        var schemaField = 'schema';
-
-
-        // console.log("Schema is here", tableName);
-        // // console.log("Tempalte is here", template)
-        // just getting the last updated schema for table
-        // var loadSchema = function (tableName) {
-
-        //     if (!!_dbschema) {
-        //         //@ts-ignore
-        //         return (_dbschema, tableName);
-        //     }
-
-        //     // return knex.hasTable(schemaTable).then(function () {
-        //     //     return knex(schemaTable).limit(1); // not sure what this is for??
-        //     return knex.schema.hasTable(schemaTable).then(function (exists) {
-        //         if (!exists) {
-        //             return knex.schema.createTable(schemaTable, function (table) {
-        //                 table.increments('sequence_id').primary();
-        //                 table.text(schemaField);
-        //                 table.timestamps();
-        //             })
-        //         }
-        //     }).then(function () {
-        //         return knex(schemaTable)
-        //             .orderBy('sequence_id', 'desc')
-        //             .limit(1);
-        //     }).then(function (record) {
-        //         // // console.log("Coming here record", record)
-        //         var response;
-        //         if (!record[0]) {
-        //             response = {};
-        //         }
-        //         else {
-        //             response = JSON.parse(record[0][schemaField]);
-        //         }
-        //         _dbschema = response;
-        //         return [response, template.__name__];
-        //     })
-        // };
-
-        // // load difference between two schemas
-        // var loadTableDef = function (dbschema, tableName) {
-        //     if (!dbschema[tableName])
-        //         dbschema[tableName] = {};
-        //     // console.log("LoadTableDef returns: ", dbschema, schema, tableName);
-        //     return [dbschema, schema, tableName];
-        // };
-
-        // _changes is actual change in database
         async function diffTable(schema, tableName) {
 
-
+            //Todo: can we optimize anything here??
             var tableIndexObj = await knex('pg_indexes').select(['indexname as name', knex.raw(`case when indexdef LIKE '%UNIQUE%' then 'unique' else 'index' end as type`)]).where({ tablename: tableName });
             var dbTableDef = { indexes: tableIndexObj }
 
-            // console.log("DbtableDef ", dbTableDef, tableName, template.__name__)
-
             var memTableDef = schema[tableName];
-            // console.log("memTableDef ", memTableDef, schema);
             var track = { add: [], change: [], delete: [] };
             _diff(dbTableDef, memTableDef, 'delete', false, function (_dbIdx, memIdx) {
                 return !memIdx;
@@ -856,60 +801,7 @@ module.exports = function (PersistObjectTemplate) {
                 }
                 return diffs;
             }
-
-            // console.log("Changes are here ", _changes)
         };
-
-        // var diffTable = function(dbschema, schema, tableName) {
-        //     // var dbTableDef = dbschema[tableName];
-        //     var dbIndexes = [...tableIndexes];
-        //     var memTableDef = schema[tableName];
-        //     var track = {add: [], change: [], delete: []};
-        //     /**
-        //      *    "indexes": [
-        //     {
-        //         "name": "groupNumber_uniq_idx",
-        //         "def": {
-        //             "columns": ["groupNumber"],
-        //             "type": "unique"
-        //         }
-        //     }
-        //      */
-        //     _diff(memTableDef, dbIndexes, 'delete', false, function (memIdx, _dbIdx) {
-        //         return !memIdx;
-        //     }, _diff(memTableDef, dbIndexes, 'change', false, function (memIdx, dbIdx) {
-        //         return memIdx && dbIdx && !_.isEqual(memIdx, dbIdx);
-        //     }, _diff(memTableDef, dbIndexes, 'add', true, function (_memIdx, dbIdx) {
-        //         return !dbIdx;
-        //     }, track)));
-        //     _changes[tableName] = _changes[tableName] || {};
-
-        //     _.map(_.keys(track), function(key) {
-        //         _changes[tableName][key] = _changes[tableName][key] || [];
-        //         _changes[tableName][key].push.apply(_changes[tableName][key], track[key]);
-        //     });
-
-        //     // master in newSchema and shadow is old shecma
-        //     // function _diff(masterTblSchema, shadowTblSchema, opr, addMissingTable, addPredicate, diffs) {
-
-        //     //     if (!!masterTblSchema && !!masterTblSchema.indexes && masterTblSchema.indexes instanceof Array && !!shadowTblSchema) {
-        //     //         (masterTblSchema.indexes).forEach(function (mstIdx) {
-        //     //             var shdIdx = 
-
-        //     //             if (addPredicate(mstIdx, shdIdx)) {
-        //     //                 diffs[opr] = diffs[opr] || [];
-        //     //                 diffs[opr].push(mstIdx);
-        //     //             }
-        //     //         });
-        //     //     } else if (addMissingTable && !!masterTblSchema && !!masterTblSchema.indexes) {
-        //     //         diffs[opr] = diffs[opr] || [];
-        //     //         diffs[opr].push.apply(diffs[opr], masterTblSchema.indexes);
-        //     //     }
-        //     //     return diffs;
-
-        //     // }
-
-        // };
 
         var generateChanges = function (localtemplate, _value) {
             return _.reduce(localtemplate.__children__, function (_curr, o) {
@@ -919,69 +811,58 @@ module.exports = function (PersistObjectTemplate) {
             }, {});
         };
 
-        var getFilteredTarget = function (src, target, key) {
-            // console.log("getFilteredTarget src", src);
-            // console.log("getFilteredTarget target", target);
-            // idx_firstlevel_firstlevel_id
-            // return target
-            // return _.filter(target, function (o, _filterkey) {
-            //     var currName = _.reduce(o.def.columns, function (name, col) {
-            //         return name + '_' + col;
-            //     }, 'idx_' + tableName);
-            //     return !_.find(src, function (cached) {
-            //         var cachedName = _.reduce(cached.def.columns, function (name, col) {
-            //             return name + '_' + col;
-            //         }, 'idx_' + tableName);
-            //         return (cachedName.toLowerCase() === currName.toLowerCase())
-            //     })
-            // });
-            return filterExistingIndexesAndNonExistingColumns(target, key);
-        };
-
+        /**
+         * this function will add all the Columns to database
+         * @param tableName 
+         */
         async function loadColumnNames(tableName: string) {
             const columns = await knex(tableName).columnInfo();
             tableColumns = columns ? Object.keys(columns) : [];
         }
 
+        /**
+         * this function will all the existing indexes to tableIndexes array
+         * @param tableName name of the table
+         * 
+         */
         async function loadPgIndexes(tableName: string) {
             const indexes = await knex('pg_indexes').select(['indexname as name']).where({ tablename: tableName });
-            // console.log("All indexes ", indexes);
             if (!indexes) {
                 tableIndexes = [];
             }
 
             for (let i = 0; i < indexes.length; i++) {
                 const values: string[] = Object.values(indexes[i]);
-                // // console.log("Keys is here ", keys)
                 tableIndexes.push(...values);
             }
-            // console.log("Coming here ", tableIndexes);
         }
 
         var mergeChanges = function () {
             var dbChanges = { add: [], change: [], delete: [] };
-            // dbChanges is the old db changes
             _.map(dbChanges, function (_object, key) {
                 _.each(_changes, function (change) {
-                    // changes in the tables 
                     var uniqChanges = _.uniq(change[key], function (o) {
                         return o.name;
                     });
-                    var filtered = getFilteredTarget(dbChanges[key], uniqChanges, key);
+                    var filtered = filterExistingIndexesAndNonExistingColumns(uniqChanges, key);
                     dbChanges[key].push.apply(dbChanges[key], filtered);
                 })
             });
-            // console.log("Merge changes", dbChanges);
 
             return dbChanges;
         };
 
+        /**
+         * 
+         * @param items new items indexes which we want to add to database.
+         * @param key key could be add | delete | change
+         * @returns this returns only new indexes will strip out all the exisiting indexes from the result.
+         */
         function filterExistingIndexesAndNonExistingColumns(items, key: string) {
             if (!items || !Array.isArray(items) || key !== 'add') {
                 return items;
             }
 
-            // console.log("Table indexes is here ", tableIndexes, items)
             const filteredItems = items.filter(o => {
                 var currName = _.reduce(o.def.columns, function (name, col) {
                     return name + '_' + col;
@@ -990,8 +871,7 @@ module.exports = function (PersistObjectTemplate) {
             }
             );
 
-            // console.log("Table indexes is here after filter", filteredItems)
-
+            // Todo: Need to see if we need this??
             for (let i = 0; i < filteredItems.length; i++) {
                 const items = filteredItems[i];
                 if (items && items.def && items.def.columns) {
@@ -1005,7 +885,6 @@ module.exports = function (PersistObjectTemplate) {
         }
 
         var applyTableChanges = async function (dbChanges) {
-            // console.log("applyTableChanges", dbChanges);
             function logTableChangesWarningMessage(columns, type, indexName, operation, error) {
                 const logger = PersistObjectTemplate && PersistObjectTemplate.logger;
                 if (logger) {
@@ -1036,18 +915,14 @@ module.exports = function (PersistObjectTemplate) {
              * @param diffs 
              */
             async function syncIndexesForHierarchy(operation, diffs) {
-                // console.log("Coming to sync operations")
                 for (const _key in diffs[operation]) {
                     try {
                         const object = diffs[operation][_key];
                         var type = object.def?.type || object.type;
                         var columns = object.def?.columns;
-                        // console.log("Type is here ", type)
                         if (type !== 'unique' && type !== 'index') {
-                            // console.log("Coming here 12", type)
                             throw new Error('index type can be only "unique" or "index"');
                         }
-
 
                         if (operation === 'add') {
                             try {
@@ -1056,7 +931,6 @@ module.exports = function (PersistObjectTemplate) {
                                 }, 'idx_' + tableName);
 
                                 name = name.toLowerCase();
-                                // console.log(`adding index type ${object.def.columns}  to table ${tableName} and indexname ${name} `)
                                 await knex.schema.table(tableName, async function (table) {
                                     // This table function callback does not necessarily need to be 
                                     // an async callback, but making the callback async/await as a guard.
@@ -1121,39 +995,6 @@ module.exports = function (PersistObjectTemplate) {
             ]);
         };
 
-        var isSchemaChanged = function (object) {
-            return (object.add.length || object.change.length || object.delete.length)
-        };
-
-        // var makeSchemaUpdates = function () {
-        //     var chgFound = _.reduce(_changes, function (curr, change) {
-        //         return curr || !!isSchemaChanged(change);
-        //     }, false);
-
-        //     if (!chgFound) return;
-
-        //     return knex(schemaTable)
-        //         .orderBy('sequence_id', 'desc')
-        //         .limit(1).then(function (record) {
-        //             var response = {}, sequence_id;
-        //             if (!record[0]) {
-        //                 sequence_id = 1;
-        //             }
-        //             else {
-        //                 response = JSON.parse(record[0][schemaField]);
-        //                 sequence_id = ++record[0].sequence_id;
-        //             }
-        //             _.each(_changes, function (_o, chgKey) {
-        //                 response[chgKey] = schema[chgKey];
-        //             });
-
-        //             return knex(schemaTable).insert({
-        //                 sequence_id: sequence_id,
-        //                 schema: JSON.stringify(response)
-        //             });
-        //         })
-        // };
-
         return Promise.resolve()
             .then(diffTable.bind(this, schema, template.__name__))
             .then(generateChanges.bind(this, template))
@@ -1161,7 +1002,6 @@ module.exports = function (PersistObjectTemplate) {
             .then(loadColumnNames(tableName))
             .then(loadPgIndexes(tableName))
             .then(applyTableChanges)
-            // .then(makeSchemaUpdates)
             .catch(function (e) {
                 throw e;
             })
@@ -1171,18 +1011,18 @@ module.exports = function (PersistObjectTemplate) {
 
     function iscompatible(persistortype, pgtype) {
         switch (persistortype) {
-            case 'String':
-            case 'Object':
-            case 'Array':
-                return pgtype.indexOf('text') > -1;
-            case 'Number':
-                return pgtype.indexOf('double precision') > -1;
-            case 'Boolean':
-                return pgtype.indexOf('bool') > -1;
-            case 'Date':
-                return pgtype.indexOf('timestamp') > -1;
-            default:
-                return pgtype.indexOf('text') > -1; // Typed objects have no name
+        case 'String':
+        case 'Object':
+        case 'Array':
+            return pgtype.indexOf('text') > -1;
+        case 'Number':
+            return pgtype.indexOf('double precision') > -1;
+        case 'Boolean':
+            return pgtype.indexOf('bool') > -1;
+        case 'Date':
+            return pgtype.indexOf('timestamp') > -1;
+        default:
+            return pgtype.indexOf('text') > -1; // Typed objects have no name
         }
     }
 
@@ -1200,13 +1040,13 @@ module.exports = function (PersistObjectTemplate) {
 
     function generateNotifyQueries(template, queriesToNotify, query) {
         if (!queriesToNotify[template.__name__]) {
-            queriesToNotify[template.__name__] = { tableType: template.__schema__.tableType, queries: [] }
+            queriesToNotify[template.__name__] = { tableType: template.__schema__.tableType, queries: []}
         }
 
         queriesToNotify[template.__name__].queries.push(query);
     }
 
-    PersistObjectTemplate.persistTouchKnex = function (obj, txn, logger) {
+    PersistObjectTemplate.persistTouchKnex = function(obj, txn, logger) {
         const functionName = 'persistTouchKnex';
         (logger || this.logger).debug({
             module: moduleName,
@@ -1214,7 +1054,7 @@ module.exports = function (PersistObjectTemplate) {
             category: 'milestone',
             data: {
                 activity: 'pre',
-                template: obj.__template__.__name__,
+                template: obj.__template__.__name__, 
                 table: obj.__template__.__table__
             }
         });
@@ -1234,7 +1074,7 @@ module.exports = function (PersistObjectTemplate) {
                     category: 'milestone',
                     data: {
                         activity: 'post',
-                        template: obj.__template__.__name__,
+                        template: obj.__template__.__name__, 
                         table: obj.__template__.__table__
                     }
                 });
@@ -1258,7 +1098,7 @@ module.exports = function (PersistObjectTemplate) {
         collection = collection || template.__table__;
         (function () {
             while (template.__parent__) {
-                template = template.__parent__;
+                template =  template.__parent__;
             }
         })();
 
@@ -1285,7 +1125,7 @@ module.exports = function (PersistObjectTemplate) {
                                 table.text(prop);
                         } else if (defineProperty.type && defineProperty.type.__objectTemplate__) {
                             if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                                throw new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
+                                throw   new Error(template.__name__ + '.' + prop + ' is missing a parents schema entry');
                             var foreignKey = (schema.parents && schema.parents[prop]) ? schema.parents[prop].id : prop;
                             table.text(foreignKey);
                         } else if (defineProperty.type === Number) {
@@ -1305,7 +1145,7 @@ module.exports = function (PersistObjectTemplate) {
                 if (childTemplate) {
                     mapTableAndIndexes.call(this, table, childTemplate.defineProperties, childTemplate.__schema__);
                     childTemplate = childTemplate.__children__;
-                    childTemplate.forEach(function (o) {
+                    childTemplate.forEach(function(o) {
                         recursiveColumnMap.call(this, o);
                     }.bind(this));
                 }
@@ -1319,7 +1159,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} template super type
      * @returns {string} raw insert sql
      */
-    PersistObjectTemplate.getInsertScript = function (obj) {
+     PersistObjectTemplate.getInsertScript = function (obj) {
         var template = obj.__template__;
         var tableName = this.dealias(template.__table__);
         var knex = this.getDB(this.getDBAlias(template.__table__)).connection(tableName);
@@ -1470,7 +1310,7 @@ module.exports = function (PersistObjectTemplate) {
 
         function processNonArrayProp(prop, value) {
             var params = [];
-            if (value instanceof Date || typeof (value) == 'string' || typeof (value) == 'number') {
+            if (value instanceof Date || typeof(value) == 'string' || typeof(value) == 'number') {
                 params[0] = alias + '.' + prop;
                 params[1] = '=';
                 params[2] = value;
@@ -1533,7 +1373,7 @@ module.exports = function (PersistObjectTemplate) {
                 activity: 'commit'
             }
         });
-        var knex = _.findWhere(this._db, { type: PersistObjectTemplate.DB_Knex }).connection;
+        var knex = _.findWhere(this._db, {type: PersistObjectTemplate.DB_Knex}).connection;
         var dirtyObjects = persistorTransaction.dirtyObjects;
         var touchObjects = persistorTransaction.touchObjects;
         var savedObjects = persistorTransaction.savedObjects;
@@ -1547,7 +1387,7 @@ module.exports = function (PersistObjectTemplate) {
             persistorTransaction.queriesToNotify = null;
         }
         // Start the knex transaction
-        return knex.transaction(function (knexTransaction) {
+        return knex.transaction(function(knexTransaction) {
             persistorTransaction.knex = knexTransaction;
 
 
@@ -1572,15 +1412,15 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.map(_.toArray(dirtyObjects), function (obj) {
                     delete dirtyObjects[obj.__id__];  // Once scheduled for update remove it.
                     return callSave(obj).then(generateChanges.bind(this, obj, obj.__version__ === 1 ? 'insert' : 'update'));
-                }.bind(this), { concurrency: PersistObjectTemplate.concurrency }).then(function () {
-                    if (_.toArray(dirtyObjects).length > 0) {
+                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
+                    if (_.toArray(dirtyObjects). length > 0) {
                         return processSaves.call(this);
                     }
                 });
 
                 function callSave(obj) {
                     return (obj.__template__ && obj.__template__.__schema__
-                        ? obj.persistSave(persistorTransaction, logger)
+                        ?  obj.persistSave(persistorTransaction, logger)
                         : Promise.resolve(true));
                 }
             }
@@ -1590,15 +1430,15 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.map(_.toArray(deletedObjects), function (obj) {
                     delete deletedObjects[obj.__id__];  // Once scheduled for update remove it.
                     return callDelete(obj).then(generateChanges.bind(this, obj, 'delete'));
-                }.bind(this), { concurrency: PersistObjectTemplate.concurrency }).then(function () {
-                    if (_.toArray(deletedObjects).length > 0) {
+                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
+                    if (_.toArray(deletedObjects). length > 0) {
                         return processDeletes.call(this);
                     }
                 });
 
                 function callDelete(obj) {
                     return (obj.__template__ && obj.__template__.__schema__
-                        ? obj.persistDelete(persistorTransaction, logger)
+                        ?  obj.persistDelete(persistorTransaction, logger)
                         : Promise.resolve(true))
                 }
             }
@@ -1607,10 +1447,10 @@ module.exports = function (PersistObjectTemplate) {
                 return Promise.map(_.toArray(deleteQueries), function (obj) {
                     delete deleteQueries[obj.name];  // Once scheduled for update remove it.
                     return (obj.template && obj.template.__schema__
-                        ? PersistObjectTemplate.deleteFromKnexQuery(obj.template, obj.queryOrChains, persistorTransaction, logger)
+                        ?  PersistObjectTemplate.deleteFromKnexQuery(obj.template, obj.queryOrChains, persistorTransaction, logger)
                         : true)
-                }.bind(this), { concurrency: PersistObjectTemplate.concurrency }).then(function () {
-                    if (_.toArray(deleteQueries).length > 0) {
+                }.bind(this), {concurrency: PersistObjectTemplate.concurrency}).then (function () {
+                    if (_.toArray(deleteQueries). length > 0) {
                         return processDeleteQueries.call(this);
                     }
                 });
@@ -1638,12 +1478,12 @@ module.exports = function (PersistObjectTemplate) {
             function processTouches() {
                 return Promise.map(_.toArray(touchObjects), function (obj) {
                     return (obj.__template__ && obj.__template__.__schema__ && !savedObjects[obj.__id__]
-                        ? obj.persistTouch(persistorTransaction, logger)
+                        ?  obj.persistTouch(persistorTransaction, logger)
                         : true)
                 }.bind(this))
             }
 
-            async function rollback(err) {
+            async function rollback (err) {
                 const deadlock = err.toString().match(/deadlock detected$/i);
                 persistorTransaction.innerError = err;
                 innerError = deadlock ? new Error('Update Conflict') : err;
@@ -1666,18 +1506,18 @@ module.exports = function (PersistObjectTemplate) {
                     persistorTransaction.remoteObjects.forEach((versionId: string, key: string) => {
                         toDeletePromiseArr.push(
                             remoteDocService.deleteDocument(key, this.bucketName, versionId)
-                                .catch(error => {
-                                    (logger || this.logger).error({
-                                        module: moduleName,
-                                        function: functionName,
-                                        category: 'milestone',
-                                        message: 'unable to rollback remote document with key:' + key + ' and bucket: ' + this.bucketName,
-                                        error: error,
-                                        data: {
-                                            activity: 'end'
-                                        }
-                                    });
-                                })
+                            .catch(error => {
+                                (logger || this.logger).error({
+                                    module: moduleName,
+                                    function: functionName,
+                                    category: 'milestone',
+                                    message: 'unable to rollback remote document with key:' + key + ' and bucket: ' + this.bucketName,
+                                    error: error,
+                                    data: {
+                                        activity: 'end'
+                                    }
+                                });
+                            })
                         );
                     });
 
@@ -1725,7 +1565,7 @@ module.exports = function (PersistObjectTemplate) {
                         var oldKey = '_ct_org_' + prop;
                         const replaceNullValuesWithUndefined = function (k, v) { return v === null ? undefined : v; };
                         if (!props[prop].type.isObjectTemplate && (obj[oldKey] != obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
-                            JSON.stringify(obj[oldKey], replaceNullValuesWithUndefined) !== JSON.stringify(obj[prop], replaceNullValuesWithUndefined)))) {
+                            JSON.stringify(obj[oldKey], replaceNullValuesWithUndefined) !== JSON.stringify(obj[prop], replaceNullValuesWithUndefined))))  {
                             obj[oldKey] = obj[prop];
                         }
                         //For one to one relations, we need to check the ids associated to the parent record.
@@ -1769,7 +1609,7 @@ module.exports = function (PersistObjectTemplate) {
                     var oldKey = '_ct_org_' + prop;
                     const replaceNullValuesWithUndefined = function (k, v) { return v === null ? undefined : v; };
                     if (!props[prop].type.isObjectTemplate && (obj[oldKey] != obj[prop] || ((props[prop].type === Date || props[prop].type === Object) &&
-                        JSON.stringify(obj[oldKey], replaceNullValuesWithUndefined) !== JSON.stringify(obj[prop], replaceNullValuesWithUndefined)))) {
+                        JSON.stringify(obj[oldKey], replaceNullValuesWithUndefined) !== JSON.stringify(obj[prop], replaceNullValuesWithUndefined))))  {
                         addChanges(prop, obj[oldKey], obj[prop], prop);
                         obj[oldKey] = obj[prop];
                     }
@@ -1783,7 +1623,7 @@ module.exports = function (PersistObjectTemplate) {
                 function getColumnName(prop, obj) {
                     var schema = obj.__template__.__schema__;
                     if (!schema || !schema.parents || !schema.parents[prop] || !schema.parents[prop].id)
-                        throw new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
+                        throw  new Error(obj.__template__.__name__ + '.' + prop + ' is missing a parents schema entry');
                     return schema.parents[prop].id;
                 }
 
