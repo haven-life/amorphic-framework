@@ -102,7 +102,7 @@ function Remoteable (Base) {
         __extends(classOne, _super);
 
         function classOne() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            return _super !== null && Reflect.apply(_super, this, arguments) || this;
         }
 
         return classOne;
@@ -113,7 +113,7 @@ function Bindable (Base) {
 		__extends(classOne, _super);
 
 		function classOne() {
-			return _super !== null && _super.apply(this, arguments) || this;
+			return _super !== null && Reflect.apply(_super, this, arguments) || this;
 		}
 
 		return classOne;
