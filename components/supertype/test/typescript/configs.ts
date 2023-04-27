@@ -1,7 +1,5 @@
 import {expect} from 'chai';
-import mockfs from 'mock-fs'
-import {Provider} from 'nconf';
-import nconf from 'nconf'
+import * as mockfs from 'mock-fs'
 
 import {BuildSupertypeConfig, SupertypeConfig} from "../../dist/index";
 

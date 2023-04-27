@@ -18,9 +18,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "inlineSources": true,
-    "inlineSourceMap": true,
-    "useDefineForClassFields": false,
-    "esModuleInterop": true
+    "inlineSourceMap": true
   },
   "declaration": true
 }

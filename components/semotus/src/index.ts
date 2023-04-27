@@ -23,23 +23,20 @@
  objects created with it's templates.  The synchronization
  */
 
-import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types.js';
-import {property, remote, Supertype, supertypeClass} from './decorators.js';
-import {Bindable, Persistable, Remoteable} from './setupExtends.js';
-import * as Sessions from './helpers/Sessions.js';
-import * as Subscriptions from './helpers/Subscriptions.js';
-import {delay} from './helpers/Utilities.js';
-import * as Changes from './helpers/Changes.js';
-import * as ChangeGroups from './helpers/ChangeGroups.js';
+import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
+import {property, remote, Supertype, supertypeClass} from './decorators';
+import {Bindable, Persistable, Remoteable} from './setupExtends';
+import * as Sessions from './helpers/Sessions';
+import * as Subscriptions from './helpers/Subscriptions';
+import {delay} from './helpers/Utilities';
+import * as Changes from './helpers/Changes';
+import * as ChangeGroups from './helpers/ChangeGroups';
 import {Request, Response} from 'express';
-import {processCall} from "./helpers/ProcessCall.js";
-import q from 'q';
-import underscore from 'underscore';
-import * as SupertypeModule from '@haventech/supertype';
+import {processCall} from "./helpers/ProcessCall";
 
 const moduleName = `semotus/src/index`;
 
-declare var define, window;
+declare var define;
 
 // @TODO: Check if we attach Promise as a keyword in the webpack build
 (function (root: any, factory) {
@@ -48,7 +45,7 @@ declare var define, window;
 		define(['q', 'underscore', '@haventech/supertype'], factory);
 	}
 	else if (typeof exports === 'object') {
-		module.exports = factory(q, underscore, SupertypeModule);
+		module.exports = factory(require('q'), require('underscore'), require('@haventech/supertype'));
 	}
 	else {
 		root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);
