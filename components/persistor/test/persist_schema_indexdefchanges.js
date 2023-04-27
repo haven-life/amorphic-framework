@@ -207,7 +207,6 @@ var schema = {
 }
 var knexInit = require('knex');
 var knex;
-// var schemaTable = 'index_schema_history';
 describe('index synchronization checks', function () {
     var checkKeyExistsInSchema;
     var getIndexes;

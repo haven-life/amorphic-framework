@@ -402,21 +402,11 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
                 PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             }).catch(function(e) {throw e;});
     });
-    var schemaTable = 'index_schema_history';
-    // public	idx_customer_referred_id	customer	drop index public.idx_customer_referred_id;
-// public	idx_firstlevel_firstlevel_id	FirstLevel	drop index public.idx_firstlevel_firstlevel_id;
-// public	idx_transaction_from_account_id	transaction	drop index public.idx_transaction_from_account_id;
-// public	idx_rm_address_id	rm	drop index public.idx_rm_address_id;
-// public	idx_address_customer_id	address	drop index public.idx_address_customer_id;
-// public	idx_address_account_id	address	drop index public.idx_address_account_id;
-    // var schemaTable = 'pg_indexes';
+   
     it('clears the bank', function () {
         this.timeout(4000);
-        // here it should emptyout pg_indexes table.
-        // return knex.schema.dropViewIfExists('index')
-       
-                return clearCollection(Role)
-                .then(function (count) {
+        return clearCollection(Role)
+            .then(function (count) {
                 expect(count).to.equal(0);
                 return clearCollection(Account)
             }).then(function (count) {
