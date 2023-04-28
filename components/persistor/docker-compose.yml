@@ -3,7 +3,7 @@ services:
   database-test:
     image: postgres:9.4-alpine
     ports:
-      - '5005:5432'
+      - 5432
     environment:
       - POSTGRES_USER=persistor
       - POSTGRES_PASSWORD=persistor
@@ -30,4 +30,4 @@ services:
       - logLevel=info
     env_file:
       - ./test.env
-    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test:ts
+    command: ./wait-for-it.sh database-test:5432 -- ./wait-for-it.sh mongo:27017 -- npm run test
