@@ -21,6 +21,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode) {
 
 describe('toClient and toServer testing', function() {
     before(function(done) {
+        this.timeout(5000);
         return beforeEachDescribe(done, 'app2', 'yes', 'debug');
     });
     after(afterEachDescribe);
