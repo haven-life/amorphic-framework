@@ -100,10 +100,6 @@ var schema = {
     }
 }
 
-
-
-var schemaTable = 'index_schema_history';
-
 describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', function () {
 
     var knex;

@@ -9,8 +9,8 @@ chai.use(chaiAsPromised);
 var Promise = require('bluebird');
 var ObjectTemplate = require('@haventech/supertype').default;
 var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-
-
+const sinon = require('sinon');
+let spyLoggerWarn;
 var Address = PersistObjectTemplate.create('Address', {
     id: { type: Number },
     init: function(id) {
@@ -105,7 +105,7 @@ var ExtendParent = Parent.extend('ExtendParent', {
 
 var schema = {
     Employee: {
-        documentOf: 'pg/employee',
+        documentOf: 'pg/Employee',
         parents: {
             address: {
                 id: 'address_id',
@@ -207,7 +207,6 @@ var schema = {
 }
 var knexInit = require('knex');
 var knex;
-var schemaTable = 'index_schema_history';
 describe('index synchronization checks', function () {
     var checkKeyExistsInSchema;
     var getIndexes;
@@ -223,27 +222,13 @@ describe('index synchronization checks', function () {
             }
         });
 
-        checkKeyExistsInSchema = function(key) {
-            return knex(schemaTable)
-                .select('schema')
-                .orderBy('sequence_id', 'desc')
-                .limit(1)
-                .then(function (records) {
-                    if (!records[0]) return false;
-                    var pattern = new RegExp(key);
-                    return !!records[0].schema.match(pattern);
-                })
+        checkKeyExistsInSchema = async function(key) {
+            const result = await knex('pg_indexes').select(['indexname as name']).where({ tablename: key });
+            return result.length > 0 ? true : false;
         };
 
         getIndexes = function(key) {
-            return knex(schemaTable)
-                .select('schema')
-                .orderBy('sequence_id', 'desc')
-                .limit(1)
-                .then(function (records) {
-                    if (!records[0]) return [];
-                    return JSON.parse(records[0].schema)[key].indexes;
-                });
+            return knex('pg_indexes').select(['indexname as name']).where({ tablename: key });
         };
 
         (function () {
@@ -251,6 +236,7 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.setSchema(schema);
             PersistObjectTemplate.performInjections(); // Normally done by getTemplates
         })();
+        spyLoggerWarn = sinon.spy( PersistObjectTemplate.logger, 'warn');
 
         return Promise.all([
             knex.schema.dropTableIfExists('notificationCheck'),
@@ -263,13 +249,16 @@ describe('index synchronization checks', function () {
             PersistObjectTemplate.dropKnexTable(IndexSyncTable),
             PersistObjectTemplate.dropKnexTable(MultipleIndexTable),
             PersistObjectTemplate.dropKnexTable(Parent),
-            knex(schemaTable).del(),
             knex.schema.dropTableIfExists('IndexSyncTable')
         ]).should.notify(done);
     });
     after('closes the database', function () {
         return knex.destroy();
     });
+
+    afterEach(() => {
+        spyLoggerWarn.resetHistory();
+    })
 
 
     it('synchronize the table without defining the indexes and make sure that the process does not make any entries to the schema table', function () {
@@ -280,7 +269,11 @@ describe('index synchronization checks', function () {
     });
 
     it('synchronize the index definition and check if the index exists on the table by dropping the index', function () {
-        return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).should.eventually.have.property('command').that.match(/INSERT/);
+        // we don't return anything now when we call synchronizeKnexTableFromTemplate so checking db if we have index present
+        return  PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(function () {
+           return getIndexes('IndexSyncTable').should.eventually.have.length(1);
+        })
+        
     });
 
     it('calling synchronizeKnexTableFromTemplate without any changes to the schema definitions..', function () {
@@ -312,7 +305,27 @@ describe('index synchronization checks', function () {
                 }
             }
         ];
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(async function () {
+            // searching `pg_indexes` if index present or not.
+            const result = await knex('pg_indexes').select(['indexname as name']).where({ tablename: 'IndexSyncTable' });
+            expect(result[0]).to.be.eql({ name: 'idx_indexsynctable_name' })
+            return getIndexes('IndexSyncTable').should.eventually.have.length(1);
+        });
+    });
+
+    it('should have no warn logs if adding same index again', function () {
+        schema.IndexSyncTable.indexes = [
+            {
+                name: 'Fst_Index',
+                def: {
+                    columns: ['name'],
+                    type: 'index'
+                }
+            }
+        ];
         return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
+            //checking if warn logs is called or not
+            spyLoggerWarn.called.should.be.eql(false);
             return getIndexes('IndexSyncTable').should.eventually.have.length(1);
         });
     });
@@ -421,4 +434,78 @@ describe('index synchronization checks', function () {
             return getIndexes('Employee').should.eventually.have.length(3);
         });
     });
+
+    it('should add a warn log when we create invalid index where column doesnt exist', function () {
+        schema.IndexSyncTable.indexes = [
+            {
+                name: 'Fst_Index',
+                def: {
+                    columns: ['name'],
+                    type: 'index'
+                }
+            },
+            {
+                name: 'Scd_Index',
+                def: {
+                    columns: ['randomColumn'], // invalid column
+                    type: 'index'
+                }
+            }
+        ];
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
+            spyLoggerWarn.called.should.be.eql(true);            
+            // checking the logger args with data
+            expect(spyLoggerWarn.firstCall.args[0].data).to.include({
+                type: 'index', 
+                operation: 'add', 
+                indexName: 'idx_indexsynctable_randomcolumn', 
+            })
+            return getIndexes('IndexSyncTable').should.eventually.have.length(1);
+        })
+    });
+
+    it('should not update the index if type is not valid and should throw error in logs', function () {
+        schema.IndexSyncTable.indexes = [
+            {
+                name: 'Fst_Index_New1',
+                def: {
+                    columns: ['name'],
+                    type: 'unique'
+                }
+            },
+            {
+                name: 'Scd_Index',
+                def: {
+                    columns: ['id'],
+                    type: 'indesx'
+                }
+            }
+           
+        ];
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(function () {
+            spyLoggerWarn.called.should.be.eql(true);
+            return getIndexes('IndexSyncTable').should.eventually.have.length(1);
+        })
+    });
+
+    it('should be deleting column "name" as we update the schema and no indexes should be present in db ', function () {
+        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable).then(async function () {
+            await getIndexes('IndexSyncTable').should.eventually.have.length(1);
+            
+            // dropping column "name" from schema
+            IndexSyncTable = PersistObjectTemplate.create('IndexSyncTable', {
+                id: {type: Number}
+            });
+            schema.IndexSyncTable.indexes = [];
+            
+            PersistObjectTemplate._verifySchema();
+            return PersistObjectTemplate.synchronizeKnexTableFromTemplate(IndexSyncTable, null, true).then(async function () {
+                //no indexes should be present in pg_indexes;
+                const result = await knex('pg_indexes').select(['indexname as name']).where({ tablename: 'IndexSyncTable' });
+                expect(result).to.be.eql([]);
+                return getIndexes('IndexSyncTable').should.eventually.have.length(0);
+            })
+        });
+    });
+
 });

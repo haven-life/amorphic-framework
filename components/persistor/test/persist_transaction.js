@@ -12,8 +12,6 @@ var Promise = require('bluebird');
 var knexInit = require('knex');
 var knex;
 var schema = {};
-var schemaTable = 'index_schema_history';
-
 
 describe('persist transaction', function () {
     before('arrange', function (done) {
@@ -48,7 +46,6 @@ describe('persist transaction', function () {
                 return knex.schema.dropTableIfExists('tx_persistdelete_employee');
             }),
             knex.schema.dropTableIfExists('tx_deletewot_employee'),
-            knex.schema.dropTableIfExists(schemaTable)
         ]).should.notify(done);
     });
     after('closes the database', function () {

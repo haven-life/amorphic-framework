@@ -81,9 +81,6 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
         PersistObjectTemplate.performInjections(); // Normally done by getTemplates
 
         this.timeout(4000);
-
-        const schemaTable = 'index_schema_history';
-        await knex.schema.dropTableIfExists(schemaTable)
         const count = await clearCollection(Customer);
         expect(count).to.equal(0);
 

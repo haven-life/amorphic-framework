@@ -87,7 +87,7 @@ var ExtendParent = Parent.extend('ExtendParent', {
 
 var schema = {
     Employee: {
-        documentOf: 'pg/employee'
+        documentOf: 'pg/Employee'
     },
     Manager: {
         documentOf: 'pg/Manager',
@@ -155,7 +155,6 @@ var schema = {
 
 var knexInit = require('knex');
 var knex;
-var schemaTable = 'index_schema_history';
 
 describe('schema update checks', function () {
     before('arrange', function (done) {
@@ -190,13 +189,14 @@ describe('schema update checks', function () {
             knex.schema.dropTableIfExists('CreateNewType'),
             knex.schema.dropTableIfExists('newTableWithoutTableDef'),
             knex.schema.dropTableIfExists('IndexSyncTable').then(function() {
-                knex.schema.createTableIfNotExists('IndexSyncTable', function (table) {
+                knex.schema.hasTable('IndexSyncTable').then(function(exists) {
+                if(exists) return;
+                 return knex.createTable('IndexSyncTable', function (table) {
                     table.double('id');
                     table.text('name')
                 })
-            }),
-            knex.schema.dropTableIfExists(schemaTable)
-
+            })
+        }),
         ]).should.notify(done);
     });
     after('closes the database', function () {
@@ -300,13 +300,11 @@ describe('schema update checks', function () {
 
         PersistObjectTemplate._verifySchema();
         await PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTablePrimIndex);
-        const records = await knex(schemaTable).select('schema').orderBy('sequence_id', 'desc').limit(1);
-        const result = records[0].schema;
-
-        expect(result).contains('NewTablePrimIndex');
+        const records = await knex.schema.hasTable('NewTablePrimIndex');
+        expect(records).equal(true);
     });
 
-    it('add a new table definition to the schema and try to synchronize', function () {
+    it('add a new table definition to the schema and try to synchronize', async function () {
         schema.newTable = {};
         schema.newTable.documentOf = 'pg/NewTable';
         var newTable = PersistObjectTemplate.create('newTable', {
@@ -319,16 +317,9 @@ describe('schema update checks', function () {
         })
         schema.newTable.indexes = JSON.parse('[{"name": "single_index","def": {"columns": ["id", "name"],"type": "unique"}}]');
         PersistObjectTemplate._verifySchema();
-        return PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable, null, true).then(function () {
-            return knex(schemaTable)
-                .select('schema')
-                .orderBy('sequence_id', 'desc')
-                .limit(1)
-                .then(function (records) {
-                    return Promise.resolve(records[0].schema);
-                })
-        }).should.eventually.contain('NewTable');
-
+        await PersistObjectTemplate.synchronizeKnexTableFromTemplate(newTable, null, true)
+        const records = await knex.schema.hasTable('NewTable');
+        expect(records).equal(true);
     });
 
 

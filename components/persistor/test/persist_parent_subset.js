@@ -15,8 +15,6 @@ var knexInit = require('knex');
 var knex;
 
 var schema = {};
-var schemaTable = 'index_schema_history';
-
 
 describe('persist parent subset', function () {
     before('arrange', function (done) {
@@ -44,8 +42,7 @@ describe('persist parent subset', function () {
             }),
             knex.schema.dropTableIfExists('tx_employee_parentchild_subset').then(function () {
                 return knex.schema.dropTableIfExists('tx_employee_parentchild_subset');
-            }),
-            knex.schema.dropTableIfExists(schemaTable)
+            })
         ]).should.notify(done);
     });
     after('closes the database', function () {

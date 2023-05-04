@@ -12,7 +12,6 @@ var knexInit = require('knex');
 var knex;
 
 var schema = {};
-var schemaTable = 'index_schema_history';
 var Employee, Department, Role, roleId, EmployeeRef;
 var PersistObjectTemplate, ObjectTemplate;
 describe('persistor fetch children', function () {
@@ -36,8 +35,7 @@ describe('persistor fetch children', function () {
                 return knex.schema.dropTableIfExists('tx_department')
             }).then(function () {
                 return knex.schema.dropTableIfExists('tx_employee_ref')
-            }),
-            knex.schema.dropTableIfExists(schemaTable)]);
+            })])
     })
     after('closes the database', function () {
         return knex.destroy();
@@ -165,8 +163,7 @@ describe('persistor fetch children', function () {
                 return knex.schema.dropTableIfExists('tx_role')
             }).then(function () {
                 return knex.schema.dropTableIfExists('tx_employee_ref')
-            }),
-            knex.schema.dropTableIfExists(schemaTable)]);
+            })])
     });
 
     it('load intermediate objects first and then try to load the parents ', function () {

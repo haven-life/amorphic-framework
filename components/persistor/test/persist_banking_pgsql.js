@@ -380,7 +380,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
         sandbox.restore();
     });
 
-    it ('opens the database Postgres', function () {
+    it('opens the database Postgres', function () {
         return Promise.resolve()
             .then(function () {
                 knex = require('knex')({
@@ -402,13 +402,11 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
                 PersistObjectTemplate.performInjections(); // Normally done by getTemplates
             }).catch(function(e) {throw e;});
     });
-    var schemaTable = 'index_schema_history';
-    it ('clears the bank', function () {
+   
+    it('clears the bank', function () {
         this.timeout(4000);
-        return knex.schema.dropTableIfExists(schemaTable)
-            .then(function () {
-                return clearCollection(Role);
-            }).then(function (count) {
+        return clearCollection(Role)
+            .then(function (count) {
                 expect(count).to.equal(0);
                 return clearCollection(Account)
             }).then(function (count) {
@@ -465,7 +463,7 @@ describe('Banking from pgsql Example persist_banking_pgsql', function () {
     //     });
     // });
 
-    it ('can create the data', function () {
+    it('can create the data', function () {
         // Setup customers and addresses
         sam = new Customer('Sam', 'M', 'Elsamman');
         karen = new Customer('Karen', 'M', 'Burke');
