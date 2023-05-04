@@ -87,7 +87,7 @@ var ExtendParent = Parent.extend('ExtendParent', {
 
 var schema = {
     Employee: {
-        documentOf: 'pg/employee'
+        documentOf: 'pg/Employee'
     },
     Manager: {
         documentOf: 'pg/Manager',
@@ -189,12 +189,14 @@ describe('schema update checks', function () {
             knex.schema.dropTableIfExists('CreateNewType'),
             knex.schema.dropTableIfExists('newTableWithoutTableDef'),
             knex.schema.dropTableIfExists('IndexSyncTable').then(function() {
-                knex.schema.createTableIfNotExists('IndexSyncTable', function (table) {
+                knex.schema.hasTable('IndexSyncTable').then(function(exists) {
+                if(exists) return;
+                 return knex.createTable('IndexSyncTable', function (table) {
                     table.double('id');
                     table.text('name')
                 })
-            }),
-
+            })
+        }),
         ]).should.notify(done);
     });
     after('closes the database', function () {
