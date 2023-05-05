@@ -1356,7 +1356,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
     PersistObjectTemplate.connect = function (config, schema) {
         var knex = require('knex');
         var connection = knex(config);
-        this.setDB(connection, this.DB_Knex);
+        this.setDB(connection, this.DB_Knex, config.client);
         this.setRemoteDocConnection(config);
         this.setSchema(schema);
         this.performInjections(); // Normally done by getTemplates
