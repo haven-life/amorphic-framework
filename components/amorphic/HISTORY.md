@@ -1,3 +1,19 @@
+## 13.0.0
+* Setting target to be es2020. 
+* Moving `knex` and `pg` to be peer dependencies. Product teams should have more flexibility in updating those two libraries.
+* replacing `_super.apply` calls with `Reflect` implementations.
+## 12.2.0
+* Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of supertype, persistor, semotus on amorphic. This way minor or patched versions of these components are not automatically pulled in on amorphic.
+## 12.1.1
+* add `externalSchemas` support to `startPersistorMode`.
+## 12.1.0
+* tested amorphic components against 18.x node base image.
+## 12.0.0
+* Config `enableIsRemoteObjectFeature` is now a required config and must be set to `true`, if you are using remote storage(`isRemoteObject=true`) in your app (including packages and modules). Without this flag being set to `true`, the `isRemoteObject` property is suppressed and cannot be used to send data to remote storage. You can still continue to send data to db however. 
+For more information and details of the behavior, please refer to the `Persistor's` `README` and `HISTORY` files.
+NOTE: This change was previously introduced in version `11.3.0` only to be reverted in version `11.4.0`. It is being reintroduced as a major version bump in this version.
+## 11.4.0
+* This change is reverting back the requirement to include the `enableIsRemoteObjectFeature` flag, to enable the `isRemoteObject` feature. This requirement was introduced by the persistor in version `10.0.0`, and amorphic previously incorporated the `10.0.0` persistor version in a minor version bump of amorphic (`11.3.0`). Since this could be a potential breaking change for some, best would be to revert this change in this minor version bump and instead re-introduce the change in the next major version. 
 ## 11.3.1
 * Adding back package bump for 11.3.0
 ## 11.3.0

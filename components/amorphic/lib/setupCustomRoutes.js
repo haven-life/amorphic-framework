@@ -6,14 +6,14 @@ const fs = require('fs');
 
 const moduleName = `amorphic/lib/setupCustomRoutes`;
 
-function setupCustomRoutes(filePath, router) {
+async function setupCustomRoutes(filePath, router) {
     const functionName = setupCustomRoutes.name;
     const routerFilePath = `${filePath}/routers/index.js`;
 
     let routers;
 
     if(fs.existsSync(routerFilePath)) {
-        routers = require(routerFilePath);
+        routers = await import(routerFilePath);
 
         const exportedRouterFunctions = Object.keys(routers);
 

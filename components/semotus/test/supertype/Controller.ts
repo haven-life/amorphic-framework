@@ -3,7 +3,6 @@ import {Customer} from './Customer';
 import {Account} from './Account';
 import {Address} from './Address';
 import {expect} from 'chai';
-import {CallContext, ChangeString} from '../../src/helpers/Types';
 
 var ObjectTemplate = require('../../dist/index.js');
 var delay = require('../../dist/helpers/Utilities.js').delay;

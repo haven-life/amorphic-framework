@@ -19,9 +19,9 @@
     "lint": "lerna run lint"
   },
   "devDependencies": {
-    "lerna": "4.0.0"
+    "lerna": "^6.5.1"
   },
   "dependencies": {
-    "@haventech/supertype": "^5.0.0"
+    "@haventech/supertype": "^8.0.0"
   }
 }

@@ -25,8 +25,9 @@ packageVersions['amorphic'] = require('../../package.json').version;
  * @param {unknown} logger unknown
  * @param {unknown} statsdClient unknown
  * @param {unknown} configStore unknown
+ * @param {unknown} externalSchemas can inject schemas directly by the apps
  */
-function startPersistorMode(appDirectory, logger, statsdClient, configStore = null) {
+function startPersistorMode(appDirectory, logger, statsdClient, configStore = null, externalSchemas) {
 	const functionName = startPersistorMode.name;
 	configStore = configStore != null ? configStore : BuildSupertypeConfig(appDirectory);
 	let amorphicOptions = AmorphicContext.amorphicOptions;
@@ -91,7 +92,7 @@ function startPersistorMode(appDirectory, logger, statsdClient, configStore = nu
 
 	for (let appKey in appList) {
 		if (appStartList.indexOf(appKey) >= 0) {
-			promises.push(startApplication(appKey, appDirectory, appList, configStore));
+			promises.push(startApplication(appKey, appDirectory, appList, configStore, null, externalSchemas));
 		}
 	}
 

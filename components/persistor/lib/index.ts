@@ -89,7 +89,7 @@ module.exports.Supertype = function () {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.Supertype.call(this, objectTemplate);
+    return Reflect.construct( supertype.Supertype, [objectTemplate], this.constructor );
 };
 module.exports.Supertype.prototype = supertype.Supertype.prototype;
 module.exports.property = function (props) {
@@ -115,7 +115,7 @@ module.exports.Persistable = function (Base) {
     return (function (_super) {
         __extends(class_1, _super);
         function class_1() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            return _super !== null && Reflect.apply(_super, this, arguments) || this;
         }
         return class_1;
     }(Base));
