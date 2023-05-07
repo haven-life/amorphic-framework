@@ -98,6 +98,8 @@ module.exports.property = function (props) {
     }
     return supertype.property(props, objectTemplate);
 }
+const { amorphicStatic } = require('./amorphicStatic.js');
+module.exports.amorphicStatic = amorphicStatic;
 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
