@@ -1,5 +1,6 @@
 import ajv from "./validation"
 
+const __default__ = '__default__';
 module.exports = function (PersistObjectTemplate) {
 
     var Promise = require('bluebird');
@@ -128,11 +129,12 @@ module.exports = function (PersistObjectTemplate) {
     PersistObjectTemplate.getDB = function(alias)
     {
         if (!this._db)
-            throw  new Error('You must do PersistObjectTempate.setDB()');
-        if (!this._db[alias || '__default__'])
-            throw  new Error('DB Alias ' + alias + ' not set with corresponding PersistObjectTempate.setDB(db, type, alias)');
-
-        return this._db[alias || '__default__'];
+            throw new Error('You must do PersistObjectTempate.setDB()');
+        alias = alias || __default__;
+        const db = this._db[alias] || this._db[__default__];
+        if (!db)
+            throw new Error(`DB Alias ${alias} not set with corresponding PersistObjectTempate.setDB(db, type, alias) and no default with ${__default__} set either`);
+        return db;
     };
 
     PersistObjectTemplate.dealias = function (collection) {
@@ -141,8 +143,8 @@ module.exports = function (PersistObjectTemplate) {
 
     PersistObjectTemplate.getDBAlias = function (collection) {
         if (!collection)
-            return '__default__';
-        return collection.match(/(.*)\//) ? RegExp.$1 : '__default__'
+            return __default__;
+        return collection.match(/(.*)\//) ? RegExp.$1 : __default__;
     };
 
     PersistObjectTemplate.getDBID = function (masterId)
