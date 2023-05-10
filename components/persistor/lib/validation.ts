@@ -45,11 +45,7 @@ const schemas = {
             },
             'enableChangeTracking': {
                 type: ['boolean', 'null']
-            },
-            'asOfDate': {
-                type: ['object', 'null', 'string'],
-                format: 'date-time-string'
-            },
+            }
         }
     },
     'commitSchema': {
@@ -73,13 +69,6 @@ const schemas = {
     'fetchSpec': {}
 };
 const ajv = new Ajv({ allErrors: true });
-ajv.addFormat('date-time-string', (dateTimeString) => {
-    if (typeof dateTimeString === 'object') {
-        dateTimeString = (dateTimeString as Date).toISOString();
-    }
-  
-    return !isNaN(Date.parse(dateTimeString));
-});
 // cacheing schema compilation so we don't need to compile on every call.
 ajv.addSchema(schemas['persistSchema'], "persistSchema"); 
 ajv.addSchema(schemas['fetchSchema'], "fetchSchema");
