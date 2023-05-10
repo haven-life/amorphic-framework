@@ -1363,12 +1363,11 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this.performInjections(); // Normally done by getTemplates
         return connection;
     };
-    
+
     /**
-     * Mostly used for unit testing.  Does a knex connect, schema setup and injects templates
-     * @param {object} config knex connection
-     * @param {JSON} schema data model definitions
-     * @returns {*}
+     * Used to start up persistor with config
+     * @param {object} configPath path to config
+     * @param {JSON} configStore specified alternate config to use
      */
     PersistObjectTemplate.startup = function(configPath, configStore = null) {
         if (!configPath) {
