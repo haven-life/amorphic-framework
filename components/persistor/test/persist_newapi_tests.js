@@ -54,7 +54,6 @@ describe('persist newapi tests', function () {
         schema.Phone = {};
         schema.Dept = {};
         schema.Employee.table = 'tx_employee';
-        schema.Employee.audit = 'v2';
         schema.Address.table = 'tx_address';
         schema.Address.tableType = 'reference_data';
         schema.Phone.table = 'tx_phone';
@@ -71,7 +70,6 @@ describe('persist newapi tests', function () {
 
         schema.Role = {};
         schema.Role.table = 'tx_role';
-        schema.Role.audit = 'v2';
         schema.Role.parents = {
             employee: {id: 'employee_id'}
         };
@@ -199,7 +197,7 @@ describe('persist newapi tests', function () {
     });
 
     it('persistorFetchById with fetch spec with type projections', function () {
-        return Employee.persistorFetchById(empId, {asOfDate: '01/01/2023', fetch: { homeAddress: {fetch: {phone: true}}, roles: true}, projection: { Address: ['city'], Role: ['name'], Phone: ['']}}).then(function(employee) {
+        return Employee.persistorFetchById(empId, {fetch: { homeAddress: {fetch: {phone: true}}, roles: true}, projection: { Address: ['city'], Role: ['name'], Phone: ['']}}).then(function(employee) {
             expect(employee.homeAddress.state).is.equal(undefined);
             expect(employee.homeAddress.city).is.equal('New York');
             expect(employee.homeAddress.phone.number).is.equal(undefined);
