@@ -3,22 +3,15 @@
  * many-to-many relationships
  *
  */
-
-import {Persistor} from '../../dist/index.js';
-
-var persistor = Persistor.create();
-persistor.debugInfo = 'api;conflict;write;read;data';//'api;io';
-persistor.debugInfo = 'conflict;data';//'api;io';
-persistor.logger.setLevel('debug');
-
+import { Persistor as persistor, amorphicStatic } from '../../dist/index.js';
 import { expect } from 'chai';
 import * as _ from 'underscore';
-import {Customer} from "./Customer";
-import {ExtendedCustomer} from "./ExtendedCustomer";
+import { Customer } from './Customer';
+import { ExtendedCustomer } from './ExtendedCustomer';
 import Promise = require('bluebird');
-import {Role} from "./Role";
-import {Account} from "./Account";
-import {Transaction, Xfer} from './Transaction';
+import { Role } from './Role';
+import { Account } from './Account';
+import { Transaction, Xfer } from './Transaction';
 
 var schema = {
     Customer: {
@@ -113,14 +106,16 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
         expect(Account['__toServer__']).to.equal(true);
     });
 
-    it ('opens the database Postgres', function () {
+    it ('opens the database Postgres', async function () {
+        await persistor.startup(__dirname);
+        const config = amorphicStatic.config;
         knex =  persistor.connect({
                     client: 'pg',
                     connection: {
-                        host: process.env.dbPath,
-                        database: process.env.dbName,
-                        user: process.env.dbUser,
-                        password: process.env.dbPassword
+                        host: config.dbPath,
+                        database: config.dbName,
+                        user: config.dbUser,
+                        password: config.dbPassword
                     }
                 },schema);
     });

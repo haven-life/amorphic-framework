@@ -22,6 +22,8 @@
 
 // Node Modules
 let Semotus = require('@haventech/semotus');
+let SupertypeConfig = require('@haventech/supertype').SupertypeConfig;
+SupertypeConfig.useAmorphic = true;
 let Persistor = require('@haventech/persistor');   // Only used for the typescript path
 
 let ObjectTemplate = require('@haventech/supertype').default;

@@ -10,6 +10,7 @@
  *
  */
 
+import { BuildSupertypeConfig } from '@haventech/supertype';
 import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
 
 module.exports = function (PersistObjectTemplate, baseClassForPersist) {
@@ -1362,6 +1363,27 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
         this.performInjections(); // Normally done by getTemplates
         return connection;
     };
+    
+    /**
+     * Mostly used for unit testing.  Does a knex connect, schema setup and injects templates
+     * @param {object} config knex connection
+     * @param {JSON} schema data model definitions
+     * @returns {*}
+     */
+    PersistObjectTemplate.startup = function(configPath, configStore = null) {
+        if (!configPath) {
+            throw new Error('startup(configPath, schemaPath?) called without a config path');
+        }
+    
+        configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);
+        let config = configStore['root'].get();
+    
+        config.nconf = configStore['root']; // Global config
+        config.configStore = configStore;
+
+        this.config = config;
+        this.logLevel = config.nconf.get('logLevel') || 1;
+    }
 
     /**
      * Mostly used for unit testing.  Drops all tables for templates that have a schema

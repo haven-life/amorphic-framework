@@ -75,6 +75,9 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
 
     objectTemplate = PersistObjectTemplate;
     PersistObjectTemplate.prototype.amorphicStatic = PersistObjectTemplate;
+    if (this.exports) {
+        this.exports.amorphicStatic = PersistObjectTemplate;
+    }
 
     return  PersistObjectTemplate;
 }

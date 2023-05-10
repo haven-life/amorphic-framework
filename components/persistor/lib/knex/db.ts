@@ -516,13 +516,7 @@ module.exports = function (PersistObjectTemplate) {
         return Promise.resolve()
             .then(buildTable.bind(this))
             .then(addComments.bind(this, tableName))
-            .then(synchronizeIndexes.bind(this, tableName, template))
-            .then(result => {
-                if (template.__schema__.audit === 'v2') {
-                    return buildHistoryTable(tableName + '_history');
-                }
-                return result;
-            });
+            .then(synchronizeIndexes.bind(this, tableName, template));
 
         function buildTable() {
             return knex.schema.hasTable(tableName).then(function (exists) {
@@ -538,22 +532,6 @@ module.exports = function (PersistObjectTemplate) {
                     return discoverColumns(tableName).then(function () {
                         fieldChangeNotify(changeNotificationCallback, tableName);
                         return knex.schema.table(tableName, columnMapper.bind(this))
-                    }.bind(this));
-                }
-            }.bind(this))
-        }
-
-        function buildHistoryTable(historyTableName) {
-            if (template.audit !== 'v2') {
-                return;
-            }
-            return knex.schema.hasTable(historyTableName).then(function (exists) {
-                if (!exists) {
-                   return PersistObjectTemplate._createKnexTable(template, historyTableName);
-                }
-                else {
-                    return discoverColumns(historyTableName).then(function () {
-                        return knex.schema.table(historyTableName, columnMapper.bind(this))
                     }.bind(this));
                 }
             }.bind(this))
@@ -1149,16 +1127,9 @@ module.exports = function (PersistObjectTemplate) {
         return knex.schema.createTable(tableName, createColumns.bind(this));
 
         function createColumns(table) {
-            
+            table.string('_id').primary();
             table.string('_template');
             table.biginteger('__version__');
-            if (collection.match(/_history/)) {
-                table.string('_id_history').primary();
-                table.string('_id');
-            }
-            else {
-                table.string('_id').primary();
-            }
             var columnMap = {};
 
             recursiveColumnMap.call(this, template);

@@ -1,3 +1,5 @@
+## 8.0.1
+* Small static useAmorphic flag on SupertypeConfig
 ## 8.0.0
 * Set compiler target to be es2020.
 * Update regexes for object identification to also support classes.
