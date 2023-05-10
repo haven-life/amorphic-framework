@@ -3,8 +3,8 @@
     "description": "A type system for classical inheritence, mix-ins and composition.",
     "version": "9.0.0",
     "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "dist/index.mjs",
+    "types": "dist/index.d.mts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
         "@haventech/amorphic-contracts": "^0.2.0",
