@@ -1,7 +1,8 @@
 {
     "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "8.0.1",
+    "version": "9.0.0",
+    "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
@@ -26,13 +27,13 @@
     },
     "scripts": {
         "lint": "eslint .",
-        "debug:tests": "mocha --inspect-brk test/animals.js",
-        "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
-        "test:ts": "mocha --require ts-node/register test/typescript/*",
+        "debug:tests": "mocha --inspect-brk test/animals.mjs",
+        "debug:tstests": "mocha --inspect-brk test/typescript/*.mjs",
+        "test:ts": "mocha --require ts-node/register --config test/typescript/.mocharc.json test/typescript/*",
         "clean": "rm -rf dist/",
         "compile": "tsc",
         "build": "npm run compile",
-        "test": "mocha test/**/*.js",
+        "test": "mocha test/**/*.mjs",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
         "prepublishOnly": "npm run clean && npm run compile"

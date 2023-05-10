@@ -19,18 +19,18 @@
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ObjectTemplate } from './ObjectTemplate';
+import { ObjectTemplate } from './ObjectTemplate.mjs';
 
 ObjectTemplate.init();
 export default ObjectTemplate;
 
 let amorphicStatic = ObjectTemplate.amorphicStatic;
 let SupertypeSession = ObjectTemplate.amorphicStatic;
-export { StatsdClientInterface } from './StatsdClientInterface';
-export { StatsdHelper } from './StatsdHelper';
+export { StatsdClientInterface } from './StatsdClientInterface.mjs';
+export { StatsdHelper } from './StatsdHelper.mjs';
 
 export { amorphicStatic, SupertypeSession };
-export { SupertypeLogger } from './SupertypeLogger';
-export { SupertypeConfig, BuildSupertypeConfig } from './SupertypeConfig';
-export { Supertype } from './Supertype';
-export { supertypeClass, property, remote } from './decorators';
+export { SupertypeLogger } from './SupertypeLogger.mjs';
+export { SupertypeConfig, BuildSupertypeConfig } from './SupertypeConfig.mjs';
+export { Supertype } from './Supertype.mjs';
+export { supertypeClass, property, remote } from './decorators.mjs';

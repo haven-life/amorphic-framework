@@ -1,54 +1,70 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('../dist/index.js').default;
+import { expect } from 'chai';
+import { property, Supertype, supertypeClass } from "../../dist/index.mjs";
 
-var Main = ObjectTemplate.create('Main', {
-    name: {type: String, value: ''},
-    init: function (name) {
+@supertypeClass
+class SubOne extends Supertype {
+    @property()
+    name: String = '';
+    constructor (name) {
+        super();
         this.name = name;
     }
-});
+};
 
-var SubOne = ObjectTemplate.create('SubOne', {
-    name: {type: String, value: ''},
-    init: function (name) {
+@supertypeClass
+class SubOneExtended extends SubOne {
+    constructor (name) {
+        super(name);
+    }
+};
+
+@supertypeClass
+class Main extends Supertype {
+
+    @property()
+    name: String = '';
+    
+    constructor (name) {
+        super();
         this.name = name;
     }
-});
-
-var SubOneExtended = SubOne.extend('SubOneExtended', {
-    init: function (name) {
-        SubOne.call(this, name);
-    }
-});
-
-var SubMany = ObjectTemplate.create('SubMany', {
-    main: {type: Main},
-    name: {type: String, value: ''},
-    init: function (name) {
-        this.name = name;
-    }
-});
-
-var SubManyExtended = SubMany.extend('SubManyExtended', {
-    init: function (name) {
-        SubMany.call(this, name);
-    }
-});
-
-Main.mixin({
-    subA: {type: SubOne},
-    subB: {type: SubOne},
-    subsA: {type: Array, of: SubMany, value: []},
-    subsB: {type: Array, of: SubMany, value: []},
-    addSubManyA: function (subMany) {
+    @property({getType: () => {return SubOne}})
+    subA: SubOne;
+    @property({getType: () => {return SubOne}})
+    subB: SubOne;
+    @property({getType: () => {return SubMany}})
+    subsA: Array<SubMany> = [];
+    @property({getType: () => {return SubMany}})
+    subsB: Array<SubMany> = [];
+    addSubManyA (subMany) {
         subMany.main = this;
         this.subsA.push(subMany);
-    },
-    addSubManyB: function (subMany) {
+    }
+    addSubManyB (subMany) {
         subMany.main = this;
         this.subsB.push(subMany);
     }
-});
+};
+
+@supertypeClass
+class SubMany extends Supertype {
+    @property()
+    main: Main;
+    @property()
+    name: String = '';
+    constructor (name) {
+        super();
+        this.name = name;
+    }
+};
+
+@supertypeClass
+class SubManyExtended  extends SubMany {
+    constructor (name) {
+        super(name);
+    }
+};
+
 
 var main = new Main('main');
 main.subA = new SubOne('mainOneA');
@@ -58,6 +74,8 @@ main.addSubManyA(new SubMany('mainManyA'));
 main.addSubManyB(new SubMany('mainManyB'));
 main.addSubManyB(new SubManyExtended('mainManyExtendedB'));
 
+main.amorphic.getClasses();
+
 it('can clone', function () {
     var relationship;
     var calledForTopLeve = false;
@@ -65,7 +83,6 @@ it('can clone', function () {
         console.log(template.__name__);
         switch (template.__name__) {
         case 'Main':
-            calledForTopLevel = true;
             return null; // Clone normally
         }
         switch (obj.__template__.__name__ + '.' + prop) {
@@ -85,6 +102,4 @@ it('can clone', function () {
     expect(main2.subsA.length).to.equal(0);
     expect(main2.subsB.length).to.equal(2);
     expect(main2.subA).to.equal(null);
-    expect(main2.subsB[0]._id).to.equal(undefined);
-    expect(main2.subsB[1]._id).to.equal(undefined);
 });

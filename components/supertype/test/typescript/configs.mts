@@ -1,7 +1,6 @@
-import {expect} from 'chai';
-import * as mockfs from 'mock-fs'
-
-import {BuildSupertypeConfig, SupertypeConfig} from "../../dist/index";
+import { expect } from 'chai';
+import mockfs from 'mock-fs'
+import { BuildSupertypeConfig, SupertypeConfig } from "../../dist/index.mjs";
 
 describe('SupertypeConfig', function() {
 

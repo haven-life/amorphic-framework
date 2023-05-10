@@ -1,6 +1,6 @@
-import * as serializer from './serializer';
-import { SupertypeLogger } from './SupertypeLogger';
-import { StatsdClientInterface } from './StatsdClientInterface';
+import * as serializer from './serializer.mjs';
+import { SupertypeLogger } from './SupertypeLogger.mjs';
+import { StatsdClientInterface } from './StatsdClientInterface.mjs';
 import {Config, ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 export type CreateTypeForName = {
     name?: string;
@@ -487,6 +487,7 @@ export class ObjectTemplate {
         function processDeferredTypes(template) {
             if (template.prototype.__deferredType__) {
                 for (const prop in template.prototype.__deferredType__) {
+                    console.log(template, prop);
                     const defineProperty = template.defineProperties[prop];
                     if (defineProperty) {
                         const type = template.prototype.__deferredType__[prop]();
@@ -972,13 +973,13 @@ export class ObjectTemplate {
                     }
 
                     for (var propn in propertiesOrTemplate.prototype) {
-                        var propDesc = <Getter>Object.getOwnPropertyDescriptor(propertiesOrTemplate.prototype, propn);
+                        var propDesc = Object.getOwnPropertyDescriptor(propertiesOrTemplate.prototype, propn) as Getter;
 
                         if (propDesc) {
                             Object.defineProperty(mixinTemplate.prototype, propn, propDesc);
 
                             if (propDesc.get) {
-                                (<Getter>Object.getOwnPropertyDescriptor(mixinTemplate.prototype, propn)).get.sourceTemplate = propDesc.get.sourceTemplate;
+                                (Object.getOwnPropertyDescriptor(mixinTemplate.prototype, propn) as Getter).get.sourceTemplate = propDesc.get.sourceTemplate;
                             }
                         }
                         else {
@@ -1215,7 +1216,7 @@ function createPropertyFunc(functionProperties, templatePrototype, objectTemplat
             case 'getset': // getters and setters
                 descriptor.templateSource = templateName;
                 Object.defineProperty(templatePrototype, propertyName, descriptor);
-                (<Getter>Object.getOwnPropertyDescriptor(templatePrototype, propertyName)).get.sourceTemplate = templateName;
+                (Object.getOwnPropertyDescriptor(templatePrototype, propertyName) as Getter).get.sourceTemplate = templateName;
                 break;
         }
 
@@ -1242,7 +1243,7 @@ function bindParams(templateName, objectTemplate, functionProperties,
     function template() {
         const functionName = template.name;
         objectTemplate.createIfNeeded(template, this);
-        let templateRef: ConstructorType = <ConstructorType><Function>template;
+        let templateRef: ConstructorType = (template as Function) as ConstructorType;
 
         objectTemplate.__templateUsage__[templateRef.__name__] = true;
         var parent = templateRef.__parent__;
@@ -1367,7 +1368,7 @@ function bindParams(templateName, objectTemplate, functionProperties,
     };
 
 
-    let returnVal = <Function>template;
+    let returnVal = template as Function;
 
     return returnVal as ConstructorType;
 }

@@ -1,9 +1,8 @@
-import * as nconf from 'nconf';
-import {Provider} from 'nconf';
+import nconf from 'nconf';
 import {Config, ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
 
 
-function createNewNConfProvider(): Provider {
+function createNewNConfProvider(): nconf.Provider {
     return new nconf.Provider().argv().env({separator: '__'});
 }
 
@@ -12,7 +11,7 @@ function createNewNConfProvider(): Provider {
  */
 export class SupertypeConfig implements Config {
     static useAmorphic: boolean = false;
-    internalConfigStore: Provider;
+    internalConfigStore: nconf.Provider;
     constructor() {
         this.internalConfigStore = createNewNConfProvider();
     }

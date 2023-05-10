@@ -1,5 +1,5 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('../dist/index.js').default;
+import { expect } from 'chai';
+import ObjectTemplate from '../dist/index.mjs';
 
 var Base = ObjectTemplate.create("Base", {
     myVar: {type: String, value:  'Base'},

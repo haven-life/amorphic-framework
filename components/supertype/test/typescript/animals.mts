@@ -1,68 +1,68 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('../dist/index.js').default;
-var sinon = require('sinon');
+import { expect } from 'chai';
+import { Animal, AnimalContainer } from './model/Animal.mjs';
+import { Ark } from './model/Ark.mjs';
+import { Lion, LionContainer } from './model/Lion.mjs';
+import { Bear } from './model/Bear.mjs';
+import { amorphicStatic } from '../../dist/index.mjs';
+import * as sinon from 'sinon';
 
 
-/* Teacher Student Example */
-BaseTemplate = ObjectTemplate.create('BaseTemplate',
-    {
-        name: {type: String},
-        isMammal: {type: Boolean, value: true},
-        legs: {type: Number}
+describe('AnimalContainer', function () {
+    it ('has proper types', function () {
+        expect(AnimalContainer.amorphicProperties.containee.type).to.equal(Animal);
+        expect(LionContainer.amorphicProperties.containee.type).to.equal(Lion);
     });
-
-BaseTemplate.mixin({
-    legs: {type: Number, value: 2} // Make sure duplicate props work
 });
-
-Lion = BaseTemplate.extend('Lion',
-    {
-        init: function init() {
-            BaseTemplate.call(this);
-            this.name = 'Lion';
-            this.legs = 4;
-        },
-        canRoar: function canRoar() {
-            return true;
-        }
-    });
-
-Bear = BaseTemplate.extend('Bear',
-    {
-        init: function init() {
-            BaseTemplate.call(this);
-            this.name = 'Bear';
-        },
-        canHug: function canHug() {
-            return true;
-        }
-    });
-
-Ark = ObjectTemplate.create('Ark',
-    {
-        animals: {type: Array, of: BaseTemplate, value: []},
-        board: function (animal) {
-            animal.ark = this;
-            this.animals.push(animal);
-        }
-    });
-
-BaseTemplate.mixin(
-    {
-        ark:    {type: Ark}
-    });
 
 describe('Freeze Dried Arks', function () {
     var ark1;
     var ark2;
 
+    it ('has parent an children classes', function () {
+        expect(Animal.amorphicChildClasses.length).to.equal(2);
+        expect(Animal.amorphicChildClasses[0]).to.equal(Lion);
+        expect(Animal.amorphicChildClasses[1]).to.equal(Bear);
+        expect(Bear.amorphicParentClass).to.equal(Animal);
+        expect(Lion.amorphicParentClass).to.equal(Animal);
+    });
+    it ('has static property values', function () {
+        expect(Animal['__toClient__']).to.equal(true);
+        expect(Lion.amorphicProperties.lionStuff.type).to.equal(String);
+        expect(Bear.amorphicProperties.lionStuff).to.equal(undefined);
+        expect(Animal.amorphicProperties.lionStuff).to.equal(undefined);
+        expect(Bear.amorphicProperties.isMammal).to.equal(undefined);
+        expect(Bear.amorphicGetProperties().isMammal.type).to.equal(Boolean);
+        expect(Animal.amorphicProperties.isMammal.type).to.equal(Boolean);
+        expect(Animal.amorphicClassName).to.equal('Animal');
+        expect(Bear.amorphicClassName).to.equal('Bear');
+        expect(Bear.amorphicStatic).to.equal(Bear['__objectTemplate__']);
+        expect(amorphicStatic).to.equal(Bear['__objectTemplate__']);
+    });
+    it ('has object property values', function () {
+        var ark = new Ark();
+        expect(ark.amorphicGetPropertyValues('size').length).to.equal(2);
+        expect(ark.amorphicGetPropertyDescriptions('size').s).to.equal('small');
+        expect(ark.__template__.__name__).to.equal('Ark');
+        expect(ark.amorphicClass.__name__).to.equal('Ark');
+        expect(ark.amorphicClass.amorphicClassName).to.equal('Ark');
+        expect(ark.amorphicGetClassName()).to.equal('Ark');
+    });
     it ('create the arc', function (done) {
+        Ark.createProperty('foo', {isLocal: true, type: String, value: 'foo'});
+        Ark.createProperty('bar', {isLocal: true, type: String, value: 'bar'});
+        Ark.createProperty('barPersistor', {isLocal: true, type: String, value: {isFetched: true}});
         ark1 = new Ark();
+        expect(ark1.foo).to.equal('foo');
+        expect(ark1.bar).to.equal('bar');
+        expect(ark1.barPersistor.isFetched).to.equal(true);
+        ark1.barPersistor.isFetched = false;
+        expect(ark1.barPersistor.isFetched).to.equal(false);
         ark1.board(new Lion());
         ark1.board(new Bear());
         ark2 = new Ark();
         ark2.board(new Lion());
         ark2.board(new Bear());
+        expect(ark1.__template__.__name__).to.equal('Ark');
         expect(ark1.animals[0].canRoar()).to.equal(true);
         expect(ark1.animals[1].canHug()).to.equal(true);
         expect(ark1.animals[0].legs).to.equal(4);
@@ -81,10 +81,10 @@ describe('Freeze Dried Arks', function () {
     });
 
     it ('save and restore the arc', function (done) {
-        var serialArk1 = ark1.toJSONString();
-        var serialArk2 = ark2.toJSONString();
+        var serialArk1 = ark1.amorphicToJSON();
+        var serialArk2 = ark2.amorphicToJSON();
 
-        ark1 = Ark.fromJSON(serialArk1);
+        ark1 = Ark.amorphicFromJSON(serialArk1);
         expect(ark1.animals[0].canRoar()).to.equal(true);
         expect(ark1.animals[1].canHug()).to.equal(true);
         expect(ark1.animals[0].legs).to.equal(4);
@@ -92,7 +92,7 @@ describe('Freeze Dried Arks', function () {
         expect(ark1.animals[0].ark instanceof Ark).to.equal(true);
         expect(ark1.animals[1].ark instanceof Ark).to.equal(true);
 
-        ark2 = Ark.fromJSON(serialArk2);
+        ark2 = Ark.amorphicFromJSON(serialArk2);
         expect(ark2.animals[0].canRoar()).to.equal(true);
         expect(ark2.animals[1].canHug()).to.equal(true);
         expect(ark2.animals[0].legs).to.equal(4);
@@ -102,26 +102,26 @@ describe('Freeze Dried Arks', function () {
 
         done();
     });
-
     it ('can log', function () {
         var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
-        var childLogOutput = '';
+        
+        let ark: Ark = new Ark();
 
-        let sendToLogStub = sinon.stub(ObjectTemplate.logger, 'sendToLog');
+        let sendToLogStub = sinon.stub(ark.amorphic.logger, 'sendToLog');
         sendToLogStub.callsFake((level, obj) => {
             var str = sendToLogStub.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
             console.log(str);
             output += str.replace(/[\r\n ]/g, '');
         });
 
-        ObjectTemplate.logger.startContext({name: 'supertype'});
-        ObjectTemplate.logger.warn({foo: 'bar1'}, 'Yippie');
-        var context = ObjectTemplate.logger.setContextProps({permFoo: 'permBar1'});
-        ObjectTemplate.logger.warn({foo: 'bar2'});
-        ObjectTemplate.logger.clearContextProps(context);
-        ObjectTemplate.logger.warn({foo: 'bar3'});
-        var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
+        ark.amorphic.logger.startContext({name: 'supertype'});
+        ark.amorphic.logger.warn({foo: 'bar1'}, 'Yippie');
+        var context = ark.amorphic.logger.setContextProps({permFoo: 'permBar1'});
+        ark.amorphic.logger.warn({foo: 'bar2'});
+        ark.amorphic.logger.clearContextProps(context);
+        ark.amorphic.logger.warn({foo: 'bar3'});
+        var child = ark.amorphic.logger.createChildLogger({name: 'supertype_child'});
         const sendToLogStubChild = sinon.stub(child, 'sendToLog');
         sendToLogStubChild.callsFake((level, obj) => {
             var str = sendToLogStubChild.lastCall.thisValue.prettyPrint(level, obj).replace(/.*: /, '');
@@ -130,27 +130,28 @@ describe('Freeze Dried Arks', function () {
         });
         child.setContextProps({permFoo: 'childFoo'});
         child.warn({'foo': 'bar4'});
-        ObjectTemplate.logger.warn({foo: 'bar5'});
-        ObjectTemplate.logger.startContext({name: 'supertype2'});
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error');
+        ark.amorphic.logger.warn({foo: 'bar5'});
+        ark.amorphic.logger.startContext({name: 'supertype2'});
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error');
         console.log('setting level to error');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar6');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar7');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error;foo:bar6');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error;foo:bar7');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
         var result = '(foo="bar1"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar2"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}}request={})(foo="bar3"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar4"data={}context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}}request={})(foo="bar5"data={}context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}data={}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})';
 
-        sinon.restore();
         expect(output).to.equal(result);
+        sinon.restore();
     });
-
     it ('can log with custom logger', function () {
         var date = new Date('2010-11-11T00:00:00.000Z');
         var output = '';
+        
+        let ark: Ark = new Ark();
 
         class CustomLogger {
             info(obj) {
@@ -177,8 +178,8 @@ describe('Freeze Dried Arks', function () {
             }
 
             split(json, props) {
-                const a = {};
-                const b = {};
+                const a: { name?, msg? } = {};
+                const b: { name?, msg? } = {};
 
                 for (const prop in json) {
                     (props[prop] ? b : a)[prop] = json[prop];
@@ -221,33 +222,34 @@ describe('Freeze Dried Arks', function () {
             }
         };
 
-        ObjectTemplate.logger.setLogger(new CustomLogger());
+        ark.amorphic.logger.setLogger(new CustomLogger());
 
-        ObjectTemplate.logger.startContext({name: 'supertype'});
-        ObjectTemplate.logger.setLevel('info');
-        ObjectTemplate.logger.info({foo: 'bar1'}, 'Yippie');
-        var context = ObjectTemplate.logger.setContextProps({permFoo: 'permBar1'});
-        ObjectTemplate.logger.warn({foo: 'bar2'});
-        ObjectTemplate.logger.clearContextProps(context);
-        ObjectTemplate.logger.error({foo: 'bar3'});
-        var child = ObjectTemplate.logger.createChildLogger({name: 'supertype_child'});
+        ark.amorphic.logger.startContext({name: 'supertype'});
+        ark.amorphic.logger.setLevel('info');
+        ark.amorphic.logger.info({foo: 'bar1'}, 'Yippie');
+        var context = ark.amorphic.logger.setContextProps({permFoo: 'permBar1'});
+        ark.amorphic.logger.warn({foo: 'bar2'});
+        ark.amorphic.logger.clearContextProps(context);
+        ark.amorphic.logger.error({foo: 'bar3'});
+        var child = ark.amorphic.logger.createChildLogger({name: 'supertype_child'});
         child.setContextProps({permFoo: 'childFoo'});
         child.warn({'foo': 'bar4'});
-        ObjectTemplate.logger.debug({foo: 'bar5'});
-        ObjectTemplate.logger.startContext({name: 'supertype2'});
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('debug');
+        ark.amorphic.logger.debug({foo: 'bar5'});
+        ark.amorphic.logger.startContext({name: 'supertype2'});
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('debug');
         console.log('setting level to debug');
-        ObjectTemplate.logger.debug({foo: 'bar5'});
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar6');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
-        ObjectTemplate.logger.setLevel('error;foo:bar7');
-        ObjectTemplate.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.debug({foo: 'bar5'});
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error;foo:bar6');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
+        ark.amorphic.logger.setLevel('error;foo:bar7');
+        ark.amorphic.logger.warn({foo: 'bar6', woopie: {yea: true, oh: date}}, 'hot dog');
 
         console.log(output);
         var result = '30:(foo="bar1"context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})40:(foo="bar2"context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"permBar1"}}}request={})50:(foo="bar3"context={"data":{"__amorphicContext":{"name":"supertype"}}}request={})40:(foo="bar4"context={"data":{"__amorphicContext":{"name":"supertype","permFoo":"childFoo"}}}request={})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})20:(foo="bar5"context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})40:(foo="bar6"woopie={"yea":true,"oh":"2010-11-11T00:00:00.000Z"}context={"data":{"__amorphicContext":{"name":"supertype2"}}}request={})';
 
         expect(output).to.equal(result);
     });
+
 });

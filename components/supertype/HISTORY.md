@@ -1,3 +1,5 @@
+## 9.0.0
+* Conversion from CommonJS to ESM, using mjs and mts
 ## 8.0.1
 * Small static useAmorphic flag on SupertypeConfig
 ## 8.0.0

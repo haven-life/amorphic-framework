@@ -1,5 +1,5 @@
-import {ObjectTemplate} from './ObjectTemplate';
-import * as serializer from './serializer';
+import {ObjectTemplate} from './ObjectTemplate.mjs';
+import * as serializer from './serializer.mjs';
 
 function constructorName(constructor) {
     var namedFunction = constructor.toString().match(/class ([^]\w+)/) || constructor.toString().match(/function ([^(]*)/);

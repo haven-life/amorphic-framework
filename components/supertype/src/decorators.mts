@@ -1,5 +1,5 @@
-export { Supertype } from './Supertype';
-import { ObjectTemplate } from './ObjectTemplate';
+export { Supertype } from './Supertype.mjs';
+import { ObjectTemplate } from './ObjectTemplate.mjs';
 
 import 'reflect-metadata';
 
@@ -159,6 +159,8 @@ export function property(props?): any {
         else if (typeof props.getType === 'function') {
             target.__deferredType__ = target.hasOwnProperty('__deferredType__') ? target.__deferredType__ : {};
             target.__deferredType__[targetKey] = props.getType;
+            console.log('getType target', target);
+            target.__deferredType__[targetKey].bind(target);
             delete props.getType;
         }
         else if (!type) {
