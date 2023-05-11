@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property} from '../../../dist/index';
-import {Animal} from './Animal';
+import { supertypeClass, property } from '../../../src/index';
+import { Animal } from './Animal';
 
 @supertypeClass
 export class Bear extends Animal  {

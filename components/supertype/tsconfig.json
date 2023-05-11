@@ -1,25 +1,24 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "es2020",
-    "lib": ["es2015", "es2017", "dom", "es2020"],
-    "noImplicitAny": false,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "declaration": true,
-    "declarationDir": "dist",
-    "outDir": "./dist",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "inlineSources": true,
-    "inlineSourceMap": true
-  },
-  "declaration": true,
-  "exclude": [
-    "./typescript",
-    "./test/typescript",
-    "./dist/**/*"
-  ]
+	"compilerOptions": {
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"target": "es2020",
+		"lib": ["es2015", "es2017", "dom", "es2020"],
+		"noImplicitAny": false,
+		"typeRoots": [
+			"./node_modules/@types"
+		],
+		"outDir": "./dist",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"inlineSources": true,
+		"inlineSourceMap": true,
+		"esModuleInterop": true
+	},
+	"declaration": true,
+	"exclude": [
+		"./typescript",
+		"./test/typescript",
+		"./dist/**/*"
+	]
 }

@@ -1,5 +1,5 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('../dist/index.js').default;
+import { expect } from 'chai';
+import ObjectTemplate from '../dist/esm/index.js';
 
 var BaseTemplate1 = ObjectTemplate.create('BaseTemplate1',
     {

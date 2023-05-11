@@ -1,5 +1,5 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('../dist/index.js').default;
+import { expect } from 'chai';
+import ObjectTemplate from '../dist/esm/index.js';
 
 var Main = ObjectTemplate.create('Main', {
     name: {type: String, value: ''},
@@ -58,6 +58,8 @@ main.addSubManyA(new SubMany('mainManyA'));
 main.addSubManyB(new SubMany('mainManyB'));
 main.addSubManyB(new SubManyExtended('mainManyExtendedB'));
 
+let calledForTopLevel = false;
+
 it('can clone', function () {
     var relationship;
     var calledForTopLeve = false;
@@ -76,6 +78,7 @@ it('can clone', function () {
         }
         return null;    // normal create process
     });
+    expect(calledForTopLevel).to.equal(true);
     expect(main2.subA).to.equal(null);
     expect(main2.subB.name).to.equal('mainOneB');
     expect(main2.subB instanceof SubOneExtended).to.equal(true);

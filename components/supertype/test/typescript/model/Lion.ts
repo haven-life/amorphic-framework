@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property} from '../../../dist/index';
-import {Animal} from './Animal';
+import { supertypeClass, property } from '../../../src/index';
+import { Animal, AnimalContainer } from './Animal';
 
 @supertypeClass
 export class Lion extends Animal
@@ -15,3 +15,9 @@ export class Lion extends Animal
         return true;
     }
 };
+
+@supertypeClass
+export class LionContainer extends AnimalContainer {
+    @property({getType:() => Lion})
+    containee: Lion;
+}

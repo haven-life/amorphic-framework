@@ -1,3 +1,5 @@
+## 9.0.0
+* Hybrid package to use both ESM and CommonJS based on import type
 ## 8.0.1
 * Small static useAmorphic flag on SupertypeConfig
 ## 8.0.0

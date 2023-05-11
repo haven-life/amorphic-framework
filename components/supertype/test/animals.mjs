@@ -1,10 +1,10 @@
-var expect = require('chai').expect;
-var ObjectTemplate = require('../dist/index.js').default;
-var sinon = require('sinon');
+import { expect } from 'chai';
+import ObjectTemplate from '../dist/esm/index.js';
+import sinon from 'sinon';
 
 
 /* Teacher Student Example */
-BaseTemplate = ObjectTemplate.create('BaseTemplate',
+let BaseTemplate = ObjectTemplate.create('BaseTemplate',
     {
         name: {type: String},
         isMammal: {type: Boolean, value: true},
@@ -15,7 +15,7 @@ BaseTemplate.mixin({
     legs: {type: Number, value: 2} // Make sure duplicate props work
 });
 
-Lion = BaseTemplate.extend('Lion',
+let Lion = BaseTemplate.extend('Lion',
     {
         init: function init() {
             BaseTemplate.call(this);
@@ -27,7 +27,7 @@ Lion = BaseTemplate.extend('Lion',
         }
     });
 
-Bear = BaseTemplate.extend('Bear',
+let Bear = BaseTemplate.extend('Bear',
     {
         init: function init() {
             BaseTemplate.call(this);
@@ -38,7 +38,7 @@ Bear = BaseTemplate.extend('Bear',
         }
     });
 
-Ark = ObjectTemplate.create('Ark',
+let Ark = ObjectTemplate.create('Ark',
     {
         animals: {type: Array, of: BaseTemplate, value: []},
         board: function (animal) {

@@ -1,6 +1,5 @@
-import {expect} from 'chai';
-import * as mocha from 'mocha';
-import {property, Supertype, supertypeClass} from "../../dist/index";
+import { expect } from 'chai';
+import { Supertype, supertypeClass, property } from '../../src/index';
 
 @supertypeClass
 class SubOne extends Supertype {
