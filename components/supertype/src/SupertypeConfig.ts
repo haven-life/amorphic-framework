@@ -1,4 +1,4 @@
-import * as nconf from 'nconf';
+import nconf from 'nconf';
 import { Config, ApplicationNameToConfigMap } from '@haventech/amorphic-contracts';
 
 

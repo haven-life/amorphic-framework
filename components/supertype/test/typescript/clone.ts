@@ -82,14 +82,14 @@ it('can clone', function () {
     var main2 = main.createCopy(function (obj, prop, template) {
         console.log(template.__name__);
         switch (template.__name__) {
-        case 'Main':
-            return null; // Clone normally
+            case 'Main':
+                return null; // Clone normally
         }
         switch (obj.__template__.__name__ + '.' + prop) {
-        case 'Main.subA':
-            return undefined;  // Don't clone
-        case 'Main.subsA':
-            return undefined;	// Don't clone
+            case 'Main.subA':
+                return undefined;  // Don't clone
+            case 'Main.subsA':
+                return undefined;	// Don't clone
         }
         return null;    // normal create process
     });

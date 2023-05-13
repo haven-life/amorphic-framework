@@ -19,6 +19,7 @@
 	"exclude": [
 		"./typescript",
 		"./test/typescript",
-		"./dist/**/*"
+		"./dist/**/*",
+		"./transformers"
 	]
 }

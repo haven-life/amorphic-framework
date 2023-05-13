@@ -19,7 +19,7 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
     // so that it will be called again when the decorators are actually processed.  Kinda spliffy.
 
     // Called by decorator processor
-    if (objectProps.prototype) { // if objectProps is the class (second pass if passed with {toClient style params} or first pass when @supertypeClass no paren and args)
+    if (objectProps && objectProps.prototype) { // if objectProps is the class (second pass if passed with {toClient style params} or first pass when @supertypeClass no paren and args)
         return decorator(objectProps);
     }
 

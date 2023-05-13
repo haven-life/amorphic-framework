@@ -31,16 +31,17 @@
         "nyc": "15.1.0",
         "sinon": "15.0.1",
         "ts-node": "10.9.1",
+        "ttypescript": "^1.5.15",
         "typescript": "^4.9.5"
     },
     "scripts": {
         "lint": "eslint .",
         "debug:tests": "mocha --inspect-brk test/animals.mjs",
         "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
-        "test:ts": "TS_NODE_PROJECT='./tsconfig-cjs.json' mocha --require ts-node/register test/typescript/*",
+        "test:ts": "TS_NODE_PROJECT='./tsconfig.cjs.json' mocha --require ts-node/register test/typescript/*",
         "clean": "rm -rf dist/",
-        "compile": "tsc -b tsconfig-cjs.json tsconfig-esm.json tsconfig-types.json",
-        "build": "npm run clean && npm run compile && node ./prepare-package.mjs",
+        "compile": "tsc -b tsconfig.cjs.json tsconfig.types.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs",
+        "build": "npm run clean && npm run compile",
         "test": "mocha --config test/.mocharc.json test/**/*.mjs",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
@@ -56,6 +57,5 @@
     },
     "bugs": {
         "url": "http://github.com/haven-life/supertype/issues"
-    },
-    "optionalDependencies": {}
+    }
 }
