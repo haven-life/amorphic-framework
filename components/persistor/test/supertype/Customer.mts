@@ -1,6 +1,6 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
-import {Role} from './Role';
-import {Address} from './Address';
+import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm/index.js';
+import { Role } from './Role.mjs';
+import { Address } from './Address.mjs';
 
 @supertypeClass
 export class Customer extends Persistable(Supertype) {
@@ -24,7 +24,7 @@ export class Customer extends Persistable(Supertype) {
 
     @property()
     lastName: string = '';
-
+   
     @property()
     local1: string = 'local1';
 
@@ -32,18 +32,18 @@ export class Customer extends Persistable(Supertype) {
     local2: string = 'local2';
 
     @property()
-    nullNumber: number = null;
+    nullNumber: number | null = null;
 
     @property()
-    nullDate: Date = null;
+    nullDate: Date | null = null;
 
     @property()
-    nullString: string = null;
+    nullString: string | null = null;
 
     @property({getType: () => Role})
     roles:  Array<Role> = [];
 
-    @property()
+    @property({getType: () => Customer})
     referredBy: Customer;
 
     @property()

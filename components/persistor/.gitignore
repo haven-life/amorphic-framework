@@ -6,5 +6,7 @@ download
 coverage
 dist
 .nyc_output
-test/supertype/*.js
+test/supertype/*.mjs
 lib/persistable.js
+.yalc
+yalc.lock

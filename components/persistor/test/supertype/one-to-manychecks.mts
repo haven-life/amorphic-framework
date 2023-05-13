@@ -1,20 +1,9 @@
-
-declare function require(name:string);
-var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
-var logLevel = process.env.logLevel || 'debug';
-
-PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';
-PersistObjectTemplate.debugInfo = 'conflict;data';//'api;io';
-PersistObjectTemplate.logger.setLevel(logLevel);
-
-
+import { Persistor as PersistObjectTemplate } from '../../dist/esm/index.js';
 import { expect } from 'chai';
-import * as mocha from 'mocha';
-import * as _ from 'underscore';
-import {Employee} from "./Employee";
-import Promise = require('bluebird');
-import {Responsibility} from "./Responsibility";
+import _ from 'underscore';
+import { Employee } from './Employee.mjs';
+import Promise from 'bluebird';
+import { Responsibility } from './Responsibility.mjs';
 
 
 var schema = {

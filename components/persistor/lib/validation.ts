@@ -1,4 +1,5 @@
-import * as Ajv from 'ajv';
+import Ajv from 'ajv';
+
 const schemas = {
     'persistSchema': {
         'type': 'object',

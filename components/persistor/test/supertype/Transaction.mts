@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
-import {Account} from './Account';
+import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm/index.js';
+import { Account } from './Account.mjs';
 
 @supertypeClass
 export class Transaction  extends Persistable(Supertype) {
@@ -43,5 +43,9 @@ export class Xfer extends Transaction {
         this.fromAccount = fromAccount;
         if (fromAccount)
             fromAccount.fromAccountTransactions.push(this);
+    }
+
+    static getFromPersistWithQuery(query, cascade?, start?, limit?, isTransient?, idMap?, options?, logger?) : any {
+        return super.getFromPersistWithQuery(query, cascade, start, limit, isTransient, idMap, options, logger);
     }
 }

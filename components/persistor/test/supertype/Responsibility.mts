@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
-import {Employee} from './Employee';
+import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm/index.js';
+import { Employee } from './Employee.mjs';
 
 @supertypeClass
 export class Responsibility extends Persistable(Supertype) {

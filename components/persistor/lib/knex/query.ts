@@ -1,10 +1,10 @@
 import { RemoteDocService } from '../remote-doc/RemoteDocService';
 import { PersistorUtils } from '../utils/PersistorUtils';
+import Promise from 'bluebird';
+import _ from 'underscore';
 
-module.exports = function (PersistObjectTemplate) {
+export default function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/query`;
-    var Promise = require('bluebird');
-    var _ = require('underscore');
 
     PersistObjectTemplate.concurrency = 10;
 
@@ -130,7 +130,7 @@ module.exports = function (PersistObjectTemplate) {
         function processRequests() {
             var segLength = requests.length;
             //console.log("Processing " + segLength + " promises " + PersistObjectTemplate.concurrency);
-            return Promise.map(requests, function (request, _ix) {
+            return Promise.map(requests, function (request: any, _ix) {
                 return request();
             }, {concurrency: PersistObjectTemplate.concurrency})
                 .then(function () {
@@ -420,7 +420,7 @@ module.exports = function (PersistObjectTemplate) {
             }
             function buildFilterQuery(query, foreignFilterKey, foreignFilterValue, alternateProps) {
                 if (alternateProps) {
-                    query['$or'] = _.map(alternateProps, function(prop) {
+                    query['$or'] = _.map(alternateProps, function(prop: any) {
                         var condition = {}
                         condition[prop.foreignFilterKey] = prop.foreignFilterValue;
                         return condition;
@@ -462,7 +462,7 @@ module.exports = function (PersistObjectTemplate) {
                 var closureType = defineProperty.type;
                 var closureDefineProperty = defineProperty;
 
-                var join = _.find(joins, function (j) {return j.prop == prop});
+                var join = _.find<any>(joins, function (j: any) {return j.prop == prop});
 
                 requests.push(generateQueryRequest.bind(this, join, query, closureProp,
                     closurePersistorProp, closureCascade, closureForeignId, closureType, closureDefineProperty));
@@ -530,7 +530,7 @@ module.exports = function (PersistObjectTemplate) {
                                         return obj[foreignFilterKey] == foreignFilterValue;
                                     });
                                     if (alternateProps)
-                                        _.each(alternateProps, function(alternateProp, alternatePropKey) {
+                                        _.each(alternateProps, function(alternateProp: any, alternatePropKey) {
                                             obj[alternatePropKey] = _.filter(objs, function (obj) {
                                                 return obj[alternateProp.foreignFilterKey] == alternateProp.foreignFilterValue
                                             })

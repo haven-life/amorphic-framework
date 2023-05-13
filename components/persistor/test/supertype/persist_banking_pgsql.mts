@@ -3,15 +3,21 @@
  * many-to-many relationships
  *
  */
-import { Persistor as persistor, amorphicStatic } from '../../dist/index.js';
+import { Persistor as persistor, amorphicStatic } from '../../dist/esm/index.js';
 import { expect } from 'chai';
-import * as _ from 'underscore';
-import { Customer } from './Customer';
-import { ExtendedCustomer } from './ExtendedCustomer';
-import Promise = require('bluebird');
-import { Role } from './Role';
-import { Account } from './Account';
-import { Transaction, Xfer } from './Transaction';
+import _ from 'underscore';
+import { Customer } from './Customer.mjs';
+import { ExtendedCustomer } from './ExtendedCustomer.mjs';
+import Promise from 'bluebird';
+import { Role } from './Role.mjs';
+import { Account } from './Account.mjs';
+import { Transaction, Xfer } from './Transaction.mjs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+
+const __dirname = path.dirname(__filename);
 
 var schema = {
     Customer: {
@@ -393,7 +399,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
             done(e)
         })
     });
-    var transactionIds = [];
+    var transactionIds: any[] = [];
     it('Can fetch all transactions', function (done) {
         Transaction.getFromPersistWithQuery({}, null, null, null, null, null, {sort: {_id: 1}}).then (function (transactions) {
             expect(transactions.length).to.equal(6);
@@ -969,7 +975,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
     it('can delete ts', function (done) {
         Customer.getFromPersistWithQuery({}, {roles: {fetch: {account: {fetch: {roles: true}}}}}).then (function (customers) {
             function deleteStuff(txn) {
-                var promises = [];
+                var promises: any[] = [];
                 customers.forEach(function(customer) {
                     customer.roles.forEach(function (role) {
                         var account = role.account;

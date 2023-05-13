@@ -1,8 +1,8 @@
-import {Supertype, supertypeClass, property, Persistable} from '../../dist/index';
-import {Customer} from './Customer';
-import {Account} from './Account';
-import {ReturnedMail} from './ReturnedMail';
-import "reflect-metadata";
+import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm/index.js';
+import { Customer } from './Customer.mjs';
+import { Account } from './Account.mjs';
+import { ReturnedMail } from './ReturnedMail.mjs';
+import 'reflect-metadata';
 
 @supertypeClass
 export class Address extends Persistable(Supertype) {

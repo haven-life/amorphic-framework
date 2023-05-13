@@ -36,7 +36,7 @@ describe('persist newapi extend', function () {
     });
     beforeEach('arrange', function () {
         ObjectTemplate = require('@haventech/supertype').default;
-        PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+        PersistObjectTemplate = require('../dist/cjs/index.js').default(ObjectTemplate, null, ObjectTemplate);
         schema.Person = {};
         schema.Person.table =  'tx_person';
         schema.Person.documentOf =  'tx_person';

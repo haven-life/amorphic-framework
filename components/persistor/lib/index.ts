@@ -49,11 +49,23 @@
  * @param RemoteObjectTemplate
  * @param baseClassForPersist
  */
+import * as supertype from '@haventech/supertype';
+import { default as apiAction } from './api';
+import { default as schemaAction } from './schema';
+import { default as utilAction } from './util';
+import { default as mongoQueryAction } from './mongo/query';
+import { default as mongoUpdateAction } from './mongo/update';
+import { default as mongoDbAction } from './mongo/db';
+import { default as knexQueryAction } from './knex/query';
+import { default as knexUpdateAction } from './knex/update';
+import { default as knexDbAction } from './knex/db';
+import { amorphicStatic } from './amorphicStatic';
+
 var nextId = 1;
 var objectTemplate;
-var supertype = require('@haventech/supertype');
+let amorphicStaticObj = amorphicStatic;
 
-module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
+const create = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForPersist) { //@TODO: Why is ObjectTemplate and RemoteObjectTemplate here?
     var PersistObjectTemplate = baseClassForPersist._createObject();
 
     PersistObjectTemplate.__id__ = nextId++;
@@ -63,60 +75,64 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     PersistObjectTemplate.dirtyObjects = {};
     PersistObjectTemplate.savedObjects = {};
 
-    require('./api.js')(PersistObjectTemplate, baseClassForPersist);
-    require('./schema.js')(PersistObjectTemplate);
-    require('./util.js')(PersistObjectTemplate);
-    require('./mongo/query.js')(PersistObjectTemplate);
-    require('./mongo/update.js')(PersistObjectTemplate);
-    require('./mongo/db.js')(PersistObjectTemplate);
-    require('./knex/query.js')(PersistObjectTemplate);
-    require('./knex/update.js')(PersistObjectTemplate);
-    require('./knex/db.js')(PersistObjectTemplate);
+    apiAction(PersistObjectTemplate, baseClassForPersist);
+    schemaAction(PersistObjectTemplate);
+    utilAction(PersistObjectTemplate);
+    mongoQueryAction(PersistObjectTemplate);
+    mongoUpdateAction(PersistObjectTemplate);
+    mongoDbAction(PersistObjectTemplate);
+    knexQueryAction(PersistObjectTemplate);
+    knexUpdateAction(PersistObjectTemplate);
+    knexDbAction(PersistObjectTemplate);
 
     objectTemplate = PersistObjectTemplate;
     PersistObjectTemplate.prototype.amorphicStatic = PersistObjectTemplate;
-    if (this.exports) {
-        this.exports.amorphicStatic = PersistObjectTemplate;
-    }
-
+    amorphicStaticObj = PersistObjectTemplate;
+    
     return  PersistObjectTemplate;
 }
 
-module.exports.supertypeClass = function (target) {
+export default create;
+
+export function supertypeClass(target) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
     return supertype.supertypeClass(target, objectTemplate)
 };
-module.exports.Supertype = function () {
+
+export function Supertype() {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
     return Reflect.construct( supertype.Supertype, [objectTemplate], this.constructor );
 };
-module.exports.Supertype.prototype = supertype.Supertype.prototype;
-module.exports.property = function (props) {
+Object.setPrototypeOf(Supertype.prototype, supertype.Supertype.prototype);
+
+export function property(props) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
     return supertype.property(props, objectTemplate);
 }
-const { amorphicStatic } = require('./amorphicStatic.js');
-module.exports.amorphicStatic = amorphicStatic;
+export { amorphicStaticObj as amorphicStatic };
 
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+const __extends = (function (this: any) {
+    if (!this || !this.__extends) {
+        var extendStatics = Object.setPrototypeOf ||
+                ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+                function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return function (d, b) {
+            extendStatics(d, b);
+            function __() { this.constructor = d; }
+            d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+        };
+    } else {
+        return this.__extends;
+    }
+}).call(this);
 
-
-module.exports.Persistable = function (Base) {
+export function Persistable(Base) {
     return (function (_super) {
         __extends(class_1, _super);
         function class_1() {
@@ -127,12 +143,14 @@ module.exports.Persistable = function (Base) {
 }
 
 let ObjectTemplate = supertype.default;
-module.exports.Persistor = {
-    create: function () {return  module.exports(ObjectTemplate, null, ObjectTemplate)}
+export const Persistor = {
+    create: function () {
+        return create(ObjectTemplate, null, ObjectTemplate);
+    }
 }
 
-Object.defineProperty(module.exports.Persistable.prototype, 'persistor', {get: function () {
-    return this.__objectTemplate__
+Object.defineProperty(Persistable.prototype, 'persistor', {get: function () {
+    return this.__objectTemplate__;
 }});
 
-module.exports.Schema = require('./types/Schema')
+export { Schema } from './types/Schema';

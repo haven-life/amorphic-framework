@@ -1,7 +1,11 @@
-import { SupertypeConfig } from "@haventech/supertype";
+import { SupertypeConfig } from '@haventech/supertype';
+import defaultExport, { supertypeClass, Supertype, property, amorphicStatic, Persistable, Persistor, Schema } from './lib/index';
 
-module.exports = require('./lib/index.js');
+export default defaultExport;
+export { supertypeClass, Supertype, property, amorphicStatic, Persistable, Schema };
 
+let persistor = Persistor;
 if (!SupertypeConfig.useAmorphic) {
-    module.exports.Persistor = module.exports.Persistor.create();
+    persistor = persistor.create();
 }
+export { persistor as Persistor }

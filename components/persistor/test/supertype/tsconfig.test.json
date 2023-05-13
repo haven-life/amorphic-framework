@@ -1,6 +1,14 @@
 {
     "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "../../",
+		"module": "esnext",
+        "strictNullChecks": false,
+		"plugins": [
+			{ "transform": "../../transformers/reflect-metadata-resolver.ts", "after": true }
+		]
+	},
     "include": [
-        "./*.ts"
+        "./*.mts"
     ]
 }
