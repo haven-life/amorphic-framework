@@ -5,7 +5,7 @@
 		"module": "esnext",
         "strictNullChecks": false,
 		"plugins": [
-			{ "transform": "../../transformers/reflect-metadata-resolver.ts", "after": true }
+			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
 		]
 	},
     "include": [
