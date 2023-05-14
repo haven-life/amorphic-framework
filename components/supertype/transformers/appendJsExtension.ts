@@ -5,30 +5,30 @@ const transformer = (_: typescript.Program) => (transformationContext: typescrip
 	function visitNode(node: typescript.Node): typescript.VisitResult<typescript.Node> {
 		if (shouldMutateModuleSpecifier(node)) {
 			if (typescript.isImportDeclaration(node)) {
-				const newModuleSpecifier = typescript.factory.createStringLiteral(`${node.moduleSpecifier.text}.js`)
+				const newModuleSpecifier = typescript.factory.createStringLiteral(`${node.moduleSpecifier.text}.js`);
                 return typescript.factory.updateImportDeclaration(node, typescript.getModifiers(node), node.importClause, newModuleSpecifier, undefined);
 			} else if (typescript.isExportDeclaration(node)) {
-				const newModuleSpecifier = typescript.factory.createStringLiteral(`${node.moduleSpecifier.text}.js`)
+				const newModuleSpecifier = typescript.factory.createStringLiteral(`${node.moduleSpecifier.text}.js`);
                 return typescript.factory.updateExportDeclaration(node, typescript.getModifiers(node), node.isTypeOnly, node.exportClause, newModuleSpecifier, undefined);
 			}
 		}
 
-		return typescript.visitEachChild(node, visitNode, transformationContext)
+		return typescript.visitEachChild(node, visitNode, transformationContext);
 	}
 
 	function shouldMutateModuleSpecifier(node: typescript.Node): node is (typescript.ImportDeclaration | typescript.ExportDeclaration) & { moduleSpecifier: typescript.StringLiteral } {
-		if (!typescript.isImportDeclaration(node) && !typescript.isExportDeclaration(node)) return false
-		if (node.moduleSpecifier === undefined) return false
-		// only when module specifier is valid
-		if (!typescript.isStringLiteral(node.moduleSpecifier)) return false
-		// only when path is relative
-		if (!node.moduleSpecifier.text.startsWith('./') && !node.moduleSpecifier.text.startsWith('../')) return false
-		// only when module specifier has no extension
-		if (path.extname(node.moduleSpecifier.text) !== '') return false
-		return true
+		return !((!typescript.isImportDeclaration(node) && !typescript.isExportDeclaration(node)) ||
+			// only when module specifier is valid
+		    (node.moduleSpecifier === undefined) ||
+			// only when path is relative
+			(!typescript.isStringLiteral(node.moduleSpecifier)) ||
+			// only when path is relative
+			(!node.moduleSpecifier.text.startsWith('./') && !node.moduleSpecifier.text.startsWith('../')) ||
+			// only when module specifier has no extension
+			(path.extname(node.moduleSpecifier.text) !== ''));
 	}
 
-	return typescript.visitNode(sourceFile, visitNode)
+	return typescript.visitNode(sourceFile, visitNode);
 }
 
 export default transformer;
