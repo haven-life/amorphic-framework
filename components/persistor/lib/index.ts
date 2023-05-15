@@ -113,7 +113,7 @@ export function property(props) {
     if (!objectTemplate) {
         throw new Error('Please create PersisObjectTemplate before importing templates');
     }
-    return supertype.property(props, objectTemplate);
+    return supertype.property(props);
 }
 export { amorphicStaticObj as amorphicStatic };
 
