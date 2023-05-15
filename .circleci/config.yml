@@ -41,10 +41,10 @@ jobs:
           command: npm run setup
 
       - run:
-          name: LS what is in supertype
+          name: LS what is in supertype transformers
           command: |
-            ls -l components/supertype
-            exit 1
+            ls -l components/supertype/transformers
+            exit 0
 
       # build for all packages
       - run:
