@@ -1,4 +1,5 @@
-import { SupertypeSession } from '@haventech/supertype';
+import {SupertypeSession, SupertypeLogger} from '@haventech/supertype';
+import {Persistor} from '@haventech/persistor';
 type Constructable<BC> = new (...args: any[]) => BC;
 
 export class AmorphicSession extends SupertypeSession {
@@ -10,8 +11,24 @@ export class AmorphicSession extends SupertypeSession {
     reqSession: any;
     expireSession(): any {};
 }
-
-export { amorphicStatic } from '@haventech/persistor';
+export class amorphicStatic {
+    static logger : SupertypeLogger;
+    static config : any;
+    static beginDefaultTransaction() : any {}
+    static beginTransaction(nodefault? : boolean) : any {}
+    static endTransaction(persistorTransaction?, logger?) : any {}
+    static begin (isdefault?) : any {}
+    static end (persistorTransaction?, logger?) : any {};
+    static commit (options?) : any {};
+    static createTransientObject(callback : any) : any {};
+    static __transient__ : any;
+    static __dictionary__: any;
+    static debugInfo: any;
+    static reqSession: any;
+    static getClasses(): any {};
+    static syncAllTables(): any {};
+    static getInstance(): any {};
+}
 
 export function Remoteable<BC extends Constructable<{}>>(Base: BC) {
     return class extends Base {

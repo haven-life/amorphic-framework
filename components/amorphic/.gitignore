@@ -15,3 +15,5 @@ lib/utils/remoteable.js.map
 dist
 .sonarlint
 .nyc_output
+.yalc
+yalc.lock
