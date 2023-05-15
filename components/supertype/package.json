@@ -10,7 +10,8 @@
             "require": "./dist/cjs/index.js",
             "import": "./dist/esm/index.js",
             "default": "./dist/esm/index.js"
-        }
+        },
+        "./transformers/preparePackages.mjs": "./transformers/preparePackages.mjs"
     },
     "types": "dist/mjs/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
@@ -40,7 +41,7 @@
         "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
         "test:ts": "TS_NODE_PROJECT='./tsconfig.cjs.json' mocha --require ts-node/register test/typescript/*",
         "clean": "rm -rf dist/",
-        "compile": "tsc -b tsconfig.cjs.json tsconfig.types.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs && cp -r transformers/ dist/transformers/",
+        "compile": "tsc -b tsconfig.cjs.json tsconfig.types.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs",
         "build": "npm run clean && npm run compile",
         "test": "mocha --config test/.mocharc.json test/**/*.mjs",
         "test:config": "mocha test/config",
