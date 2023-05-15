@@ -74,10 +74,6 @@ module.exports = function (_ObjectTemplate, _RemoteObjectTemplate, baseClassForP
     require('./knex/db.js')(PersistObjectTemplate);
 
     objectTemplate = PersistObjectTemplate;
-    PersistObjectTemplate.prototype.amorphicStatic = PersistObjectTemplate;
-    if (this.exports) {
-        this.exports.amorphicStatic = PersistObjectTemplate;
-    }
 
     return  PersistObjectTemplate;
 }
@@ -101,8 +97,6 @@ module.exports.property = function (props) {
     }
     return supertype.property(props, objectTemplate);
 }
-const { amorphicStatic } = require('./amorphicStatic.js');
-module.exports.amorphicStatic = amorphicStatic;
 
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||

@@ -8,3 +8,5 @@ dist
 .nyc_output
 test/supertype/*.js
 lib/persistable.js
+.yalc
+yalc.lock

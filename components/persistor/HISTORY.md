@@ -1,6 +1,3 @@
-## 13.0.0
-* Add ability for persistor to be included on its own and start up on its on
-* Moved amorphicStatic to persistor because of this
 ## 12.0.1
 * Add back missing Relect entry.
 ## 12.0.0

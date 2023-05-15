@@ -76,7 +76,6 @@ export class Persistor extends SupertypeSession {
     getPersistorProps () : any {}
 
     connect (connect : any, schema : any) : any {}
-    startup (configPath : any, configStore? : any) : any {}
     dropAllTables () : any {}
     syncAllTables () : any {}
     onAllTables (callback : Function, concurrency? : number) : any {}
@@ -95,8 +94,6 @@ export class Persistor extends SupertypeSession {
     objectMap: any
     static createTransientObject(callback : any) : any {};
 }
-
-export const PersistorObj: Persistor = Persistor.create();
 
 export function ContainsPersistable<BC extends Constructable<{}>>(Base: BC) {
     return class extends Base {
