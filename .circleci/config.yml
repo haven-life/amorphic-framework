@@ -40,12 +40,6 @@ jobs:
           name: Install all modules
           command: npm run setup
 
-      - run:
-          name: LS what is in supertype
-          command: |
-            ls -l components/supertype
-            exit 1
-
       # build for all packages
       - run:
           name: Build packages
