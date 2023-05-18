@@ -13,7 +13,7 @@ const transformer = (_: typescript.Program) => (transformationContext: typescrip
             if (typescript.isCallExpression(node) && typescript.isIdentifier(node.expression) && node.expression.escapedText === '___metadata') {
                 const newArguments = node.arguments.map(argument => 
                     (typescript.isIdentifier(argument) && typeof global[argument.escapedText.toString()] !== 'function') ? 
-                        typescript.factory.createIdentifier(`() => { try { return ${argument.escapedText.toString()}; } catch (e) { return '${argument.escapedText.toString()}'; } }`) : 
+                        typescript.factory.createIdentifier(`() => { try { return ${argument.escapedText.toString()}; } catch { return '${argument.escapedText.toString()}'; } }`) : 
                         argument
                 );
                 return typescript.factory.updateCallExpression(node, node.expression, node.typeArguments, newArguments);
