@@ -4,11 +4,10 @@
  *
  */
 
-var expect = require('chai').expect;
-var _ = require('underscore');
-var Semotus = require('../../dist');
-
-var delay = require('../../dist/helpers/Utilities.js').delay;
+import { expect } from 'chai';
+import _ from 'underscore';
+import { default as Semotus } from '../../dist/esm/index.js';
+import { delay } from '../../dist/esm/helpers/Utilities.js';
 
 var ClientObjectTemplate = Semotus._createObject();
 ClientObjectTemplate.role = 'client';

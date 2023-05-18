@@ -1,12 +1,12 @@
-var expect = require('chai').expect;
-var _ = require('underscore');
-var fs = require('fs');
+import { expect } from 'chai';
+import _ from 'underscore';
+import * as fs from 'fs';
 
-var ClientObjectTemplate = require('../../dist/cjs').default._createObject();
+let ClientObjectTemplate = (await import(`../../dist/esm/index.js?update=${Date.now()}`)).default._createObject();
 ClientObjectTemplate.role = 'client';
 ClientObjectTemplate._useGettersSetters = false;
 
-var ServerObjectTemplate = require('../../dist/cjs').default._createObject();
+let ServerObjectTemplate =  (await import(`../../dist/esm/index.js?update=${Date.now()}`)).default._createObject();
 ServerObjectTemplate.role = 'server';
 ServerObjectTemplate._useGettersSetters = true;
 
@@ -24,8 +24,10 @@ ServerObjectTemplate.createSession('server', sendToClient);
 ClientObjectTemplate.enableSendMessage(true, sendToServer);
 ServerObjectTemplate.enableSendMessage(true, sendToClient);
 
-var ClientController = createTemplates(ClientObjectTemplate).Controller;
-var ServerController = createTemplates(ServerObjectTemplate).Controller;
+let MySubTemplate, MyTemplate, Controller;
+
+let ClientController = createTemplates(ClientObjectTemplate).Controller;
+let ServerController = createTemplates(ServerObjectTemplate).Controller;
 
 function createTemplates(objectTemplate) {
     MySubTemplate = objectTemplate.create('MySubTemplate', {
@@ -83,7 +85,7 @@ function createTemplates(objectTemplate) {
 
         assert: function (a, b) {
 
-            var result = verify(a, b);
+            let result = verify(a, b);
 
             function verify(a, b) {
                 if (a instanceof Date) {
@@ -101,7 +103,7 @@ function createTemplates(objectTemplate) {
                         return true;
                     }
                     else {
-                        for (var ix = 0; ix < a.length; ++ix) {
+                        for (let ix = 0; ix < a.length; ++ix) {
                             if (!b[ix] || !verify(a[ix], b[ix])) {
                                 return false;
                             }
@@ -138,7 +140,7 @@ function createTemplates(objectTemplate) {
         },
         createMyTemplateOnServer: {
             on: 'server', body: function () {
-                var my = new MyTemplate(2, 'three', new Date('January 15, 2015'));
+                let my = new MyTemplate(2, 'three', new Date('January 15, 2015'));
                 return my;
             }
         },
@@ -149,11 +151,12 @@ function createTemplates(objectTemplate) {
             console.log('validateServerIncomingProperty for ' + obj.__template__.__name__ + '.' + prop + '[' + ix + ']');
         },
 
-        onContentRequest: function (request, response, next, file) {
-            var file = __dirname + '/../files/gimbal_housing.pdf';
+        onContentRequest: function (request, response, next) {
+            let file = __dirname + '/../files/gimbal_housing.pdf';
             if (file.match(/gimbal_housing.pdf/)) {
+                let stat;
                 try {
-                    var stat = fs.statSync(file);
+                    stat = fs.statSync(file);
                 }
                 catch (e) {
                     response.writeHead(404, {'Content-Type': 'text/plain'});
@@ -165,7 +168,7 @@ function createTemplates(objectTemplate) {
                     'Content-Type': 'application/pdf',
                     'Content-Length': stat.size
                 });
-                var readStream = fs.createReadStream(file);
+                let readStream = fs.createReadStream(file);
                 readStream.pipe(response);
                 readStream.on('end', function () {
                     console.log('done');
@@ -181,14 +184,14 @@ function createTemplates(objectTemplate) {
     return {Controller: Controller};
 }
 
-describe('Type Tests', function () {
+describe('Type Tests ESM', function () {
 
-    var clientController = new ClientController();
+    let clientController = new ClientController();
     ClientObjectTemplate.controller = clientController;
-    var serverController = ServerObjectTemplate._createEmptyObject(ServerController, clientController.__id__);
+    let serverController = ServerObjectTemplate._createEmptyObject(ServerController, clientController.__id__);
     ServerObjectTemplate.controller = serverController;
 
-    var t1 = new MyTemplate(1, 'two', new Date('January 15, 2015'));
+    let t1 = new MyTemplate(1, 'two', new Date('January 15, 2015'));
     expect(t1.please).to.equal('init please');
     expect(t1.prettyPlease).to.equal('init pretty please');
     expect(t1.half1).to.equal(5);
@@ -200,7 +203,7 @@ describe('Type Tests', function () {
     expect(t1.whole).to.equal(20);
     expect(t1.__whole).to.equal(undefined);
 
-    var t2;
+    let t2;
 
     it('controller.myNumber is null', function () {
         clientController.assert(clientController.myNumber, null);
@@ -484,7 +487,7 @@ describe('Type Tests', function () {
 describe('Extended Templates', function () {
     it('has extended values', function (done) {
 
-        var BaseTemplate1 = ClientObjectTemplate.create('BaseTemplate1',
+        let BaseTemplate1 = ClientObjectTemplate.create('BaseTemplate1',
             {
                 boolTrue: {type: Boolean, value: true},
                 boolFalse: {type: Boolean, value: false},
@@ -494,7 +497,7 @@ describe('Extended Templates', function () {
                 date: {type: Date, value: new Date(100)}
             });
 
-        var ExtendedTemplate1 = BaseTemplate1.extend('ExtendedTemplate1',
+        let ExtendedTemplate1 = BaseTemplate1.extend('ExtendedTemplate1',
             {
                 boolTrue: {type: Boolean, value: false},
                 boolFalse: {type: Boolean, value: true},
@@ -507,7 +510,7 @@ describe('Extended Templates', function () {
                 }
             });
 
-        var ExtendedTemplate2 = BaseTemplate1.extend('ExtendedTemplate2',
+        let ExtendedTemplate2 = BaseTemplate1.extend('ExtendedTemplate2',
             {
                 boolTrue: {type: Boolean, value: false},
                 boolFalse: {type: Boolean, value: true},
@@ -526,7 +529,7 @@ describe('Extended Templates', function () {
                 }
             });
 
-        var ExtendedTemplate3 = BaseTemplate1.extend('ExtendedTemplate3',
+        let ExtendedTemplate3 = BaseTemplate1.extend('ExtendedTemplate3',
             {
                 boolTrue: {type: Boolean, value: false},
                 boolFalse: {type: Boolean, value: true},

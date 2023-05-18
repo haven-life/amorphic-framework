@@ -8,4 +8,4 @@ let persistor = Persistor;
 if (!SupertypeConfig.useAmorphic) {
     persistor = persistor.create();
 }
-export { persistor as Persistor }
+export { persistor as Persistor };

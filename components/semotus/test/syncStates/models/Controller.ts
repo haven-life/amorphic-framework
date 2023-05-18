@@ -1,10 +1,10 @@
-import {property, remote, Supertype, supertypeClass} from '../../../dist';
-import {CallContext, ChangeString, ControllerSyncState} from '../../../src/helpers/Types'
-import {Customer, CustomerA, CustomerB} from './Customer';
-import {Account} from './Account';
-import {Address, AddressBSecondStage} from './Address';
+import { property, remote, Supertype, supertypeClass } from '../../../dist/cjs';
+import { CallContext, ChangeString, ControllerSyncState } from '../../../dist/cjs/helpers/Types';
+import { Customer, CustomerA, CustomerB } from './Customer';
+import { Account } from './Account';
+import { Address, AddressBSecondStage } from './Address';
 
-let delay = require('../../../dist/helpers/Utilities.js').delay;
+let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
 
 @supertypeClass
 export class Controller extends Supertype {

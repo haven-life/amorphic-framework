@@ -1,3 +1,6 @@
+## 10.0.0
+* ESM/CJS Hybrid, depending on the import type either through require or import
+* some logic changes for the property setup
 ## 9.0.0
 * Changed tsconfig target to be es2020.
 * Using Reflect to handle original extends logic.

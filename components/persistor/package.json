@@ -3,8 +3,17 @@
     "description": "A subclass of supertype that serializes to and reconstitutes from MongoDB or SQL databases",
     "homepage": "https://github.com/haven-life/persistor",
     "version": "13.0.0",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "dist/cjs/index.js",
+    "module": "dist/esm/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/esm/index.d.ts",
+            "require": "./dist/cjs/index.js",
+            "import": "./dist/esm/index.js",
+            "default": "./dist/esm/index.js"
+        }
+    },
+    "types": "dist/cjs/index.d.ts",
     "dependencies": {
         "aws-sdk": "2.x",
         "bluebird": "x",

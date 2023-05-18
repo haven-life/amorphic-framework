@@ -1,4 +1,4 @@
-import {bootstrap} from './models/bootstrap';
+import { bootstrap } from './models/bootstrap';
 
 const ret = bootstrap('');
 
