@@ -13,12 +13,14 @@
         "emitDecoratorMetadata": true,
         "inlineSources": true,
         "inlineSourceMap": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "declaration": true
     },
     "declaration": true,
     "exclude": [
         "./typescript",
         "./test/typescript",
+        "./test/typescriptEsm",
         "./dist/**/*",
         "./transformers"
     ]

@@ -6,14 +6,14 @@
     "module": "dist/esm/index.js",
     "exports": {
         ".": {
-            "types": "./dist/types/index.d.ts",
+            "types": "./dist/esm/index.d.ts",
             "require": "./dist/cjs/index.js",
             "import": "./dist/esm/index.js",
             "default": "./dist/esm/index.js"
         },
         "./transformers/preparePackages.mjs": "./transformers/preparePackages.mjs"
     },
-    "types": "dist/mjs/index.d.ts",
+    "types": "dist/cjs/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
         "@haventech/amorphic-contracts": "^0.2.0",
@@ -40,8 +40,9 @@
         "debug:tests": "mocha --inspect-brk test/animals.mjs",
         "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
         "test:ts": "TS_NODE_PROJECT='./tsconfig.cjs.json' mocha --require ts-node/register test/typescript/*",
+        "test:ts:esm": "TS_NODE_PROJECT='./test/tsconfig.json' mocha --loader=ts-node/esm test/typescriptEsm/*",
         "clean": "rm -rf dist/",
-        "compile": "tsc -b tsconfig.cjs.json tsconfig.types.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs",
+        "compile": "tsc -p tsconfig.cjs.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs",
         "build": "npm run clean && npm run compile",
         "test": "mocha --config test/.mocharc.json test/**/*.mjs",
         "test:config": "mocha test/config",
