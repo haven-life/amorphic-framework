@@ -56,7 +56,7 @@ function defer() {
 
 export function RemoteObjectTemplate() {
 	var ObjectTemplate = SupertypeModule.default;
-	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject();
+	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject() as any;
 
 	RemoteObjectTemplate._useGettersSetters = typeof window === 'undefined';
 
