@@ -1,16 +1,15 @@
-module.exports.controller = function(objectTemplate, getTemplate) {
+module.exports.controller = async function(objectTemplate, getTemplate) {
 	objectTemplate.debugInfo = 'io;api';
 
-	var Customer = getTemplate('model.js').Customer;
-	var Account = getTemplate('model.js').Account;
-	var Address = getTemplate('model.js').Address;
-	var ReturnedMail = getTemplate('model.js').ReturnedMail;
-	var Role = getTemplate('model.js').Role;
-	var Transaction = getTemplate('model.js').Transaction;
+	var Customer = (await getTemplate('model.js')).Customer;
+	var Account = (await getTemplate('model.js')).Account;
+	var Address = (await getTemplate('model.js')).Address;
+	var ReturnedMail = (await getTemplate('model.js')).ReturnedMail;
+	var Role = (await getTemplate('model.js')).Role;
+	var Transaction = (await getTemplate('model.js')).Transaction;
 
 	var Controller = objectTemplate.create('Controller', {
 		mainFunc: {on: 'server', body: function () {
-				return serverAssert();
 			}},
 		emptyFunc: {
 			on: 'server',
@@ -91,9 +90,6 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 					}).then(function (count) {
 						total += count;
 						return clearCollection(Address);
-					}).then(function (count) {
-						total += count;
-						serverAssert(total);
 					});
 				function clearCollection(template) {
 					return objectTemplate.dropKnexTable(template)

@@ -1,11 +1,11 @@
 'use strict';
 let assert = require('chai').assert;
 let Bluebird = require('bluebird');
-let amorphic = require('../../dist/index.js');
+let amorphic = require('../../dist/cjs/index.js').default;
 let axios = require('axios');
 let fs = require('fs');
 let path = require('path');
-let amorphicContext = require('../../dist/lib/AmorphicContext');
+let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 
 describe('Run amorphic as a deamon with template mode "auto"', function() {
     before(function(done) {

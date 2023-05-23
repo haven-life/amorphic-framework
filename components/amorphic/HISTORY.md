@@ -1,3 +1,7 @@
+## 14.0.0
+* ESM CommonJS hybrid module that depends on if import or require is used.
+* Adding tests to test out the ESM capabilities
+* Using Babel for the CommonJS transpilation of the Javascript
 ## 13.0.0
 * Setting target to be es2020. 
 * Moving `knex` and `pg` to be peer dependencies. Product teams should have more flexibility in updating those two libraries.

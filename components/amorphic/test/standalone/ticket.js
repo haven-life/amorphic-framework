@@ -3,39 +3,17 @@
 var expect = require('chai').expect;
 var fs = require('fs');
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('@haventech/persistor')(ObjectTemplate, null, ObjectTemplate);
-var amorphic = require('../../dist/index.js');
-var logMessage = require('../../dist/lib/utils/logger').logMessage;
+var PersistObjectTemplate = require('@haventech/persistor').default(ObjectTemplate, null, ObjectTemplate);
+var amorphic = require('../../dist/cjs/index.js').default;
+var logMessage = require('../../dist/cjs/lib/utils/logger').logMessage;
 var nconf = require('nconf');
 
 var collections = JSON.parse(fs.readFileSync(__dirname + '/model/schema.json'));
 PersistObjectTemplate.setSchema(collections);
 PersistObjectTemplate.setDB({}, PersistObjectTemplate.DB_Mongo);
 
-var requires = amorphic.getTemplates(PersistObjectTemplate, __dirname + '/model/',
-	['ticket.js', 'person.js', 'person.js', 'project.js'], {appConfig: {}}, null);
-
-var TicketItemComment =  requires.ticket.TicketItemComment;
-var TicketItemApproval =  requires.ticket.TicketItemApproval;
-
-var projectSemotus;
-var Person = requires.person.Person;
-var Project = requires.project.Project;
-
 var db, client;
-
-Person.inject(function personInject() {
-    Person.sendEmail = function sendEmail(email, subject) {
-        const functionName = sendEmail.name;
-        logMessage(2, {
-            module: 'ticket',
-            function: functionName,
-            category: 'request',
-            message: email + ' ' + subject
-        });
-    };
-});
-
+        
 var securityPrincipal;
 
 // Utility function to clear a collection via mongo native
@@ -51,6 +29,31 @@ cfg.argv().env();
 var mongoHost=cfg.get('mongoHost') ? cfg.get('mongoHost') : 'localhost';
 
 describe('Ticket System Test Suite', function () {
+    var requires, TicketItemComment, TicketItemApproval, projectSemotus, Person, Project;
+    before(async function() {
+        requires = await amorphic.getTemplates(PersistObjectTemplate, __dirname + '/model/',
+            ['ticket.js', 'person.js', 'person.js', 'project.js'], {appConfig: {}}, null);
+        
+        TicketItemComment =  requires.ticket.TicketItemComment;
+        TicketItemApproval =  requires.ticket.TicketItemApproval;
+        
+        projectSemotus;
+        Person = requires.person.Person;
+        Project = requires.project.Project;
+        
+        Person.inject(function personInject() {
+            Person.sendEmail = function sendEmail(email, subject) {
+                const functionName = sendEmail.name;
+                logMessage(2, {
+                    module: 'ticket',
+                    function: functionName,
+                    category: 'request',
+                    message: email + ' ' + subject
+                });
+            };
+        });
+    });
+
     const moduleName = this.title;
 
     it ('can perform injections', function () {

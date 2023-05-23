@@ -20,7 +20,7 @@ var CookieJar = xhrc.CookieJar;
 // Create global variables for the benefit of client.js
 PostCallAssert = function () {};
 ObjectTemplate = require('@haventech/supertype').default;
-RemoteObjectTemplate = require('@haventech/semotus')._createObject();
+RemoteObjectTemplate = require('@haventech/semotus').default._createObject();
 RemoteObjectTemplate.role = 'client';
 RemoteObjectTemplate._useGettersSetters = false;
 Bluebird = require('bluebird');
@@ -33,20 +33,20 @@ document = {
     write: function (content) {}
 };
 alert = function (msg) {
-    console.log('alert ' + content);
+    console.log('alert ' + msg);
 };
-clientController = null;
 
 var modelRequires;
 var controllerRequires;
 var Controller;
-var serverAmorphic = require('../../dist/index.js');
-var amorphicContext = require('../../dist/lib/AmorphicContext');
+var serverAmorphic = require('../../dist/cjs/index.js').default;
+var amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 const SupertypeSession = require('@haventech/supertype').SupertypeSession;
 const sendToLog = SupertypeSession.logger.sendToLog;
+let clientController, serverController;
 
 // Fire up amorphic as the client
-require('../../client.js');
+require('../../dist/cjs/client.js');
 
 function afterEachDescribe(done) {
     if (amorphicContext.appContext.server) {
@@ -56,7 +56,7 @@ function afterEachDescribe(done) {
     SupertypeSession.statsdClient = undefined;
     done();
 }
-function beforeEachDescribe(done, appName, createControllerFor, sourceMode, statsClient) {
+async function beforeEachDescribe(resolve, appName, createControllerFor, sourceMode, statsClient) {
     process.env.createControllerFor = createControllerFor;
     process.env.sourceMode = sourceMode || 'debug';
     amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
@@ -66,7 +66,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     var modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     var controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
-    controllerRequires = require(controllerRequiresPath).controller(RemoteObjectTemplate, function () {
+    controllerRequires = await require(controllerRequiresPath).controller(RemoteObjectTemplate, function () {
         return modelRequires;
     });
     Controller = controllerRequires.Controller;
@@ -95,7 +95,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
                         }
                         if (!isDone) {
                             isDone = true;
-                            done();
+                            resolve();
                         }
                     },
                     function (hadChanges) {
@@ -114,7 +114,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
                 );
             }
             catch (e) {
-                done(e);
+                resolve();
             }
         }
 
@@ -123,8 +123,13 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
 
 describe('First Group of Tests', function () {
     this.timeout(1000000);
-    before(function(done) {
-        return beforeEachDescribe(done, 'test');
+    before(function() {
+        setServerController = function (controller) {
+            serverController = controller;
+        }
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test');
+        });
     });
     after(afterEachDescribe);
 
@@ -312,8 +317,10 @@ describe('First Group of Tests', function () {
 });
 
 describe('Second Group of Tests', function () {
-    before(function(done) {
-        return beforeEachDescribe(done, 'test');
+    before(function() {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test');
+        });
     });
     after(afterEachDescribe);
     it ('clears the bank and saves everything', function (done) {
@@ -485,7 +492,7 @@ describe('Second Group of Tests', function () {
             return clientController.mainFunc();
         }).then(function () {
             amorphic.resetSession();
-            serverAssert = function() {
+            serverAssert = function () {
                 expect(serverController.conflictData).to.equal('initial');
             };
             return clientController.mainFunc().catch(function(e) {
@@ -618,8 +625,10 @@ describe('Second Group of Tests', function () {
 });
 
 describe('third group of tests', function() {
-    before(function(done) {
-        return beforeEachDescribe(done, 'test', 'yes');
+    before(function() {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test', 'yes');
+        });
     });
     after(afterEachDescribe);
 
@@ -724,9 +733,11 @@ describe('validation', function() {
     };
     let counterSpy;
 
-    before(function (done) {
+    before(function() {
         counterSpy = sinon.spy(statsModule, 'counter');
-        return beforeEachDescribe(done, 'test', 'yes', 'prod', statsModule);
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test', 'yes', 'prod', statsModule);
+        });
     });
 
     after(afterEachDescribe);
@@ -815,8 +826,10 @@ describe('validation', function() {
 });
 
 describe('processLoggingMessage', function() {
-    before(function(done) {
-        return beforeEachDescribe(done, 'test', 'no');
+    before(function() {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test', 'no');
+        });
     });
 
     beforeEach(function() {
@@ -872,8 +885,10 @@ describe('processLoggingMessage', function() {
 describe('source mode prod testing', function () {
 
     describe('createControllerFor no', function () {
-        before(function(done) {
-            return beforeEachDescribe(done, 'config', 'no', 'prod');
+        before(function() {
+            return new Promise((resolve) => {
+                beforeEachDescribe(resolve, 'config', 'no', 'prod');
+            });
         });
         after(afterEachDescribe);
 
@@ -889,8 +904,10 @@ describe('source mode prod testing', function () {
     });
 
     describe('createControllerFor yes', function() {
-        before(function(done) {
-            return beforeEachDescribe(done, 'config', 'yes', 'prod');
+        before(function() {
+            return new Promise((resolve) => {
+                beforeEachDescribe(resolve, 'config', 'yes', 'prod');
+            });
         });
         after(afterEachDescribe);
 
@@ -912,7 +929,7 @@ describe('source mode prod testing', function () {
                 }
             }).then(function (res) {
                 expect(res.status).to.equal(200);
-                expect(res.data).to.equal('module.exports.model=function(objectTemplate){var Customer=objectTemplate.create("Customer",{init:function(first,middle,last){this.firstName=first,this.lastName=last,this.middleName=middle},email:{type:String,value:"",length:50,rule:["text","email","required"]},firstName:{type:String,value:"",length:40,rule:["name","required"]},middleName:{type:String,value:"",length:40,rule:"name"},lastName:{type:String,value:"",length:40,rule:["name","required"]},local1:{type:String,persist:!1,value:"local1"},local2:{type:String,isLocal:!0,value:"local2"}}),Address=objectTemplate.create("Address",{init:function(customer){this.customer=customer},lines:{type:Array,of:String,value:[],max:3},city:{type:String,value:"",length:20},state:{type:String,value:"",length:20},postalCode:{type:String,value:"",length:20},country:{type:String,value:"US",length:3}});Customer.mixin({referredBy:{type:Customer,fetch:!0},referrers:{type:Array,of:Customer,value:[],fetch:!0},addAddress:function(lines,city,state,zip){var address=new Address(this);address.lines=lines,address.city=city,address.state=state,address.postalCode=zip,address.customer=this,this.addresses.push(address)},addresses:{type:Array,of:Address,value:[],fetch:!0}});var ReturnedMail=objectTemplate.create("ReturnedMail",{date:{type:Date},address:{type:Address},init:function(address,date){this.address=address,this.date=date}});Address.mixin({customer:{type:Customer},returnedMail:{type:Array,of:ReturnedMail,value:[]},addReturnedMail:function(date){this.returnedMail.push(new ReturnedMail(this,date))}});var Role=objectTemplate.create("Role",{init:function(customer,account,relationship){this.customer=customer,this.account=account,relationship&&(this.relationship=relationship)},relationship:{type:String,value:"primary"},customer:{type:Customer}}),Account=objectTemplate.create("Account",{init:function(number,title,customer,address){address&&(this.address=address,this.address.account=this),this.number=number,this.title=title,customer&&this.addCustomer(customer)},addCustomer:function(customer,relationship){var role=new Role(customer,this,relationship);this.roles.push(role),customer.roles.push(role)},number:{type:Number},title:{type:Array,of:String,max:4},roles:{type:Array,of:Role,value:[],fetch:!0},address:{type:Address},debit:function(amount){new Transaction(this,"debit",amount)},credit:function(amount){new Transaction(this,"credit",amount)},transferFrom:function(amount,fromAccount){new Transaction(this,"xfer",amount,fromAccount)},transferTo:function(amount,toAccount){new Transaction(toAccount,"xfer",amount,this)},listTransactions:function(){function processTransactions(transactions){transactions.forEach(function(transaction){str+=transaction.type+" "+transaction.amount+" "+(transaction.type.xfer?transaction.fromAccount.__id__:"")+" "})}var str="";processTransactions(this.transactions),processTransactions(this.fromAccountTransactions),console.log(str)},getBalance:function(){function processTransactions(transactions){for(var ix=0;ix<transactions.length;++ix)switch(transactions[ix].type){case"debit":balance-=transactions[ix].amount;break;case"credit":balance+=transactions[ix].amount;break;case"xfer":balance+=transactions[ix].amount*(transactions[ix].fromAccount===thisAccount?-1:1)}}var balance=0,thisAccount=this;return processTransactions(this.transactions),processTransactions(this.fromAccountTransactions),balance}});Address.mixin({account:{type:Account}});var Transaction=objectTemplate.create("Transaction",{init:function(account,type,amount,fromAccount){this.account=account,this.fromAccount=fromAccount,this.type=type,this.amount=amount,account&&account.transactions.push(this),fromAccount&&fromAccount.fromAccountTransactions.push(this)},amount:{type:Number},type:{type:String},account:{type:Account,fetch:!0},fromAccount:{type:Account,fetch:!0}});return Customer.mixin({roles:{type:Array,of:Role,value:[]}}),Role.mixin({account:{type:Account}}),Account.mixin({transactions:{type:Array,of:Transaction,value:[],fetch:!0},fromAccountTransactions:{type:Array,of:Transaction,value:[],fetch:!0}}),{Customer:Customer,Address:Address,ReturnedMail:ReturnedMail,Role:Role,Account:Account,Transaction:Transaction}},module.exports.mail=function(objectTemplate,getTemplate){var Mail=objectTemplate.create("Mail",{init:function(){}});return Mail},module.exports.anotherMail=function(objectTemplate,getTemplate){var AnotherMail=objectTemplate.create("AnotherMail",{init:function(){}});return AnotherMail},module.exports.controller=function(objectTemplate,getTemplate){objectTemplate.debugInfo="io;api";var Customer=getTemplate("model.js").Customer,Account=getTemplate("model.js").Account,Address=getTemplate("model.js").Address,ReturnedMail=getTemplate("model.js").ReturnedMail,Role=getTemplate("model.js").Role,Transaction=getTemplate("model.js").Transaction;getTemplate("mail.js",{app:"config"}),getTemplate("anotherMail.js");var Controller=objectTemplate.create("Controller",{mainFunc:{on:"server",body:function(){}},emptyFunc:{on:"server",body:function(){}},conflictData:{type:String,value:"initial"},someData:{type:String,value:"A"},sam:{type:Customer,fetch:!0},karen:{type:Customer,fetch:!0},ashling:{type:Customer,fetch:!0},updatedCount:{type:Number,value:0},serverInit:function(){if(!objectTemplate.objectMap)throw new Error("Missing keepOriginalIdForSavedObjects in config.json");serverController=this},clearDB:{on:"server",body:function(){}},clientInit:function(){clientController=this;var sam=new Customer("Sam","M","Elsamman"),karen=new Customer("Karen","M","Burke"),ashling=new Customer("Ashling","","Burke");sam.referrers=[ashling,karen],ashling.referredBy=sam,karen.referredBy=sam,sam.local1="foo",sam.local2="bar",sam.addAddress(["500 East 83d","Apt 1E"],"New York","NY","10028"),sam.addAddress(["38 Haggerty Hill Rd",""],"Rhinebeck","NY","12572"),sam.addresses[0].addReturnedMail(new Date),sam.addresses[0].addReturnedMail(new Date),sam.addresses[1].addReturnedMail(new Date),karen.addAddress(["500 East 83d","Apt 1E"],"New York","NY","10028"),karen.addAddress(["38 Haggerty Hill Rd",""],"Rhinebeck","NY","12572"),karen.addresses[0].addReturnedMail(new Date),ashling.addAddress(["End of the Road",""],"Lexington","KY","34421");var samsAccount=new Account(1234,["Sam Elsamman"],sam,sam.addresses[0]),jointAccount=new Account(123,["Sam Elsamman","Karen Burke","Ashling Burke"],sam,karen.addresses[0]);jointAccount.addCustomer(karen,"joint"),jointAccount.addCustomer(ashling,"joint"),samsAccount.credit(100),samsAccount.debit(50),jointAccount.credit(200),jointAccount.transferTo(100,samsAccount),jointAccount.transferFrom(50,samsAccount),jointAccount.debit(25),this.sam=sam,this.karen=karen,this.ashling=ashling},preServerCall:function(changeCount,objectsChanged,callContext,forceUpdate,functionName,remoteCall,isPublic,HTTPObjs){for(var templateName in objectsChanged)this.preServerCallObjects[templateName]=!0;return HTTPObjs&&HTTPObjs.request&&HTTPObjs.response&&(this.hasRequestInPreServer=this.hasResponseInPreServer=!0),Bluebird.resolve().then(!this.sam||this.sam.refresh.bind(this.sam,null)).then(!this.karen||this.karen.refresh.bind(this.karen,null)).then(!this.ashling||this.ashling.refresh.bind(this.ashling,null)).then(function(){objectTemplate.begin(),console.log(this.sam?this.sam.__version__:""),objectTemplate.currentTransaction.touchTop=!0}.bind(this))},postServerCall:function(hasChanges,callContext,changeString,HTTPObjs){if(this.postServerCallThrowException)throw"postServerCallThrowException";if(this.postServerCallThrowRetryException)throw"Retry";if(HTTPObjs&&HTTPObjs.request&&HTTPObjs.response){var request=HTTPObjs.request,response=HTTPObjs.response;this.requestConstructorName=request.constructor.name,this.responseConstructorName=response.constructor.name,this.hasRequestInPostServer=this.hasResponseInPostServer=!0}return serverController.sam.cascadeSave(),serverController.karen.cascadeSave(),serverController.ashling.cascadeSave(),objectTemplate.currentTransaction.postSave=function(txn){this.updatedCount=_.toArray(txn.savedObjects).length}.bind(this),objectTemplate.end().then(function(){PostCallAssert()})},validateServerCall:function(){return this.canValidateServerCall},preServerCallObjects:{isLocal:!0,type:Object,value:{}},preServerCalls:{isLocal:!0,type:Number,value:0},postServerCalls:{isLocal:!0,type:Number,value:0},preServerCallThrowException:{isLocal:!0,type:Boolean,value:!1},postServerCallThrowException:{isLocal:!0,type:Boolean,value:!1},postServerCallThrowRetryException:{isLocal:!0,type:Boolean,value:!1},serverCallThrowException:{isLocal:!0,type:Boolean,value:!1},canValidateServerCall:{isLocal:!0,type:Boolean,value:!0}});return{Controller:Controller}};');
+                expect(res.data).to.equal('module.exports.model=function(objectTemplate){var Customer=objectTemplate.create("Customer",{init:function(first,middle,last){this.firstName=first,this.lastName=last,this.middleName=middle},email:{type:String,value:"",length:50,rule:["text","email","required"]},firstName:{type:String,value:"",length:40,rule:["name","required"]},middleName:{type:String,value:"",length:40,rule:"name"},lastName:{type:String,value:"",length:40,rule:["name","required"]},local1:{type:String,persist:!1,value:"local1"},local2:{type:String,isLocal:!0,value:"local2"}}),Address=objectTemplate.create("Address",{init:function(customer){this.customer=customer},lines:{type:Array,of:String,value:[],max:3},city:{type:String,value:"",length:20},state:{type:String,value:"",length:20},postalCode:{type:String,value:"",length:20},country:{type:String,value:"US",length:3}}),ReturnedMail=(Customer.mixin({referredBy:{type:Customer,fetch:!0},referrers:{type:Array,of:Customer,value:[],fetch:!0},addAddress:function(lines,city,state,zip){var address=new Address(this);address.lines=lines,address.city=city,address.state=state,address.postalCode=zip,(address.customer=this).addresses.push(address)},addresses:{type:Array,of:Address,value:[],fetch:!0}}),objectTemplate.create("ReturnedMail",{date:{type:Date},address:{type:Address},init:function(address,date){this.address=address,this.date=date}})),Role=(Address.mixin({customer:{type:Customer},returnedMail:{type:Array,of:ReturnedMail,value:[]},addReturnedMail:function(date){this.returnedMail.push(new ReturnedMail(this,date))}}),objectTemplate.create("Role",{init:function(customer,account,relationship){this.customer=customer,this.account=account,relationship&&(this.relationship=relationship)},relationship:{type:String,value:"primary"},customer:{type:Customer}})),Account=objectTemplate.create("Account",{init:function(number,title,customer,address){address&&(this.address=address,this.address.account=this),this.number=number,this.title=title,customer&&this.addCustomer(customer)},addCustomer:function(customer,relationship){relationship=new Role(customer,this,relationship);this.roles.push(relationship),customer.roles.push(relationship)},number:{type:Number},title:{type:Array,of:String,max:4},roles:{type:Array,of:Role,value:[],fetch:!0},address:{type:Address},debit:function(amount){new Transaction(this,"debit",amount)},credit:function(amount){new Transaction(this,"credit",amount)},transferFrom:function(amount,fromAccount){new Transaction(this,"xfer",amount,fromAccount)},transferTo:function(amount,toAccount){new Transaction(toAccount,"xfer",amount,this)},listTransactions:function(){var str="";function processTransactions(transactions){transactions.forEach(function(transaction){str+=transaction.type+" "+transaction.amount+" "+(transaction.type.xfer?transaction.fromAccount.__id__:"")+" "})}processTransactions(this.transactions),processTransactions(this.fromAccountTransactions),console.log(str)},getBalance:function(){var balance=0,thisAccount=this;function processTransactions(transactions){for(var ix=0;ix<transactions.length;++ix)switch(transactions[ix].type){case"debit":balance-=transactions[ix].amount;break;case"credit":balance+=transactions[ix].amount;break;case"xfer":balance+=transactions[ix].amount*(transactions[ix].fromAccount===thisAccount?-1:1)}}return processTransactions(this.transactions),processTransactions(this.fromAccountTransactions),balance}}),Transaction=(Address.mixin({account:{type:Account}}),objectTemplate.create("Transaction",{init:function(account,type,amount,fromAccount){this.account=account,this.fromAccount=fromAccount,this.type=type,this.amount=amount,account&&account.transactions.push(this),fromAccount&&fromAccount.fromAccountTransactions.push(this)},amount:{type:Number},type:{type:String},account:{type:Account,fetch:!0},fromAccount:{type:Account,fetch:!0}}));return Customer.mixin({roles:{type:Array,of:Role,value:[]}}),Role.mixin({account:{type:Account}}),Account.mixin({transactions:{type:Array,of:Transaction,value:[],fetch:!0},fromAccountTransactions:{type:Array,of:Transaction,value:[],fetch:!0}}),{Customer:Customer,Address:Address,ReturnedMail:ReturnedMail,Role:Role,Account:Account,Transaction:Transaction}},module.exports.mail=function(objectTemplate,getTemplate){return objectTemplate.create("Mail",{init:function(){}})},module.exports.anotherMail=function(objectTemplate,getTemplate){return objectTemplate.create("AnotherMail",{init:function(){}})},module.exports.controller=async function(objectTemplate,getTemplate){objectTemplate.debugInfo="io;api";var Customer=(await getTemplate("model.js")).Customer,Account=(await getTemplate("model.js")).Account,Address=(await getTemplate("model.js")).Address,ReturnedMail=(await getTemplate("model.js")).ReturnedMail,Role=(await getTemplate("model.js")).Role,Transaction=(await getTemplate("model.js")).Transaction;return await getTemplate("mail.js",{app:"config"}),await getTemplate("anotherMail.js"),{Controller:objectTemplate.create("Controller",{mainFunc:{on:"server",body:function(){return serverAssert()}},emptyFunc:{on:"server",body:function(){return console.log("executed emptyFUNc"),!0}},conflictData:{type:String,value:"initial"},someData:{type:String,value:"A"},sam:{type:Customer,fetch:!0},karen:{type:Customer,fetch:!0},ashling:{type:Customer,fetch:!0},updatedCount:{type:Number,value:0},serverInit:function(){if(!objectTemplate.objectMap)throw new Error("Missing keepOriginalIdForSavedObjects in config.json");serverController=this,setServerController(serverController)},clearDB:{on:"server",body:function(){var total=0;return clearCollection(Role).then(function(count){return total+=count,clearCollection(Account)}).then(function(count){return total+=count,clearCollection(Customer)}).then(function(count){return total+=count,clearCollection(Transaction)}).then(function(count){return total+=count,clearCollection(ReturnedMail)}).then(function(count){return total+=count,clearCollection(Address)}).then(function(count){total+=count,serverAssert(total)});function clearCollection(template){return objectTemplate.dropKnexTable(template).then(function(){return objectTemplate.synchronizeKnexTableFromTemplate(template).then(function(){return 0})})}}},clientInit:function(){clientController=this;var sam=new Customer("Sam","M","Elsamman"),karen=new Customer("Karen","M","Burke"),ashling=new Customer("Ashling","","Burke"),samsAccount=(sam.referrers=[ashling,karen],ashling.referredBy=sam,(karen.referredBy=sam).local1="foo",sam.local2="bar",sam.addAddress(["500 East 83d","Apt 1E"],"New York","NY","10028"),sam.addAddress(["38 Haggerty Hill Rd",""],"Rhinebeck","NY","12572"),sam.addresses[0].addReturnedMail(new Date),sam.addresses[0].addReturnedMail(new Date),sam.addresses[1].addReturnedMail(new Date),karen.addAddress(["500 East 83d","Apt 1E"],"New York","NY","10028"),karen.addAddress(["38 Haggerty Hill Rd",""],"Rhinebeck","NY","12572"),karen.addresses[0].addReturnedMail(new Date),ashling.addAddress(["End of the Road",""],"Lexington","KY","34421"),new Account(1234,["Sam Elsamman"],sam,sam.addresses[0])),jointAccount=new Account(123,["Sam Elsamman","Karen Burke","Ashling Burke"],sam,karen.addresses[0]);jointAccount.addCustomer(karen,"joint"),jointAccount.addCustomer(ashling,"joint"),samsAccount.credit(100),samsAccount.debit(50),jointAccount.credit(200),jointAccount.transferTo(100,samsAccount),jointAccount.transferFrom(50,samsAccount),jointAccount.debit(25),this.sam=sam,this.karen=karen,this.ashling=ashling},preServerCall:function(changeCount,objectsChanged,callContext,forceUpdate,functionName,remoteCall,isPublic,HTTPObjs){for(var templateName in objectsChanged)this.preServerCallObjects[templateName]=!0;return HTTPObjs&&HTTPObjs.request&&HTTPObjs.response&&(this.hasRequestInPreServer=this.hasResponseInPreServer=!0),Bluebird.resolve().then(!this.sam||this.sam.refresh.bind(this.sam,null)).then(!this.karen||this.karen.refresh.bind(this.karen,null)).then(!this.ashling||this.ashling.refresh.bind(this.ashling,null)).then(function(){objectTemplate.begin(),console.log(this.sam?this.sam.__version__:""),objectTemplate.currentTransaction.touchTop=!0}.bind(this))},postServerCall:function(hasChanges,callContext,changeString,HTTPObjs){if(this.postServerCallThrowException)throw"postServerCallThrowException";if(this.postServerCallThrowRetryException)throw"Retry";var request;HTTPObjs&&HTTPObjs.request&&HTTPObjs.response&&(request=HTTPObjs.request,HTTPObjs=HTTPObjs.response,this.requestConstructorName=request.constructor.name,this.responseConstructorName=HTTPObjs.constructor.name,this.hasRequestInPostServer=this.hasResponseInPostServer=!0);return serverController.sam.cascadeSave(),serverController.karen.cascadeSave(),serverController.ashling.cascadeSave(),objectTemplate.currentTransaction.postSave=function(txn){this.updatedCount=_.toArray(txn.savedObjects).length}.bind(this),objectTemplate.end().then(function(){PostCallAssert()})},validateServerCall:function(){return this.canValidateServerCall},preServerCallObjects:{isLocal:!0,type:Object,value:{}},preServerCalls:{isLocal:!0,type:Number,value:0},postServerCalls:{isLocal:!0,type:Number,value:0},preServerCallThrowException:{isLocal:!0,type:Boolean,value:!1},postServerCallThrowException:{isLocal:!0,type:Boolean,value:!1},postServerCallThrowRetryException:{isLocal:!0,type:Boolean,value:!1},serverCallThrowException:{isLocal:!0,type:Boolean,value:!1},canValidateServerCall:{isLocal:!0,type:Boolean,value:!0}})}};');
             });
         });
 
@@ -933,8 +950,10 @@ describe('source mode prod testing', function () {
 });
 
 describe('error handling upload api', function() {
-    before(function(done) {
-        return beforeEachDescribe(done, 'test', 'yes', 'prod');
+    before(function() {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test', 'yes', 'prod');
+        });
     });
 
     after(afterEachDescribe);
@@ -975,8 +994,10 @@ describe('statsd module enabled', function () {
         timing: 'timing stub'
     };
 
-    before(function (done) {
-        return beforeEachDescribe(done, 'test', 'yes', 'prod', statsModule);
+    before(function() {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test', 'yes', 'prod', statsModule);
+        });
     });
 
     after(afterEachDescribe);
@@ -989,8 +1010,10 @@ describe('statsd module enabled', function () {
 
 describe('amorphic api enabled', function () {
 
-    before(function (done) {
-        return beforeEachDescribe(done, 'test', 'yes', 'prod');
+    before(function() {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'test', 'yes', 'prod');
+        });
     });
 
     after(afterEachDescribe);

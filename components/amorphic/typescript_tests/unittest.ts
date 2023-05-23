@@ -1,7 +1,6 @@
 import { expect } from 'chai';
-import {Amorphic} from '../dist/index.js';
-import {Ticket} from "./apps/common/js/ticket";
-import {supertypeClass} from "../dist/index";
+import { Amorphic, supertypeClass } from '../dist/cjs/index.js';
+import { Ticket } from './apps/common/js/ticket';
 
 @supertypeClass({toClient: false, toServer: true})
 class Dummy {};
@@ -23,7 +22,7 @@ describe('Banking from pgsql Example', () => {
     });
 
     it ('can create a ticket', async () => {
-        var ticket = new Ticket("My First Ticket", "This is the beginning of  something good", "Project One");
+        var ticket = new Ticket('My First Ticket', 'This is the beginning of  something good', 'Project One');
         ticket.amorphic.beginDefaultTransaction();
         ticket.persistorSave();
         ticket.amorphic.logger.info({className: ticket.amorphic.getClasses().Ticket.amorphicClassName}, 'getting ready to commit');
@@ -36,6 +35,6 @@ describe('Banking from pgsql Example', () => {
     it('can read back the ticket', async () => {
         var tickets : Array<Ticket> = await Ticket.persistorFetchByQuery({}, {fetch: {project: true}})
         expect(tickets.length).to.equal(1);
-        expect(tickets[0].project.name).to.equal("Project One");
+        expect(tickets[0].project.name).to.equal('Project One');
     });
 });

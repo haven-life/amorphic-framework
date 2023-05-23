@@ -1,28 +1,29 @@
 {
-  "files": [
-    "./lib/AmorphicServer.ts",
-    "./lib/utils/InputValidator.ts",
-    "./lib/utils/LoggerApiContextProcessor.ts",
-    "./lib/utils/AmorphicUtils.ts"
-  ],
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
-    "lib": [
-      "es2020",
-      "dom",
-      "es5",
-      "es2015.promise"
+    "files": [
+        "src/lib/AmorphicServer.ts",
+        "src/lib/utils/InputValidator.ts",
+        "src/lib/utils/LoggerApiContextProcessor.ts",
+        "src/lib/utils/AmorphicUtils.ts"
     ],
-    "outDir": "./dist",
-    "rootDir": "./",
-    "noImplicitAny": false,
-    "sourceMap": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "allowJs": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "es2020",
+        "lib": [
+            "es2020",
+            "dom",
+            "es5",
+            "es2015.promise"
+        ],
+        "rootDir": "src",
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "typeRoots": [
+            "./node_modules/@types"
+        ],
+        "allowJs": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+    }
 }

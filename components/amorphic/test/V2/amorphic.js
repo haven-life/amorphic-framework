@@ -2,8 +2,8 @@ var expect = require('chai').expect;
 var axios = require('axios');
 var path = require('path');
 
-var amorphicContext = require('../../dist/lib/AmorphicContext');
-var serverAmorphic = require('../../dist/index.js');
+var amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
+var serverAmorphic = require('../../dist/cjs/index.js').default;
 
 function afterEachDescribe(done) {
     if(amorphicContext.appContext.server){
@@ -33,7 +33,7 @@ describe('toClient and toServer testing', function() {
         }).then(function (res) {
             console.log('res.data');
             console.log(res.data);
-            expect(res.data).to.equal('document.write("<script src=\'/common/js/Model.js?ver=0\'></script>");\n\ndocument.write("<script src=\'/app2/js/Controller.js?ver=0\'></script>");\n\namorphic.setApplication(\'app2\');amorphic.setSchema({});amorphic.setConfig({"modules":{},"templateMode":"auto"});amorphic.setInitialMessage({"url":"/amorphic/xhr?path=app2","message":{"type":"sync","sync":true,"value":null,"name":null,"remoteCallId":null,"changes":"{\\"server-Controller-1\\":{\\"someData2\\":[null,\\"initial\\"]}}","newSession":true,"rootId":"server-Controller-1","startingSequence":100001,"sessionExpiration":3600000,"ver":"0"}});');
+            expect(res.data).to.equal('document.write("<script src=\'/app2/js/Controller.js?ver=0\'></script>");\n\ndocument.write("<script src=\'/common/js/Model.js?ver=0\'></script>");\n\namorphic.setApplication(\'app2\');amorphic.setSchema({});amorphic.setConfig({"modules":{},"templateMode":"auto"});amorphic.setInitialMessage({"url":"/amorphic/xhr?path=app2","message":{"type":"sync","sync":true,"value":null,"name":null,"remoteCallId":null,"changes":"{\\"server-Controller-1\\":{\\"someData2\\":[null,\\"initial\\"]}}","newSession":true,"rootId":"server-Controller-1","startingSequence":100001,"sessionExpiration":3600000,"ver":"0"}});');
             expect(res.status).to.equal(200);
         });
     });

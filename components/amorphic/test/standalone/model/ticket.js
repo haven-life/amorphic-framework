@@ -1,9 +1,9 @@
 'use strict';
 
-module.exports.ticket = function (objectTemplate, getTemplate) {
-    var Person = getTemplate('./person.js').Person;
-    var Project = getTemplate('./project.js').Project;
-    var ProjectRelease = getTemplate('./project.js').ProjectRelease;
+module.exports.ticket = async function (objectTemplate, getTemplate) {
+    var Person = (await getTemplate('./person.js')).Person;
+    var Project = (await getTemplate('./project.js')).Project;
+    var ProjectRelease = (await getTemplate('./project.js')).ProjectRelease;
 
     var Ticket = objectTemplate.create('Ticket', {
         // Insecure properties can be set on the client and saved by a logged in user

@@ -1,14 +1,16 @@
-module.exports.controller = function(objectTemplate, getTemplate) {
+let serverController;
+
+module.exports.controller = async function(objectTemplate, getTemplate) {
 	objectTemplate.debugInfo = 'io;api';
 
-	var Customer = getTemplate('model.js').Customer;
-	var Account = getTemplate('model.js').Account;
-	var Address = getTemplate('model.js').Address;
-	var ReturnedMail = getTemplate('model.js').ReturnedMail;
-	var Role = getTemplate('model.js').Role;
-	var Transaction = getTemplate('model.js').Transaction;
-	getTemplate('mail.js', { app: 'config' });
-	getTemplate('anotherMail.js');
+	var Customer = (await getTemplate('model.js')).Customer;
+	var Account = (await getTemplate('model.js')).Account;
+	var Address = (await getTemplate('model.js')).Address;
+	var ReturnedMail = (await getTemplate('model.js')).ReturnedMail;
+	var Role = (await getTemplate('model.js')).Role;
+	var Transaction = (await getTemplate('model.js')).Transaction;
+	await getTemplate('mail.js', { app: 'config' });
+	await getTemplate('anotherMail.js');
 
 
 	var Controller = objectTemplate.create('Controller', {
@@ -32,6 +34,7 @@ module.exports.controller = function(objectTemplate, getTemplate) {
 				throw new Error('Missing keepOriginalIdForSavedObjects in config.json');
 			}
 			serverController = this;
+			setServerController(serverController);
 		},
 		clearDB: {on: 'server', body: function () {
 				var total = 0;

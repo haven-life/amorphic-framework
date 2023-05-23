@@ -1,0 +1,15 @@
+{
+    "presets": ["@babel/preset-typescript", "@babel/preset-env"],
+    "plugins": [
+        "@babel/plugin-transform-modules-commonjs",
+        "@babel/plugin-syntax-import-assertions",
+        "babel-plugin-transform-import-meta"
+    ],
+    "ignore": [
+        "**/*.d.ts",
+        "./src/lib/resolve",
+        "./src/lib/utils/remoteable.ts"
+    ],
+    "sourceMaps": true
+}
+  
