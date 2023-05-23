@@ -152,5 +152,3 @@ export const Persistor = {
 Object.defineProperty(Persistable.prototype, 'persistor', {get: function () {
     return this.__objectTemplate__;
 }});
-
-export { Schema } from './types/Schema';

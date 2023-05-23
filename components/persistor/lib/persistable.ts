@@ -96,7 +96,7 @@ export class Persistor extends SupertypeSession {
     static createTransientObject(callback : any) : any {};
 }
 
-export const PersistorObj: Persistor = Persistor.create();
+export const PersistorObj = Persistor.create();
 
 export function ContainsPersistable<BC extends Constructable<{}>>(Base: BC) {
     return class extends Base {
