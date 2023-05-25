@@ -1,5 +1,8 @@
 'use strict';
 
+if (typeof __ver === 'undefined' && globalThis) {
+    let __ver = globalThis.__ver;
+}
 const __controllerTemplate = 'Controller';
 const __appVersion = __ver || 0;
 

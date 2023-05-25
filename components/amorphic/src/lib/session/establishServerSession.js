@@ -6,6 +6,7 @@ import { establishInitialServerSession } from './establishInitialServerSession.j
 import { establishContinuedServerSession } from './establishContinuedServerSession.js';
 import url from 'url';
 import { StatsdHelper as statsdUtils } from '@haventech/supertype';
+import nodePath from 'path';
 
 /**
  * Sets up generic logging context with context passed from request
@@ -71,7 +72,7 @@ export async function establishServerSession(req, path, newPage, reset, newContr
     }
 
     let initObjectTemplate = config.initObjectTemplate;
-    let controllerPath = config.appPath + '/' + (config.appConfig.controller || 'controller.js');
+    let controllerPath = nodePath.normalize(config.appPath + '/' + (config.appConfig.controller || 'controller.js'));
     let objectCacheExpiration = config.objectCacheExpiration;
     let sessionExpiration = config.sessionExpiration;
     let sessionStore = config.sessionStore;

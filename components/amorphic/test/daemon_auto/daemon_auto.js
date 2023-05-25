@@ -8,9 +8,8 @@ let path = require('path');
 let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 
 describe('Run amorphic as a deamon with template mode "auto"', function() {
-    before(function(done) {
-        amorphic.listen(__dirname);
-        done();
+    before(function() {
+        return amorphic.listen(__dirname);
     });
 
     it('can call the listen function to setup amorphic, and init the app controller', function() {

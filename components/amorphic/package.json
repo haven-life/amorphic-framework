@@ -31,8 +31,8 @@
 		"validator": "13.7.0"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.21.5",
-		"@babel/core": "^7.21.8",
+		"@babel/cli": "7.21.5",
+		"@babel/core": "7.21.8",
 		"@babel/plugin-syntax-import-assertions": "7.20.0",
 		"@babel/plugin-transform-modules-commonjs": "7.21.5",
 		"@babel/preset-env": "7.21.5",
@@ -79,7 +79,7 @@
 		"prepublishOnly": "npm run build",
 		"recreateDist": "rm -rf ./dist/ && mkdir ./dist/ && mkdir ./dist/cjs/ && mkdir ./dist/esm/",
 		"test": "mocha --timeout 10000 test/* --reporter-options maxDiffSize=20000 --exit",
-		"test:esm": "mocha -u bdd --timeout 9999999 --colors --config testEsm/.mocharc.json testEsm/example/index.mjs --exit",
+		"test:esm": "mocha --timeout 10000 --config test_esm/.mocharc.json --package test_esm/package.json test_esm/* --reporter-options maxDiffSize=20000 --exit",
 		"test:docker": "docker-compose up --build",
 		"test:docker:debug": "docker-compose -f docker-compose-debug.yml up --build",
 		"test:trace": "nyc npm run test",

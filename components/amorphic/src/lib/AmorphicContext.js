@@ -7,19 +7,24 @@ let amorphicOptions = {
     sourceMode: 'debug'         // Whether to minify templates.  Values: 'debug', 'prod' (minify)
 };
 
-let appContext = {};
-let applicationConfig = {};
-let applicationPersistorProps = {};
-let applicationSource = {};
-let applicationSourceMap = {};
-let applicationTSController = {};
-
-export default {
+const ctx = {
     amorphicOptions: amorphicOptions,
-    appContext: appContext,
-    applicationConfig: applicationConfig,
-    applicationPersistorProps: applicationPersistorProps,
-    applicationSource: applicationSource,
-    applicationSourceMap: applicationSourceMap,
-    applicationTSController: applicationTSController
-};
+    appContext: {},
+    applicationConfig: {},
+    applicationPersistorProps: {},
+    applicationSource: {},
+    applicationSourceMap: {},
+    applicationTSController: {},
+    reset: reset
+}
+
+export function reset() {
+    ctx.appContext = {};
+    ctx.applicationConfig = {};
+    ctx.applicationPersistorProps = {};
+    ctx.applicationSource = {};
+    ctx.applicationSourceMap = {};
+    ctx.applicationTSController = {};
+}
+
+export default ctx;

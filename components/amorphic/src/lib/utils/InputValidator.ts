@@ -1,4 +1,4 @@
-import * as validator from 'validator';
+import validator from 'validator';
 import { Request, Response } from 'express';
 import AmorphicContext from '../AmorphicContext.js';
 import { SupertypeSession } from '@haventech/supertype';

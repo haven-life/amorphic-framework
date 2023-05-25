@@ -12,6 +12,7 @@ import semotus from '@haventech/semotus';
 import { default as superType } from '@haventech/supertype';
 import knex from 'knex';
 import MongoClient from 'mongodb';
+import nodePath from 'path';
 
 const moduleName = `amorphic/lib/startApplication`;
 
@@ -27,12 +28,11 @@ const moduleName = `amorphic/lib/startApplication`;
  * @returns {unknown} unknown
  */
 export function startApplication(appName, appDirectory, appList, configStore, sessionStore, externalSchemas) {
-
-    let path = appDirectory + '/' + appList[appName] + '/';
-    let commonPath = appDirectory + '/apps/common/';
+    let path = nodePath.normalize(appDirectory + '/' + appList[appName] + '/');
+    let commonPath = nodePath.normalize(appDirectory + '/apps/common/');
     let config = configStore[appName].get();
-    let commonJsDir = commonPath + '/js/';
-    let controllerJsDir = path + '/public/js/';
+    let commonJsDir = nodePath.normalize(commonPath + '/js/');
+    let controllerJsDir = nodePath.normalize(path + '/public/js/');
 
     if (config.serverMode === 'daemon' || config.serverMode === 'api') {
         controllerJsDir = path + '/js/';
@@ -308,7 +308,7 @@ async function loadTSTemplates(appName) {
     (await import('../index.js')).default.bindDecorators(baseTemplate);
 
     // TODO: Typescript - this assumes that .js is in same directory as .ts but probably should be looking at tsconfig
-    AmorphicContext.applicationTSController[appName] = (await import(appConfig.appPath + '/' + controllerPath)).Controller;
+    AmorphicContext.applicationTSController[appName] = await (await import(path.normalize(appConfig.appPath + '/' + controllerPath))).Controller;
 
     checkTypes(baseTemplate.getClasses());
     baseTemplate.performInjections();
@@ -391,11 +391,11 @@ function buildBaseTemplate(appConfig, processTypescript) {
  * @param {Object} baseTemplate - unknown
  * @param {Object} appTemplates - unknown
  */
-function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates) {
+async function finishDaemonIfNeeded(config, prop, prefix, appName, baseTemplate, appTemplates) {
     const functionName = finishDaemonIfNeeded.name;
 	if (config.serverMode === 'daemon' || config.serverMode === 'api' || config.serverMode === 'serverless') {
 		let ControllerTemplate = AmorphicContext.applicationTSController[appName] ||
-			appTemplates[prop].Controller;
+			(await appTemplates[prop].Controller);
 
 		if (!ControllerTemplate) {
 			throw new Error('Missing controller template in ' + prefix + prop + '.js');

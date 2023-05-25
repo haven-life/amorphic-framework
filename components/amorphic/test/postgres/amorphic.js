@@ -149,21 +149,24 @@ describe('First Group of Tests', function () {
         });
     });
 
-    it('fetch everything back', function (done) {
-        serverAssert = function () {
-            serverController.sam.roles[0].account.listTransactions();
-            serverController.sam.roles[1].account.listTransactions();
-            expect(serverController.sam.roles[0].account.getBalance() +
-                serverController.sam.roles[1].account.getBalance()).to.equal(225);
-            expect(serverController.preServerCallObjects['Controller']).to.equal(true);
-        };
-        clientController.mainFunc().then(function () {
-            expect(serverController.sam.roles[0].account.getBalance() +
-                serverController.sam.roles[1].account.getBalance()).to.equal(225);
-            expect(serverController.preServerCallObjects['Controller']).to.equal(true);
-            done();
-        }).catch(function(e) {
-            done(e);
+    it('fetch everything back', function () {
+        return new Promise(async (resolve, reject) => {
+            serverAssert = function () {
+                serverController.sam.roles[0].account.listTransactions();
+                serverController.sam.roles[1].account.listTransactions();
+                expect(serverController.sam.roles[0].account.getBalance() +
+                    serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                expect(serverController.preServerCallObjects['Controller']).to.equal(true);
+            };
+            try {
+                await clientController.mainFunc();
+                expect(serverController.sam.roles[0].account.getBalance() +
+                    serverController.sam.roles[1].account.getBalance()).to.equal(225);
+                expect(serverController.preServerCallObjects['Controller']).to.equal(true);
+                resolve();
+            } catch (e) {
+                reject(e);
+            };
         });
     });
     it('change results on server', function (done) {

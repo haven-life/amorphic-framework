@@ -18,6 +18,17 @@
  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { XMLHttpRequest } from 'xmlhttprequest-cookie';
+
+if (typeof RemoteObjectTemplate === 'undefined' && globalThis) {
+    let RemoteObjectTemplate = globalThis.RemoteObjectTemplate;
+}
+if (typeof document === 'undefined' && globalThis) {
+    let document = globalThis.document;
+}
+if (typeof alert === 'undefined' && globalThis) {
+    let alert = globalThis.alert;
+}
 
 RemoteObjectTemplate._injectIntoTemplate = function (template) {
     // Add persistors to foreign key references
@@ -148,6 +159,8 @@ globalThis.amorphic = // Needs to be global to make mocha tests work
     sessionId: 0,
     loggingContext: {},
     storedUID: 0,
+    heartbeat: null,
+    zombie: null,
 
     /**
      * expire the user's session
@@ -373,7 +386,9 @@ globalThis.amorphic = // Needs to be global to make mocha tests work
             YES ACTIVITY?
             if there is activity before the session expires, and reset the timer to start counting down again.
          */
-        setInterval(function checkActivityHeartbeat() {
+        this.clearIntervals();
+        
+        this.heartbeat = setInterval(function checkActivityHeartbeat() {
             if (self.activity) {
                 clearTimeout(self.logoutTimer);
 
@@ -382,9 +397,14 @@ globalThis.amorphic = // Needs to be global to make mocha tests work
             }
         }, self.activityHeartbeatInterval);
 
-        setInterval(function () {
+        this.zombie = setInterval(function () {
             self._zombieCheck();
         }, 50);
+    },
+
+    clearIntervals: function() {
+        clearInterval(this.heartbeat);
+        clearInterval(this.zombie);
     },
 
     // For file uploads we use an iFrame

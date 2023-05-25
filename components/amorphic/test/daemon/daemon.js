@@ -6,15 +6,14 @@ let axios = require('axios');
 let fs = require('fs');
 const os = require('os');
 let path = require('path');
-let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
+let amorphicContext = require('../../dist/cjs/lib/AmorphicContext.js').default;
 
 describe('Run amorphic as a deamon', function () {
 
     this.timeout(5000);
 
-    before(function (done) {
-        amorphic.listen(__dirname);
-        done();
+    before(function () {
+        return amorphic.listen(__dirname);
     });
 
     it('can call the listen function to setup amorphic, and init the app controller', function () {

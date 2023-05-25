@@ -71,9 +71,9 @@ export async function getTemplate(file, options, uses,
         // 2. look for the file under the current app,
         // 3. otherwise look under common
         if (options.app) {
-            clientPath = options.app;
-            daemonPath = config.commonPath + '/../../' + clientPath + '/js/' + file;
-            interactivePath = config.commonPath + '/../../' + clientPath + '/public/js/' + file;
+            clientPath = path.normalize(options.app);
+            daemonPath = path.normalize(config.commonPath + '/../../' + clientPath + '/js/' + file);
+            interactivePath = path.normalize(config.commonPath + '/../../' + clientPath + '/public/js/' + file);
 
             if (fs.existsSync(daemonPath)) {
                 fileExports = await import(daemonPath);
@@ -219,7 +219,7 @@ export async function getTemplate(file, options, uses,
         filePaths[fileNoExt] = requirePath;
 
         if (typeof(appName) !== 'undefined') {
-            fileClientPath = '/' + clientPath + '/js/' + file + '?ver=' + config.appVersion;
+            fileClientPath = path.normalize('/' + clientPath + '/js/' + file + '?ver=' + config.appVersion);
             if (amorphicOptions.sourceMode === 'debug') {
                 fileSource = ["document.write(\"<script src='" + fileClientPath + "'></script>\");\n\n"];
             }

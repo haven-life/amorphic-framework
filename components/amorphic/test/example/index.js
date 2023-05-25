@@ -8,9 +8,8 @@ let path = require('path');
 let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 
 describe('Setup amorphic', function() {
-    before(function(done) {
-        serverAmorphic.listen(__dirname);
-        done();
+    before(function() {
+        return serverAmorphic.listen(__dirname);
     });
 
     it('can call the listen function to setup amorphic and then it can be called on the default port', function() {

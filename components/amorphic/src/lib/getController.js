@@ -138,7 +138,7 @@ export async function getController(path, controllerPath, initObjectTemplate, ex
     // key value pairs where the key is the require prefix and and the value is the
     // key value pairs of each exported template
 	let ControllerTemplate = AmorphicContext.applicationTSController[path] ||
-		(await getTemplates(persistableSemotableTemplate, prefix, [prop + '.js'], config, path))[prop].Controller;
+		(await (await getTemplates(persistableSemotableTemplate, prefix, [prop + '.js'], config, path))[prop].Controller);
 
     if (!ControllerTemplate) {
         throw  new Error('Missing controller template in ' + prefix + prop + '.js');
