@@ -10,7 +10,6 @@ function createNewNConfProvider(): nconf.Provider {
  * Deprecating loadFile for just 'file'
  */
 export class SupertypeConfig implements Config {
-    static useAmorphic: boolean = false;
     internalConfigStore: nconf.Provider;
     constructor() {
         this.internalConfigStore = createNewNConfProvider();
