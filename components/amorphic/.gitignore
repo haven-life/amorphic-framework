@@ -10,6 +10,8 @@ coverage
 .redis
 typescript_tests/**/*.js
 typescript_tests/**/*.js.map
+typescript_tests_esm/**/*.js
+typescript_tests_esm/**/*.js.map
 lib/utils/remoteable.js
 lib/utils/remoteable.js.map
 dist

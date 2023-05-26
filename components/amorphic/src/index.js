@@ -24,14 +24,12 @@
 import { SupertypeConfig } from '@haventech/supertype';
 SupertypeConfig.useAmorphic = true;
 import Semotus from '@haventech/semotus';
-import PersistorCreate, { Persistor, Persistable } from '@haventech/persistor';
-import ObjectTemplate from '@haventech/supertype';
+import { Persistor, Persistable } from '@haventech/persistor';
 import { getTemplates } from './lib/getTemplates.js';
 import { listen } from './lib/listen.js';
 import { startPersistorMode } from './lib/startPersistorMode.js';
 import * as typescript from './lib/typescript.js';
 import { resolveVersions } from './lib/resolve/resolveVersions.js';
-import AmorphicContext from './lib/AmorphicContext.js';
 
 // TODO: This should be a default set in Semotus
 Semotus.maxCallTime = 60 * 1000; // Max time for call interlock
@@ -133,7 +131,7 @@ let toExport = {
 // subtype of ObjectTemplate (either semotus or persistor).  By default we bind to persistor in case
 // someone has mocha tests that use the object model.
 let bindDecorators = typescript.bindDecorators.bind(toExport);
-bindDecorators(PersistorCreate(ObjectTemplate, null, ObjectTemplate)); // For tests
+bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;
