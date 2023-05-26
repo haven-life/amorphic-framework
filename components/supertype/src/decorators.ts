@@ -146,6 +146,20 @@ export function property(props?): any {
         props.enumerable = true;
         target.__amorphicprops__ = target.hasOwnProperty('__amorphicprops__') ? target.__amorphicprops__ : {};
         var reflectionType = Reflect.getMetadata('design:type', target, targetKey);
+        // if type is specified as a resolver () => Class, resolve the type and set that as the defineProperty.type
+        if (typeof reflectionType === 'function') {
+            let resolvedType = undefined;
+            try {
+                if (Function.prototype.toString.call(reflectionType).startsWith('(')) {
+                    resolvedType = reflectionType();
+                }
+            } catch {
+                resolvedType = undefined;
+            }
+            if (resolvedType && typeof resolvedType !== 'string') {
+                reflectionType = resolvedType;
+            }
+        }
         var declaredType = props.type;
         var type = reflectionType !== Array ? declaredType || reflectionType : declaredType;
     // Type mismatches
