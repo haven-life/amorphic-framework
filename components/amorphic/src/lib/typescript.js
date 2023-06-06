@@ -14,17 +14,16 @@ export function bindDecorators (objectTemplate) {
     /**
      * Purpose unknown
      *
-     * @param {unknown} target unknown
      * @param {unknown} props unknown
      *
      * @returns {unknown} unknown.
      */
-    this.supertypeClass = function supertypeClass(target, props) {
+    this.supertypeClass = function supertypeClass(props) {
         if (objectTemplate.supertypeClass) {
-            return objectTemplate.supertypeClass(target, props, objectTemplate);
+            return objectTemplate.supertypeClass(props, objectTemplate);
         }
         else {
-            return SupertypeDefinition.supertypeClass(target, props, objectTemplate);
+            return SupertypeDefinition.supertypeClass(props, objectTemplate);
         }
     };
 
