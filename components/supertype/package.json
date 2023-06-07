@@ -40,7 +40,7 @@
         "debug:tests": "mocha --inspect-brk test/animals.mjs",
         "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
         "test:ts": "TS_NODE_PROJECT='./tsconfig.cjs.json' mocha --require ts-node/register test/typescript/*",
-        "test:ts:esm": "TS_NODE_PROJECT='./test/tsconfig.json' mocha --loader=ts-node/esm test/typescriptEsm/*",
+        "test:ts:esm": "TS_NODE_PROJECT='./test/tsconfig.test.esm.json' mocha --loader=ts-node/esm test/typescriptEsm/*",
         "clean": "rm -rf dist/",
         "compile": "tsc -p tsconfig.cjs.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs",
         "build": "npm run clean && npm run compile",
