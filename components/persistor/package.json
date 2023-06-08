@@ -25,12 +25,12 @@
         "underscore": "^1.13.1"
     },
     "peerDependencies": {
-        "@haventech/supertype": "^8.0.0",
+        "@haventech/supertype": "^9.0.0",
         "knex": ">=0.21.0 <3.0.0",
         "pg": ">=8.7.0 <9.0.0"
     },
     "devDependencies": {
-        "@haventech/supertype": "file:.yalc/@haventech/supertype",
+        "@haventech/supertype": "^9.0.0",
         "@types/bluebird": "*",
         "@types/chai": "4.3.4",
         "@types/mocha": "10.0.1",
@@ -48,7 +48,7 @@
         "sinon": "15.0.1",
         "sinon-chai": "3.7.0",
         "ts-node": "10.9.1",
-        "ttypescript": "^1.5.15",
+        "ttypescript": "1.5.15",
         "typescript": "4.9.5"
     },
     "directories": {},

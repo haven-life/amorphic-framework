@@ -48,7 +48,7 @@
 		"test:ts:types": "mocha -- test/typesTs/*.mjs"
 	},
 	"devDependencies": {
-		"@haventech/supertype": "file:.yalc/@haventech/supertype",
+		"@haventech/supertype": "^9.0.0",
 		"@types/chai": "4.3.4",
 		"@types/express": "4.17.16",
 		"@types/express-serve-static-core": "4.17.33",
@@ -67,7 +67,7 @@
 		"underscore": "1.13.6"
 	},
 	"peerDependencies": {
-		"@haventech/supertype": "^8.0.0"
+		"@haventech/supertype": "^9.0.0"
 	},
 	"engines": {
 		"node": ">=16.0.0"
