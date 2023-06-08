@@ -76,7 +76,7 @@ export class Persistor extends SupertypeSession {
     getPersistorProps () : any {}
 
     connect (connect : any, schema : any) : any {}
-    startup (configPath : any, configStore? : any) : any {}
+    startConfig (configPath : any, configStore? : any) : any {}
     dropAllTables () : any {}
     syncAllTables () : any {}
     onAllTables (callback : Function, concurrency? : number) : any {}
