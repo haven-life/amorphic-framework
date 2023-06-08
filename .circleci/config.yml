@@ -33,7 +33,9 @@ jobs:
 
       - run:
           name: Install rsync
-          command: sudo apt install rsync
+          command: |
+            sudo apt update
+            sudo apt install rsync
 
       - save_cache:
           paths:
