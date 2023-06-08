@@ -1368,9 +1368,9 @@ export default function (PersistObjectTemplate, baseClassForPersist) {
      * @param {object} configPath path to config
      * @param {JSON} configStore specified alternate config to use
      */
-    PersistObjectTemplate.startup = function(configPath, configStore = null) {
+    PersistObjectTemplate.startConfig = function(configPath, configStore = null) {
         if (!configPath) {
-            throw new Error('startup(configPath, schemaPath?) called without a config path');
+            throw new Error('startConfig(configPath, schemaPath?) called without a config path');
         }
     
         configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);

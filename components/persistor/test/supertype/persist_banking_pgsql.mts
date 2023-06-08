@@ -113,7 +113,7 @@ describe('typescript tests: Banking from pgsql Example persist_banking_pgsql', f
     });
 
     it ('opens the database Postgres', async function () {
-        await persistor.startup(__dirname);
+        await persistor.startConfig(__dirname);
         const config = amorphicStatic.config;
         knex =  persistor.connect({
                     client: 'pg',
