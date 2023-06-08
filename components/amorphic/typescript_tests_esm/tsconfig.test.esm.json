@@ -19,7 +19,8 @@
         "plugins": [
             { "transform": "@haventech/supertype/transformers/appendJsExtension.ts", "after": true },
 			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
-        ]
+        ],
+        "esModuleInterop": true
     },
     "ts-node": {
         "compiler": "ttypescript",
