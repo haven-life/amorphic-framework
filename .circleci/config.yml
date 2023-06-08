@@ -31,6 +31,10 @@ jobs:
           name: Install lerna
           command: npm install
 
+      - run:
+          name: Install rsync
+          command: sudo apt install rsync
+
       - save_cache:
           paths:
             - node_modules
