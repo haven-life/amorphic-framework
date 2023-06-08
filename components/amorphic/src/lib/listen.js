@@ -8,7 +8,7 @@ import { AmorphicServer } from './AmorphicServer.js'
 import { SupertypeSession, BuildSupertypeConfig } from '@haventech/supertype';
 let createServer = AmorphicServer.createServer;
 
-import packageJson from '../../../package.json';
+import packageJson from '../../../package.json' assert { type: 'json' };
 import { resolveVersions } from './resolve/resolveVersions.js';
 let packageVersions;
 (async () => {

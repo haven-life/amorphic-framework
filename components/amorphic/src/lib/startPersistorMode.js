@@ -8,7 +8,7 @@ import { SupertypeSession, BuildSupertypeConfig } from '@haventech/supertype';
 
 const moduleName = `amorphic/lib/startPersistorMode`;
 
-import packageJson from '../../../package.json';
+import packageJson from '../../../package.json' assert { type: 'json' };
 import { resolveVersions } from './resolve/resolveVersions.js';
 let packageVersions;
 (async () => {
