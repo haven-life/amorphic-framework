@@ -7,7 +7,7 @@ export async function resolveVersions(packages) {
             const index = packageLocation.lastIndexOf(dependency);
             const packageJsonLocation = packageLocation.substring(0, index).concat(dependency + '/package.json');
 
-            versions[dependency] = (await import(packageJsonLocation)).version;
+            versions[dependency] = (await import(packageJsonLocation, { assert: { type: 'json' }})).version;
         } catch {}
     }
 
