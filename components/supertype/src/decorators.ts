@@ -19,7 +19,7 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
     // so that it will be called again when the decorators are actually processed.  Kinda spliffy.
 
     // Called by decorator processor
-    if (objectProps.prototype) { // if objectProps is the class (second pass if passed with {toClient style params} or first pass when @supertypeClass no paren and args)
+    if (objectProps && objectProps.prototype) { // if objectProps is the class (second pass if passed with {toClient style params} or first pass when @supertypeClass no paren and args)
         return decorator(objectProps);
     }
 
@@ -146,6 +146,20 @@ export function property(props?): any {
         props.enumerable = true;
         target.__amorphicprops__ = target.hasOwnProperty('__amorphicprops__') ? target.__amorphicprops__ : {};
         var reflectionType = Reflect.getMetadata('design:type', target, targetKey);
+        // if type is specified as a resolver () => Class, resolve the type and set that as the defineProperty.type
+        if (typeof reflectionType === 'function') {
+            let resolvedType = undefined;
+            try {
+                if (Function.prototype.toString.call(reflectionType).startsWith('(')) {
+                    resolvedType = reflectionType();
+                }
+            } catch {
+                resolvedType = undefined;
+            }
+            if (resolvedType && typeof resolvedType !== 'string') {
+                reflectionType = resolvedType;
+            }
+        }
         var declaredType = props.type;
         var type = reflectionType !== Array ? declaredType || reflectionType : declaredType;
     // Type mismatches

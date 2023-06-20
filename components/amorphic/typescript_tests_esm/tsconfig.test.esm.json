@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "module": "esnext",
+        "moduleResolution": "node",
+        "target": "es2020",
+        "lib": [
+            "es2020",
+            "dom",
+            "es5",
+            "es2015.promise"
+        ],
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "typeRoots": [
+            "../node_modules/@types"
+        ],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "plugins": [
+            { "transform": "@haventech/supertype/transformers/appendJsExtension.ts", "after": true },
+			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
+        ],
+        "esModuleInterop": true
+    },
+    "ts-node": {
+        "compiler": "ttypescript",
+        "esm": true,
+        "experimentalSpecifierResolution": "node"
+    },
+    "include": [
+        "./unittest.ts",
+        "./apps/**/*.ts",
+    ]
+}

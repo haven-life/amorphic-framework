@@ -1,6 +1,5 @@
-import {Supertype, supertypeClass, property} from '../../../dist/index';
-import {Animal} from './Animal';
-import {Lion} from "./Lion";
+import { Supertype, supertypeClass, property } from '../../../src/index';
+import { Animal } from './Animal';
 
 @supertypeClass
 export class Ark extends Supertype
@@ -16,15 +15,3 @@ export class Ark extends Supertype
         this.animals.push(animal);
     }
 };
-console.log("Foo");
-@supertypeClass
-export class AnimalContainer extends Supertype {
-    @property({getType:() => Animal} )
-    containee: Animal;
-}
-
-@supertypeClass
-export class LionContainer extends AnimalContainer {
-    @property({getType:() => Lion})
-    containee: Lion;
-}

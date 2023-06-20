@@ -42,10 +42,10 @@ For example, we may choose to model our classes in objects like the following
 
 *Controller*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
-   import {Customer} from './Customer';
+   import { property, remote, Supertype, supertypeClass } from '@haventech/amorphic';
+   import { Customer } from './Customer';
    
-   let delay = require('../../../dist/helpers/Utilities.js').delay;
+   let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
    export class Controller extends Supertype {
@@ -65,10 +65,10 @@ For example, we may choose to model our classes in objects like the following
 
 *Customer*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
-   import {PaymentInformation} from './PaymentInformation';
+   import { property, remote, Supertype, supertypeClass } from '@haventech/amorphic';
+   import { PaymentInformation } from './PaymentInformation';
    
-   let delay = require('../../../dist/helpers/Utilities.js').delay;
+   let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
    export class Customer extends Supertype {
@@ -91,10 +91,10 @@ For example, we may choose to model our classes in objects like the following
 
 *Payment Information*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
-   import {PaymentInformation} from './PaymentInformation';
+   import { property, remote, Supertype, supertypeClass } from '@haventech/amorphic';
+   import { PaymentInformation } from './PaymentInformation';
    
-   let delay = require('../../../dist/helpers/Utilities.js').delay;
+   let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
    export class Controller extends Supertype {
@@ -116,10 +116,10 @@ In this example, we could go about this a couple ways. The one I would choose wo
 
 **Controller (modified)**
 ```
-   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
-   import {Customer} from './Customer';
+   import { property, remote, Supertype, supertypeClass } from '@haventech/amorphic';
+   import { Customer } from './Customer';
    
-   let delay = require('../../../dist/helpers/Utilities.js').delay;
+   let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
    export class Controller extends Supertype {
@@ -145,10 +145,10 @@ In this example, we could go about this a couple ways. The one I would choose wo
 
 *Customer (modified)*
 ```
-   import {property, remote, Supertype, supertypeClass} from '@haventech/amorphic';
-   import {PaymentInformation} from './PaymentInformation';
+   import { property, remote, Supertype, supertypeClass } from '@haventech/amorphic';
+   import { PaymentInformation } from './PaymentInformation';
    
-   let delay = require('../../../dist/helpers/Utilities.js').delay;
+   let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass({syncStates: ['confirmation']})
    export class Customer extends Supertype {

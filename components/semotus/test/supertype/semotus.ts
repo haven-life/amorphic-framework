@@ -6,9 +6,9 @@
 declare function require(name: string);
 
 // RemoteObjectTemplate will be used for server template creation
-var RemoteObjectTemplate = require('../../dist/index.js');
+var RemoteObjectTemplate = require('../../dist/cjs/index.js').default;
 
-var delay = require('../../dist/helpers/Utilities.js').delay;
+var delay = require('../../dist/cjs/helpers/Utilities.js').delay;
 
 RemoteObjectTemplate.role = 'server';
 RemoteObjectTemplate._useGettersSetters = true;
@@ -28,7 +28,7 @@ ServerObjectTemplate.__conflictMode__ = 'soft';
 ServerObjectTemplate.memSession = { semotus: {} };
 ServerObjectTemplate.__dictionary__ = RemoteObjectTemplate.__dictionary__;
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 import { mockRequest, mockResponse } from 'mock-req-res';
 
 let serverMockReq, serverMockRes, clientMockReq, clientMockRes;

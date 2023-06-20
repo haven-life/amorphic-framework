@@ -3,11 +3,11 @@
  * with remote object storage using S3RemoteDocClient
  */
 const sinon = require('sinon');
-const S3RemoteDocClient = require('../dist/lib/remote-doc/remote-doc-clients/S3RemoteDocClient').S3RemoteDocClient;
+const S3RemoteDocClient = require('../dist/cjs/lib/remote-doc/remote-doc-clients/S3RemoteDocClient').S3RemoteDocClient;
 const expect = require('chai').expect;
 const AssertionError = require('chai').AssertionError;
 const ObjectTemplate = require('@haventech/supertype').default;
-const PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+const PersistObjectTemplate = require('../dist/cjs/index.js').default(ObjectTemplate, null, ObjectTemplate);
 const logLevel = process.env.logLevel || 'debug';
 
 PersistObjectTemplate.debugInfo = 'api;conflict;write;read;data';//'api;io';

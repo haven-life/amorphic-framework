@@ -1,13 +1,15 @@
-module.exports.controller = function (objectTemplate, getTemplate) {
+let serverController;
+
+module.exports.controller = async function (objectTemplate, getTemplate) {
     objectTemplate.debugInfo = 'io;api';
     objectTemplate.objectMap = {};
 
-    var Customer = getTemplate('model.js', {client: false}).Customer;
-    var Account = getTemplate('model.js').Account;
-    var Address  = getTemplate('model.js').Address;
-    var ReturnedMail = getTemplate('model.js').ReturnedMail;
-    var Role = getTemplate('model.js').Role;
-    var Transaction = getTemplate('model.js').Transaction;
+    var Customer = (await getTemplate('model.js', {client: false})).Customer;
+    var Account = (await getTemplate('model.js')).Account;
+    var Address  = (await getTemplate('model.js')).Address;
+    var ReturnedMail = (await getTemplate('model.js')).ReturnedMail;
+    var Role = (await getTemplate('model.js')).Role;
+    var Transaction = (await getTemplate('model.js')).Transaction;
 
     var Controller = objectTemplate.create('Controller', {
         mainFunc: {
@@ -24,6 +26,7 @@ module.exports.controller = function (objectTemplate, getTemplate) {
         updatedCount: {type: Number, value: 0},
         serverInit: function () {
             serverController = this;
+            setServerController(serverController);
         },
         processPost: {on: 'server', body: function (uri, body) {
             if (body.error) {
@@ -131,6 +134,7 @@ module.exports.controller = function (objectTemplate, getTemplate) {
             }
             //return;
             var dirtCount = 0;
+			const serverController = window.serverController;
             serverController.sam.cascadeSave();
             serverController.karen.cascadeSave();
             serverController.ashling.cascadeSave();

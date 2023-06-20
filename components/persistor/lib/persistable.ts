@@ -1,4 +1,4 @@
-import {SupertypeSession} from '@haventech/supertype';
+import { SupertypeSession } from '@haventech/supertype';
 type Constructable<BC> = new (...args: any[]) => BC;
 
 
@@ -76,6 +76,7 @@ export class Persistor extends SupertypeSession {
     getPersistorProps () : any {}
 
     connect (connect : any, schema : any) : any {}
+    startConfig (configPath : any, configStore? : any) : any {}
     dropAllTables () : any {}
     syncAllTables () : any {}
     onAllTables (callback : Function, concurrency? : number) : any {}
@@ -85,7 +86,7 @@ export class Persistor extends SupertypeSession {
 
     countFromKnexQuery (template, queryOrChains, _logger?) : any {}
     dropKnexTable (template : string) : any {};
-    synchronizeKnexTableFromTemplate (template : string, changeNotificationCallback? : any, forceSync? : boolean) : any {};
+    synchronizeKnexTableFromTemplate (template : any, changeNotificationCallback? : any, forceSync? : boolean) : any {};
     setSchema(schema : any) {};
     appendSchema(schema : any) {};
     performInjections() {}
@@ -95,10 +96,15 @@ export class Persistor extends SupertypeSession {
     static createTransientObject(callback : any) : any {};
 }
 
+export const PersistorObj = Persistor.create();
+
 export function ContainsPersistable<BC extends Constructable<{}>>(Base: BC) {
     return class extends Base {
         amorphic : Persistor;
     }
+}
+export interface Persistable {
+    persistorFetchByQuery (query, options?) : any;
 }
 
 export function Persistable<BC extends Constructable<{}>>(Base: BC) {
@@ -188,7 +194,7 @@ export function Persistable<BC extends Constructable<{}>>(Base: BC) {
         /**
          * Checks to see if the object has been fetched
          */
-         persistorIsFetched(prop): any {};
+        persistorIsFetched(prop): any {};
 
         /**
          * Can generate object id even before saving the record to the database

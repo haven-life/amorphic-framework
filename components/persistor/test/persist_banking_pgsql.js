@@ -5,13 +5,13 @@
  */
 
 var sinon = require('sinon');
-var LocalStorageDocClient = require('../dist/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
+var LocalStorageDocClient = require('../dist/cjs/lib/remote-doc/remote-doc-clients/LocalStorageDocClient').LocalStorageDocClient;
 var expect = require('chai').expect;
 var util = require('util');
 var Promise = require('bluebird');
 var _ = require('underscore');
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/cjs/index.js').default(ObjectTemplate, null, ObjectTemplate);
 var writing = true;
 var logLevel = process.env.logLevel || 'debug';
 const sandbox = sinon.createSandbox();

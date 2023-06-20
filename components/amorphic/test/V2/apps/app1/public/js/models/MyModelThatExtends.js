@@ -1,5 +1,5 @@
-module.exports.MyModelThatExtends = function(objectTemplate, uses) {
-    var Model = uses('Model.js', 'Model');
+module.exports.MyModelThatExtends = async function(objectTemplate, uses) {
+    var Model = await uses('Model.js', 'Model');
 
     Model.extend({
         name: 'MyModelThatExtends',

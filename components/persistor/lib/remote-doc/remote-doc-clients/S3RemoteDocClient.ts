@@ -1,9 +1,9 @@
 import { RemoteDocClient } from '../remote-doc-types/index';
-import { S3, AWSError } from 'aws-sdk';
+import pkg from 'aws-sdk';
 
 export class S3RemoteDocClient implements RemoteDocClient {
 
-    private S3Instance: S3;
+    private S3Instance: pkg.S3;
     private S3Host: string;
 
     constructor(remoteDocHost?: string) {
@@ -15,20 +15,20 @@ export class S3RemoteDocClient implements RemoteDocClient {
      *
      * @returns {Promise<S3>}
      */
-    private async getConnection(bucket: string): Promise<S3> {
+    private async getConnection(bucket: string): Promise<pkg.S3> {
 
         if (!this.hasCredentials() || (this.hasCredentials() && !this.isCredentialsValid())) {
 
             const endPoint = `${this.S3Host}${bucket}`;
 
-            let S3Instance = new S3({
+            let S3Instance = new pkg.S3({
                 endpoint: endPoint,
                 region: 'us-east-1',
                 s3BucketEndpoint: true
             });
 
-            return new Promise<S3>((resolve, reject) => {
-                S3Instance.config.getCredentials((err: AWS.AWSError) => {
+            return new Promise<pkg.S3>((resolve, reject) => {
+                S3Instance.config.getCredentials((err: pkg.AWSError) => {
                     if (err) {
                         return reject(err);
                     } else {
@@ -52,9 +52,9 @@ export class S3RemoteDocClient implements RemoteDocClient {
      * @param {string} contentType - the mime type of the content being uploaded
      * @returns {Promise<S3.PutObjectOutput>} - standard aws result object following an s3 upload
      */
-    public async uploadDocument(s3ObjectToBeUploaded: S3.Body, key: string, bucket: string, contentType?: string): Promise<S3.PutObjectOutput> {
+    public async uploadDocument(s3ObjectToBeUploaded: pkg.S3.Body, key: string, bucket: string, contentType?: string): Promise<pkg.S3.PutObjectOutput> {
 
-        const bucketParams: S3.PutObjectRequest = {
+        const bucketParams: pkg.S3.PutObjectRequest = {
             Bucket: bucket,
             Key: key,
             Body: s3ObjectToBeUploaded,
@@ -64,7 +64,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
         const s3Conn = await this.getConnection(bucket);
 
         return new Promise((resolve, reject) => {
-            (<AWS.S3>s3Conn).putObject(bucketParams, async (err: AWSError, data: S3.PutObjectOutput) => {
+            (<pkg.S3>s3Conn).putObject(bucketParams, async (err: pkg.AWSError, data: pkg.S3.PutObjectOutput) => {
                 if (err) {
                     reject(err.message);
                 } else {
@@ -83,7 +83,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
      * @returns {Promise<S3.GetObjectOutput>} - standard aws result object following an s3 download
      */
     public async downloadDocument(key: string, bucket: string): Promise<any> {
-        const bucketParams: S3.GetObjectRequest = {
+        const bucketParams: pkg.S3.GetObjectRequest = {
             Bucket: bucket,
             Key: key
         };
@@ -91,7 +91,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
         const s3Conn = await this.getConnection(bucket);
 
         return new Promise((resolve, reject) => {
-            s3Conn.getObject(bucketParams, (err: Error, data: S3.GetObjectOutput) => {
+            s3Conn.getObject(bucketParams, (err: Error, data: pkg.S3.GetObjectOutput) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -112,7 +112,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
      * @returns {Promise<any>}
      */
     public async deleteDocument(key: string, bucket: string, versionId?: string) {
-        const params: S3.DeleteObjectRequest = {
+        const params: pkg.S3.DeleteObjectRequest = {
             Bucket: bucket,
             Key: key
         };
@@ -124,7 +124,7 @@ export class S3RemoteDocClient implements RemoteDocClient {
         const s3Conn = await this.getConnection(bucket);
 
         return new Promise<void>((resolve, reject) => {
-            s3Conn.deleteObject(params, (err: Error, data: S3.DeleteObjectOutput) => {
+            s3Conn.deleteObject(params, (err: Error, data: pkg.S3.DeleteObjectOutput) => {
                 if (err) {
                     reject(err.message);
                 } else {

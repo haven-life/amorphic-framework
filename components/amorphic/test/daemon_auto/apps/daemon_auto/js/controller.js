@@ -1,10 +1,10 @@
-module.exports.controller = function(objectTemplate, uses) {
+module.exports.controller = async function(objectTemplate, uses) {
 	var fs = require('fs');
 	var url = require('url');
 
 	var localObjectTemplate = objectTemplate;
-	var BaseController = uses('./baseController.js', 'BaseController');
-	var MapFromStatic = uses('./static.js', 'map');
+	var BaseController = await uses('./baseController.js', 'BaseController');
+	var MapFromStatic = await uses('./static.js', 'map');
 
 	var Controller = BaseController.extend('Controller', {
 		prop: { type: Boolean, value: false },

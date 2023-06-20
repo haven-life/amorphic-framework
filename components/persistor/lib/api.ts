@@ -10,15 +10,16 @@
  *
  */
 
-import { PersistorTransaction, RemoteDocConnectionOptions } from './types';
+import { BuildSupertypeConfig } from '@haventech/supertype';
+import { PersistorTransaction, RemoteDocConnectionOptions } from './types/index';
+import { StatsdHelper } from '@haventech/supertype';
+import Promise from 'bluebird';
+import _ from 'underscore';
+import knex from 'knex';
 
-module.exports = function (PersistObjectTemplate, baseClassForPersist) {
+export default function (PersistObjectTemplate, baseClassForPersist) {
     const moduleName = `persistor/lib/api`;
-    let supertypeRequire = require('@haventech/supertype');
-    let statsDHelper = supertypeRequire.StatsdHelper;
-
-    var Promise = require('bluebird');
-    var _ = require('underscore');
+    let statsDHelper = StatsdHelper;
 
     function getTime() {
         return process.hrtime();
@@ -1280,7 +1281,7 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
             PersistObjectTemplate.getPOJOFromMongoQuery(template, query, options, logger) :
             PersistObjectTemplate.getPOJOsFromKnexQuery(template, [], query, options, undefined, logger).then(function (pojos) {
                 pojos.forEach(function (pojo) {
-                    _.map(pojo, function (_val, prop) {
+                    _.map(pojo, function (_val, prop: any) {
                         if (prop.match(RegExp('^' + prefix + '___'))) {
                             pojo[prop.replace(RegExp('^' + prefix + '___'), '')] = pojo[prop];
                             delete pojo[prop];
@@ -1354,14 +1355,33 @@ module.exports = function (PersistObjectTemplate, baseClassForPersist) {
      * @returns {*}
      */
     PersistObjectTemplate.connect = function (config, schema) {
-        var knex = require('knex');
         var connection = knex(config);
-        this.setDB(connection, this.DB_Knex, config.client);
+        this.setDB(connection, this.DB_Knex);
         this.setRemoteDocConnection(config);
         this.setSchema(schema);
         this.performInjections(); // Normally done by getTemplates
         return connection;
     };
+
+    /**
+     * Used to start up persistor with config
+     * @param {object} configPath path to config
+     * @param {JSON} configStore specified alternate config to use
+     */
+    PersistObjectTemplate.startConfig = function(configPath, configStore = null) {
+        if (!configPath) {
+            throw new Error('startConfig(configPath, schemaPath?) called without a config path');
+        }
+    
+        configStore = configStore != null ? configStore : BuildSupertypeConfig(configPath);
+        let config = configStore['root'].get();
+    
+        config.nconf = configStore['root']; // Global config
+        config.configStore = configStore;
+
+        this.config = config;
+        this.logLevel = config.nconf.get('logLevel') || 1;
+    }
 
     /**
      * Mostly used for unit testing.  Drops all tables for templates that have a schema

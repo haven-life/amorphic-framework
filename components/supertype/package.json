@@ -1,9 +1,19 @@
 {
     "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "8.0.0",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "version": "9.0.0",
+    "main": "dist/cjs/index.js",
+    "module": "dist/esm/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/esm/index.d.ts",
+            "require": "./dist/cjs/index.js",
+            "import": "./dist/esm/index.js",
+            "default": "./dist/esm/index.js"
+        },
+        "./transformers/preparePackages.mjs": "./transformers/preparePackages.mjs"
+    },
+    "types": "dist/cjs/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",
     "dependencies": {
         "@haventech/amorphic-contracts": "^0.2.0",
@@ -22,17 +32,19 @@
         "nyc": "15.1.0",
         "sinon": "15.0.1",
         "ts-node": "10.9.1",
+        "ttypescript": "^1.5.15",
         "typescript": "^4.9.5"
     },
     "scripts": {
         "lint": "eslint .",
-        "debug:tests": "mocha --inspect-brk test/animals.js",
+        "debug:tests": "mocha --inspect-brk test/animals.mjs",
         "debug:tstests": "mocha --inspect-brk test/typescript/*.js",
-        "test:ts": "mocha --require ts-node/register test/typescript/*",
+        "test:ts": "TS_NODE_PROJECT='./tsconfig.cjs.json' mocha --require ts-node/register test/typescript/*",
+        "test:ts:esm": "TS_NODE_PROJECT='./test/tsconfig.test.esm.json' mocha --loader=ts-node/esm test/typescriptEsm/*",
         "clean": "rm -rf dist/",
-        "compile": "tsc",
-        "build": "npm run compile",
-        "test": "mocha test/**/*.js",
+        "compile": "tsc -p tsconfig.cjs.json && ttsc -p tsconfig.esm.json && node ./prepare-package.mjs",
+        "build": "npm run clean && npm run compile",
+        "test": "mocha --config test/.mocharc.json test/**/*.mjs",
         "test:config": "mocha test/config",
         "test:example": "mocha test/example",
         "prepublishOnly": "npm run clean && npm run compile"
@@ -47,6 +59,5 @@
     },
     "bugs": {
         "url": "http://github.com/haven-life/supertype/issues"
-    },
-    "optionalDependencies": {}
+    }
 }

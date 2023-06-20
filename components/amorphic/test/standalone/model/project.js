@@ -1,8 +1,8 @@
 'use strict';
 
-module.exports.project = function (objectTemplate, getTemplate) {
+module.exports.project = async function (objectTemplate, getTemplate) {
 
-    var Person = getTemplate('./person.js').Person;
+    var Person = (await getTemplate('./person.js')).Person;
 
     var ProjectRelease = objectTemplate.create('ProjectRelease', {
         name: {type: String},

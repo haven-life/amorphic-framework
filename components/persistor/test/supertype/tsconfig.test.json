@@ -1,6 +1,14 @@
 {
     "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "../../",
+		"module": "esnext",
+        "strictNullChecks": false,
+		"plugins": [
+			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
+		]
+	},
     "include": [
-        "./*.ts"
+        "./*.mts"
     ]
 }

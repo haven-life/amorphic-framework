@@ -1,6 +1,6 @@
-import {Supertype, supertypeClass, property} from '../../dist/index';
-import {Role} from './Role';
-import {Address} from './Address';
+import { Supertype, supertypeClass, property } from '../../dist/cjs/index';
+import { Role } from './Role';
+import { Address } from './Address';
 
 @supertypeClass
 export class Customer extends Supertype {

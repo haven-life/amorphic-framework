@@ -49,7 +49,7 @@ describe('persist fetch', function () {
     });
     beforeEach('arrange', function () {
         ObjectTemplate = require('@haventech/supertype').default;
-        PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+        PersistObjectTemplate = require('../dist/cjs/index.js').default(ObjectTemplate, null, ObjectTemplate);
 
         schema.Employee = {};
         schema.Address = {};

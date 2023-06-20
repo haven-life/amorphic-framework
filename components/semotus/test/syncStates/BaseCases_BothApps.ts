@@ -1,7 +1,7 @@
-import {expect} from 'chai';
-import {bootstrap, setup} from './models/bootstrap';
+import { expect } from 'chai';
+import { bootstrap, setup } from './models/bootstrap';
 
-let Changes = require('../../dist/helpers/Changes');
+let Changes = require('../../dist/cjs/helpers/Changes');
 
 
 let server;

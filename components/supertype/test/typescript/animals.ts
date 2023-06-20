@@ -1,12 +1,9 @@
-import {expect} from 'chai';
-import * as mocha from 'mocha';
-import {Ark} from "./model/Ark";
-import {LionContainer} from "./model/Ark";
-import {AnimalContainer} from "./model/Ark";
-import {Lion} from "./model/Lion";
-import {Bear} from "./model/Bear";
-import {Animal} from "./model/Animal";
-import {amorphicStatic} from "../../dist/index";
+import { expect } from 'chai';
+import { Animal, AnimalContainer } from './model/Animal';
+import { Ark } from './model/Ark';
+import { Lion, LionContainer } from './model/Lion';
+import { Bear } from './model/Bear';
+import { amorphicStatic } from '../../src/index';
 import * as sinon from 'sinon';
 
 

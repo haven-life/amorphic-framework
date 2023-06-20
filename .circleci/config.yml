@@ -31,6 +31,12 @@ jobs:
           name: Install lerna
           command: npm install
 
+      - run:
+          name: Install rsync
+          command: |
+            sudo apt update
+            sudo apt install rsync
+
       - save_cache:
           paths:
             - node_modules
@@ -47,13 +53,18 @@ jobs:
 
       # run javascript tests - Supertype!
       - run:
-          name: Supertype JS Tests
+          name: Supertype JS ESM Tests
           command: npm run test:supertype
 
       # run typescript tests - Supertype!
       - run:
           name: Supertype TS Tests
           command: npm run test:ts:supertype
+
+      # run typescript tests - Supertype!
+      - run:
+          name: Supertype TS ESM Tests
+          command: npm run test:ts:supertype:esm
 
       # run javascript tests - Semotus!
       - run:
@@ -65,11 +76,20 @@ jobs:
           name: Semotus TS Tests
           command: npm run test:ts:semotus
 
+      # run typescript tests - Semotus!
+      - run:
+          name: Semotus TS ESM Types Tests
+          command: npm run test:ts:semotus:types
 
       # run javascript tests - Amorphic!
       - run:
           name: Amorphic JS Tests
           command: npm run test:amorphic
+
+      # run javascript tests - Amorphic!
+      - run:
+          name: Amorphic JS ESM Tests
+          command: npm run test:amorphic:esm
 
       # run typescript tests - Amorphic!
       - run:
@@ -83,7 +103,7 @@ jobs:
 
       # run typescript tests - Persistor!
       - run:
-          name: Persistor TS Tests
+          name: Persistor TS ESM Tests
           command: npm run test:ts:persistor
 
 #      # run all js tests

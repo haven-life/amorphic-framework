@@ -1,6 +1,6 @@
 // Q Replacement Helpers
 
-import {CallContext} from './Types';
+import { CallContext } from './Types';
 
 export function delay(ms: number) {
     return new Promise(_ => setTimeout(_, ms));

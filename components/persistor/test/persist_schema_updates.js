@@ -12,7 +12,7 @@ chai.should();
 chai.use(chaiAsPromised);
 
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/cjs/index.js').default(ObjectTemplate, null, ObjectTemplate);
 
 
 var Employee = PersistObjectTemplate.create('Employee', {

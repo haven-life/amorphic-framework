@@ -1,20 +1,19 @@
 'use strict';
 let assert = require('chai').assert;
 let Bluebird = require('bluebird');
-let amorphic = require('../../dist/index.js');
+let amorphic = require('../../dist/cjs/index.js').default;
 let axios = require('axios');
 let fs = require('fs');
 const os = require('os');
 let path = require('path');
-let amorphicContext = require('../../dist/lib/AmorphicContext');
+let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 
 describe('Run amorphic as deamon only', function() {
 
     this.timeout(5000);
 
-    before(function(done) {
-        amorphic.listen(__dirname);
-        done();
+    before(function() {
+        return amorphic.listen(__dirname);
     });
 
     it('can call the listen function to setup amorphic, and init the app controller', function() {

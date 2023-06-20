@@ -1,9 +1,8 @@
-import * as nconf from 'nconf';
-import {Provider} from 'nconf';
-import {Config, ApplicationNameToConfigMap} from '@haventech/amorphic-contracts';
+import nconf from 'nconf';
+import { Config, ApplicationNameToConfigMap } from '@haventech/amorphic-contracts';
 
 
-function createNewNConfProvider(): Provider {
+function createNewNConfProvider(): nconf.Provider {
     return new nconf.Provider().argv().env({separator: '__'});
 }
 
@@ -11,8 +10,7 @@ function createNewNConfProvider(): Provider {
  * Deprecating loadFile for just 'file'
  */
 export class SupertypeConfig implements Config {
-
-    internalConfigStore: Provider;
+    internalConfigStore: nconf.Provider;
     constructor() {
         this.internalConfigStore = createNewNConfProvider();
     }

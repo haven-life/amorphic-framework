@@ -1,6 +1,6 @@
-import {Supertype, supertypeClass, property, Remoteable, Persistable}  from '../../../../dist/index.js';
-import {Person} from './person';
-import {Ticket} from './ticket';
+import { Supertype, supertypeClass, property, Remoteable, Persistable }  from '../../../../dist/cjs/index.js';
+import { Person } from './person';
+import { Ticket } from './ticket';
 console.log("Compiling Project");
 @supertypeClass
 export class Project extends Remoteable(Persistable(Supertype)) {

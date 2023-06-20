@@ -1,5 +1,5 @@
 import * as Sessions from './Sessions';
-import {Semotus, Subscription, Subscriptions} from './Types';
+import { Semotus, Subscription, Subscriptions } from './Types';
 
 /**
  * Purpose unknown

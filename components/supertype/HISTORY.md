@@ -1,3 +1,5 @@
+## 9.0.0
+* Hybrid package to use both ESM and CommonJS based on import type
 ## 8.0.0
 * Set compiler target to be es2020.
 * Update regexes for object identification to also support classes.

@@ -2,19 +2,22 @@
 var expect = require('chai').expect;
 let assert = require('chai').assert;
 let Bluebird = require('bluebird');
-let serverAmorphic = require('../../dist/index.js');
+let serverAmorphic = require('../../dist/cjs/index.js').default;
 let fs = require('fs');
 const os = require('os');
 let path = require('path');
-let amorphicContext = require('../../dist/lib/AmorphicContext');
+let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 
-clientController = null;
+let RemoteObjectTemplate = require('@haventech/semotus').default._createObject();
+
+let clientController = null;
 
 let modelRequires;
 let controllerRequires;
 let Controller;
+let window;
 
-function beforeEachDescribe(done, appName, createControllerFor, sourceMode, statsClient) {
+async function beforeEachDescribe(resolve, appName, createControllerFor, sourceMode, statsClient) {
     process.env.createControllerFor = createControllerFor;
     process.env.sourceMode = sourceMode || 'debug';
     amorphicContext.amorphicOptions.mainApp = appName; // we inject our main app name here
@@ -22,7 +25,7 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     let modelRequiresPath = './apps/' + appName + '/public/js/model.js';
     let controllerRequiresPath = './apps/' + appName + '/public/js/controller.js';
     modelRequires = require(modelRequiresPath).model(RemoteObjectTemplate, function () {});
-    controllerRequires = require(controllerRequiresPath).controller(RemoteObjectTemplate, function () {
+    controllerRequires = await require(controllerRequiresPath).controller(RemoteObjectTemplate, function () {
         return modelRequires;
     });
     Controller = controllerRequires.Controller;
@@ -31,18 +34,20 @@ function beforeEachDescribe(done, appName, createControllerFor, sourceMode, stat
     window.Controller = controllerRequires.Controller;
 
     // start persistor mode
-    serverAmorphic.startPersistorMode(__dirname).then(done());
+    serverAmorphic.startPersistorMode(__dirname).then(resolve());
 }
 
 describe('Run amorphic as serverless', function () {
     this.timeout(1000000);
 
-    before(function (done) {
-        return beforeEachDescribe(done, 'serverless');
+    before(function () {
+        return new Promise((resolve) => {
+            beforeEachDescribe(resolve, 'serverless');
+        });
     });
     
     it("amorphic server is not listening and express app is disabled", function (done) {
-        expect(amorphicContext.appContext.server.listening).to.equal(false);
+        expect(!!amorphicContext.appContext.server && amorphicContext.appContext.server.listening).to.equal(false);
         done();
     });
 

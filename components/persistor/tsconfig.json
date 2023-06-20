@@ -8,9 +8,10 @@
         "./**/*.ts"
     ],
     "exclude": [
-        "./test/**/*.ts",
+        "./test/**/*",
         "./index.d.ts",
         "./**/persistable.ts",
-        "./dist/**"
+        "./dist/**",
+        "./transformers"
     ]
 }

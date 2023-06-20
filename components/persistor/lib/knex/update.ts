@@ -1,11 +1,11 @@
 import { RemoteDocService, UploadDocumentResponse } from '../remote-doc/RemoteDocService';
 import { PersistorTransaction } from '../types/PersistorTransaction';
 import { PersistorUtils } from '../utils/PersistorUtils';
+import Promise from 'bluebird';
+import _ from 'underscore';
 
-module.exports = function (PersistObjectTemplate) {
+export default function (PersistObjectTemplate) {
     const moduleName = `persistor/lib/knex/update`;
-    var Promise = require('bluebird');
-    var _ = require('underscore');
 
     /**
      * Save the object to persistent storage
@@ -21,7 +21,7 @@ module.exports = function (PersistObjectTemplate) {
      * @param {object} logger object template logger
      * @returns {*}
      */
-    PersistObjectTemplate.persistSaveKnex = async function(obj, txn: PersistorTransaction, logger): Promise<any> {
+    PersistObjectTemplate.persistSaveKnex = function(obj, txn: PersistorTransaction, logger): Promise<any> {
         const functionName = 'persistSaveKnex';
         (logger || this.logger).debug({
             module: moduleName,
@@ -109,7 +109,7 @@ module.exports = function (PersistObjectTemplate) {
                             throw new Error('Missing parent entry in ' + defineProperty.of.__name__ + ' for ' + templateName);
 
                         // Go through each of the parents in the schema to find the one matching this reference
-                        _.each(defineProperty.of.__schema__.parents, function(parentSchemaEntry, parentProp) {
+                        _.each(defineProperty.of.__schema__.parents, function(parentSchemaEntry: any, parentProp) {
 
                             if (parentSchemaEntry.id == childForeignKey) {
 

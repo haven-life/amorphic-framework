@@ -1,6 +1,6 @@
 {
 	"name": "@haventech/semotus",
-	"version": "9.0.0",
+	"version": "10.0.0",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",
 	"bugs": {
@@ -10,34 +10,45 @@
 		"type": "git",
 		"url": "git://github.com/haven-life/semotus.git"
 	},
-	"main": "dist/index.js",
-	"types": "dist/exports.d.ts",
+	"main": "dist/cjs/index.js",
+	"module": "dist/esm/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/esm/index.d.ts",
+			"require": "./dist/cjs/index.js",
+			"import": "./dist/esm/index.js",
+			"default": "./dist/esm/index.js"
+		}
+	},
+	"types": "dist/cjs/index.d.ts",
 	"directories": {},
 	"scripts": {
-		"build": "npm run compile:src && npm run compile:test:supertype && npm run compile:test:syncstates && npm run copyStatics",
-		"buildAndTest": "npm run build && npm run test:ts && npm run test:ts:compiled",
-		"clean": "rm -rf ./dist",
-		"compile:src": "tsc -p ./src/tsconfig.json",
-		"compile:test:supertype": "tsc -p ./test/supertype/tsconfig.json",
+		"build": "npm run clean && npm run compile:src && npm run compile:test:supertype && npm run compile:test:syncstates && npm run compile:test:types && npm run copyStatics",
+		"buildAndTest": "npm run build && npm run test:ts && npm run test:ts:compiled && npm run test:ts:types",
+		"clean": "rm -rf ./dist && find ./test/typesTs -type f -name '*.mjs' -delete && find ./test/supertype -type f -name '*.js' -delete && find ./test/syncStates -type f -name '*.js' -delete",
+		"compile:src": "tsc -p ./src/tsconfig.cjs.json && ttsc -p ./src/tsconfig.esm.json && node ./prepare-package.mjs",
+		"compile:test:supertype": "ttsc -p ./test/supertype/tsconfig.json",
 		"compile:test:syncstates": "tsc -p ./test/syncStates/tsconfig.json",
-		"copyStatics": "cp ./exports.d.ts ./dist/index.d.ts",
+		"compile:test:types": "tsc -p ./test/typesTs/tsconfig.json",
+		"copyStatics": "cp ./src/index.d.ts ./dist/cjs/index.d.ts && cp ./src/helpers/Types.ts ./dist/cjs/helpers/Types.ts && cp ./src/index.d.ts ./dist/esm/index.d.ts && cp ./src/helpers/Types.ts ./dist/esm/helpers/Types.ts",
 		"coverage": "nyc npm run test",
 		"coverage:ts": "nyc npm run test:ts",
 		"debugJSTests": "mocha --inspect-brk test/javascript/*.js",
 		"debugTSTests": "mocha --inspect-brk test/supertype/semotus.js",
 		"prepublishOnly": "npm run build",
 		"setup": "npm install",
-		"test": "mocha -- test/types.js test/javascript/semotus.js",
-		"test:ts": "npm run test:ts:supertype && npm run test:ts:syncstates",
+		"test": "mocha -- test/javascript/*",
+		"test:ts": "npm run test:ts:supertype && npm run test:ts:syncstates && npm run test:ts:types",
 		"test:ts:compiled": "mocha test/supertype/semotus.js",
 		"test:ts:supertype": "mocha test/supertype/semotus.ts --require ts-node/register",
 		"test:ts:syncstates": "npm run test:ts:syncstates:a && npm run test:ts:syncstates:b && npm run test:ts:syncstates:both",
 		"test:ts:syncstates:a": "mocha test/syncStates/BaseCases_AppA.js -t 100000",
 		"test:ts:syncstates:b": "mocha test/syncStates/BaseCases_AppB.js -t 100000",
-		"test:ts:syncstates:both": "mocha test/syncStates/BaseCases_BothApps.js -t 100000"
+		"test:ts:syncstates:both": "mocha test/syncStates/BaseCases_BothApps.js -t 100000",
+		"test:ts:types": "mocha -- test/typesTs/*.mjs"
 	},
 	"devDependencies": {
-		"@haventech/supertype": "^8.0.0",
+		"@haventech/supertype": "^9.0.0",
 		"@types/chai": "4.3.4",
 		"@types/express": "4.17.16",
 		"@types/express-serve-static-core": "4.17.33",
@@ -51,14 +62,12 @@
 		"nyc": "15.1.0",
 		"sinon": "15.0.1",
 		"ts-node": "^10.9.1",
+		"ttypescript": "1.5.15",
 		"typescript": "4.9.5",
 		"underscore": "1.13.6"
 	},
 	"peerDependencies": {
-		"@haventech/supertype": "^8.0.0"
-	},
-	"dependencies": {
-		"q": "1.x"
+		"@haventech/supertype": "^9.0.0"
 	},
 	"engines": {
 		"node": ">=16.0.0"

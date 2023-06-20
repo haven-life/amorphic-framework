@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 
 var Promise = require('bluebird');
 var ObjectTemplate = require('@haventech/supertype').default;
-var PersistObjectTemplate = require('../dist/index.js')(ObjectTemplate, null, ObjectTemplate);
+var PersistObjectTemplate = require('../dist/cjs/index.js').default(ObjectTemplate, null, ObjectTemplate);
 
 
 var Address = PersistObjectTemplate.create('Address', {

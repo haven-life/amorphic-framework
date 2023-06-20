@@ -1,6 +1,6 @@
 declare function require(name: string);
 
-import {expect} from 'chai';
+import { expect } from 'chai';
 
 export type retVal =
     {
@@ -22,7 +22,7 @@ function resetAppRuleSet(RemoteObjectTemplate, app) {
 export function bootstrap(app): retVal {
 
     // RemoteObjectTemplate will be used for server template creation
-    var RemoteObjectTemplate = require('../../../dist');
+    var RemoteObjectTemplate = require('../../../dist/cjs').default;
     resetAppRuleSet(RemoteObjectTemplate, app);
 
     RemoteObjectTemplate.role = 'server';

@@ -1,11 +1,11 @@
-import {property, remote, Supertype, supertypeClass} from '../../dist/index';
-import {Customer} from './Customer';
-import {Account} from './Account';
-import {Address} from './Address';
-import {expect} from 'chai';
+import { property, remote, Supertype, supertypeClass } from '../../dist/cjs/index';
+import { Customer } from './Customer';
+import { Account } from './Account';
+import { Address } from './Address';
+import { expect } from 'chai';
 
-var ObjectTemplate = require('../../dist/index.js');
-var delay = require('../../dist/helpers/Utilities.js').delay;
+var ObjectTemplate = require('../../dist/cjs/index.js').default;
+var delay = require('../../dist/cjs/helpers/Utilities.js').delay;
 ObjectTemplate['toClientRuleSet'] = ['ClientRule'];
 ObjectTemplate['toServerRuleSet'] = ['ServerRule'];
 

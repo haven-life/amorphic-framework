@@ -1,3 +1,7 @@
+## 13.0.0
+* ESM/CJS Hybrid, depending on the import type either through require or import
+* Add ability for persistor to be included on its own and start up on its on
+* Moved amorphicStatic to persistor because of this
 ## 12.0.1
 * Add back missing Relect entry.
 ## 12.0.0

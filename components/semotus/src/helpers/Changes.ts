@@ -1,4 +1,4 @@
-import {RemoteableClass, Semotus} from './Types';
+import { RemoteableClass, Semotus } from './Types';
 import * as Sessions from './Sessions';
 
 /**

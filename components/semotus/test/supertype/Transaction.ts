@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property} from '../../dist/index';
-import {Account} from './Account';
+import { Supertype, supertypeClass, property } from '../../dist/cjs/index';
+import { Account } from './Account';
 
 @supertypeClass
 export class Transaction  extends Supertype {

@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "module": "esnext",
+        "moduleResolution": "node",
+        "target": "es2020",
+        "lib": [
+            "es2015",
+            "es2017",
+            "es2020"
+        ],
+        "noImplicitAny": false,
+        "typeRoots": [
+            "../../node_modules/@types"
+        ],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "inlineSources": true,
+        "inlineSourceMap": true
+    }
+}

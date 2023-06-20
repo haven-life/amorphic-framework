@@ -1,0 +1,13 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "module": "esnext",
+        "plugins": [
+            { "transform": "./transformers/appendJsExtension.ts", "after": true },
+			{ "transform": "./transformers/reflectMetadataResolver.ts", "after": true }
+        ]
+    },
+    "ts-node": {
+        "compiler": "ttypescript"
+    }
+}

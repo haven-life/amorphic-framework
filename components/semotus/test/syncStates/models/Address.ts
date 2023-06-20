@@ -1,6 +1,6 @@
-import {property, Supertype, supertypeClass} from '../../../dist';
-import {Customer} from './Customer';
-import {Account} from './Account';
+import { property, Supertype, supertypeClass } from '../../../dist/cjs';
+import { Customer } from './Customer';
+import { Account } from './Account';
 import * as _ from 'underscore';
 
 @supertypeClass

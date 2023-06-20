@@ -23,37 +23,40 @@
  objects created with it's templates.  The synchronization
  */
 
-import {ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage} from './helpers/Types';
-import {property, remote, Supertype, supertypeClass} from './decorators';
-import {Bindable, Persistable, Remoteable} from './setupExtends';
+import { ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage } from './helpers/Types';
+import { property, remote, Supertype, supertypeClass } from './decorators';
+import { Bindable, Persistable, Remoteable } from './setupExtends';
 import * as Sessions from './helpers/Sessions';
 import * as Subscriptions from './helpers/Subscriptions';
-import {delay} from './helpers/Utilities';
+import { delay } from './helpers/Utilities';
 import * as Changes from './helpers/Changes';
 import * as ChangeGroups from './helpers/ChangeGroups';
-import {Request, Response} from 'express';
-import {processCall} from "./helpers/ProcessCall";
+import { Request, Response } from 'express';
+import { processCall } from "./helpers/ProcessCall";
+import _ from 'underscore';
+import * as SupertypeModule from '@haventech/supertype';
 
 const moduleName = `semotus/src/index`;
+let [ boundSupertypeClass, boundSupertype, boundProperty, boundRemote ] = [ supertypeClass, Supertype, property, remote ];
 
-declare var define;
+// use JS promises instead of Q
+function defer() {
+	let resolve, reject;
+	const promise = new Promise((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+  
+	return {
+		promise,
+		resolve,
+		reject
+	};
+}
 
-// @TODO: Check if we attach Promise as a keyword in the webpack build
-(function (root: any, factory) {
-	'use strict';
-	if (typeof define === 'function' && define.amd) {
-		define(['q', 'underscore', '@haventech/supertype'], factory);
-	}
-	else if (typeof exports === 'object') {
-		module.exports = factory(require('q'), require('underscore'), require('@haventech/supertype'));
-	}
-	else {
-		root.RemoteObjectTemplate = factory(root.Q, root._, root.ObjectTemplate);
-	}
-})(this, function (Q, _, SupertypeModule) {
-
+export function RemoteObjectTemplate() {
 	var ObjectTemplate = SupertypeModule.default;
-	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject();
+	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject() as any;
 
 	RemoteObjectTemplate._useGettersSetters = typeof window === 'undefined';
 
@@ -813,7 +816,7 @@ declare var define;
 				});
 
 				// @TODO: remove dependency on Q for future optimizations on FE (perhaps part of ESNext effort)
-				const deferred = Q.defer();
+				const deferred = defer();
 				objectTemplate._queueRemoteCall(this.__id__, propertyName, deferred, arguments);
 
 				if (self.controller && self.controller.handleRemoteError) {
@@ -924,6 +927,33 @@ declare var define;
 				return function f(value) {
 					const currentObjectTemplate = this.__objectTemplate__ ? this.__objectTemplate__ : objectTemplate;
 
+					// if type is specified as a resolver () => Class, resolve the type and set that as the defineProperty.type
+					if (typeof defineProperty.type === 'function') {
+						let resolvedType = undefined;
+						try {
+							const funcStr = Function.prototype.toString.call(defineProperty.type);
+							if (funcStr.startsWith('(')) {
+								resolvedType = defineProperty.type();
+								if (typeof resolvedType === 'string' && currentObjectTemplate.__dictionary__) {
+									resolvedType = currentObjectTemplate.__dictionary__[resolvedType];
+								}
+							}
+						}
+						catch (e) {
+							currentObjectTemplate.logger.error({
+								module: moduleName,
+								function: functionName,
+								category: 'milestone',
+								message: 'cannot resolve the defineProperty.type',
+								data: { property: prop },
+								error: e
+							});
+						}
+						if (resolvedType && typeof resolvedType !== 'string') {
+							defineProperty.type = resolvedType;
+						}
+					}
+
 					// Sessionize reference if it is missing an __objectTemplate__
 					if (
 						defineProperty.type &&
@@ -1005,7 +1035,7 @@ declare var define;
 							category: 'milestone',
 							message: 'caught exception trying to stringify ' + prop,
 							data: {
-								activity: 'stingify',
+								activity: 'stringify',
 								property: prop
 							},
 							error: e
@@ -2414,15 +2444,15 @@ declare var define;
 	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 		objectTemplate = objectTemplate || this;
 
-        this.supertypeClass = supertypeClass.bind(this, objectTemplate, SupertypeModule);
-		this.Supertype = function () {
+        boundSupertypeClass = supertypeClass.bind(this, objectTemplate, SupertypeModule);
+		boundSupertype = function () {
             return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
         };
-        this.Supertype.prototype = SupertypeModule.Supertype.prototype;
-        this.property =  (props) => {
+        boundSupertype.prototype = SupertypeModule.Supertype.prototype;
+        boundProperty = (props) => {
             return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
         };
-        this.remote = remote.bind(null, objectTemplate);
+        boundRemote = remote.bind(null, objectTemplate);
 	};
 
     RemoteObjectTemplate.Persistable = Persistable;
@@ -2432,4 +2462,7 @@ declare var define;
 	RemoteObjectTemplate.bindDecorators(); //Default to binding to yourself
 
 	return RemoteObjectTemplate;
-});
+};
+
+export default RemoteObjectTemplate();
+export { boundProperty as property, boundRemote as remote, boundSupertype as Supertype, boundSupertypeClass as supertypeClass };

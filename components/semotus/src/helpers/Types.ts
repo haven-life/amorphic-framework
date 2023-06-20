@@ -1,6 +1,6 @@
-import {Supertype} from '@haventech/supertype';
-import {Request, Response} from 'express';
-export type HTTPObjs = {request: Request, response: Response};
+import { Supertype } from '@haventech/supertype';
+import { Request, Response } from 'express';
+export type HTTPObjs = { request: Request, response: Response };
 
 export type Subscription = {
     role: string;
@@ -227,6 +227,7 @@ export interface Semotus {
     _applyPropertyChange: (changes, rollback, obj, prop, ix, oldValue, newValue, force) => (boolean);
     _rollback: (rollback) => void;
     _rollbackChanges: () => void;
+    _createObject: () => any;
     _createEmptyObject: (template, objId, defineProperty, isTransient) => any;
     inject: (template, injector) => void;
     _queueRemoteCall: (objId, functionName, deferred, args) => void;

@@ -1,16 +1,15 @@
 'use strict';
 let assert = require('chai').assert;
-let serverAmorphic = require('../../dist/index.js');
+let serverAmorphic = require('../../dist/cjs/index.js').default;
 let axios = require('axios');
 let fs = require('fs');
 const os = require('os');
 let path = require('path');
-let amorphicContext = require('../../dist/lib/AmorphicContext');
+let amorphicContext = require('../../dist/cjs/lib/AmorphicContext').default;
 
 describe('Setup amorphic', function() {
-    before(function(done) {
-        serverAmorphic.listen(__dirname);
-        done();
+    before(function() {
+        return serverAmorphic.listen(__dirname);
     });
 
     it('can call the listen function to setup amorphic and then it can be called on the default port', function() {

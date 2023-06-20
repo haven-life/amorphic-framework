@@ -1,7 +1,7 @@
-import {property, Supertype, supertypeClass} from '../../../dist';
-import {Role} from './Role';
-import {Address} from './Address';
-import {Credit, Debit, Transaction, Xfer} from './Transaction';
+import { property, Supertype, supertypeClass } from '../../../dist/cjs';
+import { Role } from './Role';
+import { Address } from './Address';
+import { Credit, Debit, Transaction, Xfer } from './Transaction';
 import * as _ from 'underscore';
 
 @supertypeClass

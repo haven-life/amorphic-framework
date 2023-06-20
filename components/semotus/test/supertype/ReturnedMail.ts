@@ -1,5 +1,5 @@
-import {Supertype, supertypeClass, property} from '../../dist/index';
-import {Address} from './Address';
+import { Supertype, supertypeClass, property } from '../../dist/cjs/index';
+import { Address } from './Address';
 
 @supertypeClass
 export class ReturnedMail extends Supertype {

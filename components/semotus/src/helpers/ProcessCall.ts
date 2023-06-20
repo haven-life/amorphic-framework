@@ -1,5 +1,5 @@
-import {delay, getError, logTime} from './Utilities';
-import {CallContext, ProcessCallPayload, RemoteCall, Semotus, Session} from './Types';
+import { delay, getError, logTime } from './Utilities';
+import { CallContext, ProcessCallPayload, RemoteCall, Semotus, Session } from './Types';
 
 const moduleName = `semotus/src/helpers/ProcessCall`;
 

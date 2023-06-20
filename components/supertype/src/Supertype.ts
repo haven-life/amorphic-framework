@@ -1,4 +1,4 @@
-import {ObjectTemplate} from './ObjectTemplate';
+import { ObjectTemplate } from './ObjectTemplate';
 import * as serializer from './serializer';
 
 function constructorName(constructor) {

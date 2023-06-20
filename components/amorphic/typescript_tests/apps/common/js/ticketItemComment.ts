@@ -1,8 +1,8 @@
-import {Supertype, supertypeClass, property, Remoteable, Persistable}  from '../../../../dist/index.js';
-import {Ticket} from './ticket';
-import {TicketItem} from './ticketItem';
+import { supertypeClass, property }  from '../../../../dist/cjs/index.js';
+import { Ticket } from './ticket';
+import { TicketItem } from './ticketItem';
 
-console.log("Compiling TicketItemComment");
+console.log('Compiling TicketItemComment');
 
 @supertypeClass
 export class TicketItemComment extends TicketItem { //  extends TicketItem

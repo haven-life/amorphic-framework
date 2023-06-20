@@ -3,10 +3,10 @@ module.exports.objectTemplateInitialize = function(objectTemplate) {
     objectTemplate.toClientRuleSet = ['app1'];
 };
 
-module.exports.Controller = function (objectTemplate, uses) {
+module.exports.Controller = async function (objectTemplate, uses) {
     // objectTemplate.debugInfo = 'io;api';
 
-    var myModelThatExtends = uses('./models/MyModelThatExtends.js', 'MyModelThatExtends');
+    var myModelThatExtends = await uses('./models/MyModelThatExtends.js', 'MyModelThatExtends');
 
     var Controller = objectTemplate.create('Controller', {
         mainFunc: {
