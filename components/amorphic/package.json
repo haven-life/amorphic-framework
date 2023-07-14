@@ -13,7 +13,7 @@
 		}
 	},
 	"types": "dist/cjs/index.d.ts",
-	"version": "14.0.0",
+	"version": "14.1.0",
 	"dependencies": {
 		"@haventech/persistor": "^13.0.0",
 		"@haventech/semotus": "^10.0.0",
