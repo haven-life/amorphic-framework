@@ -8,18 +8,7 @@ import { SupertypeSession, BuildSupertypeConfig } from '@haventech/supertype';
 
 const moduleName = `amorphic/lib/startPersistorMode`;
 
-import packageJson from '../../../package.json' assert { type: 'json' };
 import { resolveVersions } from './resolve/resolveVersions.js';
-let packageVersions;
-(async () => {
-	packageVersions = await resolveVersions([
-		'@haventech/supertype',
-		'@haventech/persistor',
-		'@haventech/bindster'
-	]);
-	packageVersions['amorphic'] = packageJson.version;
-})();
-
 /**
  * asynchronous start persistor function (returns a promise)
  *
@@ -99,7 +88,10 @@ export function startPersistorMode(appDirectory, logger, statsdClient, configSto
 	}
 
 	return Promise.all(promises)
-		.then(function logStart() {
+		.then(function () {
+			return resolveVersions({});
+		})
+		.then(function logStart(packageVersions) {
 			let msg = 'Amorphic persistor mode has been started with versions, needs serverless set as serverMode: ';
 			for (let packageVer in packageVersions) {
 				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';

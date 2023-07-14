@@ -1,17 +1,18 @@
-async function resolveVersions(packages) {
-    const versions = {};
+async function resolveVersions(packageVersions) {
+	const readPackagePkg = await import('read-pkg');
+	const pkg = await readPackagePkg.readPackage();
+	const dependencies = pkg.dependencies;
 
-    for (const dependency of packages) {
-        try {
-            let packageLocation = require.resolve(dependency);
-            const index = packageLocation.lastIndexOf(dependency);
-            const packageJsonLocation = packageLocation.substring(0, index).concat(dependency + '/package.json');
+	const setPackage = (packageVersions, dependencies, name) => {
+		packageVersions[name] = dependencies[name];
+	}
 
-            versions[dependency] = require(packageJsonLocation).version;
-        } catch {}
-    }
-
-    return versions;
+	setPackage(packageVersions, dependencies, '@haventech/semotus');
+	setPackage(packageVersions, dependencies, '@haventech/supertype');
+	setPackage(packageVersions, dependencies, '@haventech/persistor');
+	setPackage(packageVersions, dependencies, '@haventech/bindster');
+	packageVersions['amorphic'] = pkg.version;
+    return packageVersions;
 }
 
 module.exports = {
