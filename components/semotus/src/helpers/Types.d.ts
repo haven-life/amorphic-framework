@@ -11,7 +11,6 @@ export type Subscription = {
     }
 }
 
-export const Change = 'change';
 export type ArrayTypes = 'array' | 'arrayDirty';
 export type ErrorType = 'error' | 'retry' | 'response';
 
