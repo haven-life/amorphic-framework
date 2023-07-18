@@ -1,5 +1,5 @@
 import { property, remote, Supertype, supertypeClass } from '../../../dist/cjs';
-import { CallContext, ChangeString, ControllerSyncState } from '../../../src/helpers/Types';
+import { CallContext, ChangeString, ControllerSyncState } from '../../../dist/cjs/helpers/Types';
 import { Customer, CustomerA, CustomerB } from './Customer';
 import { Account } from './Account';
 import { Address, AddressBSecondStage } from './Address';

@@ -23,7 +23,7 @@
 	"types": "dist/cjs/index.d.ts",
 	"directories": {},
 	"scripts": {
-		"build": "npm run clean && npm run compile:src && npm run compile:test:supertype && npm run compile:test:syncstates && npm run compile:test:types && npm run copyStatics",
+		"build": "npm run clean && npm run compile:src && npm run copyStatics && npm run compile:test:supertype && npm run compile:test:syncstates && npm run compile:test:types",
 		"buildAndTest": "npm run build && npm run test:ts && npm run test:ts:compiled && npm run test:ts:types",
 		"clean": "rm -rf ./dist && find ./test/typesTs -type f -name '*.mjs' -delete && find ./test/supertype -type f -name '*.js' -delete && find ./test/syncStates -type f -name '*.js' -delete",
 		"compile:src": "tsc -p ./src/tsconfig.cjs.json && ttsc -p ./src/tsconfig.esm.json && node ./prepare-package.mjs",
