@@ -1,6 +1,7 @@
 ## 14.1.0
 * Use read-pkg instead of directly importing package json.
 * removes need for assert { type: 'json' }
+* Add additional exports from HelperTypes and ILifecycleController
 ## 14.0.0
 * ESM CommonJS hybrid module that depends on if import or require is used.
 * Adding tests to test out the ESM capabilities
