@@ -8,19 +8,7 @@ import { AmorphicServer } from './AmorphicServer.js'
 import { SupertypeSession, BuildSupertypeConfig } from '@haventech/supertype';
 let createServer = AmorphicServer.createServer;
 
-import packageJson from '../../../package.json' assert { type: 'json' };
 import { resolveVersions } from './resolve/resolveVersions.js';
-let packageVersions;
-(async () => {
-	packageVersions = await resolveVersions([
-		'@haventech/semotus',
-		'@haventech/supertype',
-		'@haventech/persistor',
-		'@haventech/bindster'
-	]);
-	packageVersions['amorphic'] = packageJson.version;
-})();
-
 const moduleName = `amorphic/lib/listen`;
 /**
  * asynchronous listener function (returns a promise)
@@ -133,7 +121,10 @@ export function listen(appDirectory, sessionStore, preSessionInject, postSession
 				sessionConfig
 			)
 		)
-		.then(function logStart() {
+		.then(function () {
+			return resolveVersions({});
+		})
+		.then(function logStart(packageVersions) {
 			let msg = 'Amorphic has been started with versions: ';
 			for (let packageVer in packageVersions) {
 				msg += packageVer + ': ' + packageVersions[packageVer] + ', ';

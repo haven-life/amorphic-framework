@@ -130,8 +130,8 @@ let toExport = {
 // bindDecorators will need to be called before importing templates to bind to the correct
 // subtype of ObjectTemplate (either semotus or persistor).  By default we bind to persistor in case
 // someone has mocha tests that use the object model.
-let bindDecorators = typescript.bindDecorators.bind(toExport);
-bindDecorators(Persistor); // For tests
+toExport.bindDecorators = typescript.bindDecorators.bind(toExport);
+toExport.bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;

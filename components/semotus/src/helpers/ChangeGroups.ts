@@ -1,5 +1,6 @@
-import { ArrayGroup, ArrayTypes, Change, ChangeGroup, Semotus } from './Types';
+import { ArrayGroup, ArrayTypes, ChangeGroup, Semotus } from './Types';
 import * as Subscriptions from './Subscriptions';
+export const Change = 'change';
 
 export function get(type: 'change' | ArrayTypes, subscriptionId, semotus: Semotus): ChangeGroup | ArrayGroup {
     const subscription = Subscriptions.getSubscription(semotus, subscriptionId);

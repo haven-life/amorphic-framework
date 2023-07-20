@@ -1,3 +1,5 @@
+## 10.0.1
+* Convert Types to a d.ts and move Changes const out
 ## 10.0.0
 * ESM/CJS Hybrid, depending on the import type either through require or import
 * some logic changes for the property setup
