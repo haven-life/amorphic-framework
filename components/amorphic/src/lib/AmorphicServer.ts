@@ -23,8 +23,8 @@ import https from 'https';
 import { SupertypeSession } from '@haventech/supertype';
 import { LoggerApiContextProcessor } from './utils/LoggerApiContextProcessor';
 import { AmorphicUtils } from './utils/AmorphicUtils';
-import path from "path";
-import { fileURLToPath } from "url";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // mimic CommonJS variables -- not needed if using CommonJS
 let _dirname;
