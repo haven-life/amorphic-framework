@@ -3,7 +3,7 @@ import { Person } from './person.js';
 import { Ticket } from './ticket.js';
 console.log("Compiling Project");
 @supertypeClass
-export class Project extends Remoteable(Persistable(Supertype)) {
+export class Project extends Remoteable(Persistable(Supertype())) {
 
 	// Name
 	@property({length: 40, rule: ["name", "required"]})

@@ -18,7 +18,7 @@ export class Animal extends Supertype
 };
 
 @supertypeClass
-export class AnimalContainer extends Supertype {
+export class AnimalContainer extends Supertype() {
     @property({getType:() => Animal} )
     containee: Animal;
 }

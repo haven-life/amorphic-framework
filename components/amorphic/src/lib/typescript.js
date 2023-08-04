@@ -4,6 +4,7 @@ import * as unitTestConfig from './unitTestConfig.js'  // TODO: This seems like 
 import * as SupertypeDefinition from '@haventech/supertype';
 // Passed the main index export.  Will bind the decorators to either Persistor or Semotus
 export function bindDecorators (objectTemplate) {
+    // THIS is called...
 
     // TODO: In what situation would objectTemplate be null and why is it acceptable just to use this as a replacement?
     objectTemplate = objectTemplate || this;
@@ -23,6 +24,7 @@ export function bindDecorators (objectTemplate) {
             return objectTemplate.supertypeClass(props, objectTemplate);
         }
         else {
+            // HERE...???
             return SupertypeDefinition.supertypeClass(props, objectTemplate);
         }
     };
@@ -79,13 +81,13 @@ export function bindDecorators (objectTemplate) {
      *
      * @returns {unknown} unknown.
      */
-    this.Amorphic.create = function create() {
+    this.create = function create() {
         objectTemplate.connect = unitTestConfig.startup;
 
         return objectTemplate;
     };
 
-    this.Amorphic.getInstance = function getInstance() {
+    this.getInstance = function getInstance() {
         return objectTemplate;
     };
 }

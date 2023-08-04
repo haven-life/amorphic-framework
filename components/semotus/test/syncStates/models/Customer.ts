@@ -4,7 +4,7 @@ import { Address, AddressA, AddressBFirstStage, AddressBSecondStage } from './Ad
 import { Account } from './Account';
 
 @supertypeClass
-export class Customer extends Supertype {
+export class Customer extends Supertype() {
 
     @property()
     firstName: string = '';

@@ -24,7 +24,7 @@
  */
 
 import { ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage } from './helpers/Types';
-import { property, remote, Supertype, supertypeClass } from './decorators';
+import { property as propertyDecorator, remote as remoteDecorator, Supertype as SupertypeClass, supertypeClass as supertypeClassDecorator } from './decorators';
 import { Bindable, Persistable, Remoteable } from './setupExtends';
 import * as Sessions from './helpers/Sessions';
 import * as Subscriptions from './helpers/Subscriptions';
@@ -34,10 +34,11 @@ import * as ChangeGroups from './helpers/ChangeGroups';
 import { Request, Response } from 'express';
 import { processCall } from "./helpers/ProcessCall";
 import _ from 'underscore';
-import * as SupertypeModule from '@haventech/supertype';
+import ObjectTemplate from '@haventech/supertype';
+import * as SupertypeModule from '@haventech/supertype'
 
 const moduleName = `semotus/src/index`;
-let [ boundSupertypeClass, boundSupertype, boundProperty, boundRemote ] = [ supertypeClass, Supertype, property, remote ];
+let boundSupertypeClass, boundSupertype, boundProperty, boundRemote;
 
 // use JS promises instead of Q
 function defer() {
@@ -55,7 +56,6 @@ function defer() {
 }
 
 export function RemoteObjectTemplate() {
-	var ObjectTemplate = SupertypeModule.default;
 	const RemoteObjectTemplate: Semotus = ObjectTemplate._createObject() as any;
 
 	RemoteObjectTemplate._useGettersSetters = typeof window === 'undefined';
@@ -2444,15 +2444,15 @@ export function RemoteObjectTemplate() {
 	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
 		objectTemplate = objectTemplate || this;
 
-        boundSupertypeClass = supertypeClass.bind(this, objectTemplate, SupertypeModule);
+        boundSupertypeClass = supertypeClassDecorator.bind(this, objectTemplate, SupertypeModule);
 		boundSupertype = function () {
-            return Supertype(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
+            return SupertypeClass(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
         };
         boundSupertype.prototype = SupertypeModule.Supertype.prototype;
         boundProperty = (props) => {
-            return property(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
+            return propertyDecorator(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
         };
-        boundRemote = remote.bind(null, objectTemplate);
+        boundRemote = remoteDecorator.bind(null, objectTemplate);
 	};
 
     RemoteObjectTemplate.Persistable = Persistable;
@@ -2465,4 +2465,20 @@ export function RemoteObjectTemplate() {
 };
 
 export default RemoteObjectTemplate();
-export { boundProperty as property, boundRemote as remote, boundSupertype as Supertype, boundSupertypeClass as supertypeClass };
+
+export function property(props?, toClientRuleSet?, toServerRuleSet?) {
+	return boundProperty(props, toClientRuleSet, toServerRuleSet);
+}
+
+export function remote(defineProperty?) {
+	return boundRemote(defineProperty);
+}
+export function Supertype(): typeof SupertypeModule.Supertype {
+    return boundSupertype;
+};
+
+export function supertypeClass(target?) {
+	return boundSupertypeClass(target);
+}
+
+export { Bindable, Persistable, Remoteable };

@@ -2,7 +2,7 @@ import { Supertype, supertypeClass, property } from '../../dist/cjs/index';
 import { Address } from './Address';
 
 @supertypeClass
-export class ReturnedMail extends Supertype {
+export class ReturnedMail extends Supertype(){
 
     @property()
     date: Date;

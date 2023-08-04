@@ -20,6 +20,7 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
 
     // Called by decorator processor
     if (objectProps && objectProps.prototype) { // if objectProps is the class (second pass if passed with {toClient style params} or first pass when @supertypeClass no paren and args)
+        // here....
         return decorator(objectProps);
     }
 
@@ -29,6 +30,7 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
 
     // Decorator Workerbee
     function decorator(target) {
+        // objectTemplate = /*objectTemplate ||*/ ObjectTemplate;
         objectTemplate = objectTemplate || ObjectTemplate;
 
         target.prototype.__template__ = target;
@@ -44,6 +46,8 @@ export function supertypeClass(objectProps?, objectTemplate?): any {
 
         // Push an array of template references (we can't get at their names now).  Later we will
         // use this to construct __dictionary__
+        // HERE????
+        //AT SOME point is this cleared?
         objectTemplate.__templates__ = objectTemplate.__templates__ || [];
         objectTemplate.__templates__.push(target);
 

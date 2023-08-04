@@ -4,7 +4,7 @@ import { Account } from './Account';
 import { ReturnedMail } from './ReturnedMail';
 
 @supertypeClass
-export class Address extends Supertype {
+export class Address extends Supertype(){
 
     constructor (customer, lines?) {
         super();

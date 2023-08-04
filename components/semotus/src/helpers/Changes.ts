@@ -67,7 +67,7 @@ function hasState(state: string | undefined, syncStates: Array<string>, scope: '
  * @param semotus
  */
 function filterSyncStates(semotusClass: RemoteableClass, semotus: Semotus): boolean {
-    const {scope, state} = semotus.controller.syncState;
+    const {scope, state} = semotus.controller.syncState || {};
     const syncStates: Array<string> = semotusClass.syncStates;
 
     if (semotus.controller.__template__ === semotusClass) { // Don't filter out the controller

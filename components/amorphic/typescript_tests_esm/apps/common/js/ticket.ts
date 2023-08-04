@@ -6,7 +6,7 @@ import { Created } from './created.js'
 console.log('Compiling Ticket');
 
 @supertypeClass
-export class Ticket  extends Created(Remoteable(Persistable(Supertype))){
+export class Ticket  extends Created(Remoteable(Persistable(Supertype()))){
 
     @property({rule: ['required']})
     title:			string;

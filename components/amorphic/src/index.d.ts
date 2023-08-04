@@ -1,6 +1,8 @@
-export { Supertype } from '@haventech/supertype';
+import { Supertype as SupertypeClass } from '@haventech/supertype';
 export { Persistable, ContainsPersistable, Persistor } from '@haventech/persistor';
-export { Remoteable, amorphicStatic } from './lib/utils/remoteable';
+export { Remoteable } from './lib/utils/remoteable';
+/** @deprecated */
+export { amorphicStatic } from './lib/utils/remoteable';
 export { Bindable } from 'amorphic-bindster';
 import { Persistor } from '@haventech/persistor';
 export { IAmorphicAppController } from './lib/types/IAmorphicAppController';
@@ -19,3 +21,5 @@ export declare var Config: any;
 export { remote } from './lib/types/remote';
 export function property(props?: Object);
 export function supertypeClass(props?: any);
+
+export function Supertype(): typeof SupertypeClass;

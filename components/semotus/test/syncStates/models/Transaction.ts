@@ -2,7 +2,7 @@ import { property, Supertype, supertypeClass } from '../../../dist/cjs';
 import { Account } from './Account';
 
 @supertypeClass
-export class Transaction extends Supertype {
+export class Transaction extends Supertype() {
     @property()
     amount: number;
     @property()

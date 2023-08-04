@@ -4,7 +4,7 @@ import { Account } from './Account';
 import * as _ from 'underscore';
 
 @supertypeClass
-export class Address extends Supertype {
+export class Address extends Supertype() {
 
     @property({type: String})
     lines: Array<String> = [];

@@ -17,7 +17,7 @@
 // Context Switch Chain:
 // 1st pass: Semotus (sClass) -> Supertype (sClass) -> Semotus (return Ret)
 // 2nd pass: Semotus (sClass) -> Semotus (decorator) -> Supertype (eval ret) -> Semotus (return)
-export function supertypeClass(objectTemplate, SupertypeModule, target): any {
+export function supertypeClass(objectTemplate, SupertypeModule?, target?) {
     let ret;
     let ObjectTemplate = SupertypeModule.default;
     let syncStates: String[] = [];  // Default syncStates to empty array
@@ -90,7 +90,7 @@ export function Supertype(template, objectTemplate, Supertype) {
     return Reflect.construct(Supertype, [objectTemplate], template.constructor);
 }
 
-export function property(objectTemplate, SupertypeModule, props, toClientRuleSet, toServerRuleSet) {
+export function property(objectTemplate, SupertypeModule?, props?, toClientRuleSet?, toServerRuleSet?) {
     props = props || {};
     props.toClient = applyRuleSet(props.toClient, toClientRuleSet);
     props.toServer = applyRuleSet(props.toServer, toServerRuleSet);

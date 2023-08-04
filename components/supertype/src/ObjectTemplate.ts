@@ -186,6 +186,7 @@ export class ObjectTemplate {
     }
 
     static getTemplateByName(name) {
+        // Missing AppVersion
         return this.getClasses()[name];
     }
 
@@ -453,6 +454,7 @@ export class ObjectTemplate {
     }
 
     static getClasses() {
+        // WHY is __templates__ empty?
         if (this.__templates__) {
             for (let ix = 0; ix < this.__templates__.length; ++ix) {
                 var template = this.__templates__[ix];
@@ -460,6 +462,7 @@ export class ObjectTemplate {
                 this.__templatesToInject__[constructorName(template)] = template;
                 processDeferredTypes(template);
             }
+            // console.log('===================', this.__templates__.length, 'templates added to dictionary')
             this.__templates__ = undefined;
             for (const templateName1 in this.__dictionary__) {
                 var template = this.__dictionary__[templateName1];

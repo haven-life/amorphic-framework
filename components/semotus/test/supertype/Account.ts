@@ -4,7 +4,7 @@ import { Address } from './Address';
 import { Transaction, Debit, Credit, Xfer } from './Transaction';
 
 @supertypeClass
-export class Account extends Supertype {
+export class Account extends Supertype() {
 
     constructor (number, title, customer, address) {
         super();
