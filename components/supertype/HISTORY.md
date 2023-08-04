@@ -1,3 +1,8 @@
+## 9.0.1
+* target es2020. es2020 is fully supported for Node 16.3.0+. see https://node.green/#ES2020
+* enable sourcemaps for debugging with VSCode.
+* add *.d.ts files for tsc
+* update builds to emit a package.json for cjs builds as well.
 ## 9.0.0
 * Hybrid package to use both ESM and CommonJS based on import type
 ## 8.0.0

@@ -1,3 +1,7 @@
+## 13.0.1
+* Support for ES6+ classes with the Persistable Mixin.
+* Enable sourcemaps for easier debugging with VSCode.
+* target es2020. es2020 is fully supported for Node 16.3.0+. see https://node.green/#ES2020
 ## 13.0.0
 * ESM/CJS Hybrid, depending on the import type either through require or import
 * Add ability for persistor to be included on its own and start up on its on

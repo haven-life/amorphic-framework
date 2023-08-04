@@ -21,7 +21,7 @@
  'use strict';
 
 // Node Modules
-import { SupertypeConfig } from '@haventech/supertype';
+import { SupertypeConfig, Supertype as BaseSupertype } from '@haventech/supertype';
 SupertypeConfig.useAmorphic = true;
 import Semotus from '@haventech/semotus';
 import { Persistor, Persistable } from '@haventech/persistor';
@@ -30,6 +30,7 @@ import { listen } from './lib/listen.js';
 import { startPersistorMode } from './lib/startPersistorMode.js';
 import * as typescript from './lib/typescript.js';
 import { resolveVersions } from './lib/resolve/resolveVersions.js';
+import AmorphicStaticProxy from './lib/AmorphicStaticProxy.js';
 
 // TODO: This should be a default set in Semotus
 Semotus.maxCallTime = 60 * 1000; // Max time for call interlock
@@ -97,7 +98,7 @@ function Remoteable (Base) {
         __extends(classOne, _super);
 
         function classOne() {
-            return _super !== null && Reflect.apply(_super, this, arguments) || this;
+            return _super !== null && Reflect.construct(_super, arguments, this.constructor) || this;
         }
 
         return classOne;
@@ -108,7 +109,7 @@ function Bindable (Base) {
         __extends(classOne, _super);
 
         function classOne() {
-            return _super !== null && Reflect.apply(_super, this, arguments) || this;
+            return _super !== null && Reflect.construct(_super, arguments, this.constructor) || this;
         }
 
         return classOne;
@@ -130,14 +131,33 @@ let toExport = {
 // bindDecorators will need to be called before importing templates to bind to the correct
 // subtype of ObjectTemplate (either semotus or persistor).  By default we bind to persistor in case
 // someone has mocha tests that use the object model.
-let bindDecorators = typescript.bindDecorators.bind(toExport);
-bindDecorators(Persistor); // For tests
+toExport.bindDecorators = typescript.bindDecorators.bind(toExport);
+toExport.bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;
 }});
 
-const { Amorphic, amorphicStatic, supertypeClass, Supertype, property, remote } = toExport;
+// Named exports must be statically defined. Some exports are now a proxy.
+function supertypeClass(props) {
+    return toExport.supertypeClass(props)
+}
+
+function Supertype() {
+    return Reflect.construct(toExport.Supertype, [], this.constructor);
+}
+Supertype.prototype = BaseSupertype.prototype;
+
+function property(props) {
+    return toExport.property(props);
+}
+
+function remote(defineProperty) {
+    return toExport.remote(defineProperty);
+}
+
+const amorphicStatic = new AmorphicStaticProxy(() => toExport.amorphicStatic);
+
 export { toExport as default, 
     getTemplates, 
     listen, 
@@ -148,10 +168,9 @@ export { toExport as default,
     Persistable, 
     Persistor, 
     amorphicStatic,
-    Amorphic,
+    amorphicStatic as Amorphic,
     supertypeClass,
     Supertype,
     property,
     remote
 };
- 

@@ -1,6 +1,6 @@
 {
 	"name": "@haventech/semotus",
-	"version": "10.0.0",
+	"version": "10.0.1",
 	"description": "A subclass of supertype that synchronizes sets of objects.",
 	"homepage": "https://github.com/haven-life/amorphic-framework",
 	"bugs": {
@@ -30,7 +30,7 @@
 		"compile:test:supertype": "ttsc -p ./test/supertype/tsconfig.json",
 		"compile:test:syncstates": "tsc -p ./test/syncStates/tsconfig.json",
 		"compile:test:types": "tsc -p ./test/typesTs/tsconfig.json",
-		"copyStatics": "cp ./src/index.d.ts ./dist/cjs/index.d.ts && cp ./src/helpers/Types.ts ./dist/cjs/helpers/Types.ts && cp ./src/index.d.ts ./dist/esm/index.d.ts && cp ./src/helpers/Types.ts ./dist/esm/helpers/Types.ts",
+		"copyStatics": "cp ./src/index.d.ts ./dist/cjs/index.d.ts && cp ./src/index.d.ts ./dist/esm/index.d.ts",
 		"coverage": "nyc npm run test",
 		"coverage:ts": "nyc npm run test:ts",
 		"debugJSTests": "mocha --inspect-brk test/javascript/*.js",

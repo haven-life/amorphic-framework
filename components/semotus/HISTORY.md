@@ -1,3 +1,9 @@
+## 10.0.1
+* fixes decorators and Supertype export after the ESM refactor.
+* support for ES6+ classes with the Persistable, Remoteable and Bindable decorators.
+* support for ES6+ classes with the Supertype class
+* target es2020. es2020 is fully supported for Node 16.3.0+. see https://node.green/#ES2020
+* add *.d.ts files for tsc
 ## 10.0.0
 * ESM/CJS Hybrid, depending on the import type either through require or import
 * some logic changes for the property setup

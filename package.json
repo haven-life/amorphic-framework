@@ -25,6 +25,6 @@
     "lerna": "^6.5.1"
   },
   "dependencies": {
-    "@haventech/supertype": "^8.0.0"
+    "@haventech/supertype": "^9.0.0"
   }
 }

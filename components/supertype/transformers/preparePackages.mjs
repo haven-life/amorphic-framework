@@ -26,3 +26,30 @@ export function createEsmModulePackageJson(buildDir, esmDir) {
         });
     });
 }
+
+
+export function createCommonJsPackageJson(buildDir, cjsDir) {
+    [ buildDir, cjsDir ] = [ buildDir || './dist', cjsDir || 'cjs' ];
+    console.log(`Running prepare packages for CommonJS with buildDir: ${buildDir} and cjsDir: ${cjsDir}`);
+    fs.readdir(buildDir, function (err, dirs) {
+        if (err) {
+            throw err;
+        }
+        dirs.forEach(function (dir) {
+            if (dir === cjsDir) {
+                var packageJsonFile = path.join(buildDir, dir, '/package.json');
+                if (!fs.existsSync(packageJsonFile)) {
+                    fs.writeFile(
+                        packageJsonFile,
+                        new Uint8Array(Buffer.from('{"type": "commonjs"}')),
+                        function (err) {
+                            if (err) {
+                                throw err;
+                            }
+                        }
+                    );
+                }
+            }
+        });
+    });
+}

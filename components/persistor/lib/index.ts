@@ -136,7 +136,7 @@ export function Persistable(Base) {
     return (function (_super) {
         __extends(class_1, _super);
         function class_1() {
-            return _super !== null && Reflect.apply(_super, this, arguments) || this;
+            return _super !== null && Reflect.construct(_super, arguments, this.constructor) || this;
         }
         return class_1;
     }(Base));
