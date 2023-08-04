@@ -4,6 +4,8 @@ export { Remoteable, amorphicStatic } from './lib/utils/remoteable';
 export { Bindable } from 'amorphic-bindster';
 import { Persistor } from '@haventech/persistor';
 export { IAmorphicAppController } from './lib/types/IAmorphicAppController';
+export { CallContext, ChangeString, Changes, ControllerResponse, ErrorType, PreServerCallChanges } from './lib/types/HelperTypes';
+export { HTTPObjs, RemoteCall, ILifecycleController } from './lib/types/ILifecycleController';
 
 // This class is for Amorphic unit tests
 export class Amorphic extends Persistor {

@@ -16,7 +16,6 @@
         "esModuleInterop": true,
         "declaration": true
     },
-    "declaration": true,
     "exclude": [
         "./typescript",
         "./test/typescript",

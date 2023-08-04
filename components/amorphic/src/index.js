@@ -11,7 +11,7 @@
  included in all copies or substantial portions of the Software.
 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIFES OF
  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
@@ -130,14 +130,113 @@ let toExport = {
 // bindDecorators will need to be called before importing templates to bind to the correct
 // subtype of ObjectTemplate (either semotus or persistor).  By default we bind to persistor in case
 // someone has mocha tests that use the object model.
-let bindDecorators = typescript.bindDecorators.bind(toExport);
-bindDecorators(Persistor); // For tests
+toExport.bindDecorators = typescript.bindDecorators.bind(toExport);
+
+// HERE!?
+// toExport.bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;
 }});
 
-const { Amorphic, amorphicStatic, supertypeClass, Supertype, property, remote } = toExport;
+
+// Instances of Supertype are different !?
+// const { Amorphic, amorphicStatic, /*supertypeClass, Supertype, property, remote*/ } = toExport;
+
+function supertypeClass(props) {
+    return toExport.supertypeClass(props)
+}
+
+function Supertype(props) {
+    return toExport.Supertype.call(this, props);
+}
+
+function property(props) {
+    return toExport.property(props);
+}
+
+function remote(defineProperty) {
+    return toExport.remote(defineProperty);
+}
+
+// function create() {
+//     return toExport.create();
+// }
+
+// function getInstance() {
+//     return toExport.getInstance();
+// }
+
+class amorphicStatic {
+    static get logger() {
+        return toExport.amorphicStatic.logger;
+    }
+
+    static get config() {
+        return toExport.amorphicStatic.config;
+    }
+
+    static beginDefaultTransaction() {
+        return toExport.amorphicStatic.beginDefaultTransaction;
+    }
+
+    static beginTransaction(nodefault) {
+        return toExport.amorphicStatic.beginTransaction(nodefault);
+    }
+
+    static endTransaction(persistorTransaction, logger) {
+        return toExport.amorphicStatic.endTransaction;
+    }
+
+    static begin (isdefault) {
+        return toExport.amorphicStatic.begin(isdefault);
+    }
+
+
+    static end (persistorTransaction, logger) {
+        return toExport.amorphicStatic.end(persistorTransaction, logger);
+    }
+
+    static commit (options) {
+        return toExport.amorphicStatic.commit(options);
+    }
+
+    static createTransientObject(callback) {
+        return toExport.amorphicStatic.createTransientObject(callback);
+    };
+
+    static get __transient__() {
+        return toExport.amorphicStatic.__transient__;
+    }
+
+    static get __dictionary__() {
+        return toExport.amorphicStatic.__dictionary__;
+    }
+
+    static get debugInfo() {
+        return toExport.amorphicStatic.debugInfo;
+    }
+
+    static set debugInfo(debugInfo) {
+        toExport.amorphicStatic.debugInfo = debugInfo;
+    }
+
+    static get reqSession() {
+        return toExport.amorphicStatic.reqSession;
+    }
+    static getClasses() {
+        return toExport.amorphicStatic.getClasses();
+    };
+
+    static syncAllTables() {
+        return toExport.amorphicStatic.syncAllTables();
+    };
+
+    static getInstance() {
+        return toExport.amorphicStatic.getInstance();
+    }
+}
+
 export { toExport as default, 
     getTemplates, 
     listen, 
@@ -148,10 +247,9 @@ export { toExport as default,
     Persistable, 
     Persistor, 
     amorphicStatic,
-    Amorphic,
+    amorphicStatic as Amorphic,
     supertypeClass,
     Supertype,
     property,
     remote
 };
- 

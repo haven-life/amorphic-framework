@@ -1,3 +1,9 @@
+## 14.0.1
+* updated tsconfig.esm.json target es2022 instead of esnext. es2022 enables top level await, first supported in Node@14.8.0.
+### Breaking Changes
+* `amorphicStatic` is now a Proxy to ObjectTemplate. All public properties should still be supported, however apps may need to use `getInstance()` to reference internal properties.
+* `Amorphic` is also a Proxy to ObjectTemplate. If classes extend Amorphic, it should be safe to extend Supertype instead.
+* Remove es5 and es2015 promises from
 ## 14.0.0
 * ESM CommonJS hybrid module that depends on if import or require is used.
 * Adding tests to test out the ESM capabilities
