@@ -5,7 +5,7 @@ import { Credit, Debit, Transaction, Xfer } from './Transaction';
 import * as _ from 'underscore';
 
 @supertypeClass
-export class Account extends Supertype() {
+export class Account extends Supertype {
 
     @property({type: Transaction, fetch: true})
     transactions: Array<Transaction> = [];

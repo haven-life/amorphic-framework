@@ -7,7 +7,7 @@ import { Address, AddressBSecondStage } from './Address';
 let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
 
 @supertypeClass
-export class Controller extends Supertype() {
+export class Controller extends Supertype {
 	@property()
 	sam: CustomerA; // Customer A
 	@property()

@@ -3,7 +3,7 @@ import { Role } from './Role';
 import { Address } from './Address';
 
 @supertypeClass
-export class Customer extends Supertype(){
+export class Customer extends Supertype{
 
     public addAddress (lines, city, state, zip) {
         var address = new Address(this);

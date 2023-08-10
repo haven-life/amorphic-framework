@@ -48,7 +48,7 @@ For example, we may choose to model our classes in objects like the following
    let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
-   export class Controller extends Supertype() {
+   export class Controller extends Supertype {
 
    	@property()
    	currentCustomer: Customer; // Customer 
@@ -71,7 +71,7 @@ For example, we may choose to model our classes in objects like the following
    let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
-   export class Customer extends Supertype() {
+   export class Customer extends Supertype {
 
    	@property()
     name: string;
@@ -97,7 +97,7 @@ For example, we may choose to model our classes in objects like the following
    let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
-   export class Controller extends Supertype() {
+   export class Controller extends Supertype {
 
    	@property()
     creditCardNumber: number;
@@ -122,7 +122,7 @@ In this example, we could go about this a couple ways. The one I would choose wo
    let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass
-   export class Controller extends Supertype() {
+   export class Controller extends Supertype {
 
    	@property()
    	currentCustomer: Customer; // Customer 
@@ -151,7 +151,7 @@ In this example, we could go about this a couple ways. The one I would choose wo
    let delay = require('../../../dist/cjs/helpers/Utilities.js').delay;
    
    @supertypeClass({syncStates: ['confirmation']})
-   export class Customer extends Supertype() {
+   export class Customer extends Supertype {
 
    	@property()
     name: string;

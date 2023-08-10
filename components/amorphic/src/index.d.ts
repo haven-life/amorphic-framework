@@ -1,4 +1,4 @@
-import { Supertype as SupertypeClass } from '@haventech/supertype';
+export { Supertype } from '@haventech/supertype';
 export { Persistable, ContainsPersistable, Persistor } from '@haventech/persistor';
 export { Remoteable } from './lib/utils/remoteable';
 /** @deprecated */
@@ -21,5 +21,3 @@ export declare var Config: any;
 export { remote } from './lib/types/remote';
 export function property(props?: Object);
 export function supertypeClass(props?: any);
-
-export function Supertype(): typeof SupertypeClass;

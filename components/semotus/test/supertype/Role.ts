@@ -3,7 +3,7 @@ import { Customer } from './Customer';
 import { Account } from './Account';
 
 @supertypeClass
-export class Role extends Supertype(){
+export class Role extends Supertype{
 
     constructor (customer, account, relationship) {
         super();

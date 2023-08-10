@@ -1,6 +1,16 @@
 ## 10.0.0
 * ESM/CJS Hybrid, depending on the import type either through require or import
 * some logic changes for the property setup
+### Breaking Changes
+* Supertype is no longer a direct class and must be called as a function.  
+Old Version
+```typescript
+class Account extends Supertype {}
+```
+New Version
+```typescript
+class Account extends Supertype {}
+```
 ## 9.0.0
 * Changed tsconfig target to be es2020.
 * Using Reflect to handle original extends logic.

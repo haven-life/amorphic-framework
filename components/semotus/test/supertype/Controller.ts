@@ -18,7 +18,7 @@ declare function require(name: string);
 //expect(Dummy['__toServer__']).to.equal(true);
 
 @supertypeClass
-export class Controller extends Supertype(){
+export class Controller extends Supertype{
 	@remote({
 		on: 'server'
 	})

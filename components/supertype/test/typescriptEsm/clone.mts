@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { Supertype, supertypeClass, property } from '../../dist/esm/index.js';
 
 @supertypeClass
-class SubOne extends Supertype() {
+class SubOne extends Supertype {
     @property()
     name: String = '';
     constructor (name) {
@@ -19,7 +19,7 @@ class SubOneExtended extends SubOne {
 };
 
 @supertypeClass
-class Main extends Supertype() {
+class Main extends Supertype {
 
     @property()
     name: String = '';
@@ -47,7 +47,7 @@ class Main extends Supertype() {
 };
 
 @supertypeClass
-class SubMany extends Supertype() {
+class SubMany extends Supertype {
     @property()
     main: Main;
     @property()

@@ -2441,19 +2441,21 @@ export function RemoteObjectTemplate() {
 		return logValue;
 	};
 
+	let globalObjectTemplate = this;
 	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
-		objectTemplate = objectTemplate || this;
-
-        boundSupertypeClass = supertypeClassDecorator.bind(this, objectTemplate, SupertypeModule);
-		boundSupertype = function () {
-            return SupertypeClass(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
-        };
-        boundSupertype.prototype = SupertypeModule.Supertype.prototype;
-        boundProperty = (props) => {
-            return propertyDecorator(objectTemplate, SupertypeModule, props, this.toClientRuleSet, this.toServerRuleSet);
-        };
-        boundRemote = remoteDecorator.bind(null, objectTemplate);
+		globalObjectTemplate = objectTemplate || this;  
 	};
+
+	boundSupertypeClass = supertypeClassDecorator.bind(RemoteObjectTemplate, () => globalObjectTemplate, SupertypeModule);
+	boundSupertype = function () {
+		return SupertypeClass(this, () => globalObjectTemplate, SupertypeModule.Supertype); // This is the class definition itself
+	};
+	boundSupertype.prototype = SupertypeModule.Supertype.prototype;
+	boundProperty = (props) => {
+		// TODO double check toClientRuleSet and toServerRuleSet works here
+		return propertyDecorator(() => globalObjectTemplate, SupertypeModule, props, RemoteObjectTemplate['toClientRuleSet'], RemoteObjectTemplate['toServerRuleSet']);
+	};
+	boundRemote = remoteDecorator.bind(null, () => globalObjectTemplate);
 
     RemoteObjectTemplate.Persistable = Persistable;
 	RemoteObjectTemplate.Remoteable = Remoteable;
@@ -2466,19 +2468,11 @@ export function RemoteObjectTemplate() {
 
 export default RemoteObjectTemplate();
 
-export function property(props?, toClientRuleSet?, toServerRuleSet?) {
-	return boundProperty(props, toClientRuleSet, toServerRuleSet);
-}
-
-export function remote(defineProperty?) {
-	return boundRemote(defineProperty);
-}
-export function Supertype(): typeof SupertypeModule.Supertype {
-    return boundSupertype;
-};
-
-export function supertypeClass(target?) {
-	return boundSupertypeClass(target);
-}
+export const property = boundProperty as (props?) => any;
+export const remote = boundRemote as (defineProperty?) => any;
+export const Supertype = boundSupertype as typeof SupertypeModule.Supertype;
+export const supertypeClass = boundSupertypeClass;
 
 export { Bindable, Persistable, Remoteable };
+
+// what about amorphicStatic?

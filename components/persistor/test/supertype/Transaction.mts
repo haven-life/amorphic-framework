@@ -2,7 +2,7 @@ import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm
 import { Account } from './Account.mjs';
 
 @supertypeClass
-export class Transaction  extends Persistable(Supertype()) {
+export class Transaction  extends Persistable(Supertype) {
     constructor (account, type, amount) {
         super()
         this.account = account;

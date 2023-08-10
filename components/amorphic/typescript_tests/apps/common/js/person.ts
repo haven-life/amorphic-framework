@@ -2,7 +2,7 @@ import { Supertype, supertypeClass, property, Remoteable, Persistable }  from '.
 
 console.log('Compiling Person');
 @supertypeClass
-export class Person extends Remoteable(Persistable(Supertype())) {
+export class Person extends Remoteable(Persistable(Supertype)) {
 
     @property({length: 40, rule: ["name", "required"]})
     firstName:          string = "";

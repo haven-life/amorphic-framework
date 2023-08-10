@@ -3,7 +3,7 @@ import { Role } from './Role.mjs';
 import { Address } from './Address.mjs';
 
 @supertypeClass
-export class Customer extends Persistable(Supertype()) {
+export class Customer extends Persistable(Supertype) {
 
     constructor (first, middle, last) {
         super();

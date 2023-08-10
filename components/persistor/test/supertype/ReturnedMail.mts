@@ -2,7 +2,7 @@ import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm
 import { Address } from './Address.mjs';
 
 @supertypeClass()
-export class ReturnedMail extends Persistable(Supertype()) {
+export class ReturnedMail extends Persistable(Supertype) {
 
     @property()
     date: Date;

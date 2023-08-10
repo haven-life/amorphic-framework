@@ -4,7 +4,7 @@ import { Address } from './Address.mjs';
 import { Transaction, Debit, Credit, Xfer } from './Transaction.mjs';
 
 @supertypeClass({toServer: true, toClient: false})
-export class Account extends Persistable(Supertype()) {
+export class Account extends Persistable(Supertype) {
 
     constructor (number, title, customer, address) {
         super();

@@ -5,7 +5,7 @@ import { ReturnedMail } from './ReturnedMail.mjs';
 import 'reflect-metadata';
 
 @supertypeClass
-export class Address extends Persistable(Supertype()) {
+export class Address extends Persistable(Supertype) {
 
     constructor (customer) {
         super();

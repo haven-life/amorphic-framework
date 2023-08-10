@@ -2,7 +2,7 @@ import { Supertype, supertypeClass, property, Persistable } from '../../dist/esm
 import { Responsibility } from './Responsibility.mjs';
 
 @supertypeClass
-export class Employee extends Persistable(Supertype()) {
+export class Employee extends Persistable(Supertype) {
     constructor(firstName, lastName) {
         super();
 
