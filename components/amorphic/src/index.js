@@ -133,7 +133,7 @@ let toExport = {
 toExport.bindDecorators = typescript.bindDecorators.bind(toExport);
 
 // HERE!?
-// toExport.bindDecorators(Persistor); // For tests
+toExport.bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;

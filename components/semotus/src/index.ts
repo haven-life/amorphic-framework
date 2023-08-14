@@ -2466,7 +2466,88 @@ export function RemoteObjectTemplate() {
 	return RemoteObjectTemplate;
 };
 
-export default RemoteObjectTemplate();
+const remoteObjectTemplate = RemoteObjectTemplate();
+
+export default remoteObjectTemplate;
+
+export const amorphicStatic = (remoteObjectTemplate as any).amorphicStatic;
+// export class amorphicStatic {
+//     static get logger() {
+//         return (remoteObjectTemplate as any).amorphicStatic.logger;
+//     }
+
+//     static get config() {
+//         return (remoteObjectTemplate as any).amorphicStatic.config;
+//     }
+
+//     static beginDefaultTransaction() {
+//         return (remoteObjectTemplate as any).amorphicStatic.beginDefaultTransaction;
+//     }
+
+//     static beginTransaction(nodefault) {
+//         return (remoteObjectTemplate as any).amorphicStatic.beginTransaction(nodefault);
+//     }
+
+//     static endTransaction(persistorTransaction, logger) {
+//         return (remoteObjectTemplate as any).amorphicStatic.endTransaction;
+//     }
+
+//     static begin (isdefault) {
+//         return (remoteObjectTemplate as any).amorphicStatic.begin(isdefault);
+//     }
+
+
+//     static end (persistorTransaction, logger) {
+//         return (remoteObjectTemplate as any).amorphicStatic.end(persistorTransaction, logger);
+//     }
+
+//     static commit (options) {
+//         return (remoteObjectTemplate as any).amorphicStatic.commit(options);
+//     }
+
+//     static createTransientObject(callback) {
+//         return (remoteObjectTemplate as any).amorphicStatic.createTransientObject(callback);
+//     };
+
+//     static get __transient__() {
+//         return (remoteObjectTemplate as any).amorphicStatic.__transient__;
+//     }
+
+//     static get __dictionary__() {
+//         return (remoteObjectTemplate as any).amorphicStatic.__dictionary__;
+//     }
+
+//     static get debugInfo() {
+//         return (remoteObjectTemplate as any).amorphicStatic.debugInfo;
+//     }
+
+//     static set debugInfo(debugInfo) {
+//         (remoteObjectTemplate as any).amorphicStatic.debugInfo = debugInfo;
+//     }
+
+// 	static get toClientRuleSet() {
+// 		return (remoteObjectTemplate as any).amorphicStatic.toClientRuleSet;
+// 	}
+
+// 	static set toClientRuleSet(toClientRuleSet: string[]) {
+// 		(remoteObjectTemplate as any).amorphicStatic.toClientRuleSet = toClientRuleSet;
+// 	}
+
+//     static get reqSession() {
+//         return (remoteObjectTemplate as any).amorphicStatic.reqSession;
+//     }
+//     static getClasses() {
+//         return (remoteObjectTemplate as any).amorphicStatic.getClasses();
+//     };
+
+//     static syncAllTables() {
+//         return (remoteObjectTemplate as any).amorphicStatic.syncAllTables();
+//     };
+
+//     static getInstance() {
+//         return (remoteObjectTemplate as any).amorphicStatic.getInstance();
+//     }
+// }
 
 export const property = boundProperty as (props?) => any;
 export const remote = boundRemote as (defineProperty?) => any;
