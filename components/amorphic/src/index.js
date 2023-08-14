@@ -148,7 +148,7 @@ function supertypeClass(props) {
 }
 
 function Supertype() {
-    return toExport.Supertype;
+    return toExport.Supertype.call(this);
 }
 
 function property(props) {
