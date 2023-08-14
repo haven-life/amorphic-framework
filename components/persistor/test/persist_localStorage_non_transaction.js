@@ -66,9 +66,9 @@ describe('Banking from pgsql Example persist_s3', function () {
             client: 'pg',
             connection: {
                 host: process.env.dbPath,
-                database: 'test',
-                user: 'persistor',
-                password: 'persistor',
+                database: process.env.dbName,
+                user: process.env.dbUser,
+                password: process.env.dbPassword,
 
             }
         });
