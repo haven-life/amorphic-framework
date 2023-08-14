@@ -247,27 +247,70 @@ module.exports = function (PersistObjectTemplate) {
             }
         });
 
-        promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
+        // changing the order of execution. In the past, for cases without transaction, we saved db first followed by remote doc, if any.
+        // In case of connection errors to remote doc server, the db would get saved but the remote docs wouldnt causing a disconnect.
+        // Now, we are changing the order of execution to save remote doc first followed by db. This way on db failures, we can delete the docs. 
+        // In case of connection issues
+        let remoteObjects: Map<any, any> = new Map();
+        try {
+            // first save documents, if any
+            const remoteDocs = remoteUpdateFns.map(
+                 (remoteUpdateFn) => remoteUpdateFn()
+            );
+            if (remoteDocs && remoteDocs.length > 0) {
+                const updateData: Array<UploadDocumentResponse> = await Promise.all(remoteDocs);
+                setRemoteObjects(updateData, remoteObjects);
+            }
+            // next, save db records
+            promises.push(this.saveKnexPojo(obj, pojo, isDocumentUpdate ? obj._id : null, txn, logger));
+            await Promise.all(promises);
+        }
+        catch(error) {
+            // if transaction is used then simply throw as it would be handled appropriately by rollback logic.
+            if (txn) {
+                throw error;
+            }
 
-        return Promise.all(promises) // update sql saves first
-            .then(() => (
-                Promise.all(
-                    remoteUpdateFns.map(
-                        // We want to wait to execute remote updates until the sql has resolved
-                        remoteUpdateFn => remoteUpdateFn()
-                    )
-                ).then((updateData: Array<UploadDocumentResponse>) => {
-                    if (txn) {
-                        txn.remoteObjects = txn.remoteObjects || new Map();
-                        for (const update of updateData) {
-                            txn.remoteObjects.set(update.key, update.versionId);
-                        }
-                    }
-                })
-            )) // update remote objects second
-            .then(function() {
-                return obj;
+            //otherwise delete docs, log docs that could not be deleted and then throw;
+            let toDeletePromiseArr = [];
+
+            remoteObjects.forEach((versionId: string, key: string) => {
+                toDeletePromiseArr.push(
+                    remoteDocService.deleteDocument(key, this.bucketName, versionId)
+                    .catch(error => {
+                        (logger || this.logger).error({
+                            module: moduleName,
+                            function: functionName,
+                            category: 'milestone',
+                            message: 'unable to rollback remote document with key:' + key + ' and bucket: ' + this.bucketName,
+                            error: {
+                                message: error && error.message,
+                                stack: error && error.stack,
+                                isHumanRelated: false,
+                                name: error&& error.name
+                            }
+                        });
+                    })
+                );
             });
+            await Promise.all(toDeletePromiseArr);
+            throw error;
+        }
+        
+        return obj;
+
+        function setRemoteObjects(updateData: Array<UploadDocumentResponse>, remoteObjects: Map<any, any>) {
+            
+            if (txn && !txn.remoteObjects) {
+                txn.remoteObjects = remoteObjects;
+            }
+
+            remoteObjects = (txn && txn.remoteObjects) || remoteObjects; 
+            for (const update of updateData) {
+                remoteObjects.set(update.key, update.versionId);
+            }
+            
+        }
 
         function log(defineProperty, pojo, prop) {
             if (defineProperty.logChanges)

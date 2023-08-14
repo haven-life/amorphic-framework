@@ -152,7 +152,85 @@ describe('Banking from pgsql Example persist_banking_s3', function () {
         });
     });
 
-    context('when uploading a banking document', () => {
+    context('when uploading a banking document, without transaction', () => {
+        let bankingDocumentStr = null;
+
+        beforeEach(() => {
+            sinon.replace(S3RemoteDocClient.prototype, 'downloadDocument', () => (
+                Promise.resolve(bankingDocumentStr)
+            ));
+        });
+
+        context('it succeeds', () => {
+            beforeEach(() => {
+                bankingDocumentStr = 'this should be stored remotely';
+                sinon.replace(S3RemoteDocClient.prototype, 'uploadDocument', () => (
+                    Promise.resolve()
+                ));
+
+                sandbox.spy(S3RemoteDocClient.prototype, 'uploadDocument');
+            });
+
+            afterEach(() => {
+                sandbox.restore();
+            });
+
+            it('should send with correct mime type', async () => {
+                let fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                fetchedNoBankDocCust.bankingDocument = bankingDocumentStr;
+                await fetchedNoBankDocCust.persistSave();
+
+                fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                expect(S3RemoteDocClient.prototype.uploadDocument.calledOnce).to.eql(true);
+                expect(S3RemoteDocClient.prototype.uploadDocument.getCall(0).args.length).to.eql(4);
+                expect(S3RemoteDocClient.prototype.uploadDocument.getCall(0).args[3]).to.eql('application/pdf');
+            });
+
+            it('should save to remote store', async () => {
+                let fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                fetchedNoBankDocCust.bankingDocument = bankingDocumentStr;
+                await fetchedNoBankDocCust.persistSave();
+
+                fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                expect(fetchedNoBankDocCust.bankingDocument).to.eql(bankingDocumentStr);
+            });
+        });
+
+        context('it errors', () => {
+            let uploadError;
+            beforeEach(() => {
+                uploadError = new Error('Upload Failed');
+                sinon.replace(S3RemoteDocClient.prototype, 'uploadDocument', () => (
+                    Promise.reject(uploadError)
+                ));
+            });
+
+            it('should rollback transaction on failure to save to remote store', async () => {
+                let fetchedNoBankDocCust;
+                let updateVersion;
+                try {
+                    fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                    updateVersion = fetchedNoBankDocCust.version;
+                    fetchedNoBankDocCust.bankingDocument = 'this should have rolled back';
+                    await fetchedNoBankDocCust.persistSave();
+                    expect.fail('Expected transaction to fail');
+                } catch (e) {
+                    if (e instanceof AssertionError) {
+                        throw e;
+                    }
+                    expect(e).to.eql(uploadError);
+
+                    fetchedNoBankDocCust = await Customer.getFromPersistWithId(noBankingDocumentCustomer._id);
+                    expect(fetchedNoBankDocCust.bankingDocument).to.not.equal('this should have rolled back');
+                    expect(fetchedNoBankDocCust.bankingDocument).to.equal(bankingDocumentStr);
+                    expect(updateVersion).to.equal(fetchedNoBankDocCust.version);
+                }
+            });
+        });
+    });
+
+
+    context('when uploading a banking document, with transaction', () => {
         let bankingDocumentStr = null;
 
         beforeEach(() => {
