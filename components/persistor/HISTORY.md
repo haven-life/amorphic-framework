@@ -1,3 +1,6 @@
+## 11.0.1
+* In the past if a remote object is saved without a transaction, the persistSave would save the db first, followed by remote doc uploads. If there are intermittent connectivity issues with the doc, the doc wouldn't properly save into remote storage, causing the db and remote storage to be out of sync. In cases where updates are wrapped around transactions however, remote docs get uploaded first, followed by db save. In this case if there are db save errors, the remote docs are deleted as part of transaction rollback logic.
+With this change, we are reversing the order of docs saved for the non-transaction cases to also be consistent with transaction cases. We do strongly recommend the use of transactions especially when saving remote docs. 
 ## 11.0.0 
 * Just a major version bump to prepare for parallel es2020. This would allow us to start pegging versions of persistor on amorphic, so that persistor's minor or patched versions are not automatically pulled in when bumped.
 ## 10.0.0

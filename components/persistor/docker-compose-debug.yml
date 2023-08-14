@@ -3,7 +3,7 @@ services:
   database-test:
     image: postgres:9.4-alpine
     ports:
-      - 5432
+      - '5432:5432'
     environment:
       - POSTGRES_USER=persistor
       - POSTGRES_PASSWORD=persistor
