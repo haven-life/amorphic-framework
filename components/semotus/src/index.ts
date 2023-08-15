@@ -2461,6 +2461,11 @@ export function RemoteObjectTemplate() {
 	RemoteObjectTemplate.Remoteable = Remoteable;
 	RemoteObjectTemplate.Bindable = Bindable;
 
+	(RemoteObjectTemplate as any).property = boundProperty;
+	(RemoteObjectTemplate as any).remote = boundRemote;
+	(RemoteObjectTemplate as any).Supertype = boundSupertype;
+	(RemoteObjectTemplate as any).supertypeClass = boundSupertypeClass;
+
 	RemoteObjectTemplate.bindDecorators(); //Default to binding to yourself
 
 	return RemoteObjectTemplate;

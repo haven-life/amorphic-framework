@@ -81,13 +81,13 @@ export function bindDecorators (objectTemplate) {
      *
      * @returns {unknown} unknown.
      */
-    this.create = function create() {
+    this.Amorphic.create = function create() {
         objectTemplate.connect = unitTestConfig.startup;
 
         return objectTemplate;
     };
 
-    this.getInstance = function getInstance() {
+    this.Amorphic.getInstance = function getInstance() {
         return objectTemplate;
     };
 }
