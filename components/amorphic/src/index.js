@@ -21,7 +21,7 @@
  'use strict';
 
 // Node Modules
-import { SupertypeConfig } from '@haventech/supertype';
+import { SupertypeConfig, Supertype as BaseSupertype } from '@haventech/supertype';
 SupertypeConfig.useAmorphic = true;
 import Semotus from '@haventech/semotus';
 import { Persistor, Persistable } from '@haventech/persistor';
@@ -133,7 +133,7 @@ let toExport = {
 toExport.bindDecorators = typescript.bindDecorators.bind(toExport);
 
 // HERE!?
-toExport.bindDecorators(Persistor); // For tests
+// toExport.bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;
@@ -150,6 +150,7 @@ function supertypeClass(props) {
 function Supertype() {
     return toExport.Supertype.call(this);
 }
+Supertype.prototype = BaseSupertype.prototype;
 
 function property(props) {
     return toExport.property(props);
