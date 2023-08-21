@@ -30,6 +30,7 @@ import { listen } from './lib/listen.js';
 import { startPersistorMode } from './lib/startPersistorMode.js';
 import * as typescript from './lib/typescript.js';
 import { resolveVersions } from './lib/resolve/resolveVersions.js';
+import AmorphicStaticProxy from './lib/AmorphicStaticProxy.js';
 
 // TODO: This should be a default set in Semotus
 Semotus.maxCallTime = 60 * 1000; // Max time for call interlock
@@ -132,17 +133,13 @@ let toExport = {
 // someone has mocha tests that use the object model.
 toExport.bindDecorators = typescript.bindDecorators.bind(toExport);
 
-// HERE!?
-// toExport.bindDecorators(Persistor); // For tests
+toExport.bindDecorators(Persistor); // For tests
 
 Object.defineProperty(toExport.Remoteable.prototype, 'amorphic', {get: function s() {
     return this.__objectTemplate__;
 }});
 
-
-// Instances of Supertype are different !?
-// const { Amorphic, amorphicStatic, /*supertypeClass, Supertype, property, remote*/ } = toExport;
-
+// Named exports must be statically defined. Some exports are now a proxy.
 function supertypeClass(props) {
     return toExport.supertypeClass(props)
 }
@@ -160,83 +157,7 @@ function remote(defineProperty) {
     return toExport.remote(defineProperty);
 }
 
-// function create() {
-//     return toExport.create();
-// }
-
-// function getInstance() {
-//     return toExport.getInstance();
-// }
-
-class amorphicStatic {
-    static get logger() {
-        return toExport.amorphicStatic.logger;
-    }
-
-    static get config() {
-        return toExport.amorphicStatic.config;
-    }
-
-    static beginDefaultTransaction() {
-        return toExport.amorphicStatic.beginDefaultTransaction;
-    }
-
-    static beginTransaction(nodefault) {
-        return toExport.amorphicStatic.beginTransaction(nodefault);
-    }
-
-    static endTransaction(persistorTransaction, logger) {
-        return toExport.amorphicStatic.endTransaction;
-    }
-
-    static begin (isdefault) {
-        return toExport.amorphicStatic.begin(isdefault);
-    }
-
-
-    static end (persistorTransaction, logger) {
-        return toExport.amorphicStatic.end(persistorTransaction, logger);
-    }
-
-    static commit (options) {
-        return toExport.amorphicStatic.commit(options);
-    }
-
-    static createTransientObject(callback) {
-        return toExport.amorphicStatic.createTransientObject(callback);
-    };
-
-    static get __transient__() {
-        return toExport.amorphicStatic.__transient__;
-    }
-
-    static get __dictionary__() {
-        return toExport.amorphicStatic.__dictionary__;
-    }
-
-    static get debugInfo() {
-        return toExport.amorphicStatic.debugInfo;
-    }
-
-    static set debugInfo(debugInfo) {
-        toExport.amorphicStatic.debugInfo = debugInfo;
-    }
-
-    static get reqSession() {
-        return toExport.amorphicStatic.reqSession;
-    }
-    static getClasses() {
-        return toExport.amorphicStatic.getClasses();
-    };
-
-    static syncAllTables() {
-        return toExport.amorphicStatic.syncAllTables();
-    };
-
-    static getInstance() {
-        return toExport.amorphicStatic.getInstance();
-    }
-}
+const amorphicStatic = new AmorphicStaticProxy(() => toExport.amorphicStatic);
 
 export { toExport as default, 
     getTemplates, 

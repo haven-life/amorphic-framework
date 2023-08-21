@@ -13,8 +13,11 @@
 		}
 	},
 	"types": "dist/cjs/index.d.ts",
-	"version": "14.0.0",
+	"version": "14.0.1",
 	"dependencies": {
+		"@haventech/persistor": "^13.0.0",
+		"@haventech/semotus": "^10.0.0",
+		"@haventech/supertype": "^9.0.0",
 		"amorphic-bindster": "2.0.*",
 		"compression": "1.7.4",
 		"cookie-parser": "1.4.6",
@@ -59,9 +62,6 @@
 		"xmlhttprequest-cookie": "0.9.9"
 	},
 	"peerDependencies": {
-		"@haventech/persistor": "*",
-		"@haventech/semotus": "*",
-		"@haventech/supertype": "*",
 		"knex": ">=0.21.0 <3.0.0",
 		"pg": ">=8.7.0 <9.0.0"
 	},

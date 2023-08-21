@@ -4,7 +4,6 @@ import * as unitTestConfig from './unitTestConfig.js'  // TODO: This seems like 
 import * as SupertypeDefinition from '@haventech/supertype';
 // Passed the main index export.  Will bind the decorators to either Persistor or Semotus
 export function bindDecorators (objectTemplate) {
-    // THIS is called...
 
     // TODO: In what situation would objectTemplate be null and why is it acceptable just to use this as a replacement?
     objectTemplate = objectTemplate || this;
