@@ -2441,21 +2441,23 @@ export function RemoteObjectTemplate() {
 		return logValue;
 	};
 
-	let globalObjectTemplate = this;
+	let boundObjectTemplate = RemoteObjectTemplate;
 	RemoteObjectTemplate.bindDecorators = function (objectTemplate) {
-		globalObjectTemplate = objectTemplate || this;  
+		boundObjectTemplate = objectTemplate || this;  
 	};
 
-	boundSupertypeClass = supertypeClassDecorator.bind(RemoteObjectTemplate, () => globalObjectTemplate, SupertypeModule);
+	boundSupertypeClass = supertypeClassDecorator.bind(RemoteObjectTemplate, () => boundObjectTemplate, SupertypeModule);
 	boundSupertype = function () {
-		return SupertypeClass(this, () => globalObjectTemplate, SupertypeModule.Supertype); // This is the class definition itself
+		// Use the object template that is set with the @supertypeClass decorator.
+		const objectTemplate = (new.target as any).__objectTemplate__;
+
+		return SupertypeClass(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
 	};
 	boundSupertype.prototype = SupertypeModule.Supertype.prototype;
 	boundProperty = (props) => {
-		// TODO double check toClientRuleSet and toServerRuleSet works here
-		return propertyDecorator(() => globalObjectTemplate, SupertypeModule, props, RemoteObjectTemplate['toClientRuleSet'], RemoteObjectTemplate['toServerRuleSet']);
+		return propertyDecorator(() => boundObjectTemplate, SupertypeModule, props, RemoteObjectTemplate['toClientRuleSet'], RemoteObjectTemplate['toServerRuleSet']);
 	};
-	boundRemote = remoteDecorator.bind(null, () => globalObjectTemplate);
+	boundRemote = remoteDecorator.bind(null, () => boundObjectTemplate);
 
     RemoteObjectTemplate.Persistable = Persistable;
 	RemoteObjectTemplate.Remoteable = Remoteable;

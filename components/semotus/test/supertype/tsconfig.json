@@ -12,8 +12,7 @@
         ],
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "inlineSources": true,
-        "inlineSourceMap": true,
+        "sourceMap": true,
         "esModuleInterop": true,
 		"plugins": [
 			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }

@@ -87,8 +87,7 @@ export function supertypeClass(getObjectTemplate, SupertypeModule?, target?) {
     return decorator; // decorator will be called 2nd time with ret as a closure
 }
 
-export function Supertype(template, getObjectTemplate, Supertype) {
-    const objectTemplate = getObjectTemplate();
+export function Supertype(template, objectTemplate, Supertype) {
     return Reflect.construct(Supertype, [objectTemplate], template.constructor);
 }
 
