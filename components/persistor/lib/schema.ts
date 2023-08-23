@@ -37,7 +37,6 @@ export default function (PersistObjectTemplate) {
         // Establish a hash of collections keyed by collection name that has the main template for the collection
         var collections = {};
         for (templateName in schema) {
-            // THIS is not working for AppVersion?
             template = this.getTemplateByName(templateName);
             if (template && schema[templateName].documentOf) {
 

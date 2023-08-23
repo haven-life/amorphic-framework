@@ -2486,5 +2486,3 @@ export const Supertype = boundSupertype as typeof SupertypeModule.Supertype;
 export const supertypeClass = boundSupertypeClass;
 
 export { Bindable, Persistable, Remoteable };
-
-// what about amorphicStatic?

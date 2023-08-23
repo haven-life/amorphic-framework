@@ -2,7 +2,7 @@ import { Supertype, supertypeClass, property } from '../../dist/cjs/index';
 import { Account } from './Account';
 
 @supertypeClass
-export class Transaction  extends Supertype{
+export class Transaction  extends Supertype {
     constructor (account, type, amount) {
         super()
         this.account = account;

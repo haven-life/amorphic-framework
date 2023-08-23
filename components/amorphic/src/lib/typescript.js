@@ -23,7 +23,6 @@ export function bindDecorators (objectTemplate) {
             return objectTemplate.supertypeClass(props, objectTemplate);
         }
         else {
-            // HERE...???
             return SupertypeDefinition.supertypeClass(props, objectTemplate);
         }
     };
