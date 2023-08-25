@@ -613,7 +613,7 @@ globalThis.amorphic = // Needs to be global to make mocha tests work
         };
 
         try {
-            request.send(JSON.stringify(message, ['arguments', 'changes', 'id', 'loggingContext', 'name', 'performanceLogging', 'remoteCallId', 'sequence', 'sync', 'type']));
+            request.send(JSON.stringify(message, ['arguments', 'changes', 'id', 'loggingContext', 'loggingData', 'loggingLevel', 'name', 'performanceLogging', 'remoteCallId', 'rootId', 'sequence', 'startingSequence', 'sync', 'type']));
         }
         catch (e) {
             throw 'xhr error ' + e.message + ' on ' + url;
