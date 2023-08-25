@@ -1,6 +1,7 @@
 {
     "files": [
         "src/lib/AmorphicServer.ts",
+        "src/lib/AmorphicStaticProxy.ts",
         "src/lib/utils/InputValidator.ts",
         "src/lib/utils/LoggerApiContextProcessor.ts",
         "src/lib/utils/AmorphicUtils.ts"
