@@ -40,7 +40,7 @@ export default class AmorphicProxy {
 
     createTransientObject(callback) {
         return this.getTarget().createTransientObject(callback);
-    };
+    }
 
     get __transient__() {
         return this.getTarget().__transient__;
@@ -64,11 +64,15 @@ export default class AmorphicProxy {
     
     getClasses() {
         return this.getTarget().getClasses();
-    };
+    }
 
     syncAllTables() {
         return this.getTarget().syncAllTables();
-    };
+    }
+
+    create() {
+        return this.getTarget().create();
+    }
 
     getInstance() {
         return this.getTarget().getInstance();
