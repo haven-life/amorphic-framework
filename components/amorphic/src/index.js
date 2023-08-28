@@ -98,7 +98,7 @@ function Remoteable (Base) {
         __extends(classOne, _super);
 
         function classOne() {
-            return _super !== null && Reflect.apply(_super, this, arguments) || this;
+            return _super !== null && Reflect.construct(_super, arguments, this.constructor) || this;
         }
 
         return classOne;
@@ -109,7 +109,7 @@ function Bindable (Base) {
         __extends(classOne, _super);
 
         function classOne() {
-            return _super !== null && Reflect.apply(_super, this, arguments) || this;
+            return _super !== null && Reflect.construct(_super, arguments, this.constructor) || this;
         }
 
         return classOne;
@@ -145,7 +145,7 @@ function supertypeClass(props) {
 }
 
 function Supertype() {
-    return toExport.Supertype.call(this);
+    return Reflect.construct(toExport.Supertype, [], this.constructor);
 }
 Supertype.prototype = BaseSupertype.prototype;
 

@@ -24,7 +24,7 @@
  */
 
 import { ArrayTypes, ProcessCallPayload, RemoteCall, SavedSession, Semotus, SendMessage } from './helpers/Types';
-import { property as propertyDecorator, remote as remoteDecorator, Supertype as SupertypeClass, supertypeClass as supertypeClassDecorator } from './decorators';
+import { property as propertyDecorator, remote as remoteDecorator, supertypeClass as supertypeClassDecorator } from './decorators';
 import { Bindable, Persistable, Remoteable } from './setupExtends';
 import * as Sessions from './helpers/Sessions';
 import * as Subscriptions from './helpers/Subscriptions';
@@ -2449,9 +2449,9 @@ export function RemoteObjectTemplate() {
 	boundSupertypeClass = supertypeClassDecorator.bind(RemoteObjectTemplate, () => boundObjectTemplate, SupertypeModule);
 	boundSupertype = function () {
 		// Use the object template that is set with the @supertypeClass decorator.
-		const objectTemplate = (new.target as any).__objectTemplate__;
+		const objectTemplate = (this.constructor as any).__objectTemplate__;
 
-		return SupertypeClass(this, objectTemplate, SupertypeModule.Supertype); // This is the class definition itself
+		return Reflect.construct(SupertypeModule.Supertype, [objectTemplate], this.constructor)
 	};
 	boundSupertype.prototype = SupertypeModule.Supertype.prototype;
 	boundProperty = (props) => {
