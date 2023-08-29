@@ -19,7 +19,7 @@
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
- import { ObjectTemplate } from './ObjectTemplate';
+import { ObjectTemplate } from './ObjectTemplate';
 
 ObjectTemplate.init();
 export default ObjectTemplate;

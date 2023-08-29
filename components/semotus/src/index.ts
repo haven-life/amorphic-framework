@@ -2479,7 +2479,6 @@ export default remoteObjectTemplate;
 
 export const amorphicStatic = (remoteObjectTemplate as any).amorphicStatic;
 
-
 export const property = boundProperty as (props?) => any;
 export const remote = boundRemote as (defineProperty?) => any;
 export const Supertype = boundSupertype as typeof SupertypeModule.Supertype;
