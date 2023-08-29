@@ -16,6 +16,9 @@
 ### Breaking Changes for 14
 * `amorphicStatic` is now a Proxy to ObjectTemplate. All public properties should still be supported. Pull Requests can be opened to port support additional private properties as needed.
 * `Amorphic` is also a Proxy to ObjectTemplate and this breaks support to extend Amorphic directly. Any classes extending from Amorphic should be updated to extend from Supertype instead.
+* Browser
+  * `client.js` file moved to `/dist/cjs/client.js` `<script src="/@haventech/amorphic/dist/cjs/client.js?ver=0"></script>` 
+  * In webpack configs. The `@haventech/amorphic` import alias can be replaced with `@haventech/semotus/dist/cjs/index.js`. 
 ## 13.0.0
 * Setting target to be es2020. 
 * Moving `knex` and `pg` to be peer dependencies. Product teams should have more flexibility in updating those two libraries.
