@@ -1,5 +1,5 @@
 export { Supertype } from '@haventech/supertype';
-export { Persistable, ContainsPersistable, Persistor } from '@haventech/persistor';
+export { Persistable, ContainsPersistable, PersistorClass as Persistor } from '@haventech/persistor';
 export { Remoteable } from './lib/utils/remoteable';
 export { amorphicStatic } from './lib/utils/remoteable';
 export { Bindable } from 'amorphic-bindster';
