@@ -3,8 +3,8 @@
     "compilerOptions": {
         "module": "es2020",
         "plugins": [
-            { "transform": "../../../build/transformers/appendJsExtension.ts", "after": true },
-			{ "transform": "../../../build/transformers/reflectMetadataResolver.ts", "after": true }
+            { "transform": "../../build/transformers/appendJsExtension.ts", "after": true },
+			{ "transform": "../../build/transformers/reflectMetadataResolver.ts", "after": true }
         ]
     },
     "ts-node": {
