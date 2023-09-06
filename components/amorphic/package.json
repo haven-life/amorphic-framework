@@ -17,7 +17,7 @@
 	"dependencies": {
 		"@haventech/persistor": "^13.0.0",
 		"@haventech/semotus": "^10.0.0",
-		"@haventech/supertype": "^9.0.1",
+		"@haventech/supertype": "^9.0.2",
 		"amorphic-bindster": "2.0.*",
 		"compression": "1.7.4",
 		"cookie-parser": "1.4.6",
