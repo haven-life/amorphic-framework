@@ -1,4 +1,4 @@
-## 9.0.1
+## 9.0.2
 * move transformers outside of @haventech/supertype and into a common root build folder
 * update esm to target es2020 instead of esnext
 ## 9.0.1
