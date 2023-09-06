@@ -15,8 +15,8 @@
 	"types": "dist/cjs/index.d.ts",
 	"version": "14.0.1",
 	"dependencies": {
-		"@haventech/persistor": "^13.0.0",
-		"@haventech/semotus": "^10.0.0",
+		"@haventech/persistor": "^13.0.1",
+		"@haventech/semotus": "^10.0.1",
 		"@haventech/supertype": "^9.0.2",
 		"amorphic-bindster": "2.0.*",
 		"compression": "1.7.4",
