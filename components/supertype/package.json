@@ -1,7 +1,7 @@
 {
     "name": "@haventech/supertype",
     "description": "A type system for classical inheritence, mix-ins and composition.",
-    "version": "9.0.1",
+    "version": "9.0.2",
     "main": "dist/cjs/index.js",
     "module": "dist/esm/index.js",
     "exports": {
@@ -10,8 +10,7 @@
             "require": "./dist/cjs/index.js",
             "import": "./dist/esm/index.js",
             "default": "./dist/esm/index.js"
-        },
-        "./transformers/preparePackages.mjs": "./transformers/preparePackages.mjs"
+        }
     },
     "types": "dist/cjs/index.d.ts",
     "homepage": "https://github.com/haven-life/supertype",

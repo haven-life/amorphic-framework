@@ -15,7 +15,7 @@
         "sourceMap": true,
         "esModuleInterop": true,
 		"plugins": [
-			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
+			{ "transform": "../../../../build/transformers/reflectMetadataResolver.ts", "after": true }
 		]
     }
 }

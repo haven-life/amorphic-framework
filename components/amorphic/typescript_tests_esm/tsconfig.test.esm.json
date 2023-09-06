@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "esnext",
+        "module": "es2020",
         "moduleResolution": "node",
         "target": "es2020",
         "lib": [
@@ -17,8 +17,8 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "plugins": [
-            { "transform": "@haventech/supertype/transformers/appendJsExtension.ts", "after": true },
-			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
+            { "transform": "../../../build/transformers/appendJsExtension.ts", "after": true },
+			{ "transform": "../../../build/transformers/reflectMetadataResolver.ts", "after": true }
         ],
         "esModuleInterop": true
     },
