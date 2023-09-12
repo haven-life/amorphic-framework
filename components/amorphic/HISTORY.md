@@ -1,3 +1,5 @@
+## 14.0.2
+- add set config to amorphicStatic proxy to support mocking in application tests
 ## 14.0.1
 * tsconfig
   * target es2020. es2020 is fully supported for Node 16.3.0+. see https://node.green/#ES2020

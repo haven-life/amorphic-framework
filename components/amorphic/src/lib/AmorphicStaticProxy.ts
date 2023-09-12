@@ -13,6 +13,10 @@ export default class AmorphicProxy {
         return this.getTarget().config;
     }
 
+    set config(config) {
+        this.getTarget().config = config;
+    }
+
     beginDefaultTransaction() {
         return this.getTarget().beginDefaultTransaction;
     }
