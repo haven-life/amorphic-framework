@@ -18,8 +18,6 @@
  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import { XMLHttpRequest } from 'xmlhttprequest-cookie';
-
 if (typeof RemoteObjectTemplate === 'undefined' && globalThis) {
     let RemoteObjectTemplate = globalThis.RemoteObjectTemplate;
 }
@@ -615,7 +613,7 @@ globalThis.amorphic = // Needs to be global to make mocha tests work
         };
 
         try {
-            request.send(JSON.stringify(message));
+            request.send(JSON.stringify(message, ['arguments', 'changes', 'id', 'loggingContext', 'loggingData', 'loggingLevel', 'name', 'performanceLogging', 'remoteCallId', 'rootId', 'sequence', 'startingSequence', 'sync', 'type']));
         }
         catch (e) {
             throw 'xhr error ' + e.message + ' on ' + url;

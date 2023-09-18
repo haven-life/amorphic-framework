@@ -2,9 +2,9 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist/esm",
-        "module": "esnext",
+        "module": "es2020",
         "plugins": [
-            { "transform": "./transformers/appendJsExtension.ts", "after": true }
+            { "transform": "../../build/transformers/appendJsExtension.ts", "after": true }
         ]
     }
 }

@@ -2,10 +2,10 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "rootDir": "../../",
-		"module": "esnext",
+		"module": "es2020",
         "strictNullChecks": false,
 		"plugins": [
-			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
+			{ "transform": "../../../../build/transformers/reflectMetadataResolver.ts", "after": true }
 		]
 	},
     "include": [

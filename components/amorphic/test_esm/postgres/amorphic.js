@@ -21,6 +21,8 @@ import serverAmorphic from '../../dist/esm/index.js';
 import amorphicContext from '../../dist/esm/lib/AmorphicContext.js';
 import { SupertypeSession } from '@haventech/supertype';
 import Semotus from '@haventech/semotus';
+import xhrc from 'xmlhttprequest-cookie';
+globalThis.XMLHttpRequest = xhrc.XMLHttpRequest;
 
 describe('Postgres tests', function () {
     let RemoteObjectTemplate, Controller, modelRequires, controllerRequires, clientController, serverController;

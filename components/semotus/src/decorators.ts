@@ -17,10 +17,11 @@
 // Context Switch Chain:
 // 1st pass: Semotus (sClass) -> Supertype (sClass) -> Semotus (return Ret)
 // 2nd pass: Semotus (sClass) -> Semotus (decorator) -> Supertype (eval ret) -> Semotus (return)
-export function supertypeClass(objectTemplate, SupertypeModule, target): any {
+export function supertypeClass(getObjectTemplate, SupertypeModule?, target?) {
     let ret;
     let ObjectTemplate = SupertypeModule.default;
     let syncStates: String[] = [];  // Default syncStates to empty array
+    let objectTemplate = getObjectTemplate();
 
     // Decorator workerbee
     const decorator = function decorator(target) {
@@ -86,11 +87,8 @@ export function supertypeClass(objectTemplate, SupertypeModule, target): any {
     return decorator; // decorator will be called 2nd time with ret as a closure
 }
 
-export function Supertype(template, objectTemplate, Supertype) {
-    return Reflect.construct(Supertype, [objectTemplate], template.constructor);
-}
-
-export function property(objectTemplate, SupertypeModule, props, toClientRuleSet, toServerRuleSet) {
+export function property(getObjectTemplate, SupertypeModule?, props?, toClientRuleSet?, toServerRuleSet?) {
+    const objectTemplate = getObjectTemplate();
     props = props || {};
     props.toClient = applyRuleSet(props.toClient, toClientRuleSet);
     props.toServer = applyRuleSet(props.toServer, toServerRuleSet);
@@ -106,7 +104,8 @@ export function property(objectTemplate, SupertypeModule, props, toClientRuleSet
 }
 
 
-export function remote(objectTemplate, defineProperty) {
+export function remote(getObjectTemplate, defineProperty) {
+    const objectTemplate = getObjectTemplate()
     defineProperty = defineProperty || {};
 
     /*

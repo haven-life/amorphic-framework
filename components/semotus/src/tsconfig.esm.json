@@ -2,9 +2,9 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "../dist/esm",
-        "module": "esnext",
+        "module": "ES2020",
         "plugins": [
-            { "transform": "@haventech/supertype/transformers/appendJsExtension.ts", "after": true }
+            { "transform": "../../../build/transformers/appendJsExtension.ts", "after": true }
         ]
     }
 }

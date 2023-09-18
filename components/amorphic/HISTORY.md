@@ -1,7 +1,26 @@
+## 14.0.2
+- add set config to amorphicStatic proxy to support mocking in application tests
+## 14.0.1
+* tsconfig
+  * target es2020. es2020 is fully supported for Node 16.3.0+. see https://node.green/#ES2020
+  * remove es5 and es2015.promise libs.
+  * add sourceMap files for easier debugging in VSCode
+* re-export HelperTypes and ILifecycleController types to avoid relative imports after the cjs/esm refactor.
+* update Mixin functions to use Reflect.construct instead of Reflect.apply. This allows Mixins to be used on ES6+ classes. Reflect.construct uses the `new` keyword that is required for ES6+ classes. `this.constructor` is used instead of `new.target` to support ES5 classes.
+* client.js
+  * removed imports for tests. This file is loaded directly in browsers and cannot use imports.
+    * postgres esm tests is updated to set XMLHttpRequest in globalThis to match the CommonJS tests.
+  * modified post method to avoid sending a serialized deferred property. Since deferred was converted to a native promise, Zone.js modifies promises in Angular apps to be ZoneAware. This adds a circular structure that cannot be serialized easily. The deferred object is unused on the other side of the client<->server call.
 ## 14.0.0
 * ESM CommonJS hybrid module that depends on if import or require is used.
 * Adding tests to test out the ESM capabilities
 * Using Babel for the CommonJS transpilation of the Javascript
+### Breaking Changes for 14
+* `amorphicStatic` is now a Proxy to ObjectTemplate. All public properties should still be supported. Pull Requests can be opened to port support additional private properties as needed.
+* `Amorphic` is also a Proxy to ObjectTemplate and this breaks support to extend Amorphic directly. Any classes extending from Amorphic should be updated to extend from Supertype instead.
+* Browser
+  * `client.js` file moved to `/dist/cjs/client.js` `<script src="/@haventech/amorphic/dist/cjs/client.js?ver=0"></script>` 
+  * In webpack configs. The `@haventech/amorphic` import alias can be replaced with `@haventech/semotus/dist/cjs/index.js`. 
 ## 13.0.0
 * Setting target to be es2020. 
 * Moving `knex` and `pg` to be peer dependencies. Product teams should have more flexibility in updating those two libraries.

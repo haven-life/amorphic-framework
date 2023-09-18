@@ -4,8 +4,6 @@
         "moduleResolution": "node",
         "target": "es2020",
         "lib": [
-            "es2015",
-            "es2017",
             "es2020"
         ],
         "noImplicitAny": false,
@@ -14,10 +12,10 @@
         ],
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "inlineSources": true,
-        "inlineSourceMap": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
 		"plugins": [
-			{ "transform": "@haventech/supertype/transformers/reflectMetadataResolver.ts", "after": true }
+			{ "transform": "../../../../build/transformers/reflectMetadataResolver.ts", "after": true }
 		]
     }
 }

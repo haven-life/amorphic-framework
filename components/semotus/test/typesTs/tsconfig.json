@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "esnext",
+        "module": "es2022",
         "moduleResolution": "node",
         "target": "es2020",
         "lib": [
@@ -15,6 +15,7 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "inlineSources": true,
-        "inlineSourceMap": true
+        "inlineSourceMap": true,
+        "esModuleInterop": true
     }
 }

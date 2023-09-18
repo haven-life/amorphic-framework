@@ -1,6 +1,7 @@
 {
     "files": [
         "src/lib/AmorphicServer.ts",
+        "src/lib/AmorphicStaticProxy.ts",
         "src/lib/utils/InputValidator.ts",
         "src/lib/utils/LoggerApiContextProcessor.ts",
         "src/lib/utils/AmorphicUtils.ts"
@@ -10,9 +11,7 @@
         "target": "es2020",
         "lib": [
             "es2020",
-            "dom",
-            "es5",
-            "es2015.promise"
+            "dom"
         ],
         "rootDir": "src",
         "noImplicitAny": false,
